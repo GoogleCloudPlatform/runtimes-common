@@ -3,7 +3,8 @@ steps:
     args:
       - 'python'
       - '/dedupe.py'
-      - '%IMAGE%'
+      - '--image=%IMAGE%'
+      - '--auth_file=%AUTH_FILE%'
     id: DEDUPE
   - name: gcr.io/cloud-builders/docker
     args:
