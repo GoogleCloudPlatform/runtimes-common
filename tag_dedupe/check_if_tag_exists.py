@@ -5,6 +5,8 @@ import subprocess
 import os
 import argparse
 
+AUTH_FILE_PATH_LOCAL = "/auth.json"
+
 
 def check_if_tag_exists(raw_image_path):
 	# extract both path to image, and the tag if provided
@@ -35,6 +37,7 @@ def check_if_tag_exists(raw_image_path):
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--image', type=str, help='Fully qualified remote path for the target image')
+	parser.add_argument('--auth_file', type=str, help='Path to JSON auth file in Google Cloud Storage associated with a service account with READ permissions to your image bucket.')
 	args = parser.parse_args()
 
 	check_if_tag_exists(args.image)

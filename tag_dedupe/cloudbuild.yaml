@@ -2,9 +2,8 @@ steps:
   - name: gcr.io/gcp-runtimes/dedupe:latest
     args:
       - 'python'
-      - '/dedupe.py'
+      - '/check_if_tag_exists.py'
       - '--image=%IMAGE%'
-      - '--auth_file=%AUTH_FILE%'
     id: DEDUPE
   - name: gcr.io/cloud-builders/docker
     args:
