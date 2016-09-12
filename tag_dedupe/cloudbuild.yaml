@@ -1,5 +1,5 @@
 steps:
-  - name: gcr.io/nick-cloudbuild/dedupe:latest
+  - name: gcr.io/gcp-runtimes/dedupe:latest
     args:
       - 'python'
       - '/dedupe.py'

@@ -4,14 +4,12 @@ import sys
 import subprocess
 import os
 import argparse
-from sets import Set
 
 AUTH_FILE_PATH_LOCAL = "/auth.json"
 
 def dedupe(input_tag, existing_tags):
-	for tag in existing_tags:
-		if input_tag == tag:
-			sys.exit("Tag already exists in remote repository! Exiting build.")
+	if input_tag in existing_tags:
+		sys.exit("Tag already exists in remote repository! Exiting build.")
 	print "Tag does not exist in remote repository! Continuing with build."
 
 
@@ -63,7 +61,7 @@ def main():
 	p = subprocess.Popen(["/builder/google-cloud-sdk/bin/gcloud alpha container images list-tags --format='value(tags)' {0}".format(image_path)],
 		shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-	existing_tags = Set(map(lambda tag : tag.rstrip('\n'), p.stdout.readlines()))
+	existing_tags = set(map(lambda tag : tag.rstrip('\n'), p.stdout.readlines()))
 
 	if "ERROR" in existing_tags:
 		sys.exit("Error encountered when retrieving existing image tags. Full log:" + existing_tags)
