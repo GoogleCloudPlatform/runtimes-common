@@ -27,9 +27,7 @@ def check_if_tag_exists(raw_image_path):
 	for tag in existing_tags:
 		print tag
 
-	if image_tag in existing_tags:
-		sys.exit("Tag already exists in remote repository! Exiting build.")
-	print "Tag does not exist in remote repository! Continuing with build."
+	return image_tag in existing_tags
 
 
 def main():
@@ -37,7 +35,9 @@ def main():
 	parser.add_argument('--image', type=str, help='Fully qualified remote path for the target image')
 	args = parser.parse_args()
 
-	check_if_tag_exists(args.image)
+	if check_if_tag_exists(args.image):
+		sys.exit("Tag already exists in remote repository! Exiting build.")
+	print "Tag does not exist in remote repository! Continuing with build."
 
 if __name__ == "__main__":
 	main()
