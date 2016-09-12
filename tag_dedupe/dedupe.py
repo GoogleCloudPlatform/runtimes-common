@@ -61,7 +61,7 @@ def main():
 	p = subprocess.Popen(["/builder/google-cloud-sdk/bin/gcloud alpha container images list-tags --format='value(tags)' {0}".format(image_path)],
 		shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
-	existing_tags = set(map(lambda tag : tag.rstrip('\n'), p.stdout.readlines()))
+	existing_tags = set(t.rstrip() for t in p.stdout.readlines())
 
 	if "ERROR" in existing_tags:
 		sys.exit("Error encountered when retrieving existing image tags. Full log:" + existing_tags)
