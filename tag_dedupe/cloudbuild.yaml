@@ -1,0 +1,14 @@
+steps:
+  - name: gcr.io/nick-cloudbuild/dedupe:latest
+    args:
+      - 'python'
+      - '/dedupe.py'
+      - '%IMAGE%'
+    id: DEDUPE
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - 'build'
+      - '--tag=%IMAGE%'
+      - '.'
+    id: BUILD
+images: ['%IMAGE%']
