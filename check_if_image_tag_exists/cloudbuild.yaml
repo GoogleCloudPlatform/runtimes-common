@@ -1,10 +1,10 @@
 steps:
-  - name: gcr.io/gcp-runtimes/dedupe:latest
+  - name: gcr.io/gcp-runtimes/check_if_tag_exists:latest
     args:
       - 'python'
-      - '/check_if_tag_exists.py'
+      - '/main.py'
       - '--image=%IMAGE%'
-    id: DEDUPE
+    id: CHECK_TAG
   - name: gcr.io/cloud-builders/docker
     args:
       - 'build'

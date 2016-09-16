@@ -1,6 +1,6 @@
 FROM gcr.io/cloud-builders/gcloud
 
-COPY check_if_tag_exists.py /
+COPY main.py /
 
 # This is the file containing the auth information for your service account. 
 # Necessary inside the container until gcloud supports cross container authentication when using cloudbuild.
