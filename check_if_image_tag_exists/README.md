@@ -15,12 +15,12 @@ prebuilding the image.
 ##Steps to Build Container Image
 1. Clone this repository.
 2. Navigate to your GCP project dashboard. Select "IAM & Admin", and then "Service Accounts".
-3. Create a new service account for your project. Make sure and grant this account read access to your project.
+3. Create a new service account for your project. Make sure to grant this account read access to your project.
 4. Create a private key for this service account, *in JSON form (NOT P12 form)*. Save this key as `auth.json` in the same directory as this repository (this should overwrite the placeholder `auth.json` file).
 5. Ensure you're logged into an account with write permissions to your project's repository.
-6. Issue the following command from this repository's root directory: `gcloud alpha container builds create -t {your_repository}/{your_project}/check_if_tag_exists:latest .`
+6. Issue the following command from this repository's root directory: `gcloud alpha container builds create -t gcr.io/$(gcloud info --format="value(config.project)")/check_if_tag_exists:latest .`
 7. In your target project's cloudbuild.yaml file, add the following build step *before* your build is actually executed:
-```- name: {your_repository}/{your_project}/check_if_tag_exists:latest```
+```- name: gcr.io/$(gcloud info --format="value(config.project)")/check_if_tag_exists:latest```
 
 If everything is successful, you will see a `check_if_tag_exists` container in the *Container Engine* view of your project on the GCP dashboard. This is the intermediate image that will be run in your cloudbuilds to ensure that you don't overwrite existing tags for your project.
 
