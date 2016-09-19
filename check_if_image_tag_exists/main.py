@@ -33,12 +33,13 @@ def check_if_tag_exists(raw_image_path, force_build):
         print tag
 
     if image_tag in existing_tags:
-        print "Tag already exists in remote repository!"
+        print "Tag \'" + image_tag + "\' already exists in remote repository!"
         if not force_build:
             sys.exit("Exiting build.")
         else:
-            print "Forcing build. Tag will be overwritten!"
-    print "Tag does not exist in remote repository! Continuing with build."
+            print "Forcing build. Tag \'" + image_tag + "\' will be overwritten!"
+            return
+    print "Tag \'" + image_tag + "\' does not exist in remote repository! Continuing with build."
 
 
 def main():
