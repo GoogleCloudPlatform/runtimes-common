@@ -37,9 +37,11 @@ def check_if_tag_exists(raw_image_path, force_build):
         if not force_build:
             sys.exit("Exiting build.")
         else:
-            print "Forcing build. Tag \'" + image_tag + "\' will be overwritten!"
+            print "Forcing build. Tag \'" + image_tag + "\' " \
+                  "will be overwritten!"
             return
-    print "Tag \'" + image_tag + "\' does not exist in remote repository! Continuing with build."
+    print "Tag \'" + image_tag + "\' does not exist in remote repository! " \
+          "Continuing with build."
 
 
 def main():
