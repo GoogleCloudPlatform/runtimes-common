@@ -7,7 +7,7 @@ import argparse
 AUTH_FILE_PATH_LOCAL = "/auth.json"
 
 
-def check_if_tag_exists(raw_image_path):
+def check_if_tag_exists(raw_image_path, force_build):
     # extract both path to image, and the tag if provided
     image_parts = raw_image_path.split(':')
     image_path = image_parts[0]
@@ -33,8 +33,16 @@ def check_if_tag_exists(raw_image_path):
         print tag
 
     if image_tag in existing_tags:
-        sys.exit("Tag already exists in remote repository! Exiting build.")
-    print "Tag does not exist in remote repository! Continuing with build."
+        print "Tag '{0}' already exists in remote repository!" \
+              .format(image_tag)
+        if not force_build:
+            sys.exit("Exiting build.")
+        else:
+            print "Forcing build. Tag '{0}' " \
+                  "will be overwritten!".format(image_tag)
+            return
+    print "Tag '{0}' does not exist in remote repository! " \
+          "Continuing with build.".format(image_tag)
 
 
 def main():
@@ -42,9 +50,10 @@ def main():
     parser.add_argument('--image', type=str,
                         help='Fully qualified remote path for the '
                         + 'target image')
+    parser .add_argument('--force', action='store_true', default=False)
     args = parser.parse_args()
 
-    check_if_tag_exists(args.image)
+    check_if_tag_exists(args.image, args.force)
 
 if __name__ == "__main__":
     main()
