@@ -4,9 +4,6 @@ import sys
 import subprocess
 import argparse
 
-AUTH_FILE_PATH_LOCAL = "/auth.json"
-
-
 def check_if_tag_exists(raw_image_path):
     # extract both path to image, and the tag if provided
     image_parts = raw_image_path.split(':')
@@ -18,7 +15,7 @@ def check_if_tag_exists(raw_image_path):
 
     p = subprocess.Popen(["/builder/google-cloud-sdk/bin/gcloud "
                           + "alpha container images list-tags "
-                          + "--format='value(tags)' {0}".format(image_path)],
+                          + "--format='value(tags)' --no-show-occurrences {0}".format(image_path)],
                          shell=True, stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
