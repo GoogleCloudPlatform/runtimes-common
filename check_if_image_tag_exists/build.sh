@@ -11,5 +11,4 @@ if [ -z "$1" ]; then
 fi
 
 sed -i "s|%IMAGE%|$IMAGE|g" cloudbuild.yaml
-sed -i "s|%AUTH_FILE%|$AUTH_FILE|g" cloudbuild.yaml
 gcloud alpha container builds create . --config=cloudbuild.yaml
