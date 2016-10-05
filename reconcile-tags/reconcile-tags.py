@@ -11,21 +11,22 @@ from subprocess import call
 
 
 def main():
-  files = glob.glob('./*.json')
-  for f in files:
-    print f
-    with open(f) as tag_map:
-      data = json.load(tag_map)
-      for repo, images in data.items():
-        print repo
-        for image in images:
-          print image
-          digest = image['digest']
-          tag = image['tag']
-          print digest
-          print tag
-          call(['gcloud', 'beta', 'container', 'images',
-              'add-tag', repo+'@sha256:'+digest, repo+':'+tag, '-q'])
+    files = glob.glob('./*.json')
+    for f in files:
+        print f
+        with open(f) as tag_map:
+            data = json.load(tag_map)
+            for repo, images in data.items():
+                print repo
+                for image in images:
+                    print image
+                    digest = image['digest']
+                    tag = image['tag']
+                    print digest
+                    print tag
+                    call(['gcloud', 'beta', 'container', 'images',
+                          'add-tag', repo+'@sha256:'+digest,
+                          repo+':'+tag, '-q'])
 
 if __name__ == '__main__':
-  main()
+    main()
