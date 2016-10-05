@@ -24,7 +24,8 @@ def reconcile_tags(dry_run):
                     tag = image['tag']
                     full_digest = repo + '@sha256:' + digest
                     full_tag = repo + ':' + tag
-                    print '\nTagging {0} with {1}'.format(full_digest, full_tag)
+                    print ('\nTagging {0} with {1}'
+                           .format(full_digest, full_tag))
                     if not dry_run:
                         print ('Running gcloud beta container images '
                                'add-tag {0} {1} -q'
