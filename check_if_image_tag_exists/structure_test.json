@@ -1,0 +1,17 @@
+{
+	"commands": [
+	],
+	"file_existence": [
+		{
+			"name": "Root",
+			"filePath": "/",
+			"shouldExist": true
+		},{
+			"name": "Fake file",
+			"filePath": "/foo/bar",
+			"shouldExist": false
+		}
+	],
+	"file_contents": [
+	]
+}
