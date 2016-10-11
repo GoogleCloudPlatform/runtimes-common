@@ -4,11 +4,13 @@
 	"file_existence": [
 		{
 			"name": "Root",
-			"filePath": "/",
+			"path": "/",
+			"isDirectory": true,
 			"shouldExist": true
 		},{
 			"name": "Fake file",
-			"filePath": "/foo/bar",
+			"path": "/foo/bar",
+			"isDirectory": false,
 			"shouldExist": false
 		}
 	],

@@ -19,13 +19,14 @@ type CommandTest struct {
 
 type FileExistenceTest struct {
 	Name				string		// name of test
-	FilePath			string 		// file to check existence of
+	Path				string 		// file to check existence of
+	IsDirectory			bool		// whether or not the path points to a directory
 	ShouldExist			bool 		// whether or not the file should exist
 }
 
 type FileContentTest struct {
 	Name				string		// name of test
-	FilePath			string 		// file to check existence of
+	Path				string 		// file to check existence of
 	ExpectedContents	string 		// expected contents of file	
 }
 
@@ -59,11 +60,16 @@ func TestRunCommand(t *testing.T) {
 func TestFileExists(t *testing.T) {
 	for _, tt := range tests.FileExistenceTests {
 		t.Log(tt.Name)
-		output, err := ioutil.ReadDir(tt.FilePath)
+		var err error
+		if (tt.IsDirectory) {
+			_, err = ioutil.ReadDir(tt.Path)
+		} else {
+			_, err = ioutil.ReadFile(tt.Path)
+		}
 		if tt.ShouldExist && err != nil {
-			t.Errorf("File %s should exist but does not! Error: %s", tt.FilePath, output)
+			t.Errorf("File %s should exist but does not!", tt.Path)
 		} else if !tt.ShouldExist && err == nil {
-			t.Errorf("File %s should not exist but does! Error: %s", tt.FilePath, output)
+			t.Errorf("File %s should not exist but does!", tt.Path)
 		}
 	}
 }
@@ -72,9 +78,9 @@ func TestFileExists(t *testing.T) {
 func TestFileContents(t *testing.T) {
 	for _, tt := range tests.FileContentTests {
 		t.Log(tt.Name)
-		actualContents, err := ioutil.ReadFile(tt.FilePath)
+		actualContents, err := ioutil.ReadFile(tt.Path)
 		if err != nil {
-			t.Errorf("Failed to open %s. Error: %s", tt.FilePath, err)
+			t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
 		}
 		if strings.TrimSpace(tt.ExpectedContents) != strings.TrimSpace(string(actualContents[:])) {
 			t.Errorf("Unexpected file contents encountered!\nExpected: %s\nActual: %s", tt.ExpectedContents, string(actualContents[:]))
