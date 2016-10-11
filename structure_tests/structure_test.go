@@ -3,11 +3,11 @@ package structure_tests
 import (
 	"io/ioutil"
 	"os/exec"
-	"strings"
 	"testing"
 	"encoding/json"
 	"flag"
 	"log"
+	"regexp"
 )
 
 type CommandTest struct {
@@ -27,7 +27,7 @@ type FileExistenceTest struct {
 type FileContentTest struct {
 	Name				string		// name of test
 	Path				string 		// file to check existence of
-	ExpectedContents	string 		// expected contents of file	
+	ExpectedContents	[]string 	// list of expected contents of file
 }
 
 type StructureTest struct {
@@ -82,8 +82,15 @@ func TestFileContents(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
 		}
-		if strings.TrimSpace(tt.ExpectedContents) != strings.TrimSpace(string(actualContents[:])) {
-			t.Errorf("Unexpected file contents encountered!\nExpected: %s\nActual: %s", tt.ExpectedContents, string(actualContents[:]))
+		contents := string(actualContents[:])
+		for _, s := range tt.ExpectedContents {
+			r, rErr := regexp.Compile(s)
+			if rErr != nil {
+				t.Errorf("Error compiling regex: %s", rErr)
+			}
+			if !r.MatchString(contents) {
+				t.Errorf("Expected string %s not found in file contents!", s)
+			}
 		}
 	}
 }

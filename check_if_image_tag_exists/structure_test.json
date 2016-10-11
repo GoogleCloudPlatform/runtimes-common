@@ -15,5 +15,13 @@
 		}
 	],
 	"file_contents": [
+		{
+			"name": "test file",
+			"path": "/tmp/test.txt",
+			"expectedContents": [
+				".*abc.*",
+				".*[^123].*"
+			]
+		}
 	]
 }
