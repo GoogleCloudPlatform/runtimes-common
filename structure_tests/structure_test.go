@@ -1,43 +1,42 @@
 package structure_tests
 
 import (
-	"io/ioutil"
-	"os/exec"
-	"testing"
+	"bytes"
 	"encoding/json"
 	"flag"
+	"io/ioutil"
 	"log"
+	"os/exec"
 	"regexp"
-	"bytes"
+	"testing"
 )
 
 type CommandTest struct {
-	Name				string		// name of test
-	Command				string 		// command to run
-	Flags				string 		// optional flags
-	ExpectedOutput		[]string 	// expected output of running command
-	ExpectedError		[]string	// expected error from running command
+	Name           string   // name of test
+	Command        string   // command to run
+	Flags          string   // optional flags
+	ExpectedOutput []string // expected output of running command
+	ExpectedError  []string // expected error from running command
 }
 
 type FileExistenceTest struct {
-	Name				string		// name of test
-	Path				string 		// file to check existence of
-	IsDirectory			bool		// whether or not the path points to a directory
-	ShouldExist			bool 		// whether or not the file should exist
+	Name        string // name of test
+	Path        string // file to check existence of
+	IsDirectory bool   // whether or not the path points to a directory
+	ShouldExist bool   // whether or not the file should exist
 }
 
 type FileContentTest struct {
-	Name				string		// name of test
-	Path				string 		// file to check existence of
-	ExpectedContents	[]string 	// list of expected contents of file
+	Name             string   // name of test
+	Path             string   // file to check existence of
+	ExpectedContents []string // list of expected contents of file
 }
 
 type StructureTest struct {
-	Commands			[]CommandTest		`json:"commands"`
-	FileExistenceTests 	[]FileExistenceTest	`json:"file_existence"`
-	FileContentTests 	[]FileContentTest	`json:"file_contents"`
+	Commands           []CommandTest       `json:"commands"`
+	FileExistenceTests []FileExistenceTest `json:"file_existence"`
+	FileContentTests   []FileContentTest   `json:"file_contents"`
 }
-
 
 func TestRunCommand(t *testing.T) {
 	for _, tt := range tests.Commands {
@@ -81,12 +80,11 @@ func TestRunCommand(t *testing.T) {
 	}
 }
 
-
 func TestFileExists(t *testing.T) {
 	for _, tt := range tests.FileExistenceTests {
 		t.Log(tt.Name)
 		var err error
-		if (tt.IsDirectory) {
+		if tt.IsDirectory {
 			_, err = ioutil.ReadDir(tt.Path)
 		} else {
 			_, err = ioutil.ReadFile(tt.Path)
@@ -98,7 +96,6 @@ func TestFileExists(t *testing.T) {
 		}
 	}
 }
-
 
 func TestFileContents(t *testing.T) {
 	for _, tt := range tests.FileContentTests {
@@ -120,13 +117,16 @@ func TestFileContents(t *testing.T) {
 	}
 }
 
-var configFile string; var tests StructureTest
+var configFile string
+var tests StructureTest
+
 func init() {
 	flag.StringVar(&configFile, "config", "/workspace/structure_test.json",
 		"path to the .yaml file containing test definitions.")
 	flag.Parse()
 
-	var err error; var testJson []byte
+	var err error
+	var testJson []byte
 	testJson, err = ioutil.ReadFile(configFile)
 	if err != nil {
 		log.Fatal(err)
