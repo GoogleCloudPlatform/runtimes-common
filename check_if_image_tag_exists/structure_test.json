@@ -1,5 +1,19 @@
 {
 	"commands": [
+		{
+			"name": "uname",
+			"command": "uname",
+			"flags": "-s",
+			"expectedOutput": ["Linux\n"],
+			"expectedError": [""]
+		},
+		{
+			"name": "broken uname",
+			"command": "uname",
+			"flags": "-s -asdfd",
+			"expectedOutput": [],
+			"expectedError": [".*invalid option.*"]
+		}
 	],
 	"file_existence": [
 		{

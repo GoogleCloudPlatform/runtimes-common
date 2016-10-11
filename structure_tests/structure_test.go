@@ -8,13 +8,15 @@ import (
 	"flag"
 	"log"
 	"regexp"
+	"bytes"
 )
 
 type CommandTest struct {
 	Name				string		// name of test
 	Command				string 		// command to run
 	Flags				string 		// optional flags
-	ExpectedOutput		string 		// expected output of running command
+	ExpectedOutput		[]string 	// expected output of running command
+	ExpectedError		[]string	// expected error from running command
 }
 
 type FileExistenceTest struct {
@@ -46,12 +48,35 @@ func TestRunCommand(t *testing.T) {
 		} else {
 			cmd = exec.Command(tt.Command)
 		}
-		actualOutput, err := cmd.CombinedOutput()
+		var outbuf, errbuf bytes.Buffer
+
+		cmd.Stdout = &outbuf
+		cmd.Stderr = &errbuf
+
+		err := cmd.Run()
+		oString := outbuf.String()
+		eString := errbuf.String()
+
 		if err != nil {
-			t.Errorf("Error running command: %s %s. Error: %s. Output %s.", tt.Command, tt.Flags, err, actualOutput)
+			for _, errStr := range tt.ExpectedError {
+				r, rErr := regexp.Compile(errStr)
+				if rErr != nil {
+					t.Errorf("Error compiling regex: %s", rErr)
+				}
+				if !r.MatchString(eString) {
+					t.Errorf("Expected string %s not found in error!", errStr)
+				}
+			}
 		}
-		if tt.ExpectedOutput != "" && string(actualOutput) != tt.ExpectedOutput {
-			t.Errorf("Unexpected output for command: %s\nExpected: %s\nActual: %s", tt.Command, tt.ExpectedOutput, string(actualOutput))
+
+		for _, outStr := range tt.ExpectedOutput {
+			r, rErr := regexp.Compile(outStr)
+			if rErr != nil {
+				t.Errorf("Error compiling regex: %s", rErr)
+			}
+			if !r.MatchString(oString) {
+				t.Errorf("Expected string %s not found in output!", outStr)
+			}
 		}
 	}
 }
