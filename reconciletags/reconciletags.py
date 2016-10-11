@@ -10,6 +10,7 @@ import json
 import logging
 import subprocess
 
+
 class TagReconciler:
     def call(self, command, dry_run):
         if not dry_run:
@@ -20,22 +21,13 @@ class TagReconciler:
         else:
             logging.debug('Would have run {0}'.format(command))
 
-
     def add_tags(self, digest, tag, dry_run):
         logging.debug('Tagging {0} with {1}'.format(digest, tag))
         command = ('gcloud beta container images add-tag {0} {1} '
                    '-q'.format(digest, tag))
         self.call(command, dry_run)
 
-
-    def delete_tag(self, repo, tag, dry_run):
-        full_tag = repo + ":" + tag
-        logging.debug('Removing {0}'.format(full_tag))
-        command = ('gcloud beta container images delete {0} -q'.format(full_tag))
-        self.call(command, dry_run)
-
-
-    #This turns a list of lists into one flat list of tags
+    # This turns a list of lists into one flat list of tags
     def get_tags_list(self, list_of_tags):
         flat_tags_list = []
         for sublist in list_of_tags:
@@ -44,16 +36,14 @@ class TagReconciler:
                     flat_tags_list.append(tag)
         return flat_tags_list
 
-
     def get_existing_tags(self, repo):
         output = self.call('gcloud beta container images list-tags '
-                      '--format=\'value(tags)\' --no-show-occurrences {0}'
-                      .format(repo), False)
+                           '--format=\'value(tags)\' --no-show-occurrences {0}'
+                           .format(repo), False)
 
         list_of_tags = [tag.split(',') for tag in output.split('\n')]
         existing_tags = self.get_tags_list(list_of_tags)
         return existing_tags
-
 
     def reconcile_tags(self, f, dry_run):
         # Hardcode dry_run to False for this call because we always want
@@ -72,19 +62,13 @@ class TagReconciler:
                     full_tag = repo + ':' + image['tag']
                     self.add_tags(full_digest, full_tag, dry_run)
 
-                existing_tags = self.get_existing_tags(repo)
-                reconciled_tags = [image['tag'] for image in images]
-
-                for tag in list(set(existing_tags) - set(reconciled_tags)):
-                    self.delete_tag(repo, tag, dry_run)
-
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dry-run', dest="dry_run",
                         action='store_true', default=False)
     parser.add_argument('file',
-                       help='The file to run the reconciler on')
+                        help='The file to run the reconciler on')
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG)
     r = TagReconciler()
