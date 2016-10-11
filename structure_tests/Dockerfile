@@ -1,5 +1,6 @@
-FROM scratch
+FROM gcr.io/cloud-builders/docker
 
-COPY structure_test.test /structure_test.test
+COPY structure_test /test/structure_test
+COPY run.sh /run.sh
 
-ENTRYPOINT ["/structure_test.test"]
+ENTRYPOINT ["/run.sh"]
