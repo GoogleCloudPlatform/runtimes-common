@@ -1,0 +1,20 @@
+{
+  "gcr.io/google-appengine/debian8":[
+    {
+      "digest": "673914b83b4c",
+      "tag": "latest"
+    },
+    {
+      "digest": "673914b83b4c",
+      "tag": "2016-09-27"
+    },
+    {
+      "digest": "7345edacf616",
+      "tag":  "2016-09-20"
+    },
+    {
+      "digest": "c8bba0e96842",
+      "tag": "2016-09-19"
+    }
+  ]
+
