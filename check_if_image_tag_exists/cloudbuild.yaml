@@ -7,4 +7,5 @@ steps:
     id: BUILD
   - name: gcr.io/gcp-runtimes/structure_test
     args: '%IMAGE%'
+    id: STRUCTURE_TEST
 images: ['%IMAGE%']
