@@ -10,4 +10,4 @@ fi
 
 cp /test/* /workspace/
 
-docker run --privileged=true -v /workspace:/workspace $IMAGE_NAME /bin/sh -c "/workspace/structure_test"
+docker run --privileged=true -v /workspace:/workspace "$IMAGE_NAME" /bin/sh -c "/workspace/structure_test"
