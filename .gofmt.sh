@@ -1,8 +1,14 @@
 #!/bin/bash
 
 set -e
-fmt_errors=$(gofmt -d .)
-if [[ $fmt_errors ]]; then
-    echo "$fmt_errors"
+files=$(gofmt -l -s .)
+if [[ $files ]]; then
+    echo "Gofmt errors in files: $files"
     exit 1
+fi
+
+files=$(go vet ./structure_tests)
+if [[ $files ]]; then
+   echo "Go vet errors in files: $files"
+   exit 1
 fi
