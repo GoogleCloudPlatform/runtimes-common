@@ -12,7 +12,7 @@
 			"command": "uname",
 			"flags": "-s -asdfd",
 			"expectedOutput": [],
-			"expectedError": [".*invalid option.*"]
+			"expectedError": [".*[invalid | unrecognized].*"]
 		}
 	],
 	"file_existence": [
@@ -28,14 +28,5 @@
 			"shouldExist": false
 		}
 	],
-	"file_contents": [
-		{
-			"name": "test file",
-			"path": "/tmp/test.txt",
-			"expectedContents": [
-				".*abc.*",
-				".*[^123].*"
-			]
-		}
-	]
+	"file_contents": []
 }
