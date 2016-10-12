@@ -10,5 +10,5 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-envsubst '${IMAGE}' < cloudbuild.yaml.in > cloudbuild.yaml
+envsubst < cloudbuild.yaml.in > cloudbuild.yaml
 gcloud alpha container builds create . --config=cloudbuild.yaml
