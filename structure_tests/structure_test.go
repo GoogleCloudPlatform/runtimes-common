@@ -53,29 +53,20 @@ func TestRunCommand(t *testing.T) {
 		cmd.Stderr = &errbuf
 
 		err := cmd.Run()
-		oString := outbuf.String()
-		eString := errbuf.String()
+		stdout := outbuf.String()
+		stderr := errbuf.String()
 
+		var errMessage string
 		if err != nil {
 			for _, errStr := range tt.ExpectedError {
-				r, rErr := regexp.Compile(errStr)
-				if rErr != nil {
-					t.Errorf("Error compiling regex: %s", rErr)
-				}
-				if !r.MatchString(eString) {
-					t.Errorf("Expected string %s not found in error!", errStr)
-				}
+				errMessage = "Expected string " + errStr + " not found in error!"
+				compileAndRunRegex(errStr, stderr, t, errMessage)
 			}
 		}
 
 		for _, outStr := range tt.ExpectedOutput {
-			r, rErr := regexp.Compile(outStr)
-			if rErr != nil {
-				t.Errorf("Error compiling regex: %s", rErr)
-			}
-			if !r.MatchString(oString) {
-				t.Errorf("Expected string %s not found in output!", outStr)
-			}
+			errMessage = "Expected string " + outStr + " not found in output!"
+			compileAndRunRegex(outStr, stdout, t, errMessage)
 		}
 	}
 }
@@ -104,17 +95,25 @@ func TestFileContents(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
 		}
+
 		contents := string(actualContents[:])
+
+		var errMessage string
 		for _, s := range tt.ExpectedContents {
-			r, rErr := regexp.Compile(s)
-			if rErr != nil {
-				t.Errorf("Error compiling regex %s : %s", s, rErr)
-				continue
-			}
-			if !r.MatchString(contents) {
-				t.Errorf("Expected string %s not found in file contents!", s)
-			}
+			errMessage = "Expected string " + s + " not found in file contents!"
+			compileAndRunRegex(s, contents, t, errMessage)
 		}
+	}
+}
+
+func compileAndRunRegex(regex string, base string, t *testing.T, err string) {
+	r, rErr := regexp.Compile(regex)
+	if rErr != nil {
+		t.Errorf("Error compiling regex %s : %s", regex, rErr.Error())
+		return
+	}
+	if !r.MatchString(base) {
+		t.Errorf(err)
 	}
 }
 
