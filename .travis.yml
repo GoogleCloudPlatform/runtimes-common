@@ -17,3 +17,4 @@ addons:
 script:
  - find . -name "*.sh" | xargs shellcheck
  - flake8 .
+ - ./.gofmt.sh
