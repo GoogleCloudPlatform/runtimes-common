@@ -40,7 +40,7 @@ type StructureTest struct {
 
 func TestRunCommand(t *testing.T) {
 	for _, tt := range tests.Commands {
-		t.Log(tt.Name)
+		t.Logf("COMMAND TEST: %s", tt.Name)
 		var cmd *exec.Cmd
 		if tt.Flags != "" {
 			cmd = exec.Command(tt.Command, tt.Flags)
@@ -82,7 +82,7 @@ func TestRunCommand(t *testing.T) {
 
 func TestFileExists(t *testing.T) {
 	for _, tt := range tests.FileExistenceTests {
-		t.Log(tt.Name)
+		t.Logf("FILE EXISTENCE TEST: %s", tt.Name)
 		var err error
 		if tt.IsDirectory {
 			_, err = ioutil.ReadDir(tt.Path)
@@ -99,7 +99,7 @@ func TestFileExists(t *testing.T) {
 
 func TestFileContents(t *testing.T) {
 	for _, tt := range tests.FileContentTests {
-		t.Log(tt.Name)
+		t.Logf("FILE CONTENT TEST: %s", tt.Name)
 		actualContents, err := ioutil.ReadFile(tt.Path)
 		if err != nil {
 			t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
@@ -108,7 +108,8 @@ func TestFileContents(t *testing.T) {
 		for _, s := range tt.ExpectedContents {
 			r, rErr := regexp.Compile(s)
 			if rErr != nil {
-				t.Errorf("Error compiling regex: %s", rErr)
+				t.Errorf("Error compiling regex %s : %s", s, rErr)
+				continue
 			}
 			if !r.MatchString(contents) {
 				t.Errorf("Expected string %s not found in file contents!", s)
