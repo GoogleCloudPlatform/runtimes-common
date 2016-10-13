@@ -6,6 +6,7 @@ before_install:
         - pip install --upgrade pip
         - pip install pep8
         - pip install flake8
+        - pip install mock
 
 addons:
   apt:
@@ -18,3 +19,4 @@ script:
  - find . -name "*.sh" | xargs shellcheck
  - flake8 .
  - ./.gofmt.sh
+ - python -m unittest discover -s reconciletags -p '*test.py'
