@@ -21,13 +21,13 @@ Command tests ensure that certain commands run properly on top of the shell of t
 
 Supported JSON Fields:
 
-	- Name (string, **required**): The name of the test
-	- Command (string, **required**): The command to run
-	- Flags (string[], *optional*): Optional flags to pass to the command
-	- Expected Output (string[], *optional*): List of regexes that should match the stdout from running the command.
-	- Excluded Output (string[], *optional*): List of regexes that should **not** match the stdout from running the command.
-	- Expected Error (string[], *optional*): List of regexes that should match the stderr from running the command.
-	- Excluded Error (string[], *optional*): List of regexes that should **not** match the stderr from running the command.
+- Name (string, **required**): The name of the test
+- Command (string, **required**): The command to run
+- Flags (string[], *optional*): Optional flags to pass to the command
+- Expected Output (string[], *optional*): List of regexes that should match the stdout from running the command.
+- Excluded Output (string[], *optional*): List of regexes that should **not** match the stdout from running the command.
+- Expected Error (string[], *optional*): List of regexes that should match the stderr from running the command.
+- Excluded Error (string[], *optional*): List of regexes that should **not** match the stderr from running the command.
 
 
 ##File Existence Tests
@@ -35,10 +35,10 @@ File existence tests check to make sure a specific file (or directory) exist wit
 
 Supported JSON Fields:
 
-	- Name (string, **required**): The name of the test
-	- Path (string, **required**): Path to the file or directory under test
-	- IsDirectory (boolean, **required**): Whether or not the specified path is a directory (as opposed to a file)
-	- ShouldExist (boolean, **required**): Whether or not the specified file or directory should exist in the file system
+- Name (string, **required**): The name of the test
+- Path (string, **required**): Path to the file or directory under test
+- IsDirectory (boolean, **required**): Whether or not the specified path is a directory (as opposed to a file)
+- ShouldExist (boolean, **required**): Whether or not the specified file or directory should exist in the file system
 
 
 ##File Content Tests
@@ -46,7 +46,7 @@ File content tests open a file on the file system and check its contents. These 
 
 Supported JSON Fields:
 
-	- Name (string, **required**): The name of the test
-	- Path (string, **required**): Path to the file under test
-	- ExpectedContents (string[], *optional*): List of regexes that should match the contents of the file
-	- ExcludedContents (string[], *optional*): List of regexes that should **not** match the contents of the file
+- Name (string, **required**): The name of the test
+- Path (string, **required**): Path to the file under test
+- ExpectedContents (string[], *optional*): List of regexes that should match the contents of the file
+- ExcludedContents (string[], *optional*): List of regexes that should **not** match the contents of the file
