@@ -2,7 +2,7 @@
 
 set -e
 
-IMAGE=$1
+export IMAGE=$1
 
 if [ -z "$1" ]; then
   echo "Usage: ./build.sh [image_path] [auth_file_remote_path]"
@@ -10,5 +10,5 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-sed -i "s|%IMAGE%|$IMAGE|g" cloudbuild.yaml
+envsubst < cloudbuild.yaml.in > cloudbuild.yaml
 gcloud alpha container builds create . --config=cloudbuild.yaml
