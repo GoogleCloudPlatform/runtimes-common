@@ -11,10 +11,11 @@ To use this test image with any cloudbuild, add the following build step to the 
 
 It's **very important that this step appears at the end of your build** (or at least after the image itself it assembled by Docker); without a built image, there will be nothing to test, and your build will fail!
 
-Tests within this framework are specified through a JSON config file, by default called `structure_test.json` (though this can be specified through a `--config` flag argument to the build step). This file will be copied into the workspace of the structure test image and loaded in by the test driver, which will execute the tests in order. Within this config file, three distinct types of tests can be written:
-	- Command Tests (testing output/error of a specific command issued)
-	- File Existence Tests (making sure a file is, or isn't, present in the file system of the image)
-	- File Content Tests (making sure files in the file system of the image contain, or do not contain, specific contents)
+Tests within this framework are specified through a JSON config file, by default called `structure_test.json` (this can be specified through a `--config` flag argument to the build step). This file will be copied into the workspace of the structure test image and loaded in by the test driver, which will execute the tests in order. Within this config file, three distinct types of tests can be written:
+
+- Command Tests (testing output/error of a specific command issued)
+- File Existence Tests (making sure a file is, or isn't, present in the file system of the image)
+- File Content Tests (making sure files in the file system of the image contain, or do not contain, specific contents)
 
 ## Command Tests
 Command tests ensure that certain commands run properly on top of the shell of the target image. Regexes can be used to check for expected or excluded strings in both stdout and stderr. Additionally, any number of flags can be passed to the argument as normal.
