@@ -31,9 +31,6 @@ _GCLOUD_LIST = ('gcloud beta container images list-tags '
 
 
 class ReconcileTagsTest(unittest.TestCase):
-    def _printCommand(self, command, shell):
-        print command
-        return _LIST_RESP
 
     def _gcloudAdd(self, digest, tag):
         return ('gcloud beta container images add-tag {0} {1} -q --format=json'
@@ -45,7 +42,7 @@ class ReconcileTagsTest(unittest.TestCase):
 
     def test_reconcile_tags(self):
         with mock.patch('subprocess.check_output',
-                        side_effect=self._printCommand) as mock_output:
+                        return_value=_LIST_RESP) as mock_output:
             self.r.reconcile_tags(self.data, False)
             mock_output.assert_any_call([_GCLOUD_CONFIG], shell=True)
             mock_output.assert_any_call([_GCLOUD_LIST], shell=True)
@@ -54,7 +51,7 @@ class ReconcileTagsTest(unittest.TestCase):
 
     def test_dry_run(self):
         with mock.patch('subprocess.check_output',
-                        side_effect=self._printCommand) as mock_output:
+                        return_value=_LIST_RESP) as mock_output:
             self.r.reconcile_tags(self.data, True)
             mock_output.assert_any_call([_GCLOUD_CONFIG], shell=True)
 
@@ -70,14 +67,14 @@ class ReconcileTagsTest(unittest.TestCase):
 
     def test_get_existing_tags(self):
         with mock.patch('subprocess.check_output',
-                        side_effect=self._printCommand) as mock_output:
+                        return_value=_LIST_RESP) as mock_output:
             existing_tags = self.r.get_existing_tags(_REPO)
             self.assertIn(_TAG1, existing_tags)
             mock_output.assert_called_once_with([_GCLOUD_LIST], shell=True)
 
     def test_add_tag(self):
         with mock.patch('subprocess.check_output',
-                        side_effect=self._printCommand) as mock_output:
+                        return_value=_LIST_RESP) as mock_output:
             self.r.add_tags(_REPO+'@sha256:'+_DIGEST2, _REPO+':'+_TAG2, False)
             mock_output.assert_called_once_with(
                 [self._gcloudAdd(_DIGEST2, _TAG2)], shell=True)

@@ -13,7 +13,7 @@ import subprocess
 
 class TagReconciler:
     def call(self, command, dry_run, fmt="json"):
-        command = command + " --format=" + fmt
+        command += " --format=" + fmt
         if not dry_run:
             logging.debug('Running {0}'.format(command))
             output = subprocess.check_output([command], shell=True)
@@ -29,7 +29,7 @@ class TagReconciler:
         self.call(command, dry_run)
 
     # This turns a list of lists into one flat list of tags
-    def get_tags_list(self, list_of_lists):
+    def flatten_tags_list(self, list_of_lists):
         flat_tags_list = []
         for sublist in list_of_lists:
             for tag in sublist:
@@ -42,7 +42,7 @@ class TagReconciler:
                             '--no-show-occurrences {0}'.format(repo), False))
 
         list_of_tags = [image['tags'] for image in output]
-        existing_tags = self.get_tags_list(list_of_tags)
+        existing_tags = self.flatten_tags_list(list_of_tags)
         return existing_tags
 
     def reconcile_tags(self, data, dry_run):
@@ -51,13 +51,14 @@ class TagReconciler:
         # reconciler.
         self.call('gcloud config list', False)
         for repo, images in data.items():
-            existing_tags = self.get_existing_tags(repo)
-            logging.debug(existing_tags)
+            logging.debug(self.get_existing_tags(repo))
 
             for image in images:
                 full_digest = repo + '@sha256:' + image['digest']
                 full_tag = repo + ':' + image['tag']
                 self.add_tags(full_digest, full_tag, dry_run)
+
+            logging.debug(self.get_existing_tags(repo))
 
 
 def main():
