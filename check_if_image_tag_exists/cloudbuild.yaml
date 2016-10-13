@@ -1,14 +1,11 @@
 steps:
-  - name: gcr.io/gcp-runtimes/check_if_tag_exists:latest
-    args:
-      - 'python'
-      - '/main.py'
-      - '--image=%IMAGE%'
+  - name: gcr.io/gcp-runtimes/check_if_tag_exists
+    args: ['python', '/main.py', '--image=%IMAGE%']
     id: CHECK_TAG
   - name: gcr.io/cloud-builders/docker
-    args:
-      - 'build'
-      - '--tag=%IMAGE%'
-      - '.'
+    args: ['build', '--tag=%IMAGE%', '.']
     id: BUILD
+  - name: gcr.io/gcp-runtimes/structure_test
+    args: '%IMAGE%'
+    id: STRUCTURE_TEST
 images: ['%IMAGE%']

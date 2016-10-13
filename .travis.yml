@@ -8,7 +8,15 @@ before_install:
         - pip install flake8
         - pip install mock
 
-script:
-        - flake8 .
-        - python -m unittest discover -s reconciletags -p '*test.py'
+addons:
+  apt:
+    sources:
+    - debian-sid    # Grab shellcheck from the Debian repo (o_O)
+    packages:
+    - shellcheck
 
+script:
+ - find . -name "*.sh" | xargs shellcheck
+ - flake8 .
+ - ./.gofmt.sh
+ - python -m unittest discover -s reconciletags -p '*test.py'
