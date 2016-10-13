@@ -12,7 +12,8 @@ import subprocess
 
 
 class TagReconciler:
-    def call(self, command, dry_run):
+    def call(self, command, dry_run, fmt="json"):
+        command = command + " --format=" + fmt
         if not dry_run:
             logging.debug('Running {0}'.format(command))
             output = subprocess.check_output([command], shell=True)
@@ -28,39 +29,36 @@ class TagReconciler:
         self.call(command, dry_run)
 
     # This turns a list of lists into one flat list of tags
-    def get_tags_list(self, list_of_tags):
+    def get_tags_list(self, list_of_lists):
         flat_tags_list = []
-        for sublist in list_of_tags:
+        for sublist in list_of_lists:
             for tag in sublist:
                 if tag:
                     flat_tags_list.append(tag)
         return flat_tags_list
 
     def get_existing_tags(self, repo):
-        output = self.call('gcloud beta container images list-tags '
-                           '--format=\'value(tags)\' --no-show-occurrences {0}'
-                           .format(repo), False)
+        output = json.loads(self.call('gcloud beta container images list-tags '
+                            '--no-show-occurrences {0}'
+                            .format(repo), False))
 
-        list_of_tags = [tag.split(',') for tag in output.split('\n')]
+        list_of_tags = [image['tags'] for image in output]
         existing_tags = self.get_tags_list(list_of_tags)
         return existing_tags
 
-    def reconcile_tags(self, f, dry_run):
+    def reconcile_tags(self, data, dry_run):
         # Hardcode dry_run to False for this call because we always want
         # want to see config regardless of whether we actually run the
         # reconciler.
         self.call('gcloud config list', False)
-        logging.debug('---Processing {0}---'.format(f))
-        with open(f) as tag_map:
-            data = json.load(tag_map)
-            for repo, images in data.items():
-                existing_tags = self.get_existing_tags(repo)
-                logging.debug(existing_tags)
+        for repo, images in data.items():
+            existing_tags = self.get_existing_tags(repo)
+            logging.debug(existing_tags)
 
-                for image in images:
-                    full_digest = repo + '@sha256:' + image['digest']
-                    full_tag = repo + ':' + image['tag']
-                    self.add_tags(full_digest, full_tag, dry_run)
+            for image in images:
+                full_digest = repo + '@sha256:' + image['digest']
+                full_tag = repo + ':' + image['tag']
+                self.add_tags(full_digest, full_tag, dry_run)
 
 
 def main():
@@ -72,7 +70,10 @@ def main():
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG)
     r = TagReconciler()
-    r.reconcile_tags(args.file, args.dry_run)
+    logging.debug('---Processing {0}---'.format(args.file))
+    with open(args.file) as tag_map:
+        data = json.load(tag_map)
+    r.reconcile_tags(data, args.dry_run)
 
 if __name__ == '__main__':
     main()

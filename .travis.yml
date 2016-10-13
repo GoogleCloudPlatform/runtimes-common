@@ -6,7 +6,9 @@ before_install:
         - pip install --upgrade pip
         - pip install pep8
         - pip install flake8
+        - pip install mock
 
 script:
         - flake8 .
+        - python -m unittest discover -s reconciletags -p '*test.py'
 
