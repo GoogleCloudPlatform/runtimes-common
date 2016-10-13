@@ -19,7 +19,7 @@ Tests within this framework are specified through a JSON config file, by default
 ## Command Tests
 Command tests ensure that certain commands run properly on top of the shell of the target image. Regexes can be used to check for expected or excluded strings in both stdout and stderr. Additionally, any number of flags can be passed to the argument as normal.
 
-Supported JSON Fields:
+####Supported JSON Fields:
 
 - Name (string, **required**): The name of the test
 - Command (string, **required**): The command to run
@@ -33,7 +33,7 @@ Supported JSON Fields:
 ##File Existence Tests
 File existence tests check to make sure a specific file (or directory) exist within the file system of the image. No contents of the files or directories are checked. These tests can also be used to ensure a file or directory is **not** present in the file system.
 
-Supported JSON Fields:
+####Supported JSON Fields:
 
 - Name (string, **required**): The name of the test
 - Path (string, **required**): Path to the file or directory under test
@@ -44,7 +44,7 @@ Supported JSON Fields:
 ##File Content Tests
 File content tests open a file on the file system and check its contents. These tests assume the specified file **is a file**, and that it **exists** (if unsure about either or these criteria, see the above **File Existence Tests** section). Regexes can again be used to check for expected or excluded content in the specified file.
 
-Supported JSON Fields:
+####Supported JSON Fields:
 
 - Name (string, **required**): The name of the test
 - Path (string, **required**): Path to the file under test
