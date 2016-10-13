@@ -1,7 +1,7 @@
 Container Build Structure Tests
 ===============================
 
-This code builds an image which serves as a framework to run structure-based tests on an image prior to pushing it to GCR. The image under tests runs as a docker container **inside** of this image, which itself runs as a docker container on a host machine in the cloud (when run through a [Google Cloud Container Build](https://cloud.google.com/container-builder/docs/overview)).
+This code builds an image which serves as a framework to run structure-based tests on a target image as part of a CI/CD build flow. These tests can be run before pushing an image to GCR, or post-push as part of a continuous system. The image under tests runs as a docker container **inside** of this image, which itself runs as a docker container on a host machine in the cloud (when run through a [Google Cloud Container Build](https://cloud.google.com/container-builder/docs/overview)).
 
 To use this test image with any cloudbuild, add the following build step to the **end** your container build config (cloudbuild.yaml or cloudbuild.json):
 
@@ -30,6 +30,25 @@ Command tests ensure that certain commands run properly on top of the shell of t
 - Expected Error (string[], *optional*): List of regexes that should match the stderr from running the command.
 - Excluded Error (string[], *optional*): List of regexes that should **not** match the stderr from running the command.
 
+Example:
+```json
+"commands": [
+	{
+		"name": "apt-get",
+		"command": "apt-get",
+		"flags": "help",
+		"expectedOutput": [".*Usage.*"],
+		"excludedError": [".*FAIL.*"]
+	},{
+		"name": "apt-get upgrade",
+		"command": "apt-get",
+		"flags": "-qqs upgrade",
+		"excludedOutput": [".*Inst.*Security.* | .*Security.*Inst.*"],
+		"excludedError": [".*Inst.*Security.* | .*Security.*Inst.*"]
+	}
+]
+```
+
 
 ##File Existence Tests
 File existence tests check to make sure a specific file (or directory) exist within the file system of the image. No contents of the files or directories are checked. These tests can also be used to ensure a file or directory is **not** present in the file system.
@@ -41,6 +60,23 @@ File existence tests check to make sure a specific file (or directory) exist wit
 - IsDirectory (boolean, **required**): Whether or not the specified path is a directory (as opposed to a file)
 - ShouldExist (boolean, **required**): Whether or not the specified file or directory should exist in the file system
 
+Example:
+```json
+"file_existence": [
+	{
+		"name": "Root",
+		"path": "/",
+		"isDirectory": true,
+		"shouldExist": true
+	},{
+		"name": "Fake file",
+		"path": "/foo/bar",
+		"isDirectory": false,
+		"shouldExist": false
+	}
+]
+```
+
 
 ##File Content Tests
 File content tests open a file on the file system and check its contents. These tests assume the specified file **is a file**, and that it **exists** (if unsure about either or these criteria, see the above **File Existence Tests** section). Regexes can again be used to check for expected or excluded content in the specified file.
@@ -51,3 +87,19 @@ File content tests open a file on the file system and check its contents. These 
 - Path (string, **required**): Path to the file under test
 - ExpectedContents (string[], *optional*): List of regexes that should match the contents of the file
 - ExcludedContents (string[], *optional*): List of regexes that should **not** match the contents of the file
+
+Example:
+```json
+"file_contents": [
+	{
+		"name": "Debian Sources",
+		"path": "/etc/apt/sources.list",
+		"expectedContents": [
+			".*httpredir\\.debian\\.org.*"
+		],
+		"excludedContents": [
+			".*gce_debian_mirror.*"
+		]
+	}
+]
+```
