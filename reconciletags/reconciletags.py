@@ -39,8 +39,7 @@ class TagReconciler:
 
     def get_existing_tags(self, repo):
         output = json.loads(self.call('gcloud beta container images list-tags '
-                            '--no-show-occurrences {0}'
-                            .format(repo), False))
+                            '--no-show-occurrences {0}'.format(repo), False))
 
         list_of_tags = [image['tags'] for image in output]
         existing_tags = self.get_tags_list(list_of_tags)
