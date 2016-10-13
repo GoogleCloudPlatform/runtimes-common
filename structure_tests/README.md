@@ -5,13 +5,11 @@ This code builds an image which serves as a framework to run structure-based tes
 
 To use this test image with any cloudbuild, add the following build step to the **end** your container build config (cloudbuild.yaml or cloudbuild.json):
 
-	```
 	name: gcr.io/gcp-runtimes/structure_test
 	args:
 		- <your_target_image>
-	```
 
-It's very important that this step appears at the end of your build (or at least after the image itself it assembled by Docker); without a built image, there will be nothing to test, and your build will fail!
+It's **very important that this step appears at the end of your build** (or at least after the image itself it assembled by Docker); without a built image, there will be nothing to test, and your build will fail!
 
 Tests within this framework are specified through a JSON config file, by default called `structure_test.json` (though this can be specified through a `--config` flag argument to the build step). This file will be copied into the workspace of the structure test image and loaded in by the test driver, which will execute the tests in order. Within this config file, three distinct types of tests can be written:
 	- Command Tests (testing output/error of a specific command issued)
@@ -36,6 +34,7 @@ Supported JSON Fields:
 File existence tests check to make sure a specific file (or directory) exist within the file system of the image. No contents of the files or directories are checked. These tests can also be used to ensure a file or directory is **not** present in the file system.
 
 Supported JSON Fields:
+
 	- Name (string, **required**): The name of the test
 	- Path (string, **required**): Path to the file or directory under test
 	- IsDirectory (boolean, **required**): Whether or not the specified path is a directory (as opposed to a file)
@@ -46,6 +45,7 @@ Supported JSON Fields:
 File content tests open a file on the file system and check its contents. These tests assume the specified file **is a file**, and that it **exists** (if unsure about either or these criteria, see the above **File Existence Tests** section). Regexes can again be used to check for expected or excluded content in the specified file.
 
 Supported JSON Fields:
+
 	- Name (string, **required**): The name of the test
 	- Path (string, **required**): Path to the file under test
 	- ExpectedContents (string[], *optional*): List of regexes that should match the contents of the file
