@@ -1,0 +1,25 @@
+commandTests:
+- name:  'uname'
+  command: 'uname'
+  flags: '-s'
+  expectedError: ['foo']
+  expectedOutput: ['Linux\n']
+
+- name:  'broken uname'
+  command: 'uname'
+  flags: '-s -asdf'
+  expectedError: ['.*[invalid | unrecognized].*']
+  expectedOutput: []
+
+fileExistenceTests:
+- name: 'Root'
+  path: '/'
+  isDirectory: true
+  shouldExist: true
+
+- name: 'Fake file'
+  path: '/foo/bar'
+  isDirectory: false
+  shouldExist: false  
+
+fileContentTests:  
