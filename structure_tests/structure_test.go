@@ -13,9 +13,9 @@ import (
 
 func TestRunCommand(t *testing.T) {
 	for _, tt := range tests.CommandTests {
-		t.Logf("COMMAND TEST: %s", tt.Name)
+		validate(t, tt)
 		var cmd *exec.Cmd
-		if tt.Flags != "" {
+		if tt.Flags != nil && len(tt.Flags) > 0 {
 			cmd = exec.Command(tt.Command, tt.Flags)
 		} else {
 			cmd = exec.Command(tt.Command)
@@ -56,7 +56,7 @@ func TestRunCommand(t *testing.T) {
 
 func TestFileExists(t *testing.T) {
 	for _, tt := range tests.FileExistenceTests {
-		t.Logf("FILE EXISTENCE TEST: %s", tt.Name)
+		validate(t, tt)
 		var err error
 		if tt.IsDirectory {
 			_, err = ioutil.ReadDir(tt.Path)
@@ -73,7 +73,7 @@ func TestFileExists(t *testing.T) {
 
 func TestFileContents(t *testing.T) {
 	for _, tt := range tests.FileContentTests {
-		t.Logf("FILE CONTENT TEST: %s", tt.Name)
+		validate(t, tt)
 		actualContents, err := ioutil.ReadFile(tt.Path)
 		if err != nil {
 			t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
@@ -102,6 +102,42 @@ func compileAndRunRegex(regex string, base string, t *testing.T, err string, sho
 	if shouldMatch != r.MatchString(base) {
 		t.Errorf(err)
 	}
+}
+
+func validate(t *testing.T, tt CommandTest) {
+	if tt.Name == nil || tt.Name == "" {
+		t.Fatalf("Please provide a valid name for every test!")
+	}
+	if tt.Command == nil || tt.Command == "" {
+		t.Fatalf("Please provide a valid command to run for test %s", tt.Name)
+	}
+	t.Logf("COMMAND TEST: %s", tt.Name)
+}
+
+func validate(t *testing.T, tt FileExistenceTest) {
+	if tt.Name == nil || tt.Name == "" {
+		t.Fatalf("Please provide a valid name for every test!")
+	}
+	if tt.Path == nil || tt.Path == "" {
+		t.Fatalf("Please provide a valid file path for test %s", tt.Name)
+	}
+	if tt.IsDirectory == nil {
+		t.Fatalf("Please specify whether %s is a file or a directory in test %s", tt.Path, tt.Name)
+	}
+	if tt.ShouldExist == nil {
+		t.Fatalf("Please specify whether file/directory %s should exist in test %s", tt.Path, tt.Name)
+	}
+	t.Logf("FILE EXISTENCE TEST: %s", tt.Name)
+}
+
+func validate(t *testing.T, tt FileContentTest) {
+	if tt.Name == nil || tt.Name == "" {
+		t.Fatalf("Please provide a valid name for every test!")
+	}
+	if tt.Path == nil || tt.Path == "" {
+		t.Fatalf("Please provide a valid file path for test %s", tt.Name)
+	}
+	t.Logf("FILE CONTENT TEST: %s", tt.Name)
 }
 
 var configFiles arrayFlags
