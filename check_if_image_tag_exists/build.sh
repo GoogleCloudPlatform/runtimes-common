@@ -1,13 +1,17 @@
 #!/bin/bash
 
+usage() { echo "Usage: ./build.sh [target_image_path] [schema_version]"; exit 1; }
+
 set -e
 
 export IMAGE=$1
+export VERSION=$2
 
-if [ -z "$1" ]; then
-  echo "Usage: ./build.sh [image_path]"
-  echo "Please provide fully qualified path to target image."
-  exit 1
+if [ -z $IMAGE ]; then
+  usage
+else if [ -z $VERSION ]; then
+	echo "Defaulting to latest JSON schema version..."
+	export VERSION="latest"
 fi
 
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
