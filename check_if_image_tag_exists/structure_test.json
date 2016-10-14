@@ -1,5 +1,5 @@
 {
-	"commands": [
+	"commandTests": [
 		{
 			"name": "uname",
 			"command": "uname",
@@ -15,7 +15,7 @@
 			"expectedError": [".*[invalid | unrecognized].*"]
 		}
 	],
-	"file_existence": [
+	"fileExistenceTests": [
 		{
 			"name": "Root",
 			"path": "/",
@@ -28,5 +28,5 @@
 			"shouldExist": false
 		}
 	],
-	"file_contents": []
+	"fileContentTests": []
 }
