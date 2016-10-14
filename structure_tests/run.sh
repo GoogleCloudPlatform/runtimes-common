@@ -3,6 +3,7 @@
 export DOCKER_API_VERSION="1.21"
 
 export VERBOSE=0
+export CONFIG=()
 while test $# -gt 0; do
 	case "$1" in
 		--image|-i)
@@ -25,7 +26,10 @@ while test $# -gt 0; do
 				echo "Please provide fully qualified path to config file."
 				exit 1
 			else
-				export CONFIG=$1
+				while test $# -gt 0; do
+					CONFIG=("${CONFIG[@]}" "$1")
+					shift
+				done
 			fi
 			shift
 			;;
