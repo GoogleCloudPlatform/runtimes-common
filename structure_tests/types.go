@@ -8,6 +8,17 @@ import (
 	"github.com/ghodss/yaml"
 )
 
+type arrayFlags []string
+
+func (a *arrayFlags) String() string {
+	return ""
+}
+
+func (a *arrayFlags) Set(value string) error {
+	*a = append(*a, value)
+	return nil
+}
+
 type CommandTest struct {
 	Name           string
 	Command        string
@@ -38,19 +49,41 @@ type StructureTest struct {
 	FileContentTests   []FileContentTest
 }
 
-func Parse(fp string, st *StructureTest) error {
-	testContents, err := ioutil.ReadFile(fp)
+func combineTests(tests *StructureTest, currentTests *StructureTest) {
+	for _, ct := range currentTests.CommandTests {
+		tests.CommandTests = append(tests.CommandTests, ct)
+	}
+	for _, fet := range currentTests.FileExistenceTests {
+		tests.FileExistenceTests = append(tests.FileExistenceTests, fet)
+	}
+	for _, fct := range currentTests.FileContentTests {
+		tests.FileContentTests = append(tests.FileContentTests, fct)
+	}
+}
+
+func parseFile(tests *StructureTest, configFile string) error {
+	var currentTests StructureTest
+	testContents, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return err
 	}
 
 	switch {
 	case strings.HasSuffix(fp, ".json"):
-		if err := json.Unmarshal(testContents, &st); err != nil {
+		if err := json.Unmarshal(testContents, &tests); err != nil {
 			return err
 		}
 	case strings.HasSuffix(fp, ".yaml"):
-		if err := yaml.Unmarshal(testContents, &st); err != nil {
+		if err := yaml.Unmarshal(testContents, &tests); err != nil {
+			return err
+		}
+	}
+	combineTests(tests, &currentTests)
+}
+
+func Parse(configFiles []string, tests *StructureTest) error {
+	for _, file := range configFiles {
+		if err := parseFile(&tests, file) != nil {
 			return err
 		}
 	}

@@ -42,13 +42,14 @@ done
 cp /test/* /workspace/
 
 export CMD_STRING="/workspace/structure_test"
-if [ -n "$CONFIG" ]; then
-	CMD_STRING=$CMD_STRING" --config $CONFIG"
-fi
 
 if [ $VERBOSE -eq 1 ]; then
 	CMD_STRING=$CMD_STRING" -v"
-	echo "$CMD_STRING"
 fi
+
+if [ -n "$CONFIG" ]; then
+	CMD_STRING=$CMD_STRING" --config ${CONFIG[@]}"
+fi
+echo "$CMD_STRING"
 
 docker run --privileged=true -v /workspace:/workspace "$IMAGE_NAME" /bin/sh -c "$CMD_STRING"
