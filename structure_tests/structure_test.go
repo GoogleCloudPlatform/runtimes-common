@@ -111,6 +111,10 @@ func init() {
 	flag.Var(&configFiles, "config", "path to the .yaml file containing test definitions.")
 	flag.Parse()
 
+	if len(configFiles) == 0 {
+		configFiles = append(configFiles, "/workspace/structure_test.json")
+	}
+
 	if err := Parse(configFiles, &tests); err != nil {
 		log.Fatalf("Error parsing config file: %s", err)
 	}
