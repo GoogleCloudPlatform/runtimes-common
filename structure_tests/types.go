@@ -69,21 +69,22 @@ func parseFile(tests *StructureTest, configFile string) error {
 	}
 
 	switch {
-	case strings.HasSuffix(fp, ".json"):
+	case strings.HasSuffix(configFile, ".json"):
 		if err := json.Unmarshal(testContents, &tests); err != nil {
 			return err
 		}
-	case strings.HasSuffix(fp, ".yaml"):
+	case strings.HasSuffix(configFile, ".yaml"):
 		if err := yaml.Unmarshal(testContents, &tests); err != nil {
 			return err
 		}
 	}
 	combineTests(tests, &currentTests)
+	return nil
 }
 
 func Parse(configFiles []string, tests *StructureTest) error {
 	for _, file := range configFiles {
-		if err := parseFile(&tests, file) != nil {
+		if err := parseFile(tests, file); err != nil {
 			return err
 		}
 	}
