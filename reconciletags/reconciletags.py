@@ -51,21 +51,19 @@ class TagReconciler:
         # reconciler.
         self.call('gcloud config list', False)
         for repo, images in data.items():
-            if not dry_run:
-                logging.debug(self.get_existing_tags(repo))
+            logging.debug(self.get_existing_tags(repo))
 
             for image in images:
                 full_digest = repo + '@sha256:' + image['digest']
                 full_tag = repo + ':' + image['tag']
                 self.add_tags(full_digest, full_tag, dry_run)
 
-            if not dry_run:
-                logging.debug(self.get_existing_tags(repo))
+            logging.debug(self.get_existing_tags(repo))
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dry-run', dest="dry_run",
+    parser.add_argument('--dry-run', dest='dry_run',
                         action='store_true', default=False)
     parser.add_argument('files',
                         help='The files to run the reconciler on',
