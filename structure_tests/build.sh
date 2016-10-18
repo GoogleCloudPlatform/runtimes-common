@@ -10,4 +10,5 @@ if [ -z "$1" ]; then
 fi
 
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
-gcloud alpha container builds create . --config=cloudbuild.yaml
+cd ..
+gcloud alpha container builds create . --config=structure_tests/cloudbuild.yaml
