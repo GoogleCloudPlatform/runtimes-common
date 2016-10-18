@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"strings"
+	"errors"
 
 	"github.com/ghodss/yaml"
 )
@@ -19,35 +20,16 @@ func (a *arrayFlags) Set(value string) error {
 	return nil
 }
 
-type CommandTest struct {
-	Name           string   // required
-	Command        string   // required
-	Flags          []string // optional
-	ExpectedOutput []string // optional
-	ExcludedOutput []string // optional
-	ExpectedError  []string // optional
-	ExcludedError  []string // optional
+const LatestVersion string = "1.0.0"
+var schemaVersions map[string]interface{} = map[string]interface{}{
+	LatestVersion: StructureTestv0{},
 }
 
-type FileExistenceTest struct {
-	Name        string // required
-	Path        string // required
-	IsDirectory bool   // required
-	ShouldExist bool   // required
+type SchemaVersion struct {
+	SchemaVersion	string
 }
 
-type FileContentTest struct {
-	Name             string   // required
-	Path             string   // required
-	ExpectedContents []string // optional
-	ExcludedContents []string // optional
-}
-
-type StructureTest struct {
-	CommandTests       []CommandTest
-	FileExistenceTests []FileExistenceTest
-	FileContentTests   []FileContentTest
-}
+type Unmarshaller func([]byte, interface{}) error
 
 func combineTests(tests *StructureTest, tmpTests *StructureTest) {
 	tests.CommandTests = append(tests.CommandTests, tmpTests.CommandTests...)
@@ -59,20 +41,40 @@ func parseFile(tests *StructureTest, configFile string) error {
 	var tmpTests StructureTest
 	testContents, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	var unmarshal Unmarshaller
+	var versionHolder SchemaVersion
+
 	switch {
-	case strings.HasSuffix(configFile, ".json"):
-		if err := json.Unmarshal(testContents, &tests); err != nil {
-			return err
-		}
-	case strings.HasSuffix(configFile, ".yaml"):
-		if err := yaml.Unmarshal(testContents, &tests); err != nil {
-			return err
-		}
+	case strings.HasSuffix(fp, ".json"):
+		unmarshal = json.Unmarshal
+	case strings.HasSuffix(fp, ".yaml"):
+		unmarshal = yaml.Unmarshal
+	default:
+		return nil, errors.New("Please provide valid JSON or YAML config file.")
 	}
-	combineTests(tests, &tmpTests)
+
+	if err := unmarshal(testContents, &versionHolder); err != nil {
+		return nil, err
+	}
+
+	version := versionHolder.SchemaVersion
+	if version == "" {
+		return nil, errors.New("Please provide JSON schema version.")
+	} else {
+		st := schemaVersions[version]
+		if st == nil {
+			return nil, errors.New("Unsupported schema version: " + version)
+		}
+		unmarshal(testContents, &st)
+		tests, ok := st.(StructureTest) //type assertion
+		if !ok {
+			return nil, errors.New("Error encountered when type casting Structure Test interface!")
+		}
+		combineTests(tests, &tmpTests)
+	}
 	return nil
 }
 
@@ -82,5 +84,4 @@ func Parse(configFiles []string, tests *StructureTest) error {
 			return err
 		}
 	}
-	return nil
 }
