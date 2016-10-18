@@ -50,9 +50,9 @@ type StructureTest struct {
 }
 
 func combineTests(tests *StructureTest, tmpTests *StructureTest) {
-	tests.CommandTests = append(tests.CommandTests, ct)
-	tests.FileExistenceTests = append(tests.FileExistenceTests, fet)
-	tests.FileContentTests = append(tests.FileContentTests, fct)
+	tests.CommandTests = append(tests.CommandTests, tmpTests.CommandTests...)
+	tests.FileExistenceTests = append(tests.FileExistenceTests, tmpTests.FileExistenceTests...)
+	tests.FileContentTests = append(tests.FileContentTests, tmpTests.FileContentTests...)
 }
 
 func parseFile(tests *StructureTest, configFile string) error {
