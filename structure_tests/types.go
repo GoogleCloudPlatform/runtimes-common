@@ -49,20 +49,14 @@ type StructureTest struct {
 	FileContentTests   []FileContentTest
 }
 
-func combineTests(tests *StructureTest, currentTests *StructureTest) {
-	for _, ct := range currentTests.CommandTests {
-		tests.CommandTests = append(tests.CommandTests, ct)
-	}
-	for _, fet := range currentTests.FileExistenceTests {
-		tests.FileExistenceTests = append(tests.FileExistenceTests, fet)
-	}
-	for _, fct := range currentTests.FileContentTests {
-		tests.FileContentTests = append(tests.FileContentTests, fct)
-	}
+func combineTests(tests *StructureTest, tmpTests *StructureTest) {
+	tests.CommandTests = append(tests.CommandTests, ct)
+	tests.FileExistenceTests = append(tests.FileExistenceTests, fet)
+	tests.FileContentTests = append(tests.FileContentTests, fct)
 }
 
 func parseFile(tests *StructureTest, configFile string) error {
-	var currentTests StructureTest
+	var tmpTests StructureTest
 	testContents, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		return err
@@ -78,7 +72,7 @@ func parseFile(tests *StructureTest, configFile string) error {
 			return err
 		}
 	}
-	combineTests(tests, &currentTests)
+	combineTests(tests, &tmpTests)
 	return nil
 }
 
