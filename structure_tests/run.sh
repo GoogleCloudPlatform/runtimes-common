@@ -3,7 +3,8 @@
 export DOCKER_API_VERSION="1.21"
 
 export VERBOSE=0
-export CONFIG=()
+export CMD_STRING="/workspace/structure_test"
+
 while test $# -gt 0; do
 	case "$1" in
 		--image|-i)
@@ -26,14 +27,13 @@ while test $# -gt 0; do
 				echo "Please provide fully qualified path to config file."
 				exit 1
 			else
-				while test $# -gt 0; do
-					CONFIG=("${CONFIG[@]}" "$1")
-					shift
-				done
+				CMD_STRING=$CMD_STRING" --config $1"
 			fi
 			shift
 			;;
 		*)
+			echo "Usage: $0 -i <image> [-c <config>] [-v]"
+			exit 1
 			shift
 			;;
 	esac
@@ -41,15 +41,8 @@ done
 
 cp /test/* /workspace/
 
-export CMD_STRING="/workspace/structure_test"
-
 if [ $VERBOSE -eq 1 ]; then
 	CMD_STRING=$CMD_STRING" -v"
 fi
-
-if [ -n "$CONFIG" ]; then
-	CMD_STRING=$CMD_STRING" --config ${CONFIG[@]}"
-fi
-echo "$CMD_STRING"
 
 docker run --privileged=true -v /workspace:/workspace "$IMAGE_NAME" /bin/sh -c "$CMD_STRING"
