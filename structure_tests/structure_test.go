@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"os/exec"
 	"regexp"
 	"testing"
@@ -143,7 +144,7 @@ func validateFileContentTest(t *testing.T, tt FileContentTest) {
 var configFiles arrayFlags
 var tests StructureTest
 
-func init() {
+func TestMain(m *testing.M) {
 	flag.Var(&configFiles, "config", "path to the .yaml file containing test definitions.")
 	flag.Parse()
 
@@ -152,7 +153,13 @@ func init() {
 	}
 
 	var err error
-	if tests, err = Parse(*configFile); err != nil {
-		log.Fatalf("Error parsing config file: %s", err)
+	for _, file := range configFiles {
+		if tests, err = Parse(file); err != nil {
+			log.Fatalf("Error parsing config file: %s", err)
+		}
+		log.Printf("Running tests for file %s", file)
+		if exit := m.Run(); exit != 0 {
+			os.Exit(exit)
+		}
 	}
 }

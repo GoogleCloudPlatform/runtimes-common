@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"reflect"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -32,15 +31,8 @@ type SchemaVersion struct {
 
 type Unmarshaller func([]byte, interface{}) error
 
-func combineTests(tests *StructureTest, tmpTests *StructureTest) {
-	tests.CommandTests = append(tests.CommandTests, tmpTests.CommandTests...)
-	tests.FileExistenceTests = append(tests.FileExistenceTests, tmpTests.FileExistenceTests...)
-	tests.FileContentTests = append(tests.FileContentTests, tmpTests.FileContentTests...)
-}
-
-func parseFile(tests *StructureTest, configFile string) error {
-	var tmpTests StructureTest
-	testContents, err := ioutil.ReadFile(configFile)
+func Parse(fp string) (StructureTest, error) {
+	testContents, err := ioutil.ReadFile(fp)
 	if err != nil {
 		return nil, err
 	}
@@ -69,20 +61,11 @@ func parseFile(tests *StructureTest, configFile string) error {
 		if st == nil {
 			return nil, errors.New("Unsupported schema version: " + version)
 		}
-		unmarshal(testContents, &st)
+		unmarshal(testContents, st)
 		tests, ok := st.(StructureTest) //type assertion
 		if !ok {
 			return nil, errors.New("Error encountered when type casting Structure Test interface!")
 		}
-		combineTests(tests, &tmpTests)
-	}
-	return nil
-}
-
-func Parse(configFiles []string, tests *StructureTest) error {
-	for _, file := range configFiles {
-		if err := parseFile(tests, file); err != nil {
-			return err
-		}
+		return tests, nil
 	}
 }
