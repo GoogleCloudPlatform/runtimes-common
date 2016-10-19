@@ -1,8 +1,0 @@
-steps:
-        - name: gcr.io/cloud-builders/go
-          args: ['test', '-c', 'github.com/GoogleCloudPlatform/runtimes-common/structure_tests', '-o', '/workspace/structure_tests/structure_test']
-          env: ['PROJECT_ROOT=github.com/GoogleCloudPlatform/runtimes-common']
-        - name: gcr.io/cloud-builders/docker
-          args: ['build', '-t', 'gcr.io/nick-cloudbuild/structure_test:version_test', './structure_tests']
-images:
-        - 'gcr.io/nick-cloudbuild/structure_test:version_test'
