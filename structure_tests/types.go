@@ -11,7 +11,7 @@ import (
 type arrayFlags []string
 
 func (a *arrayFlags) String() string {
-	return ""
+	return strings.Join(*a, ", ")
 }
 
 func (a *arrayFlags) Set(value string) error {
