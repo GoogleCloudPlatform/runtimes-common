@@ -8,7 +8,6 @@ type FileContentTest interface {
 }
 
 type FileContentTestv0 struct {
-	FileContentTest
 	Name             string   // name of test
 	Path             string   // file to check existence of
 	ExpectedContents []string // list of expected contents of file

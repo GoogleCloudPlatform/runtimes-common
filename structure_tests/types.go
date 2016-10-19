@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strings"
 	"errors"
+	"reflect"
 
 	"github.com/ghodss/yaml"
 )
@@ -20,9 +21,9 @@ func (a *arrayFlags) Set(value string) error {
 	return nil
 }
 
-const LatestVersion string = "1.0.0"
 var schemaVersions map[string]interface{} = map[string]interface{}{
-	LatestVersion: StructureTestv0{},
+	"1.0.0": new(StructureTestv0),
+	"2.0.0": new(StructureTestv1),
 }
 
 type SchemaVersion struct {

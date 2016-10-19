@@ -15,7 +15,6 @@ type CommandTest interface {
 }
 
 type CommandTestv0 struct {
-	CommandTest
 	Name           string
 	Command        string
 	Flags          string

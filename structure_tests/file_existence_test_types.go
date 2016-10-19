@@ -8,7 +8,6 @@ type FileExistenceTest interface {
 }
 
 type FileExistenceTestv0 struct {
-	FileExistenceTest
 	Name        string // name of test
 	Path        string // file to check existence of
 	IsDirectory bool   // whether or not the path points to a directory
