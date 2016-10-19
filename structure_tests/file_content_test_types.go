@@ -1,8 +1,8 @@
 package main
 
 type FileContentTest interface {
-	GetName()             string   // name of test
-	GetPath()             string   // file to check existence of
+	GetName() string               // name of test
+	GetPath() string               // file to check existence of
 	GetExpectedContents() []string // list of expected contents of file
 	GetExcludedContents() []string // list of excluded contents of file
 }

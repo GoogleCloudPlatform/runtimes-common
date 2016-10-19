@@ -5,13 +5,13 @@ import (
 )
 
 type CommandTest interface {
-	GetName()	string
-	GetCommand()	string
-	GetFlags()	string
+	GetName() string
+	GetCommand() string
+	GetFlags() string
 	GetExpectedOutput() []string
 	GetExcludedOutput() []string
-	GetExpectedError()  []string
-	GetExcludedError()  []string // excluded error from running command
+	GetExpectedError() []string
+	GetExcludedError() []string // excluded error from running command
 }
 
 type CommandTestv0 struct {

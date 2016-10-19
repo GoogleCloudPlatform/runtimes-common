@@ -2,10 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"strings"
 	"errors"
+	"io/ioutil"
 	"reflect"
+	"strings"
 
 	"github.com/ghodss/yaml"
 )
@@ -27,7 +27,7 @@ var schemaVersions map[string]interface{} = map[string]interface{}{
 }
 
 type SchemaVersion struct {
-	SchemaVersion	string
+	SchemaVersion string
 }
 
 type Unmarshaller func([]byte, interface{}) error

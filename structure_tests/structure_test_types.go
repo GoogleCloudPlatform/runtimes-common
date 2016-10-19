@@ -1,9 +1,9 @@
 package main
 
 type StructureTest interface {
-	GetCommandTests()       []CommandTest
+	GetCommandTests() []CommandTest
 	GetFileExistenceTests() []FileExistenceTest
-	GetFileContentTests()   []FileContentTest
+	GetFileContentTests() []FileContentTest
 }
 
 type StructureTestv0 struct {
@@ -37,9 +37,9 @@ func (t StructureTestv0) GetFileContentTests() []FileContentTest {
 }
 
 type StructureTestv1 struct {
-	CommandTests		[]CommandTestv1
-	FileExistenceTests	[]FileExistenceTestv0
-	FileContentTests	[]FileContentTestv0
+	CommandTests       []CommandTestv1
+	FileExistenceTests []FileExistenceTestv0
+	FileContentTests   []FileContentTestv0
 }
 
 func (t StructureTestv1) GetCommandTests() []CommandTest {
