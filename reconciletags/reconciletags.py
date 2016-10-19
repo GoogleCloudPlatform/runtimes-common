@@ -63,17 +63,19 @@ class TagReconciler:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dry-run', dest="dry_run",
+    parser.add_argument('--dry-run', dest='dry_run',
                         action='store_true', default=False)
-    parser.add_argument('file',
-                        help='The file to run the reconciler on')
+    parser.add_argument('files',
+                        help='The files to run the reconciler on',
+                        nargs='+')
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG)
     r = TagReconciler()
-    logging.debug('---Processing {0}---'.format(args.file))
-    with open(args.file) as tag_map:
-        data = json.load(tag_map)
-    r.reconcile_tags(data, args.dry_run)
+    for f in args.files:
+        logging.debug('---Processing {0}---'.format(f))
+        with open(f) as tag_map:
+            data = json.load(tag_map)
+            r.reconcile_tags(data, args.dry_run)
 
 if __name__ == '__main__':
     main()
