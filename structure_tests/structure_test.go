@@ -16,7 +16,7 @@ func TestRunCommand(t *testing.T) {
 		validateCommandTest(t, tt)
 		var cmd *exec.Cmd
 		if tt.Flags != nil && len(tt.Flags) > 0 {
-			cmd = exec.Command(tt.Command, strings.Join(tt.Flags, " "))
+			cmd = exec.Command(tt.Command, tt.Flags...)
 		} else {
 			cmd = exec.Command(tt.Command)
 		}
@@ -32,7 +32,13 @@ func TestRunCommand(t *testing.T) {
 		}
 
 		stdout := outbuf.String()
+		if stdout != "" {
+			t.Logf("stdout: %s", stdout)
+		}
 		stderr := errbuf.String()
+		if stderr != "" {
+			t.Logf("stderr: %s", stderr)
+		}
 
 		for _, errStr := range tt.ExpectedError {
 			errMsg := fmt.Sprintf("Expected string '%s' not found in error!", errStr)
