@@ -3,4 +3,3 @@ steps:
     args: ['build', '-t', 'gcr.io/gcp-runtimes/rake', '.']
 images:
   - 'gcr.io/gcp-runtimes/rake'
-  
