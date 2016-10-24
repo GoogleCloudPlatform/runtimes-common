@@ -20,12 +20,12 @@ func (a *arrayFlags) Set(value string) error {
 }
 
 type CommandTest struct {
-	Name           string	// required
-	Command        string	// required
-	Flags          []string	// optional
-	ExpectedOutput []string	// optional
-	ExcludedOutput []string	// optional
-	ExpectedError  []string	// optional
+	Name           string   // required
+	Command        string   // required
+	Flags          []string // optional
+	ExpectedOutput []string // optional
+	ExcludedOutput []string // optional
+	ExpectedError  []string // optional
 	ExcludedError  []string // optional
 }
 
