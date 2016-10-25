@@ -3,14 +3,14 @@
 		{
 			"name": "uname",
 			"command": "uname",
-			"flags": "-s",
+			"flags": ["-s"],
 			"expectedOutput": ["Linux\n"],
 			"expectedError": [""]
 		},
 		{
 			"name": "broken uname",
 			"command": "uname",
-			"flags": "-s -asdfd",
+			"flags": ["-s", "-asdfd"],
 			"expectedOutput": [],
 			"expectedError": [".*[invalid | unrecognized].*"]
 		}
