@@ -7,7 +7,7 @@ import (
 type CommandTest interface {
 	GetName() string
 	GetCommand() string
-	GetFlags() string
+	GetFlags() []string
 	GetExpectedOutput() []string
 	GetExcludedOutput() []string
 	GetExpectedError() []string
@@ -32,8 +32,8 @@ func (t CommandTestv0) GetCommand() string {
 	return t.Command
 }
 
-func (t CommandTestv0) GetFlags() string {
-	return t.Flags
+func (t CommandTestv0) GetFlags() []string {
+	return strings.Split(t.Flags, ",")
 }
 
 func (t CommandTestv0) GetExpectedOutput() []string {
@@ -71,8 +71,8 @@ func (t CommandTestv1) GetCommand() string {
 	return t.Command
 }
 
-func (t CommandTestv1) GetFlags() string {
-	return strings.Join(t.Flags, " ")
+func (t CommandTestv1) GetFlags() []string {
+	return t.Flags
 }
 
 func (t CommandTestv1) GetExpectedOutput() []string {
