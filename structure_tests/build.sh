@@ -5,7 +5,7 @@ set -e
 export VERSION=$1
 
 if [ -z "$1" ]; then
-  echo "Please provide valid JSON schema version to tag image."
+  echo "Please provide valid version to tag image."
   exit 1
 fi
 
