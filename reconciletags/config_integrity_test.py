@@ -25,7 +25,8 @@ class ReconcilePresubmitTest(unittest.TestCase):
             # for matching purposes
             digests = [image['digest'].split(':')[1] for image in output]
             return digests
-        except:
+        except OSError as e:
+            logging.error(e)
             self.fail('Make sure gcloud is installed and properly '
                       'authenticated')
 
