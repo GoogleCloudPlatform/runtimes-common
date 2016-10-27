@@ -18,9 +18,9 @@ class ReconcilePresubmitTest(unittest.TestCase):
         try:
             output = json.loads(
                 subprocess.check_output(['gcloud', 'beta', 'container',
-                                        'images', 'list-tags',
-                                        '--no-show-occurrences',
-                                        '--format=json', repo]))
+                                         'images', 'list-tags',
+                                         '--no-show-occurrences',
+                                         '--format=json', repo]))
             # grab the digest for each image and strip off the 'sha256:'
             # for matching purposes
             digests = [image['digest'].split(':')[1] for image in output]
