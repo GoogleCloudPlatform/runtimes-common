@@ -1,0 +1,13 @@
+{
+	"commandTests": [
+		{
+			"name": "uname",
+			"command": "ls",
+			"flags": [],
+			"expectedOutput": [],
+			"expectedError": [""]
+		}
+	],
+	"fileExistenceTests": [],
+	"fileContentTests": []
+}

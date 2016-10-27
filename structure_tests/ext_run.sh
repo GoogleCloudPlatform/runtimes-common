@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -x
-
 command -v docker > /dev/null 2>&1 || { echo "Docker is required to run GCP structure tests, but is not installed on this host."; exit 1; }
 
 usage() {
@@ -84,7 +82,5 @@ for f in cfg_*.json; do
 	docker cp $f $CONTAINER:/
 	rm $f
 done
-# docker cp cfg_*.json $CONTAINER:/
 rm structure_test
-# rm cfg_*.json
 docker start -a -i $CONTAINER
