@@ -42,7 +42,7 @@ while test $# -gt 0; do
 			if test $# -eq 0; then
 				usage
 			else
-				cp $1 ./cfg_$CONFIG_COUNTER.json
+				cp "$1" ./cfg_$CONFIG_COUNTER.json
 				CMD_STRING=$CMD_STRING" --config cfg_$CONFIG_COUNTER.json"
 				CONFIG_COUNTER+=1
 			fi
@@ -54,7 +54,7 @@ while test $# -gt 0; do
 	esac
 done
 
-if [ -z $IMAGE_NAME ]; then
+if [ -z "$IMAGE_NAME" ]; then
 	usage
 fi
 
@@ -65,22 +65,22 @@ fi
 docker pull gcr.io/gcp-runtimes/structure_test
 
 CONTAINER=$(docker run -d --entrypoint="/bin/sh" gcr.io/gcp-runtimes/structure_test)
-if [ -z $CONTAINER ]; then
+if [ -z "$CONTAINER" ]; then
 	exit 1
 fi
 
-docker cp $CONTAINER:/test/structure_test .
-docker rm $CONTAINER
+docker cp "$CONTAINER":/test/structure_test .
+docker rm "$CONTAINER"
 
-CONTAINER=$(docker create --entrypoint=$ENTRYPOINT $IMAGE_NAME $CMD_STRING)
-if [ -z $CONTAINER ]; then
+CONTAINER=$(docker create --entrypoint="$ENTRYPOINT" "$IMAGE_NAME" "$CMD_STRING")
+if [ -z "$CONTAINER" ]; then
 	exit 1
 fi
 
-docker cp structure_test $CONTAINER:/structure_test
+docker cp structure_test "$CONTAINER":/structure_test
 for f in cfg_*.json; do
-	docker cp $f $CONTAINER:/
-	rm $f
+	docker cp "$f" "$CONTAINER":/
+	rm "$f"
 done
 rm structure_test
-docker start -a -i $CONTAINER
+docker start -a -i "$CONTAINER"

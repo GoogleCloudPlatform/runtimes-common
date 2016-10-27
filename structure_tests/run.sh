@@ -56,7 +56,7 @@ if [ $VERBOSE -eq 1 ]; then
 	CMD_STRING=$CMD_STRING" -test.v"
 fi
 
-if [ -z $IMAGE_NAME ]; then
+if [ -z "$IMAGE_NAME" ]; then
 	usage
 fi
 
