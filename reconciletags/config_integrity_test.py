@@ -1,7 +1,7 @@
-"""Tests to check the integrity of json config files.
+'''Tests to check the integrity of json config files.
 
 These tests assume that the json configs live in a top-level
-folder named config."""
+folder named config.'''
 
 import glob
 import json
@@ -32,27 +32,32 @@ class ReconcilePresubmitTest(unittest.TestCase):
 
     def test_json_structure(self):
         for f in glob.glob('../config/*.json'):
-            logging.debug("Testing {0}".format(f))
+            logging.debug('Testing {0}'.format(f))
             with open(f) as tag_map:
                 data = json.load(tag_map)
-                for repo, images in data.items():
-                    self.assertRegexpMatches(repo, 'gcr.io/.*')
-                    for image in images:
+                for project in data['projects']:
+                    for registry in project['registries']:
+                        self.assertRegexpMatches(registry, '^.*gcr.io$')
+                    self.assertIsNotNone(project['repository'])
+                    for image in project['images']:
                         self.assertIsInstance(image, dict)
                         self.assertIsNotNone(image['digest'])
                         self.assertIsNotNone(image['tag'])
 
     def test_digests_are_real(self):
         for f in glob.glob('../config/*.json'):
-            logging.debug("Testing {0}".format(f))
+            logging.debug('Testing {0}'.format(f))
             with open(f) as tag_map:
                 data = json.load(tag_map)
-                for repo, images in data.items():
-                    digests = self._get_digests(repo)
-                    for image in images:
-                        logging.debug("Checking {0}".format(image['digest']))
-                        self.assertTrue(any(digest.startswith(image['digest'])
-                                            for digest in digests))
+                for project in data['projects']:
+                    for registry in project['registries']:
+                        full_repo = registry + '/' + project['repository']
+                        logging.debug('Checking {0}'.format(full_repo))
+                        digests = self._get_digests(full_repo)
+                        for image in project['images']:
+                            logging.debug('Checking {0}'.format(image['digest']))
+                            self.assertTrue(any(digest.startswith(image['digest'])
+                                                for digest in digests))
 
 
 if __name__ == '__main__':
