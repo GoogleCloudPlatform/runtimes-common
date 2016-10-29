@@ -1,7 +1,7 @@
-'''Tests to check the integrity of json config files.
+"""Tests to check the integrity of json config files.
 
 These tests assume that the json configs live in a top-level
-folder named config.'''
+folder named config."""
 
 import glob
 import json
