@@ -40,7 +40,10 @@ class ReconcileTagsTest(unittest.TestCase):
 
     def setUp(self):
         self.r = reconciletags.TagReconciler()
-        self.data = {'projects': [{'registries': ['gcr.io'], 'repository': _REPO, 'images': [{'digest': _DIGEST1, 'tag': _TAG1}]}]}
+        self.data = {'projects':
+                     [{'registries': ['gcr.io'],
+                       'repository': _REPO,
+                       'images': [{'digest': _DIGEST1, 'tag': _TAG1}]}]}
 
     def test_reconcile_tags(self):
         with mock.patch('subprocess.check_output',
@@ -77,7 +80,8 @@ class ReconcileTagsTest(unittest.TestCase):
     def test_add_tag(self):
         with mock.patch('subprocess.check_output',
                         return_value=_LIST_RESP) as mock_output:
-            self.r.add_tags(_FULL_REPO+'@sha256:'+_DIGEST2, _FULL_REPO+':'+_TAG2, False)
+            self.r.add_tags(_FULL_REPO+'@sha256:'+_DIGEST2,
+                            _FULL_REPO+':'+_TAG2, False)
             mock_output.assert_called_once_with(
                 [self._gcloudAdd(_DIGEST2, _TAG2)], shell=True)
 
