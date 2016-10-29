@@ -6,7 +6,9 @@ import unittest
 import mock
 import reconciletags
 
-_REPO = 'gcr.io/foobar/baz'
+_REGISTRY = 'gcr.io'
+_REPO = 'foobar/baz'
+_FULL_REPO = _REGISTRY + '/' + _REPO
 _DIGEST1 = 'digest1'
 _DIGEST2 = 'digest2'
 _TAG1 = 'tag1'
@@ -27,18 +29,18 @@ _LIST_RESP = """
 
 _GCLOUD_CONFIG = 'gcloud config list --format=json'
 _GCLOUD_LIST = ('gcloud beta container images list-tags '
-                '--no-show-occurrences {0} --format=json'.format(_REPO))
+                '--no-show-occurrences {0} --format=json'.format(_FULL_REPO))
 
 
 class ReconcileTagsTest(unittest.TestCase):
 
     def _gcloudAdd(self, digest, tag):
         return ('gcloud beta container images add-tag {0} {1} -q --format=json'
-                .format(_REPO+'@sha256:'+digest, _REPO+':'+tag))
+                .format(_FULL_REPO+'@sha256:'+digest, _FULL_REPO+':'+tag))
 
     def setUp(self):
         self.r = reconciletags.TagReconciler()
-        self.data = {_REPO: [{'digest': _DIGEST1, 'tag': _TAG1}]}
+        self.data = {'projects': [{'registries': ['gcr.io'], 'repository': _REPO, 'images': [{'digest': _DIGEST1, 'tag': _TAG1}]}]}
 
     def test_reconcile_tags(self):
         with mock.patch('subprocess.check_output',
@@ -68,14 +70,14 @@ class ReconcileTagsTest(unittest.TestCase):
     def test_get_existing_tags(self):
         with mock.patch('subprocess.check_output',
                         return_value=_LIST_RESP) as mock_output:
-            existing_tags = self.r.get_existing_tags(_REPO)
+            existing_tags = self.r.get_existing_tags(_FULL_REPO)
             self.assertIn(_TAG1, existing_tags)
             mock_output.assert_called_once_with([_GCLOUD_LIST], shell=True)
 
     def test_add_tag(self):
         with mock.patch('subprocess.check_output',
                         return_value=_LIST_RESP) as mock_output:
-            self.r.add_tags(_REPO+'@sha256:'+_DIGEST2, _REPO+':'+_TAG2, False)
+            self.r.add_tags(_FULL_REPO+'@sha256:'+_DIGEST2, _FULL_REPO+':'+_TAG2, False)
             mock_output.assert_called_once_with(
                 [self._gcloudAdd(_DIGEST2, _TAG2)], shell=True)
 
