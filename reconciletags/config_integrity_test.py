@@ -55,9 +55,11 @@ class ReconcilePresubmitTest(unittest.TestCase):
                         logging.debug('Checking {0}'.format(full_repo))
                         digests = self._get_digests(full_repo)
                         for image in project['images']:
-                            logging.debug('Checking {0}'.format(image['digest']))
-                            self.assertTrue(any(digest.startswith(image['digest'])
-                                                for digest in digests))
+                            logging.debug('Checking {0}'
+                                          .format(image['digest']))
+                            self.assertTrue(any(
+                                            digest.startswith(image['digest'])
+                                            for digest in digests))
 
 
 if __name__ == '__main__':
