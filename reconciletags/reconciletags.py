@@ -8,6 +8,7 @@ If there are no changes that api call is no-op.
 import argparse
 import json
 import logging
+import os
 import subprocess
 
 
@@ -50,15 +51,17 @@ class TagReconciler:
         # want to see config regardless of whether we actually run the
         # reconciler.
         self.call('gcloud config list', False)
-        for repo, images in data.items():
-            logging.debug(self.get_existing_tags(repo))
+        for project in data['projects']:
+            for registry in project['registries']:
+                full_repo = os.path.join(registry, project['repository'])
+                logging.debug(self.get_existing_tags(full_repo))
 
-            for image in images:
-                full_digest = repo + '@sha256:' + image['digest']
-                full_tag = repo + ':' + image['tag']
-                self.add_tags(full_digest, full_tag, dry_run)
+                for image in project['images']:
+                    full_digest = full_repo + '@sha256:' + image['digest']
+                    full_tag = full_repo + ':' + image['tag']
+                    self.add_tags(full_digest, full_tag, dry_run)
 
-            logging.debug(self.get_existing_tags(repo))
+                logging.debug(self.get_existing_tags(full_repo))
 
 
 def main():
