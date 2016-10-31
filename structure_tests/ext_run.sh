@@ -11,9 +11,12 @@ usage() {
 
 export VERBOSE=0
 export CMD_STRING=""
-export ENTRYPOINT="./structure_test"
+export ENTRYPOINT="./test/structure_test"
+export ST_IMAGE="gcr.io/nick-cloudbuild/structure_test"
 
 declare -i CONFIG_COUNTER=0
+
+mkdir /tmp/st_configs
 
 while test $# -gt 0; do
 	case "$1" in
@@ -44,8 +47,8 @@ while test $# -gt 0; do
 			if test $# -eq 0; then
 				usage
 			else
-				cp "$1" ./cfg_$CONFIG_COUNTER.json
-				CMD_STRING=$CMD_STRING" --config cfg_$CONFIG_COUNTER.json"
+				cp "$1" /tmp/st_configs/cfg_$CONFIG_COUNTER.json
+				CMD_STRING=$CMD_STRING" --config /cfg/cfg_$CONFIG_COUNTER.json"
 				CONFIG_COUNTER+=1
 			fi
 			shift
@@ -64,25 +67,25 @@ if [ $VERBOSE -eq 1 ]; then
 	CMD_STRING=$CMD_STRING" -test.v"
 fi
 
-docker pull gcr.io/gcp-runtimes/structure_test
+docker pull "$ST_IMAGE"
 
-CONTAINER=$(docker run -d --entrypoint="/bin/sh" gcr.io/gcp-runtimes/structure_test)
-if [ -z "$CONTAINER" ]; then
+ST_CONTAINER=$(docker run -d --entrypoint="/bin/sh" --name st_container "$ST_IMAGE")
+if [ -z "$ST_CONTAINER" ]; then
 	exit 1
 fi
 
-docker cp "$CONTAINER":/test/structure_test .
-docker rm "$CONTAINER"
-
-CONTAINER=$(docker create --entrypoint="$ENTRYPOINT" "$IMAGE_NAME" $CMD_STRING)
-if [ -z "$CONTAINER" ]; then
+TEST_CONTAINER=$(docker create --entrypoint="$ENTRYPOINT" --volumes-from st_container -v /tmp/st_configs:/cfg "$IMAGE_NAME" $CMD_STRING)
+if [ -z "$TEST_CONTAINER" ]; then
 	exit 1
 fi
 
-docker cp structure_test "$CONTAINER":/structure_test
-for f in cfg_*.json; do
-	docker cp "$f" "$CONTAINER":/
-	rm "$f"
+docker start -a -i "$TEST_CONTAINER"
+
+docker logs -f "$TEST_CONTAINER" | while read LINE
+do
+	continue
 done
-rm structure_test
-docker start -a -i "$CONTAINER"
+
+docker rm "$TEST_CONTAINER" > /dev/null 2>&1
+docker rm "$ST_CONTAINER" > /dev/null 2>&1
+rm -rf /tmp/st_configs
