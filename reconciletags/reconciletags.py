@@ -53,7 +53,7 @@ class TagReconciler:
         self.call('gcloud config list', False)
         for project in data['projects']:
             for registry in project['registries']:
-                full_repo = os.path.join(registry,project['repository'])
+                full_repo = os.path.join(registry, project['repository'])
                 logging.debug(self.get_existing_tags(full_repo))
 
                 for image in project['images']:
