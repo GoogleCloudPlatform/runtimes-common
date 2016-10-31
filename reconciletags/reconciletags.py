@@ -8,6 +8,7 @@ If there are no changes that api call is no-op.
 import argparse
 import json
 import logging
+import os
 import subprocess
 
 
@@ -52,7 +53,7 @@ class TagReconciler:
         self.call('gcloud config list', False)
         for project in data['projects']:
             for registry in project['registries']:
-                full_repo = registry + '/' + project['repository']
+                full_repo = os.path.join(registry,project['repository'])
                 logging.debug(self.get_existing_tags(full_repo))
 
                 for image in project['images']:
