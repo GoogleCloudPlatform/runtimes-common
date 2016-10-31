@@ -2,6 +2,8 @@
 
 command -v docker > /dev/null 2>&1 || { echo "Docker is required to run GCP structure tests, but is not installed on this host."; exit 1; }
 
+command docker ps > /dev/null 2>&1 || { echo "Cannot connect to the Docker daemon!"; exit 1; }
+
 usage() {
 	echo "Usage: $0 [-i <image>] [-c <config>] [-v] [-e <entrypoint>]"
 	exit 1
@@ -72,7 +74,7 @@ fi
 docker cp "$CONTAINER":/test/structure_test .
 docker rm "$CONTAINER"
 
-CONTAINER=$(docker create --entrypoint="$ENTRYPOINT" "$IMAGE_NAME" "$CMD_STRING")
+CONTAINER=$(docker create --entrypoint="$ENTRYPOINT" "$IMAGE_NAME" $CMD_STRING)
 if [ -z "$CONTAINER" ]; then
 	exit 1
 fi
