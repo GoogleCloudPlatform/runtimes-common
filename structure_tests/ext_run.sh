@@ -4,12 +4,12 @@ export VERBOSE=0
 export CMD_STRING=""
 export ENTRYPOINT="./test/structure_test"
 export ST_IMAGE="gcr.io/gcp-runtimes/structure_test"
-CONFIG_DIR="/tmp/$RANDOM"
 
-declare -i CONFIG_COUNTER=0
+typeset -i CONFIG_COUNTER=0
 
-while [ -d "$CONFIG_DIR" ]; do
-	CONFIG_DIR="/tmp/$RANDOM"
+while [ -z "$CONFIG_DIR" ] || [ -d "$CONFIG_DIR" ]; do
+	RAND=$(shuf -i 0-100000 -n 1)
+	CONFIG_DIR="/tmp/$RAND"
 done
 
 mkdir "$CONFIG_DIR"
@@ -98,6 +98,7 @@ if [ -z "$ST_CONTAINER" ]; then
 	exit 1
 fi
 
+# shellcheck disable=SC2086
 TEST_CONTAINER=$(docker create --entrypoint="$ENTRYPOINT" --volumes-from st_container -v "$CONFIG_DIR":/cfg "$IMAGE_NAME" $CMD_STRING)
 if [ -z "$TEST_CONTAINER" ]; then
 	cleanup
@@ -106,6 +107,7 @@ fi
 
 docker start -a -i "$TEST_CONTAINER"
 
+# shellcheck disable=2034
 docker logs -f "$TEST_CONTAINER" | while read LINE
 do
 	continue
