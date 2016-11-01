@@ -1,15 +1,5 @@
 package main
 
-type CommandTest interface {
-	GetName() string
-	GetCommand() string
-	GetFlags() []string
-	GetExpectedOutput() []string
-	GetExcludedOutput() []string
-	GetExpectedError() []string
-	GetExcludedError() []string // excluded error from running command
-}
-
 type CommandTestv0 struct {
 	Name           string
 	Command        string

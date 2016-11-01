@@ -1,12 +1,5 @@
 package main
 
-type FileExistenceTest interface {
-	GetName() string      // name of test
-	GetPath() string      // file to check existence of
-	GetIsDirectory() bool // whether or not the path points to a directory
-	GetShouldExist() bool // whether or not the file should exist
-}
-
 type FileExistenceTestv0 struct {
 	Name        string // name of test
 	Path        string // file to check existence of

@@ -1,13 +1,71 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
-	"io/ioutil"
 	"strings"
-
-	"github.com/ghodss/yaml"
+	"testing"
 )
+
+type StructureTest interface {
+	RunAll(t *testing.T)
+}
+
+type CommandTest interface {
+	GetName() string
+	GetCommand() string
+	GetFlags() []string
+	GetExpectedOutput() []string
+	GetExcludedOutput() []string
+	GetExpectedError() []string
+	GetExcludedError() []string // excluded error from running command
+}
+
+type FileExistenceTest interface {
+	GetName() string      // name of test
+	GetPath() string      // file to check existence of
+	GetIsDirectory() bool // whether or not the path points to a directory
+	GetShouldExist() bool // whether or not the file should exist
+}
+
+type FileContentTest interface {
+	GetName() string               // name of test
+	GetPath() string               // file to check existence of
+	GetExpectedContents() []string // list of expected contents of file
+	GetExcludedContents() []string // list of excluded contents of file
+}
+
+func validateCommandTest(t *testing.T, tt CommandTest) {
+	if tt.GetName() == "" {
+		t.Fatalf("Please provide a valid name for every test!")
+	}
+	if tt.GetCommand() == "" {
+		t.Fatalf("Please provide a valid command to run for test %s", tt.GetName())
+	}
+	t.Logf("COMMAND TEST: %s", tt.GetName())
+}
+
+func validateFileExistenceTest(t *testing.T, tt FileExistenceTest) {
+	if tt.GetName() == "" {
+		t.Fatalf("Please provide a valid name for every test!")
+	}
+	if tt.GetPath() == "" {
+		t.Fatalf("Please provide a valid file path for test %s", tt.GetName())
+	}
+	t.Logf("FILE EXISTENCE TEST: %s", tt.GetName())
+}
+
+func validateFileContentTest(t *testing.T, tt FileContentTest) {
+	if tt.GetName() == "" {
+		t.Fatalf("Please provide a valid name for every test!")
+	}
+	if tt.GetPath() == "" {
+		t.Fatalf("Please provide a valid file path for test %s", tt.GetName())
+	}
+	t.Logf("FILE CONTENT TEST: %s", tt.GetName())
+}
+
+/*****************************************************************************/
+/*                           MISC TYPE DEFINITIONS                           */
+/*****************************************************************************/
 
 type arrayFlags []string
 
@@ -29,42 +87,3 @@ type SchemaVersion struct {
 }
 
 type Unmarshaller func([]byte, interface{}) error
-
-func Parse(fp string) (StructureTest, error) {
-	testContents, err := ioutil.ReadFile(fp)
-	if err != nil {
-		return nil, err
-	}
-
-	var unmarshal Unmarshaller
-	var versionHolder SchemaVersion
-
-	switch {
-	case strings.HasSuffix(fp, ".json"):
-		unmarshal = json.Unmarshal
-	case strings.HasSuffix(fp, ".yaml"):
-		unmarshal = yaml.Unmarshal
-	default:
-		return nil, errors.New("Please provide valid JSON or YAML config file.")
-	}
-
-	if err := unmarshal(testContents, &versionHolder); err != nil {
-		return nil, err
-	}
-
-	version := versionHolder.SchemaVersion
-	if version == "" {
-		return nil, errors.New("Please provide JSON schema version.")
-	} else {
-		st := schemaVersions[version]
-		if st == nil {
-			return nil, errors.New("Unsupported schema version: " + version)
-		}
-		unmarshal(testContents, st)
-		tests, ok := st.(StructureTest) //type assertion
-		if !ok {
-			return nil, errors.New("Error encountered when type casting Structure Test interface!")
-		}
-		return tests, nil
-	}
-}
