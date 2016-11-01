@@ -91,27 +91,10 @@ fi
 
 docker pull "$ST_IMAGE"
 
-ST_CONTAINER=$(docker run -d --entrypoint="/bin/sh" --name st_container "$ST_IMAGE")
-if [ -z "$ST_CONTAINER" ]; then
-	cleanup
-	exit 1
-fi
+docker run -d --entrypoint="/bin/sh" --name st_container "$ST_IMAGE"
 
 # shellcheck disable=SC2086
-TEST_CONTAINER=$(docker create --entrypoint="$ENTRYPOINT" --volumes-from st_container -v "$CONFIG_DIR":/cfg "$IMAGE_NAME" $CMD_STRING)
-if [ -z "$TEST_CONTAINER" ]; then
-	cleanup
-	exit 1
-fi
+docker run --rm --entrypoint="$ENTRYPOINT" --volumes-from st_container -v "$CONFIG_DIR":/cfg "$IMAGE_NAME" $CMD_STRING
 
-docker start -a -i "$TEST_CONTAINER"
-
-# shellcheck disable=2034
-docker logs -f "$TEST_CONTAINER" | while read LINE
-do
-	continue
-done
-
-docker rm "$TEST_CONTAINER" > /dev/null 2>&1
-docker rm "$ST_CONTAINER" > /dev/null 2>&1
+docker rm st_container > /dev/null 2>&1
 cleanup
