@@ -1,11 +1,11 @@
 package main
 
 import (
-	"os/exec"
 	"bytes"
 	"fmt"
-	"testing"
 	"io/ioutil"
+	"os/exec"
+	"testing"
 )
 
 type StructureTestv0 struct {
