@@ -15,7 +15,15 @@ import (
 )
 
 func TestAll(t *testing.T) {
-	tests.RunAll(t)
+	var err error
+	var tests StructureTest
+	for _, file := range configFiles {
+		if tests, err = Parse(file); err != nil {
+			log.Fatalf("Error parsing config file: %s", err)
+		}
+		log.Printf("Running tests for file %s", file)
+		tests.RunAll(t)
+	}
 }
 
 func compileAndRunRegex(regex string, base string, t *testing.T, err string, shouldMatch bool) {
@@ -54,22 +62,20 @@ func Parse(fp string) (StructureTest, error) {
 	version := versionHolder.SchemaVersion
 	if version == "" {
 		return nil, errors.New("Please provide JSON schema version.")
-	} else {
-		st := schemaVersions[version]
-		if st == nil {
-			return nil, errors.New("Unsupported schema version: " + version)
-		}
-		unmarshal(testContents, st)
-		tests, ok := st.(StructureTest) //type assertion
-		if !ok {
-			return nil, errors.New("Error encountered when type casting Structure Test interface!")
-		}
-		return tests, nil
 	}
+	st := schemaVersions[version]
+	if st == nil {
+		return nil, errors.New("Unsupported schema version: " + version)
+	}
+	unmarshal(testContents, st)
+	tests, ok := st.(StructureTest) //type assertion
+	if !ok {
+		return nil, errors.New("Error encountered when type casting Structure Test interface!")
+	}
+	return tests, nil
 }
 
 var configFiles arrayFlags
-var tests StructureTest
 
 func TestMain(m *testing.M) {
 	flag.Var(&configFiles, "config", "path to the .yaml file containing test definitions.")
@@ -79,14 +85,7 @@ func TestMain(m *testing.M) {
 		configFiles = append(configFiles, "/workspace/structure_test.json")
 	}
 
-	var err error
-	for _, file := range configFiles {
-		if tests, err = Parse(file); err != nil {
-			log.Fatalf("Error parsing config file: %s", err)
-		}
-		log.Printf("Running tests for file %s", file)
-		if exit := m.Run(); exit != 0 {
-			os.Exit(exit)
-		}
+	if exit := m.Run(); exit != 0 {
+		os.Exit(exit)
 	}
 }
