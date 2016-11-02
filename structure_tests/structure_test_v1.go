@@ -8,26 +8,26 @@ import (
 	"testing"
 )
 
-type StructureTestv0 struct {
-	CommandTests       []CommandTestv0
-	FileExistenceTests []FileExistenceTestv0
-	FileContentTests   []FileContentTestv0
+type StructureTestv1 struct {
+	CommandTests       []CommandTestv1
+	FileExistenceTests []FileExistenceTestv1
+	FileContentTests   []FileContentTestv1
 }
 
-func (st StructureTestv0) RunAll(t *testing.T) {
+func (st StructureTestv1) RunAll(t *testing.T) {
 	st.RunCommandTests(t)
 	st.RunFileExistenceTests(t)
 	st.RunFileContentTests(t)
 }
 
-func (st StructureTestv0) RunCommandTests(t *testing.T) {
+func (st StructureTestv1) RunCommandTests(t *testing.T) {
 	for _, tt := range st.CommandTests {
-		validateCommandTest(t, tt)
+		validateCommandTestV1(t, tt)
 		var cmd *exec.Cmd
-		if tt.GetFlags() != nil && len(tt.GetFlags()) > 0 {
-			cmd = exec.Command(tt.GetCommand(), tt.GetFlags()...)
+		if tt.Flags != nil && len(tt.Flags) > 0 {
+			cmd = exec.Command(tt.Command, tt.Flags...)
 		} else {
-			cmd = exec.Command(tt.GetCommand())
+			cmd = exec.Command(tt.Command)
 		}
 		t.Logf("Executing: %s", cmd.Args)
 		var outbuf, errbuf bytes.Buffer
@@ -49,59 +49,59 @@ func (st StructureTestv0) RunCommandTests(t *testing.T) {
 			t.Logf("stderr: %s", stderr)
 		}
 
-		for _, errStr := range tt.GetExpectedError() {
+		for _, errStr := range tt.ExpectedError {
 			errMsg := fmt.Sprintf("Expected string '%s' not found in error!", errStr)
 			compileAndRunRegex(errStr, stderr, t, errMsg, true)
 		}
-		for _, errStr := range tt.GetExcludedError() {
+		for _, errStr := range tt.ExcludedError {
 			errMsg := fmt.Sprintf("Excluded string '%s' found in error!", errStr)
 			compileAndRunRegex(errStr, stderr, t, errMsg, false)
 		}
 
-		for _, outStr := range tt.GetExpectedOutput() {
+		for _, outStr := range tt.ExpectedOutput {
 			errMsg := fmt.Sprintf("Expected string '%s' not found in output!", outStr)
 			compileAndRunRegex(outStr, stdout, t, errMsg, true)
 		}
-		for _, outStr := range tt.GetExcludedError() {
+		for _, outStr := range tt.ExcludedOutput {
 			errMsg := fmt.Sprintf("Excluded string '%s' found in output!", outStr)
 			compileAndRunRegex(outStr, stdout, t, errMsg, false)
 		}
 	}
 }
 
-func (st StructureTestv0) RunFileExistenceTests(t *testing.T) {
+func (st StructureTestv1) RunFileExistenceTests(t *testing.T) {
 	for _, tt := range st.FileExistenceTests {
-		validateFileExistenceTest(t, tt)
+		validateFileExistenceTestV1(t, tt)
 		var err error
-		if tt.GetIsDirectory() {
-			_, err = ioutil.ReadDir(tt.GetPath())
+		if tt.IsDirectory {
+			_, err = ioutil.ReadDir(tt.Path)
 		} else {
-			_, err = ioutil.ReadFile(tt.GetPath())
+			_, err = ioutil.ReadFile(tt.Path)
 		}
-		if tt.GetShouldExist() && err != nil {
-			t.Errorf("File %s should exist but does not!", tt.GetPath())
-		} else if !tt.GetShouldExist() && err == nil {
-			t.Errorf("File %s should not exist but does!", tt.GetPath())
+		if tt.ShouldExist && err != nil {
+			t.Errorf("File %s should exist but does not!", tt.Path)
+		} else if !tt.ShouldExist && err == nil {
+			t.Errorf("File %s should not exist but does!", tt.Path)
 		}
 	}
 }
 
-func (st StructureTestv0) RunFileContentTests(t *testing.T) {
+func (st StructureTestv1) RunFileContentTests(t *testing.T) {
 	for _, tt := range st.FileContentTests {
-		validateFileContentTest(t, tt)
-		actualContents, err := ioutil.ReadFile(tt.GetPath())
+		validateFileContentTestV1(t, tt)
+		actualContents, err := ioutil.ReadFile(tt.Path)
 		if err != nil {
-			t.Errorf("Failed to open %s. Error: %s", tt.GetPath(), err)
+			t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
 		}
 
 		contents := string(actualContents[:])
 
 		var errMessage string
-		for _, s := range tt.GetExpectedContents() {
+		for _, s := range tt.ExpectedContents {
 			errMessage = "Expected string " + s + " not found in file contents!"
 			compileAndRunRegex(s, contents, t, errMessage, true)
 		}
-		for _, s := range tt.GetExcludedContents() {
+		for _, s := range tt.ExcludedContents {
 			errMessage = "Excluded string " + s + " found in file contents!"
 			compileAndRunRegex(s, contents, t, errMessage, false)
 		}
