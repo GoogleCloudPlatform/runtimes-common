@@ -51,9 +51,8 @@ class ReconciletagsE2eTest(unittest.TestCase):
 
         # grab the just created digest
         output = self._ListTags(self._REPO)
-        digests = [image['digest'].split(':')[1] for image in output]
-        self.assertEqual(len(digests), 1)
-        self.digest = digests[0]
+        self.assertEqual(len(output), 1)
+        self.digest = output.pop()['digest'].split(':')[1]
 
         # write the proper json to the config file
         test_json.write(self._TEST_JSON.format(self.digest))
