@@ -5,7 +5,7 @@ export CMD_STRING=""
 export ENTRYPOINT="./test/structure_test"
 export ST_IMAGE="gcr.io/gcp-runtimes/structure_test"
 
-typeset -i CONFIG_COUNTER=0
+CONFIG_COUNTER=0
 
 while [ -z "$CONFIG_DIR" ] || [ -d "$CONFIG_DIR" ]; do
 	RAND=$(shuf -i 0-100000 -n 1)
@@ -71,7 +71,7 @@ while test $# -gt 0; do
 				# test image. this directory is cleaned up after testing.
 				cp "$1" "$CONFIG_DIR"/cfg_$CONFIG_COUNTER.json
 				CMD_STRING=$CMD_STRING" --config /cfg/cfg_$CONFIG_COUNTER.json"
-				CONFIG_COUNTER+=1
+				CONFIG_COUNTER=$(( CONFIG_COUNTER + 1 ))
 			fi
 			shift
 			;;
