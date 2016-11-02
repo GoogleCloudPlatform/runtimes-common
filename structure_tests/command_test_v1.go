@@ -22,6 +22,7 @@ type CommandTestv1 struct {
 	Name           string
 	Command        string
 	Flags          []string
+	EnvVars        []string
 	ExpectedOutput []string
 	ExcludedOutput []string
 	ExpectedError  []string
