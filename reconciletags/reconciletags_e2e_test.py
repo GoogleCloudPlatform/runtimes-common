@@ -6,12 +6,11 @@ import subprocess
 import sys
 import unittest
 
-bucket = ''
-
 
 class ReconciletagsE2eTest(unittest.TestCase):
 
-    _FILE_NAME = "e2e_test.json"
+    _BUCKET = ''
+    _FILE_NAME = 'e2e_test.json'
     _DIR = 'tiny_docker_image/'
     _REPO = 'gcr.io/google-appengine-qa/e2etest'
     _TAG = 'initial'
@@ -60,7 +59,7 @@ class ReconciletagsE2eTest(unittest.TestCase):
         test_json.write(self._TEST_JSON.format(self.digest))
 
     def setUp(self):
-        self._BuildImage(self._REPO + ':' + self._TAG, bucket)
+        self._BuildImage(self._REPO + ':' + self._TAG, self._BUCKET)
 
     def tearDown(self):
         subprocess.call(['gcloud', 'beta', 'container', 'images',
@@ -89,5 +88,5 @@ def usage():
 if __name__ == '__main__':
     if (len(sys.argv) < 2):
         usage()
-    bucket = sys.argv.pop(1)
+    ReconciletagsE2eTest._BUCKET = sys.argv.pop(1)
     unittest.main()
