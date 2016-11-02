@@ -1,10 +1,9 @@
 #!/bin/sh
 
-export VERBOSE=0
-export CMD_STRING=""
-export ENTRYPOINT="./test/structure_test"
-export ST_IMAGE="gcr.io/gcp-runtimes/structure_test"
-
+VERBOSE=0
+CMD_STRING=""
+ENTRYPOINT="./test/structure_test"
+ST_IMAGE="gcr.io/gcp-runtimes/structure_test"
 CONFIG_COUNTER=0
 
 while [ -z "$CONFIG_DIR" ] || [ -d "$CONFIG_DIR" ]; do
@@ -15,13 +14,10 @@ done
 mkdir "$CONFIG_DIR"
 
 command -v docker > /dev/null 2>&1 || { echo "Docker is required to run GCP structure tests, but is not installed on this host."; exit 1; }
-
 command docker ps > /dev/null 2>&1 || { echo "Cannot connect to the Docker daemon!"; exit 1; }
 
 cleanup() {
-	if [ -d "$CONFIG_DIR" ]; then
-		rm -rf "$CONFIG_DIR"
-	fi
+	rm -rf "$CONFIG_DIR"
 }
 
 usage() {
@@ -35,20 +31,20 @@ while test $# -gt 0; do
 		--image|-i)
 			shift
 			if test $# -gt 0; then
-				export IMAGE_NAME=$1
+				IMAGE_NAME=$1
 			else
 				usage
 			fi
 			shift
 			;;
 		--verbose|-v)
-			export VERBOSE=1
+			VERBOSE=1
 			shift
 			;;
 		--entrypoint|-e)
 			shift
 			if test $# -gt 0; then
-				export ENTRYPOINT=$1
+				ENTRYPOINT=$1
 			else
 				usage
 			fi
@@ -88,8 +84,6 @@ fi
 if [ $VERBOSE -eq 1 ]; then
 	CMD_STRING=$CMD_STRING" -test.v"
 fi
-
-docker pull "$ST_IMAGE"
 
 docker run -d --entrypoint="/bin/sh" --name st_container "$ST_IMAGE" > /dev/null 2>&1
 
