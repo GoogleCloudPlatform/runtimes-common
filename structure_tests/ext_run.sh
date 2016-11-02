@@ -41,15 +41,6 @@ while test $# -gt 0; do
 			VERBOSE=1
 			shift
 			;;
-		--entrypoint|-e)
-			shift
-			if test $# -gt 0; then
-				ENTRYPOINT=$1
-			else
-				usage
-			fi
-			shift
-			;;
 		--config|-c)
 			shift
 			if test $# -eq 0; then
