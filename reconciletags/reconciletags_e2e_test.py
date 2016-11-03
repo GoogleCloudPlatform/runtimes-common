@@ -43,11 +43,6 @@ class ReconciletagsE2eTest(unittest.TestCase):
         subprocess.call(['gcloud', 'beta', 'container', 'builds',
                          'submit', self._DIR, '-q', '--tag', full_image_name])
 
-        # create the json config file and write to it
-        self.tmpdir = tempfile.mkdtemp()
-        self.full_filename = os.path.join(self.tmpdir, self._FILE_NAME)
-        test_json = open(self.full_filename, 'w')
-
         # grab the just created digest
         output = self._ListTags(self._REPO)
         self.assertEqual(len(output), 1)
@@ -55,21 +50,19 @@ class ReconciletagsE2eTest(unittest.TestCase):
 
         # write the proper json to the config file
         self._TEST_JSON['projects'][0]['images'][0]['digest'] = self.digest
-        json.dump(self._TEST_JSON, test_json)
 
     def setUp(self):
+        self.r = reconciletags.TagReconciler()
         self._BuildImage(self._REPO + ':' + self._TAG)
 
     def tearDown(self):
         subprocess.call(['gcloud', 'beta', 'container', 'images',
                          'delete', self._REPO + '@sha256:' + self.digest,
                          '-q'])
-        shutil.rmtree(self.tmpdir)
 
     def testTagReconciler(self):
         # run the reconciler
-        subprocess.check_output(['python', 'reconciletags.py',
-                                 self.full_filename])
+        self.r.reconcile_tags(self._TEST_JSON, False)
 
         # check list-tags to see if it added the correct tag
         output = self._ListTags(self._REPO)
@@ -80,8 +73,7 @@ class ReconciletagsE2eTest(unittest.TestCase):
                 self.assertEquals(image['tags'][0], self._TAG)
 
         # run reconciler again and make sure nothing changed
-        subprocess.check_output(['python', 'reconciletags.py',
-                                 self.full_filename])
+        self.r.reconcile_tags(self._TEST_JSON, False)
 
         output = self._ListTags(self._REPO)
         for image in output:
@@ -92,9 +84,8 @@ class ReconciletagsE2eTest(unittest.TestCase):
 
         # now try with a fake digest
         self._TEST_JSON['projects'][0]['images'][0]['digest'] = 'fakedigest'
-        r = reconciletags.TagReconciler()
         with self.assertRaises(subprocess.CalledProcessError):
-            r.reconcile_tags(self._TEST_JSON, False)
+            self.r.reconcile_tags(self._TEST_JSON, False)
 
 if __name__ == '__main__':
     unittest.main()
