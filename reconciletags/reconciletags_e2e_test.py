@@ -1,11 +1,8 @@
 """End to end test for the tag reconciler."""
 
 import json
-import os
 import reconciletags
-import shutil
 import subprocess
-import tempfile
 import unittest
 
 
