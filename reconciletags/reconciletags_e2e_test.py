@@ -2,6 +2,7 @@
 
 import json
 import os
+import reconciletags
 import shutil
 import subprocess
 import tempfile
@@ -89,36 +90,11 @@ class ReconciletagsE2eTest(unittest.TestCase):
                 self.assertEquals(image['tags'][1], 'testing')
                 self.assertEquals(image['tags'][0], self._TAG)
 
-    def testWithFakeDigest(self):
-        # now run it with a fake digest
-        fake_digest_filename = os.path.join(self.tmpdir, 'fake_digest.json')
-        fake_digest_json = open(fake_digest_filename, 'w')
-
+        # now try with a fake digest
         self._TEST_JSON['projects'][0]['images'][0]['digest'] = 'fakedigest'
-        json.dump(self._TEST_JSON, fake_digest_json)
-        fake_digest_json.close()
-
-        # we need to look at the actual error message instead of
-        # using a generic self.assertRaises since all errors
-        # will raise a CalledProcessError regardless of what failed.
-        p = subprocess.Popen(['python', 'reconciletags.py',
-                             fake_digest_filename],
-                             stderr=subprocess.PIPE,
-                             bufsize=1)
-
-        # grab the error message thrown by reconciletags.py
-        with p.stderr:
-            for line in iter(p.stderr.readline, b''):
-                err = line
-
-        # make sure it's the error message we're expecting
-        expected_error = ("subprocess.CalledProcessError: "
-                          "Command '['gcloud beta container images add-tag "
-                          "gcr.io/gcp-runtimes/reconciler-e2etest@sha256:"
-                          "fakedigest gcr.io/gcp-runtimes/reconciler-e2etest:"
-                          "testing -q --format=json']' returned non-zero "
-                          "exit status 1")
-        self.assertEquals(err.rstrip(), expected_error)
+        r = reconciletags.TagReconciler()
+        with self.assertRaises(subprocess.CalledProcessError):
+            r.reconcile_tags(self._TEST_JSON, False)
 
 if __name__ == '__main__':
     unittest.main()
