@@ -40,8 +40,12 @@ func (st StructureTestv1) RunCommandTests(t *testing.T) {
 	for _, tt := range st.CommandTests {
 		validateCommandTestV1(t, tt)
 		ProcessCommands(t, tt.Setup)
-		cmdParts := strings.Split(tt.Command, " ")
-		cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
+		var cmd *exec.Cmd
+		if tt.Flags != nil && len(tt.Flags) > 0 {
+			cmd = exec.Command(tt.Command, tt.Flags...)
+		} else {
+			cmd = exec.Command(tt.Command)
+		}
 		t.Logf("Executing: %s", cmd.Args)
 		var outbuf, errbuf bytes.Buffer
 
