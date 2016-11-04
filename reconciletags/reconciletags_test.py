@@ -41,7 +41,8 @@ class ReconcileTagsTest(unittest.TestCase):
     def setUp(self):
         self.r = reconciletags.TagReconciler()
         self.data = {'projects':
-                     [{'registries': ['gcr.io'],
+                     [{'base_registry': 'gcr.io',
+                       'additional_registries': [],
                        'repository': _REPO,
                        'images': [{'digest': _DIGEST1, 'tag': _TAG1}]}]}
 

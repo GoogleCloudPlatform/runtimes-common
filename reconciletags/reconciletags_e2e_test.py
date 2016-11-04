@@ -15,7 +15,8 @@ class ReconciletagsE2eTest(unittest.TestCase):
     _TEST_JSON = {
       "projects": [
         {
-          "registries": ["gcr.io"],
+          "base_registry": "gcr.io",
+          "additional_registries": [],
           "repository": "gcp-runtimes/reconciler-e2etest",
           "images": [
                   {

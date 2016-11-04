@@ -52,16 +52,17 @@ class TagReconciler:
         # reconciler.
         self.call('gcloud config list', False)
         for project in data['projects']:
-            default_registry = project['registries'][0]
-            for registry in project['registries']:
+            default_registry = project['base_registry']
+            registries = project['additional_registries']
+            registries.append(default_registry)
+            for registry in registries:
                 full_repo = os.path.join(registry, project['repository'])
-                full_default_repo = os.path.join(default_registry,
+                default_repo = os.path.join(default_registry,
                                                  project['repository'])
                 logging.debug(self.get_existing_tags(full_repo))
 
                 for image in project['images']:
-                    full_digest = full_default_repo + '@sha256:'
-                                  + image['digest']
+                    full_digest = default_repo + '@sha256:'+ image['digest']
                     full_tag = full_repo + ':' + image['tag']
                     self.add_tags(full_digest, full_tag, dry_run)
 
