@@ -39,12 +39,9 @@ func (st StructureTestv1) RunAll(t *testing.T) {
 func (st StructureTestv1) RunCommandTests(t *testing.T) {
 	for _, tt := range st.CommandTests {
 		validateCommandTestV1(t, tt)
-		var cmd *exec.Cmd
-		if tt.Flags != nil && len(tt.Flags) > 0 {
-			cmd = exec.Command(tt.Command, tt.Flags...)
-		} else {
-			cmd = exec.Command(tt.Command)
-		}
+		ProcessCommands(t, tt.Setup)
+		cmdParts := strings.Split(tt.Command, " ")
+		cmd := exec.Command(cmdParts[0], cmdParts[1:]...)
 		t.Logf("Executing: %s", cmd.Args)
 		var outbuf, errbuf bytes.Buffer
 
@@ -75,7 +72,6 @@ func (st StructureTestv1) RunCommandTests(t *testing.T) {
 			errMsg := fmt.Sprintf("Excluded string '%s' found in error!", errStr)
 			compileAndRunRegex(errStr, stderr, t, errMsg, false)
 		}
-
 		for _, outStr := range tt.ExpectedOutput {
 			errMsg := fmt.Sprintf("Expected string '%s' not found in output!", outStr)
 			compileAndRunRegex(outStr, stdout, t, errMsg, true)
@@ -84,6 +80,7 @@ func (st StructureTestv1) RunCommandTests(t *testing.T) {
 			errMsg := fmt.Sprintf("Excluded string '%s' found in output!", outStr)
 			compileAndRunRegex(outStr, stdout, t, errMsg, false)
 		}
+		ProcessCommands(t, tt.Teardown)
 	}
 }
 
@@ -141,6 +138,30 @@ func SubstituteEnvVars(t *testing.T, vars []string, lists ...*[]string) {
 				str := (*list)[i]
 				(*list)[i] = strings.Replace(str, "$"+env_var, value, -1)
 			}
+		}
+	}
+}
+
+func ProcessCommands(t *testing.T, commands []string) {
+	for _, cmdStr := range commands {
+		parts := strings.Split(cmdStr, " ")
+		cmd := exec.Command(parts[0], parts[1:]...)
+		t.Logf("Executing setup/teardown: %s", cmd.Args)
+
+		if err := cmd.Run(); err != nil {
+			var outbuf, errbuf bytes.Buffer
+
+			cmd.Stdout = &outbuf
+			cmd.Stderr = &errbuf
+			stdout := outbuf.String()
+			if stdout != "" {
+				t.Logf("stdout: %s", stdout)
+			}
+			stderr := errbuf.String()
+			if stderr != "" {
+				t.Logf("stderr: %s", stderr)
+			}
+			t.Fatalf("Error running setup/teardown command: %s.", err)
 		}
 	}
 }
