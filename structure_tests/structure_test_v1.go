@@ -131,7 +131,6 @@ func (st StructureTestv1) RunFileContentTests(t *testing.T) {
 	}
 }
 
-
 // Given a list of environment variables and a list of lists of strings,
 // retrieve each environment variable's value and replace all occurrences
 // of it in each list of strings provided.
