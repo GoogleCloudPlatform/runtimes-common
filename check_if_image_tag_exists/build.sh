@@ -1,13 +1,13 @@
 #!/bin/bash
 
+usage() { echo "Usage: ./build.sh [target_image_path]"; exit 1; }
+
 set -e
 
 export IMAGE=$1
 
-if [ -z "$1" ]; then
-  echo "Usage: ./build.sh [image_path]"
-  echo "Please provide fully qualified path to target image."
-  exit 1
+if [ -z "$IMAGE" ]; then
+  usage
 fi
 
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
