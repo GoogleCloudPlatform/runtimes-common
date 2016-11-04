@@ -58,11 +58,11 @@ class TagReconciler:
             for registry in registries:
                 full_repo = os.path.join(registry, project['repository'])
                 default_repo = os.path.join(default_registry,
-                                                 project['repository'])
+                                            project['repository'])
                 logging.debug(self.get_existing_tags(full_repo))
 
                 for image in project['images']:
-                    full_digest = default_repo + '@sha256:'+ image['digest']
+                    full_digest = default_repo + '@sha256:' + image['digest']
                     full_tag = full_repo + ':' + image['tag']
                     self.add_tags(full_digest, full_tag, dry_run)
 
