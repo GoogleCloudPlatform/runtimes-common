@@ -94,9 +94,17 @@ func (st StructureTestv1) RunFileExistenceTests(t *testing.T) {
 			_, err = ioutil.ReadFile(tt.Path)
 		}
 		if tt.ShouldExist && err != nil {
-			t.Errorf("File %s should exist but does not!", tt.Path)
+			if tt.IsDirectory {
+				t.Errorf("Directory %s should exist but does not!", tt.Path)
+			} else {
+				t.Errorf("File %s should exist but does not!", tt.Path)
+			}
 		} else if !tt.ShouldExist && err == nil {
-			t.Errorf("File %s should not exist but does!", tt.Path)
+			if tt.IsDirectory {
+				t.Errorf("Directory %s should not exist but does!", tt.Path)
+			} else {
+				t.Errorf("File %s should not exist but does!", tt.Path)
+			}
 		}
 	}
 }
