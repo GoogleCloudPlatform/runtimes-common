@@ -72,6 +72,7 @@ if [ $VERBOSE -eq 1 ]; then
 	CMD_STRING=$CMD_STRING" -test.v"
 fi
 
+docker pull "$ST_IMAGE"
 docker run -d --entrypoint="/bin/sh" --name st_container "$ST_IMAGE" > /dev/null 2>&1
 
 # shellcheck disable=SC2086
