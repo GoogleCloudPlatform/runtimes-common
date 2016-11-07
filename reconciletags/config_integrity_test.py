@@ -6,6 +6,7 @@ folder named config."""
 import glob
 import json
 import logging
+import os
 import subprocess
 import unittest
 
@@ -36,7 +37,8 @@ class ReconcilePresubmitTest(unittest.TestCase):
             with open(f) as tag_map:
                 data = json.load(tag_map)
                 for project in data['projects']:
-                    for registry in project['registries']:
+                    self.assertEquals(project['base_registry'], 'gcr.io')
+                    for registry in project.get('additional_registries', []):
                         self.assertRegexpMatches(registry, '^.*gcr.io$')
                     self.assertIsNotNone(project['repository'])
                     for image in project['images']:
@@ -50,16 +52,17 @@ class ReconcilePresubmitTest(unittest.TestCase):
             with open(f) as tag_map:
                 data = json.load(tag_map)
                 for project in data['projects']:
-                    for registry in project['registries']:
-                        full_repo = registry + '/' + project['repository']
-                        logging.debug('Checking {0}'.format(full_repo))
-                        digests = self._get_digests(full_repo)
-                        for image in project['images']:
-                            logging.debug('Checking {0}'
-                                          .format(image['digest']))
-                            self.assertTrue(any(
-                                            digest.startswith(image['digest'])
-                                            for digest in digests))
+                    default_registry = project['base_registry']
+                    full_repo = os.path.join(default_registry,
+                                             project['repository'])
+                    logging.debug('Checking {0}'.format(full_repo))
+                    digests = self._get_digests(full_repo)
+                    for image in project['images']:
+                        logging.debug('Checking {0}'
+                                      .format(image['digest']))
+                        self.assertTrue(any(
+                                        digest.startswith(image['digest'])
+                                        for digest in digests))
 
 
 if __name__ == '__main__':
