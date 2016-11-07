@@ -34,7 +34,7 @@ type VersionHolder interface {
 	New() StructureTest
 }
 
-type VersionHolderv1 struct {}
+type VersionHolderv1 struct{}
 
 func (v VersionHolderv1) New() StructureTest {
 	return new(StructureTestv1)
