@@ -29,5 +29,11 @@
 			"shouldExist": false
 		}
 	],
-	"fileContentTests": []
+	"fileContentTests": [
+		{
+			"name": "main.py",
+			"path": "/main.py",
+			"expectedContents": ["#!/usr/bin/python.*"]
+		}
+	]
 }
