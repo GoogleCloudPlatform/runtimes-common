@@ -38,7 +38,7 @@ class ReconcilePresubmitTest(unittest.TestCase):
                 data = json.load(tag_map)
                 for project in data['projects']:
                     self.assertEquals(project['base_registry'], 'gcr.io')
-                    for registry in project['additional_registries']:
+                    for registry in project.get('additional_registries', []):
                         self.assertRegexpMatches(registry, '^.*gcr.io$')
                     self.assertIsNotNone(project['repository'])
                     for image in project['images']:

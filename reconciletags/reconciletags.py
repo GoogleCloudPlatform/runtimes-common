@@ -53,7 +53,9 @@ class TagReconciler:
         self.call('gcloud config list', False)
         for project in data['projects']:
             default_registry = project['base_registry']
-            registries = project['additional_registries']
+            # additional registries are optional, just default to an empty list
+            # if it's absent from the config
+            registries = project.get('additional_registries', [])
             registries.append(default_registry)
             for registry in registries:
                 full_repo = os.path.join(registry, project['repository'])
