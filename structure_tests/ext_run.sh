@@ -6,7 +6,7 @@ CMD_STRING=""
 ENTRYPOINT="./test/structure_test"
 ST_IMAGE="gcr.io/gcp-runtimes/structure_test"
 CONFIG_COUNTER=0
-USAGE_STRING="Usage: $0 [-i <image>] [-c <config>] [-v] [-e <entrypoint>] [-p]"
+USAGE_STRING="Usage: $0 [-i <image>] [-c <config>] [-v] [-e <entrypoint>] [--no-pull]"
 
 CONFIG_DIR=$(pwd)/.cfg
 mkdir -p "$CONFIG_DIR"
@@ -31,7 +31,7 @@ helper() {
 	echo "	-c, --config         path to json/yaml config file"
 	echo "	-v                   display verbose testing output"
 	echo "	-e, --entrypoint     specify custom docker entrypoint for image"
-	echo "	--no-pull            pull latest structure test image"
+	echo "	--no-pull            don't pull latest structure test image"
 	exit 0
 }
 
