@@ -8,6 +8,7 @@ import os
 import subprocess
 import unittest
 
+
 class DataIntegrityTest(unittest.TestCase):
 
     def _get_real_data(self, repo):
@@ -29,9 +30,8 @@ class DataIntegrityTest(unittest.TestCase):
                     real_digests = self._get_real_data(full_repo)
                     for image in project['images']:
                         for i in real_digests:
-                            digest = i['digest']
                             if i['digest'].split(':')[1].startswith(
-                                image['digest']):
+                                   image['digest']):
                                 if image['tag'] not in i['tags']:
                                     failed_digests.append({full_repo: image})
 
