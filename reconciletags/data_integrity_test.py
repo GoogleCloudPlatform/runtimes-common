@@ -1,7 +1,7 @@
 """Data Integrity tests.
 
-Checks the json config files currently submitted and compares the entries to what
-is currently on GCR. Fails if a discrepency is found."""
+Checks the json config files currently submitted and compares the entries to
+what is currently on GCR. Fails if a discrepency is found."""
 
 
 import glob
