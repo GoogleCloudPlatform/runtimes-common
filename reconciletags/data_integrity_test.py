@@ -1,4 +1,7 @@
-"""Tests for data_integrity."""
+"""Data Integrity tests.
+
+Checks the json config files currently submitted and compared the entries to what
+is currently on GCR. Fails if a discrepency is found."""
 
 
 import glob
