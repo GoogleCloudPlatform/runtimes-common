@@ -22,8 +22,7 @@ type CommandTestv1 struct {
 	Name           string
 	Setup          []string
 	Teardown       []string
-	Command        string
-	Flags          []string
+	Command        []string
 	ExpectedOutput []string
 	ExcludedOutput []string
 	ExpectedError  []string
@@ -34,7 +33,7 @@ func validateCommandTestV1(t *testing.T, tt CommandTestv1) {
 	if tt.Name == "" {
 		t.Fatalf("Please provide a valid name for every test!")
 	}
-	if tt.Command == "" {
+	if tt.Command == nil || len(tt.Command) == 0 {
 		t.Fatalf("Please provide a valid command to run for test %s", tt.Name)
 	}
 	t.Logf("COMMAND TEST: %s", tt.Name)
