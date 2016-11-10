@@ -42,7 +42,7 @@ Example:
 	},{
 		"name": "Custom Node Version",
 		"setup": [["install_node", "v5.9.0"]],
-		"setup": [["install_node", "v6.9.1"]],
+		"teardown": [["install_node", "v6.9.1"]],
 		"command": ["node", "-v"],
   		"expectedOutput": ["v5.9.0\n"]
 	}

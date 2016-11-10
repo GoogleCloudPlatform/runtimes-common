@@ -136,23 +136,7 @@ func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (strin
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &errbuf
 
-	if err := cmd.Run(); err != nil {
-		if checkOutput {
-			// The test might be designed to run a command that exits with an error.
-			t.Logf("Error running command: %s. Continuing.", err)
-		} else {
-			stdout := outbuf.String()
-			if stdout != "" {
-				t.Logf("stdout: %s", stdout)
-			}
-			stderr := errbuf.String()
-			if stderr != "" {
-				t.Logf("stderr: %s", stderr)
-			}
-			t.Fatalf("Error running setup/teardown command: %s.", err)
-		}
-	}
-
+	err := cmd.Run()
 	stdout := outbuf.String()
 	if stdout != "" {
 		t.Logf("stdout: %s", stdout)
@@ -160,6 +144,14 @@ func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (strin
 	stderr := errbuf.String()
 	if stderr != "" {
 		t.Logf("stderr: %s", stderr)
+	}
+	if err != nil {
+		if checkOutput {
+			// The test might be designed to run a command that exits with an error.
+			t.Logf("Error running command: %s. Continuing.", err)
+		} else {
+			t.Fatalf("Error running setup/teardown command: %s.", err)
+		}
 	}
 	return stdout, stderr
 }
