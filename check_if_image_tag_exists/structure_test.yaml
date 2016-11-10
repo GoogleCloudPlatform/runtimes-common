@@ -1,13 +1,11 @@
 commandTests:
 - name:  'uname'
-  command: 'uname'
-  flags: '-s'
+  command: ['uname', '-s']
   expectedError: ['foo']
   expectedOutput: ['Linux\n']
 
 - name:  'broken uname'
-  command: 'uname'
-  flags: '-s -asdf'
+  command: ['uname', '-s', '-asdf']
   expectedError: ['.*[invalid | unrecognized].*']
   expectedOutput: []
 
