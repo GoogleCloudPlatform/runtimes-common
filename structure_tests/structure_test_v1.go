@@ -18,9 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"os/exec"
-	"strings"
 	"testing"
 )
 
@@ -99,22 +97,6 @@ func (st StructureTestv1) RunFileContentTests(t *testing.T) {
 	}
 }
 
-// currently a hack to replace PWD in output/error until we figure
-// out a better way to handle this.
-func SubstituteEnvVars(t *testing.T, lists ...*[]string) {
-	env_var := "PWD"
-	value := os.Getenv(env_var)
-	if value == "" {
-		t.Fatalf("Variable %s not found in environment!", env_var)
-	}
-	for _, list := range lists {
-		for i := range *list {
-			str := (*list)[i]
-			(*list)[i] = strings.Replace(str, "$"+env_var, value, -1)
-		}
-	}
-}
-
 func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (string, string) {
 	var cmd *exec.Cmd
 	command := fullCommand[0]
@@ -157,8 +139,6 @@ func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (strin
 }
 
 func CheckOutput(t *testing.T, tt CommandTestv1, stdout string, stderr string) {
-	SubstituteEnvVars(t, &(tt.ExpectedOutput), &(tt.ExcludedOutput), &(tt.ExpectedError), &(tt.ExcludedError))
-
 	for _, errStr := range tt.ExpectedError {
 		errMsg := fmt.Sprintf("Expected string '%s' not found in error!", errStr)
 		compileAndRunRegex(errStr, stderr, t, errMsg, true)
