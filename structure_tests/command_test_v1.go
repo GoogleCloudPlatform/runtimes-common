@@ -24,7 +24,6 @@ type CommandTestv1 struct {
 	Teardown       []string
 	Command        string
 	Flags          []string
-	EnvVars        []string
 	ExpectedOutput []string
 	ExcludedOutput []string
 	ExpectedError  []string

@@ -66,7 +66,7 @@ func (st StructureTestv1) RunCommandTests(t *testing.T) {
 			t.Logf("stderr: %s", stderr)
 		}
 
-		SubstituteEnvVars(t, tt.EnvVars, &(tt.ExpectedOutput), &(tt.ExcludedOutput), &(tt.ExpectedError), &(tt.ExcludedError))
+		SubstituteEnvVars(t, &(tt.ExpectedOutput), &(tt.ExcludedOutput), &(tt.ExpectedError), &(tt.ExcludedError))
 
 		for _, errStr := range tt.ExpectedError {
 			errMsg := fmt.Sprintf("Expected string '%s' not found in error!", errStr)
@@ -135,20 +135,18 @@ func (st StructureTestv1) RunFileContentTests(t *testing.T) {
 	}
 }
 
-// Given a list of environment variables and a list of lists of strings,
-// retrieve each environment variable's value and replace all occurrences
-// of it in each list of strings provided.
-func SubstituteEnvVars(t *testing.T, vars []string, lists ...*[]string) {
-	for _, env_var := range vars {
-		value := os.Getenv(env_var)
-		if value == "" {
-			t.Fatalf("Variable %s not found in environment!", env_var)
-		}
-		for _, list := range lists {
-			for i := range *list {
-				str := (*list)[i]
-				(*list)[i] = strings.Replace(str, "$"+env_var, value, -1)
-			}
+// currently a hack to replace PWD in output/error until we figure
+// out a better way to handle this.
+func SubstituteEnvVars(t *testing.T, lists ...*[]string) {
+	env_var := "PWD"
+	value := os.Getenv(env_var)
+	if value == "" {
+		t.Fatalf("Variable %s not found in environment!", env_var)
+	}
+	for _, list := range lists {
+		for i := range *list {
+			str := (*list)[i]
+			(*list)[i] = strings.Replace(str, "$"+env_var, value, -1)
 		}
 	}
 }
