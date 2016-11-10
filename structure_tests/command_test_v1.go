@@ -20,8 +20,8 @@ import (
 
 type CommandTestv1 struct {
 	Name           string
-	Setup          []string
-	Teardown       []string
+	Setup          [][]string
+	Teardown       [][]string
 	Command        []string
 	ExpectedOutput []string
 	ExcludedOutput []string

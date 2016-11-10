@@ -39,54 +39,16 @@ func (st StructureTestv1) RunAll(t *testing.T) {
 func (st StructureTestv1) RunCommandTests(t *testing.T) {
 	for _, tt := range st.CommandTests {
 		validateCommandTestV1(t, tt)
-		ProcessCommands(t, tt.Setup)
-		var cmd *exec.Cmd
-		command := tt.Command[0]
-		flags := tt.Command[1:]
-		if len(flags) > 0 {
-			cmd = exec.Command(command, flags...)
-		} else {
-			cmd = exec.Command(command)
-		}
-		t.Logf("Executing: %s", cmd.Args)
-		var outbuf, errbuf bytes.Buffer
-
-		cmd.Stdout = &outbuf
-		cmd.Stderr = &errbuf
-
-		if err := cmd.Run(); err != nil {
-			// The test might be designed to run a command that exits with an error.
-			t.Logf("Error running command: %s. Continuing.", err)
+		for _, setup := range tt.Setup {
+			ProcessCommand(t, setup, false)
 		}
 
-		stdout := outbuf.String()
-		if stdout != "" {
-			t.Logf("stdout: %s", stdout)
-		}
-		stderr := errbuf.String()
-		if stderr != "" {
-			t.Logf("stderr: %s", stderr)
-		}
+		stdout, stderr := ProcessCommand(t, tt.Command, true)
+		CheckOutput(t, tt, stdout, stderr)
 
-		SubstituteEnvVars(t, &(tt.ExpectedOutput), &(tt.ExcludedOutput), &(tt.ExpectedError), &(tt.ExcludedError))
-
-		for _, errStr := range tt.ExpectedError {
-			errMsg := fmt.Sprintf("Expected string '%s' not found in error!", errStr)
-			compileAndRunRegex(errStr, stderr, t, errMsg, true)
+		for _, teardown := range tt.Teardown {
+			ProcessCommand(t, teardown, false)
 		}
-		for _, errStr := range tt.ExcludedError {
-			errMsg := fmt.Sprintf("Excluded string '%s' found in error!", errStr)
-			compileAndRunRegex(errStr, stderr, t, errMsg, false)
-		}
-		for _, outStr := range tt.ExpectedOutput {
-			errMsg := fmt.Sprintf("Expected string '%s' not found in output!", outStr)
-			compileAndRunRegex(outStr, stdout, t, errMsg, true)
-		}
-		for _, outStr := range tt.ExcludedOutput {
-			errMsg := fmt.Sprintf("Excluded string '%s' found in output!", outStr)
-			compileAndRunRegex(outStr, stdout, t, errMsg, false)
-		}
-		ProcessCommands(t, tt.Teardown)
 	}
 }
 
@@ -153,17 +115,32 @@ func SubstituteEnvVars(t *testing.T, lists ...*[]string) {
 	}
 }
 
-func ProcessCommands(t *testing.T, commands []string) {
-	for _, cmdStr := range commands {
-		parts := strings.Split(cmdStr, " ")
-		cmd := exec.Command(parts[0], parts[1:]...)
+func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (string, string) {
+	var cmd *exec.Cmd
+	command := fullCommand[0]
+	flags := fullCommand[1:]
+	if len(flags) > 0 {
+		cmd = exec.Command(command, flags...)
+	} else {
+		cmd = exec.Command(command)
+	}
+
+	if checkOutput {
+		t.Logf("Executing: %s", cmd.Args)
+	} else {
 		t.Logf("Executing setup/teardown: %s", cmd.Args)
+	}
 
-		if err := cmd.Run(); err != nil {
-			var outbuf, errbuf bytes.Buffer
+	var outbuf, errbuf bytes.Buffer
 
-			cmd.Stdout = &outbuf
-			cmd.Stderr = &errbuf
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &errbuf
+
+	if err := cmd.Run(); err != nil {
+		if checkOutput {
+			// The test might be designed to run a command that exits with an error.
+			t.Logf("Error running command: %s. Continuing.", err)
+		} else {
 			stdout := outbuf.String()
 			if stdout != "" {
 				t.Logf("stdout: %s", stdout)
@@ -174,5 +151,36 @@ func ProcessCommands(t *testing.T, commands []string) {
 			}
 			t.Fatalf("Error running setup/teardown command: %s.", err)
 		}
+	}
+
+	stdout := outbuf.String()
+	if stdout != "" {
+		t.Logf("stdout: %s", stdout)
+	}
+	stderr := errbuf.String()
+	if stderr != "" {
+		t.Logf("stderr: %s", stderr)
+	}
+	return stdout, stderr
+}
+
+func CheckOutput(t *testing.T, tt CommandTestv1, stdout string, stderr string) {
+	SubstituteEnvVars(t, &(tt.ExpectedOutput), &(tt.ExcludedOutput), &(tt.ExpectedError), &(tt.ExcludedError))
+
+	for _, errStr := range tt.ExpectedError {
+		errMsg := fmt.Sprintf("Expected string '%s' not found in error!", errStr)
+		compileAndRunRegex(errStr, stderr, t, errMsg, true)
+	}
+	for _, errStr := range tt.ExcludedError {
+		errMsg := fmt.Sprintf("Excluded string '%s' found in error!", errStr)
+		compileAndRunRegex(errStr, stderr, t, errMsg, false)
+	}
+	for _, outStr := range tt.ExpectedOutput {
+		errMsg := fmt.Sprintf("Expected string '%s' not found in output!", outStr)
+		compileAndRunRegex(outStr, stdout, t, errMsg, true)
+	}
+	for _, outStr := range tt.ExcludedOutput {
+		errMsg := fmt.Sprintf("Excluded string '%s' found in output!", outStr)
+		compileAndRunRegex(outStr, stdout, t, errMsg, false)
 	}
 }
