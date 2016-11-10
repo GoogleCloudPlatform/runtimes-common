@@ -39,14 +39,7 @@ func TestAll(t *testing.T) {
 	}
 }
 
-func compileAndRunRegex(rawRegex string, base string, t *testing.T, err string, shouldMatch bool) {
-	// currently a hack to replace PWD in output/error until we figure
-	// out a better way to handle this.
-	value := os.Getenv("PWD")
-	if value == "" {
-		t.Fatalf("Error resolving $PWD")
-	}
-	regex := strings.Replace(rawRegex, "$PWD", value, -1)
+func compileAndRunRegex(regex string, base string, t *testing.T, err string, shouldMatch bool) {
 	r, rErr := regexp.Compile(regex)
 	if rErr != nil {
 		t.Errorf("Error compiling regex %s : %s", regex, rErr.Error())
