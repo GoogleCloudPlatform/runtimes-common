@@ -76,19 +76,17 @@ while test $# -gt 0; do
 				# test image. this directory is cleaned up after testing.
 				case "$1" in
 					*json)
-						EXTENSION=".json"
 						;;
 					*yaml)
-						EXTENSION=".yaml"
 						;;
 					*)
 						echo "please provide valid JSON or YAML file: $1"
 						exit 1
 						;;
 				esac
-				cp "$1" "$CONFIG_DIR"/cfg_$CONFIG_COUNTER$EXTENSION
-				CMD_STRING=$CMD_STRING" --config /cfg/cfg_$CONFIG_COUNTER$EXTENSION"
-				CONFIG_COUNTER=$(( CONFIG_COUNTER + 1 ))
+				filename=$(basename "$1")
+				cp "$1" "$CONFIG_DIR"/"$filename"
+				CMD_STRING=$CMD_STRING" --config /cfg/$filename"
 			fi
 			shift
 			;;
@@ -110,6 +108,7 @@ if [ $PULL -eq 1 ]; then
 	docker pull "$ST_IMAGE"
 fi
 
+docker rm st_container > /dev/null 2>&1 || true # remove container if already there
 docker run -d --entrypoint="/bin/sh" --name st_container "$ST_IMAGE" > /dev/null 2>&1
 
 # shellcheck disable=SC2086
