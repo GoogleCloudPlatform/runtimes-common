@@ -68,7 +68,7 @@ while test $# -gt 0; do
 					cleanup
 					exit 1
 				fi
-				# structure tests allow specifying any number of json configs,
+				# structure tests allow specifying any number of configs,
 				# which can live anywhere on the host file system. to simplify
 				# the docker volume mount, we copy all of these configs into
 				# a /tmp directory and mount this single directory into the
