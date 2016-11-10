@@ -73,16 +73,6 @@ while test $# -gt 0; do
 				# the docker volume mount, we copy all of these configs into
 				# a /tmp directory and mount this single directory into the
 				# test image. this directory is cleaned up after testing.
-				case "$1" in
-					*json)
-						;;
-					*yaml)
-						;;
-					*)
-						echo "please provide valid JSON or YAML file: $1"
-						exit 1
-						;;
-				esac
 				filename=$(basename "$1")
 				cp "$1" "$CONFIG_DIR"/"$filename"
 				CMD_STRING=$CMD_STRING" --config /cfg/$filename"
