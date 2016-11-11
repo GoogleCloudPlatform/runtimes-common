@@ -38,7 +38,7 @@ func (st StructureTestv1) RunAll(t *testing.T) {
 func (st StructureTestv1) RunCommandTests(t *testing.T) {
 	for _, tt := range st.CommandTests {
 		validateCommandTestV1(t, tt)
-		SetEnvVars(tt.EnvVars)
+		SetEnvVars(t, tt.EnvVars)
 		for _, setup := range tt.Setup {
 			ProcessCommand(t, setup, false)
 		}
@@ -145,7 +145,9 @@ func SetEnvVars(t *testing.T, vars [][]string) {
 		if len(pair) != 2 {
 			t.Fatalf("Invalid environment variable pair: %v", pair)
 		}
-		os.Setenv(pair[0], pair[1])
+		if err := os.Setenv(pair[0], os.ExpandEnv(pair[1])); err != nil {
+			t.Fatalf("error setting env var: %s", err)
+		}
 	}
 }
 
