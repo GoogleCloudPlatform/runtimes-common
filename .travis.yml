@@ -3,10 +3,7 @@ python:
         - "2.7"
 
 before_install:
-        - pip install --upgrade pip
-        - pip install pep8
-        - pip install flake8
-        - pip install mock
+        - pip install --upgrade -r requirements.txt
 
 addons:
   apt:
