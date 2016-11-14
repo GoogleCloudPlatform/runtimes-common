@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"syscall"
 	"testing"
 )
 
@@ -43,8 +44,8 @@ func (st StructureTestv1) RunCommandTests(t *testing.T) {
 			ProcessCommand(t, setup, false)
 		}
 
-		stdout, stderr := ProcessCommand(t, tt.Command, true)
-		CheckOutput(t, tt, stdout, stderr)
+		stdout, stderr, exitcode := ProcessCommand(t, tt.Command, true)
+		CheckOutput(t, tt, stdout, stderr, exitcode)
 
 		for _, teardown := range tt.Teardown {
 			ProcessCommand(t, teardown, false)
@@ -99,11 +100,11 @@ func (st StructureTestv1) RunFileContentTests(t *testing.T) {
 	}
 }
 
-func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (string, string) {
+func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (string, string, int) {
 	var cmd *exec.Cmd
 	if len(fullCommand) == 0 {
 		t.Logf("empty command provided: skipping...")
-		return "", ""
+		return "", "", -1
 	}
 	command := fullCommand[0]
 	flags := fullCommand[1:]
@@ -133,6 +134,7 @@ func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (strin
 	if stderr != "" {
 		t.Logf("stderr: %s", stderr)
 	}
+	var exitCode int
 	if err != nil {
 		if checkOutput {
 			// The test might be designed to run a command that exits with an error.
@@ -140,8 +142,11 @@ func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (strin
 		} else {
 			t.Fatalf("Error running setup/teardown command: %s.", err)
 		}
+		exitCode = err.(*exec.ExitError).Sys().(syscall.WaitStatus).ExitStatus()
+	} else {
+		exitCode = cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus()
 	}
-	return stdout, stderr
+	return stdout, stderr, exitCode
 }
 
 func SetEnvVars(t *testing.T, vars [][]string) {
@@ -155,7 +160,7 @@ func SetEnvVars(t *testing.T, vars [][]string) {
 	}
 }
 
-func CheckOutput(t *testing.T, tt CommandTestv1, stdout string, stderr string) {
+func CheckOutput(t *testing.T, tt CommandTestv1, stdout string, stderr string, exitCode int) {
 	for _, errStr := range tt.ExpectedError {
 		errMsg := fmt.Sprintf("Expected string '%s' not found in error!", errStr)
 		compileAndRunRegex(errStr, stderr, t, errMsg, true)
@@ -171,5 +176,8 @@ func CheckOutput(t *testing.T, tt CommandTestv1, stdout string, stderr string) {
 	for _, outStr := range tt.ExcludedOutput {
 		errMsg := fmt.Sprintf("Excluded string '%s' found in output!", outStr)
 		compileAndRunRegex(outStr, stdout, t, errMsg, false)
+	}
+	if tt.ExitCode != exitCode {
+		t.Errorf("Test %s exited with incorrect error code! Expected: %d, Actual: %d", tt.Name, tt.ExitCode, exitCode)
 	}
 }

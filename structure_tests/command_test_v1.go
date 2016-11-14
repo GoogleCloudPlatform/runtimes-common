@@ -23,6 +23,7 @@ type CommandTestv1 struct {
 	Setup          [][]string
 	Teardown       [][]string
 	EnvVars        [][]string
+	ExitCode       int
 	Command        []string
 	ExpectedOutput []string
 	ExcludedOutput []string
