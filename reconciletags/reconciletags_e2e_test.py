@@ -99,5 +99,6 @@ class ReconciletagsE2eTest(unittest.TestCase):
         with self.assertRaises(subprocess.CalledProcessError):
             self.r.reconcile_tags(self._TEST_JSON, False)
 
+
 if __name__ == '__main__':
     unittest.main()
