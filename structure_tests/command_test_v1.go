@@ -37,5 +37,26 @@ func validateCommandTestV1(t *testing.T, tt CommandTestv1) {
 	if tt.Command == nil || len(tt.Command) == 0 {
 		t.Fatalf("Please provide a valid command to run for test %s", tt.Name)
 	}
+	if tt.Setup != nil {
+		for _, c := range tt.Setup {
+			if len(c) == 0 {
+				t.Fatalf("Error in setup command configuration encountered; please check formatting and remove all empty setup commands.")
+			}
+		}
+	}
+	if tt.Teardown != nil {
+		for _, c := range tt.Teardown {
+			if len(c) == 0 {
+				t.Fatalf("Error in teardown command configuration encountered; please check formatting and remove all empty teardown commands.")
+			}
+		}
+	}
+	if tt.EnvVars != nil {
+		for _, c := range tt.EnvVars {
+			if len(c) == 0 {
+				t.Fatalf("Error in env var configuration encountered; please check formatting and remove all empty env var commands.")
+			}
+		}
+	}
 	t.Logf("COMMAND TEST: %s", tt.Name)
 }

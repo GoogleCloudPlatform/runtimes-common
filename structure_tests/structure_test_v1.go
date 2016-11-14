@@ -101,6 +101,10 @@ func (st StructureTestv1) RunFileContentTests(t *testing.T) {
 
 func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (string, string) {
 	var cmd *exec.Cmd
+	if len(fullCommand) == 0 {
+		t.Logf("empty command provided: skipping...")
+		return "", ""
+	}
 	command := fullCommand[0]
 	flags := fullCommand[1:]
 	if len(flags) > 0 {
