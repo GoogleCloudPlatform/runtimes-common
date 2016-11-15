@@ -153,7 +153,7 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkO
 	return stdout, stderr, exitCode
 }
 
-func SetEnvVars(t *testing.T, vars []EnvVar) ([]EnvVar) {
+func SetEnvVars(t *testing.T, vars []EnvVar) []EnvVar {
 	var originalVars []EnvVar
 	for _, env_var := range vars {
 		originalVars = append(originalVars, EnvVar{env_var.Key, os.Getenv(env_var.Key)})
