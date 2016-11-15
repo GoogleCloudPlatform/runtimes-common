@@ -68,5 +68,6 @@ def main():
 
     check_if_tag_exists(args.image, args.force)
 
+
 if __name__ == "__main__":
     main()

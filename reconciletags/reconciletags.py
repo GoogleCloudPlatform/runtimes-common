@@ -101,5 +101,6 @@ def main():
             data = json.load(tag_map)
             r.reconcile_tags(data, args.dry_run)
 
+
 if __name__ == '__main__':
     main()

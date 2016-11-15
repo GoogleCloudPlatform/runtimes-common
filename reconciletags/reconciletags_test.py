@@ -100,5 +100,6 @@ class ReconcileTagsTest(unittest.TestCase):
             mock_output.assert_called_once_with(
                 [self._gcloudAdd(_DIGEST2, _TAG2)], shell=True)
 
+
 if __name__ == '__main__':
     unittest.main()
