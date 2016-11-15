@@ -20,9 +20,9 @@ import (
 
 type CommandTestv1 struct {
 	Name           string
-	Setup          [][]string
-	Teardown       [][]string
-	EnvVars        [][]string
+	Setup          []Command
+	Teardown       []Command
+	EnvVars        []EnvVar
 	ExitCode       int
 	Command        []string
 	ExpectedOutput []string
@@ -53,9 +53,9 @@ func validateCommandTestV1(t *testing.T, tt CommandTestv1) {
 		}
 	}
 	if tt.EnvVars != nil {
-		for _, c := range tt.EnvVars {
-			if len(c) == 0 {
-				t.Fatalf("Error in env var configuration encountered; please check formatting and remove all empty env var commands.")
+		for _, env_var := range tt.EnvVars {
+			if env_var.Key == "" || env_var.Value == "" {
+				t.Fatalf("Please provide non-empty keys and values for all specified env_vars")
 			}
 		}
 	}

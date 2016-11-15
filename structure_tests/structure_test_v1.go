@@ -149,12 +149,9 @@ func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (strin
 	return stdout, stderr, exitCode
 }
 
-func SetEnvVars(t *testing.T, vars [][]string) {
-	for _, pair := range vars {
-		if len(pair) != 2 {
-			t.Fatalf("Invalid environment variable pair: %v", pair)
-		}
-		if err := os.Setenv(pair[0], os.ExpandEnv(pair[1])); err != nil {
+func SetEnvVars(t *testing.T, vars []EnvVar) {
+	for _, env_var := range vars {
+		if err := os.Setenv(env_var.Key, os.ExpandEnv(env_var.Value)); err != nil {
 			t.Fatalf("error setting env var: %s", err)
 		}
 	}
