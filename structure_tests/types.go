@@ -55,8 +55,8 @@ func (v VersionHolderv1) New() StructureTest {
 }
 
 type EnvVar struct {
-	Key    string
-	Value  string
+	Key   string
+	Value string
 }
 
 type Command []string
