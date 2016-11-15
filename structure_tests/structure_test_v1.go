@@ -25,30 +25,32 @@ import (
 )
 
 type StructureTestv1 struct {
+	GlobalEnvVars      []EnvVar
 	CommandTests       []CommandTestv1
 	FileExistenceTests []FileExistenceTestv1
 	FileContentTests   []FileContentTestv1
 }
 
 func (st StructureTestv1) RunAll(t *testing.T) {
+	originalVars := SetEnvVars(t, st.GlobalEnvVars)
 	st.RunCommandTests(t)
 	st.RunFileExistenceTests(t)
 	st.RunFileContentTests(t)
+	ResetEnvVars(t, originalVars)
 }
 
 func (st StructureTestv1) RunCommandTests(t *testing.T) {
 	for _, tt := range st.CommandTests {
 		validateCommandTestV1(t, tt)
-		SetEnvVars(t, tt.EnvVars)
 		for _, setup := range tt.Setup {
-			ProcessCommand(t, setup, false)
+			ProcessCommand(t, tt.EnvVars, setup, false)
 		}
 
-		stdout, stderr, exitcode := ProcessCommand(t, tt.Command, true)
+		stdout, stderr, exitcode := ProcessCommand(t, tt.EnvVars, tt.Command, true)
 		CheckOutput(t, tt, stdout, stderr, exitcode)
 
 		for _, teardown := range tt.Teardown {
-			ProcessCommand(t, teardown, false)
+			ProcessCommand(t, tt.EnvVars, teardown, false)
 		}
 	}
 }
@@ -100,7 +102,7 @@ func (st StructureTestv1) RunFileContentTests(t *testing.T) {
 	}
 }
 
-func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (string, string, int) {
+func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkOutput bool) (string, string, int) {
 	var cmd *exec.Cmd
 	if len(fullCommand) == 0 {
 		t.Logf("empty command provided: skipping...")
@@ -108,6 +110,7 @@ func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (strin
 	}
 	command := fullCommand[0]
 	flags := fullCommand[1:]
+	originalVars := SetEnvVars(t, envVars)
 	if len(flags) > 0 {
 		cmd = exec.Command(command, flags...)
 	} else {
@@ -146,13 +149,31 @@ func ProcessCommand(t *testing.T, fullCommand []string, checkOutput bool) (strin
 	} else {
 		exitCode = cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus()
 	}
+	ResetEnvVars(t, originalVars)
 	return stdout, stderr, exitCode
 }
 
-func SetEnvVars(t *testing.T, vars []EnvVar) {
+func SetEnvVars(t *testing.T, vars []EnvVar) ([]EnvVar) {
+	var originalVars []EnvVar
 	for _, env_var := range vars {
+		originalVars = append(originalVars, EnvVar{env_var.Key, os.Getenv(env_var.Key)})
 		if err := os.Setenv(env_var.Key, os.ExpandEnv(env_var.Value)); err != nil {
 			t.Fatalf("error setting env var: %s", err)
+		}
+	}
+	return originalVars
+}
+
+func ResetEnvVars(t *testing.T, vars []EnvVar) {
+	for _, env_var := range vars {
+		var err error
+		if env_var.Value == "" {
+			err = os.Unsetenv(env_var.Key)
+		} else {
+			err = os.Setenv(env_var.Key, env_var.Value)
+		}
+		if err != nil {
+			t.Fatalf("error resetting env var: %s", err)
 		}
 	}
 }
