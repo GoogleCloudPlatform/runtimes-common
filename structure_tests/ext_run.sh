@@ -44,13 +44,16 @@ usage() {
 helper() {
 	echo "$USAGE_STRING"
 	echo
-	echo "    -i, --image          image to run tests on"
-	echo "    -c, --config         path to json/yaml config file"
-	echo "    -w, --workspace      path to directory to be mounted as"
-	echo "                         /workspace in remote container"
-	echo "    -v                   display verbose testing output"
-	echo "    -e, --entrypoint     specify custom docker entrypoint for image"
-	echo "    --no-pull            don't pull latest structure test image"
+	echo "    -i, --image          Image to run tests on"
+	echo "    -c, --config         Path to JSON/YAML config file"
+	echo "    -w, --workspace      Path to directory to be mounted as"
+	echo "                         /workspace in remote container."
+	echo "                         This is most likely the project root for the image, as all"
+	echo "                         resources in the directory will be included in the test run."
+	echo "                         (e.g. -w ../../python-runtime)"
+	echo "    -v                   Display verbose testing output"
+	echo "    -e, --entrypoint     Specify custom docker entrypoint for image"
+	echo "    --no-pull            Don't pull latest structure test image"
 	exit 0
 }
 
