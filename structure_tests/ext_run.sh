@@ -26,7 +26,7 @@ USAGE_STRING="Usage: $0 [-i <image>] [-c <config>] [-w <workspace>] [-v] [-e <en
 CONFIG_DIR=$(pwd)/.cfg
 mkdir -p "$CONFIG_DIR"
 
-VOLUME_STR="--volumes-from st_container -v "$CONFIG_DIR":/cfg"
+VOLUME_STR="--volumes-from st_container -v $CONFIG_DIR:/cfg"
 
 command -v docker > /dev/null 2>&1 || { echo "Docker is required to run GCP structure tests, but is not installed on this host."; exit 1; }
 command docker ps > /dev/null 2>&1 || { echo "Cannot connect to the Docker daemon!"; exit 1; }
@@ -82,7 +82,7 @@ while test $# -gt 0; do
 			if test $# -eq 0; then
 				usage
 			else
-				FULLPATH=$(readlink -f $1)
+				FULLPATH=$(readlink -f "$1")
 				if [ ! -d "$FULLPATH" ]; then
 					echo "$FULLPATH is not a valid directory."
 					cleanup
