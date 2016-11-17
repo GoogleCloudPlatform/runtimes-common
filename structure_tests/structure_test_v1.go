@@ -33,10 +33,10 @@ type StructureTestv1 struct {
 
 func (st StructureTestv1) RunAll(t *testing.T) {
 	originalVars := SetEnvVars(t, st.GlobalEnvVars)
+	defer ResetEnvVars(t, originalVars)
 	st.RunCommandTests(t)
 	st.RunFileExistenceTests(t)
 	st.RunFileContentTests(t)
-	ResetEnvVars(t, originalVars)
 }
 
 func (st StructureTestv1) RunCommandTests(t *testing.T) {
@@ -102,6 +102,10 @@ func (st StructureTestv1) RunFileContentTests(t *testing.T) {
 	}
 }
 
+// given an array of command parts, construct a full command and execute it against the
+// current environment. a list of environment variables can be passed to be set in the
+// environment before the command is executed. additionally, a boolean flag is passed
+// to specify whether or not we care about the output of the command.
 func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkOutput bool) (string, string, int) {
 	var cmd *exec.Cmd
 	if len(fullCommand) == 0 {
@@ -153,6 +157,8 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkO
 	return stdout, stderr, exitCode
 }
 
+// given a list of environment variable key/value pairs, set these in the current environment.
+// also, keep track of the previous values of these vars to reset after test execution.
 func SetEnvVars(t *testing.T, vars []EnvVar) []EnvVar {
 	var originalVars []EnvVar
 	for _, env_var := range vars {
@@ -168,8 +174,11 @@ func ResetEnvVars(t *testing.T, vars []EnvVar) {
 	for _, env_var := range vars {
 		var err error
 		if env_var.Value == "" {
+			// if the previous value was empty string, the variable did not
+			// exist in the environment; unset it
 			err = os.Unsetenv(env_var.Key)
 		} else {
+			// otherwise, set it back to its previous value
 			err = os.Setenv(env_var.Key, env_var.Value)
 		}
 		if err != nil {
