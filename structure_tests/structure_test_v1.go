@@ -115,6 +115,7 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkO
 	command := fullCommand[0]
 	flags := fullCommand[1:]
 	originalVars := SetEnvVars(t, envVars)
+	defer ResetEnvVars(t, originalVars)
 	if len(flags) > 0 {
 		cmd = exec.Command(command, flags...)
 	} else {
@@ -153,7 +154,6 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkO
 	} else {
 		exitCode = cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus()
 	}
-	ResetEnvVars(t, originalVars)
 	return stdout, stderr, exitCode
 }
 
