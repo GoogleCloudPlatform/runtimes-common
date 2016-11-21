@@ -3,7 +3,10 @@ FROM gcr.io/cloud-builders/gcloud
 
 # Install Docker
 RUN apk update && \
+<<<<<<< HEAD
 	cp -v /usr/local/bin/python /usr/bin/python && \
+=======
+>>>>>>> wip; adding infrastructure for deploying integration test containers
 	apk add gettext && \
 	cp -v /usr/bin/envsubst /usr/local/bin/ && \
     apk add curl && \
@@ -11,8 +14,16 @@ RUN apk update && \
     rm -rf /var/cache/apk/*
 
 COPY app.yaml /
+<<<<<<< HEAD
 COPY auth.json /
 
 COPY testsuite /testsuite
 
 ENTRYPOINT ["/testsuite/driver.py"]
+=======
+COPY build_and_deploy.sh /
+COPY auth.json /
+RUN chmod +x /build_and_deploy.sh
+
+ENTRYPOINT ["/build_and_deploy.sh"]
+>>>>>>> wip; adding infrastructure for deploying integration test containers
