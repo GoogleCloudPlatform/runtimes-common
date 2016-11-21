@@ -1,0 +1,4 @@
+# [START app_yaml]
+runtime: custom
+env: flex
+# [END app_yaml]
