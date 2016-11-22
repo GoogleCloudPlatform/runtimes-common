@@ -19,6 +19,7 @@ RUN apk update && \
 
 COPY app.yaml /
 <<<<<<< HEAD
+<<<<<<< HEAD
 COPY auth.json /
 
 COPY testsuite /testsuite
@@ -26,8 +27,15 @@ COPY testsuite /testsuite
 ENTRYPOINT ["/testsuite/driver.py"]
 =======
 COPY build_and_deploy.sh /
+=======
+>>>>>>> translate test driver from shell to python
 COPY auth.json /
-RUN chmod +x /build_and_deploy.sh
 
+<<<<<<< HEAD
 ENTRYPOINT ["/build_and_deploy.sh"]
 >>>>>>> wip; adding infrastructure for deploying integration test containers
+=======
+COPY testsuite /testsuite
+
+ENTRYPOINT ["/testsuite/driver.py"]
+>>>>>>> translate test driver from shell to python
