@@ -1,11 +1,13 @@
 #!/bin/sh
 
-set -e
+set -ex
 
 USAGE_STRING="Usage: $0 [-d <directory>]"
 # VERSION="integration-test-$(date +'%s')"
 # TODO: deploy with version
 VERSION=""
+
+WORKDIRS=()
 
 # trap cleanup 0 1 2 3 13 15 # EXIT HUP INT QUIT PIPE TERM
 
@@ -23,13 +25,14 @@ while test $# -gt 0; do
 		--directory|-d)
 			shift
 			if test $# -gt 0; then
-				WORKDIR=$(readlink -f "$1")
+				directory=$(readlink -f "$1")
+				WORKDIRS+=(${directory})
 			else
 				usage
 			fi
 			shift
 			;;
-		--runtime|-r)
+		--image|-i)
 			shift
 			if test $# -gt 0; then
 				export STAGING_IMAGE="$1"
@@ -44,30 +47,43 @@ while test $# -gt 0; do
 	esac
 done
 
-if [ -z "$WORKDIR" ]; then
+if [ ${#WORKDIRS[@]} -eq 0 ]; then
 	usage
 fi
 
-cd "$WORKDIR"
-cp /app.yaml .
-envsubst < Dockerfile.in > Dockerfile
+deploy_and_test_app() {
+	workdir="$1"
+	if [ -z "$workdir" ]; then
+		usage
+	fi
 
-# docker build -t sample_app .
-gcloud auth activate-service-account --key-file=/auth.json
-gcloud auth list
-gcloud config list
-# gcloud config list project
-gcloud app deploy --stop-previous-version --verbosity=debug
-# gcloud app deploy --stop-previous-version --version "$VERSION" --verbosity=debug
+	echo $workdir
 
-PROJECT_ID="nick-cloudbuild"
-# URL="https://$PROJECT_ID_$VERSION.appspot.com"
-URL="https://$PROJECT_ID.appspot.com"
+	# cd "$workdir"
+	# cp /app.yaml .
+	# envsubst < Dockerfile.in > Dockerfile
 
-echo "sleeping for 20 seconds..."
-sleep 20
-echo "awake! hitting $URL now"
+	# # docker build -t sample_app .
+	# gcloud auth activate-service-account --key-file=/auth.json
+	# gcloud auth list
+	# gcloud config list
+	# # gcloud config list project
+	# gcloud app deploy --stop-previous-version --verbosity=debug
+	# # gcloud app deploy --stop-previous-version --version "$VERSION" --verbosity=debug
 
-APP_RESPONSE=$(curl -L "$URL")
+	# PROJECT_ID="nick-cloudbuild"
+	# # URL="https://$PROJECT_ID_$VERSION.appspot.com"
+	# URL="https://$PROJECT_ID.appspot.com"
 
-echo "$APP_RESPONSE"
+	# echo "giving app 20 seconds to deploy and become responsive..."
+	# sleep 20
+	# echo "awake! hitting $URL now"
+
+	# APP_RESPONSE=$(curl --silent -L "$URL")
+
+	# echo "response from app was: $APP_RESPONSE"
+}
+
+for directory in ${WORKDIRS[@]}; do
+	deploy_and_test_app ${directory}
+done

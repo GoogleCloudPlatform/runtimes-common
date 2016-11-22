@@ -3,6 +3,7 @@ FROM gcr.io/cloud-builders/gcloud
 
 # Install Docker
 RUN apk update && \
+	cp -v /usr/local/bin/python /usr/bin/python && \
 	apk add gettext && \
 	cp -v /usr/bin/envsubst /usr/local/bin/ && \
     apk add curl && \

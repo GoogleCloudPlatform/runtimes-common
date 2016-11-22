@@ -1,4 +1,9 @@
 # [START app_yaml]
 runtime: custom
 env: flex
+
+# handlers:
+# - url: /
+#   script: home.py
+
 # [END app_yaml]
