@@ -11,8 +11,8 @@ RUN apk update && \
     rm -rf /var/cache/apk/*
 
 COPY app.yaml /
-COPY build_and_deploy.sh /
 COPY auth.json /
-RUN chmod +x /build_and_deploy.sh
 
-ENTRYPOINT ["/build_and_deploy.sh"]
+COPY testsuite /testsuite
+
+ENTRYPOINT ["/testsuite/driver.py"]
