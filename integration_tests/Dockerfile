@@ -4,9 +4,13 @@ FROM gcr.io/cloud-builders/gcloud
 # Install Docker
 RUN apk update && \
 <<<<<<< HEAD
+<<<<<<< HEAD
 	cp -v /usr/local/bin/python /usr/bin/python && \
 =======
 >>>>>>> wip; adding infrastructure for deploying integration test containers
+=======
+	cp -v /usr/local/bin/python /usr/bin/python && \
+>>>>>>> fix python installation in container. add support for multiple sample apps
 	apk add gettext && \
 	cp -v /usr/bin/envsubst /usr/local/bin/ && \
     apk add curl && \
