@@ -3,16 +3,14 @@
 	"commandTests": [
 		{
 			"name": "uname",
-			"command": "uname",
-			"flags": ["-s"],
+			"command": ["uname", "-s"],
 			"expectedOutput": ["Linux\n"],
 			"expectedError": [""]
 		},
 		{
 			"name": "broken uname",
-			"command": "uname",
-			"flags": ["-s", "-asdfd"],
-			"expectedOutput": [],
+			"command": ["uname", "-s", "-asdfd"],
+			"exitCode": 1,
 			"expectedError": [".*[invalid | unrecognized].*"]
 		}
 	],
