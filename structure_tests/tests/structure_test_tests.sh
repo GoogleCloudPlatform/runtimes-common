@@ -27,7 +27,7 @@ export FILE="debian_test.json"
 failures=0
 # build newest structure test image
 pushd ..
-./build.sh gcr.io/gcp-runtimes/structure-test-test:$TEST_TAG
+./build.sh gcr.io/gcp-runtimes/structure-test-test:"$TEST_TAG"
 popd
 
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
@@ -35,7 +35,7 @@ gcloud beta container builds submit . --config=cloudbuild.yaml
 if [ "$?" -gt "0" ]
 then
   echo "Success case test failed"
-  failures=$[failures + 1]
+  failures=$((failures + 1))
 fi
 
 export FILE="debian_failure_test.json"
@@ -44,7 +44,7 @@ gcloud beta container builds submit . --config=cloudbuild.yaml
 if [ "$?" -ne "1" ]
 then
   echo "Failure case test failed"
-  failures=$[failures + 1]
+  failures=$((failures + 1))
 fi
 
 echo "Failures: $failures"
