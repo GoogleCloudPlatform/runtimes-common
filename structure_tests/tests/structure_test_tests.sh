@@ -20,8 +20,8 @@
 #End to end tests to make sure the structure tests do what we expect them
 #to do on a known quantity, the latest debian docker image.
 
-set -x
-export TEST_TAG="test_tag-$(date +%Y-%M-%d-%H%M%S)"
+export TEST_TAG
+TEST_TAG="test_tag-$(date +%Y-%M-%d-%H%M%S)"
 export FILE="debian_test.json"
 
 failures=0
@@ -38,7 +38,7 @@ then
   failures=$((failures + 1))
 fi
 
-export FILE="debian_failure_test.json"
+FILE="debian_failure_test.json"
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
 gcloud beta container builds submit . --config=cloudbuild.yaml
 if [ "$?" -ne "1" ]
