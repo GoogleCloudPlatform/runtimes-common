@@ -1,12 +1,12 @@
+FROM gcr.io/google-appengine/python
 
-FROM gcr.io/cloud-builders/gcloud
-
-
+# gcloud first 
 ENV PATH=$PATH:/builder/google-cloud-sdk/bin/
 
-# Setup Google Cloud SDK (latest)
-RUN apt-get update && apt-get install -y wget unzip && \
-	wget -nv https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip && \
+RUN apt-get update && \
+    apt-get install -y wget unzip ca-certificates git && \
+    # Setup Google Cloud SDK (latest)
+    wget -nv https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip && \
     mkdir -p /builder && \
     unzip -qq google-cloud-sdk.zip -d /builder && \
     rm google-cloud-sdk.zip && \
@@ -15,23 +15,21 @@ RUN apt-get update && apt-get install -y wget unzip && \
         --disable-installation-options && \
     # Install alpha and beta components
     /builder/google-cloud-sdk/bin/gcloud -q components install alpha beta && \
-    /builder/google-cloud-sdk/bin/gcloud -q components update && \
+    /builder/google-cloud-sdk/bin/gcloud -q components update
 
-    # TODO(jasonhall): These lines pin gcloud to a particular version.
-    google-cloud-sdk/bin/gcloud components update --version 110.0.0 && \
-    google-cloud-sdk/bin/gcloud config set component_manager/disable_update_check 1 && \
-    google-cloud-sdk/bin/gcloud -q components update && \
-
-    apt-get install -y python-dev gcc curl && \
+RUN apt-get install -y python-dev gcc curl && \
 
     cp -v /usr/local/bin/python /usr/bin/python && \
  	cp -v /usr/local/bin/pip /usr/bin/pip && \
  	cp -v /usr/bin/envsubst /usr/local/bin/ && \
 
+    curl https://get.docker.com/builds/Linux/x86_64/docker-1.9.1 > /usr/bin/docker && chmod +x /usr/bin/docker && \
+    # Clean up
+    apt-get remove -y wget unzip gcc && \
+    apt-get clean
 
-RUN pip install --upgrade google-cloud
+RUN pip install --upgrade google-cloud-logging
 
 COPY testsuite /testsuite
 
 ENTRYPOINT ["/testsuite/driver.py"]
-

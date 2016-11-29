@@ -10,7 +10,7 @@ import time
 from shutil import copy
 
 PROJECT_ID = "nick-cloudbuild"
-DEPLOY_DELAY_SECONDS=20
+DEPLOY_DELAY_SECONDS = 20
 
 def cleanup(appdir):
 	try:
@@ -42,13 +42,22 @@ def _deploy_app(image, appdir):
 			fout.close()
 		fin.close()
 
-		subprocess.call(['gcloud', 'auth', 'activate-service-account', '--key-file=/auth.json'])
-		subprocess.call(['gcloud', 'app', 'deploy', '--stop-previous-version', '--verbosity=debug'])
+		auth_command = ['gcloud', 'auth', 'activate-service-account', '--key-file=/auth.json']
+		auth_proc = subprocess.Popen(auth_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+		output, error = auth_proc.communicate()
+		if auth_proc.returncode != 0:
+			sys.exit("Error encountered when authenticating. Full log: \n\n" + output)
+
+		deploy_command = ['gcloud', 'app', 'deploy', '--stop-previous-version', '--verbosity=debug']
+		deploy_proc = subprocess.Popen(deploy_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+		output, error = deploy_proc.communicate()
+		if deploy_proc.returncode != 0:
+			sys.exit("Error encountered when deploying app. Full log: \n\n" + output)
 
 		print 'waiting {0} seconds for app to deploy'.format(DEPLOY_DELAY_SECONDS)
-		for i in range(0,DEPLOY_DELAY_SECONDS):
-			# sys.stdout.write('.')
-			# sys.stdout.flush()
+		for i in range(0, DEPLOY_DELAY_SECONDS):
 			time.sleep(1)
 		print
 

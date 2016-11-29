@@ -31,6 +31,7 @@ def _main():
 			logging.error("Please specify at least one application to deploy!")
 			sys.exit(1)
 
+		logging.debug("deploying app!")
 		deploy_app._deploy_app(args.image, args.directory)
 
 	test_app._test_app(args.url)
