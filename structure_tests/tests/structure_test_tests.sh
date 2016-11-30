@@ -23,6 +23,7 @@
 export TEST_TAG
 TEST_TAG="test_tag-$(date +%Y-%M-%d-%H%M%S)"
 export FILE="debian_test.json"
+export IMAGE="gcr.io/google-appengine/debian8"
 
 failures=0
 # build newest structure test image
@@ -30,6 +31,7 @@ pushd ..
 ./build.sh gcr.io/gcp-runtimes/structure-test-test:"$TEST_TAG"
 popd
 
+# Run the debian tests, they should always pass on latest
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
 gcloud beta container builds submit . --config=cloudbuild.yaml
 if [ "$?" -gt "0" ]
@@ -38,6 +40,7 @@ then
   failures=$((failures + 1))
 fi
 
+# Run some bogus tests, they should fail as expected
 FILE="debian_failure_test.json"
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
 gcloud beta container builds submit . --config=cloudbuild.yaml
@@ -46,6 +49,18 @@ then
   echo "Failure case test failed"
   failures=$((failures + 1))
 fi
+
+# Run some structure tests on the structure test image itself
+IMAGE="gcr.io/gcp-runtimes/structure_test"
+FILE="structure_test_test.json"
+envsubst < cloudbuild.yaml.in > cloudbuild.yaml
+gcloud beta container builds submit . --config=cloudbuild.yaml
+if [ "$?" -gt "0" ]
+then
+  echo "Structure test failed"
+  failures=$((failures + 1))
+fi
+
 
 echo "Failures: $failures"
 if [ "$failures" -gt "0" ]
