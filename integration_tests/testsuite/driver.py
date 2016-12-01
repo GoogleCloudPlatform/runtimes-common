@@ -22,6 +22,8 @@ def _main():
 	parser.add_argument('--url', '-u', help='URL where deployed app is exposed (if applicable)', default=DEFAULT_URL)
 	args = parser.parse_args()
 
+	deploy_app._authenticate(args.directory)
+
 	if not args.no_deploy:
 		if args.image is None:
 			logging.error("Please specify base image name!")

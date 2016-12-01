@@ -1,6 +1,5 @@
 FROM gcr.io/google-appengine/python
 
-# gcloud first 
 ENV PATH=$PATH:/builder/google-cloud-sdk/bin/
 
 RUN apt-get update && \
@@ -29,6 +28,9 @@ RUN apt-get install -y python-dev gcc curl && \
     apt-get clean
 
 RUN pip install --upgrade google-cloud-logging
+RUN pip install --upgrade oauth2client
+
+ENV GOOGLE_APPLICATION_CREDENTIALS=/auth.json
 
 COPY testsuite /testsuite
 
