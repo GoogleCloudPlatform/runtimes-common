@@ -29,13 +29,15 @@ func TestImageLicenses(t *testing.T) {
 			continue
 		}
 
+		t.Logf(p.Name())
+
 		// Skip over packages in the whitelist
 		for _, w := range whitelist {
 			if w == p.Name() {
 				continue
 			}
 		}
-		// If package doesn't have copyright file, add it to list of problematic packages
+		// If package doesn't have copyright file, log an error.
 		licenseFile := path.Join(root, p.Name(), "copyright")
 		_, err := os.Stat(licenseFile)
 		if err != nil {
@@ -49,11 +51,16 @@ func TestImageLicenses(t *testing.T) {
 			continue
 		}
 		contents := strings.ToUpper(string(license))
+		valid := true
 		for _, b := range blacklist {
 			if strings.Contains(contents, b) {
+				valid = false
 				t.Errorf("Invalid license for %s, license contains %s", p.Name(), b)
 				break
 			}
+		}
+		if valid {
+			t.Logf("%s VALID", p.Name())
 		}
 	}
 }
