@@ -37,7 +37,6 @@ func TestImageLicenses(t *testing.T) {
 		}
 		// If package doesn't have copyright file, add it to list of problematic packages
 		licenseFile := path.Join(root, p.Name(), "copyright")
-		//fmt.Println(licenseFile)
 		_, err := os.Stat(licenseFile)
 		if err != nil {
 			t.Errorf("Error reading license file for %s: %s", p.Name(), err.Error())
