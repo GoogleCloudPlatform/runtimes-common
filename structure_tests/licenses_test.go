@@ -1,7 +1,6 @@
 package structure_tests
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -9,17 +8,19 @@ import (
 	"testing"
 )
 
-type problem struct {
-	name  string
-	issue string
-}
+var (
+	// Whitelist is the list of packages that we want to automatically pass this
+	// check even if it would normally fail for one reason or another.
+	whitelist = []string{}
+
+	// Blacklist is the set of words that, if contained in a license file, should cause a failure.
+	// This will most likely just be names of unsupported licenses.
+	blacklist = []string{"AGPL", "WTFPL", "AFFERO GENERAL PUBLIC LICENSE", "DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE"}
+)
 
 func TestImageLicenses(t *testing.T) {
-	whitelist := [0]string{}
-	blacklist := [4]string{"AGPL", "WTFPL", "AFFERO GENERAL PUBLIC LICENSE", "DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE"}
 	root := "/usr/share/doc"
 	packages, err := ioutil.ReadDir("/usr/share/doc")
-	var problems []problem
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
@@ -39,28 +40,21 @@ func TestImageLicenses(t *testing.T) {
 		//fmt.Println(licenseFile)
 		_, err := os.Stat(licenseFile)
 		if err != nil {
-			problems = append(problems, problem{p.Name(), err.Error()})
+			t.Errorf("Error reading license file for %s: %s", p.Name(), err.Error())
 			continue
 		}
 		// Read through the copyright file and make sure don't have an unauthorized license
 		license, err := ioutil.ReadFile(licenseFile)
 		if err != nil {
-			problems = append(problems, problem{p.Name(), err.Error()})
+			t.Errorf("Error reading license file for %s: %s", p.Name(), err.Error())
 			continue
 		}
 		contents := strings.ToUpper(string(license))
 		for _, b := range blacklist {
 			if strings.Contains(contents, b) {
-				problems = append(problems, problem{p.Name(), "invalid license"})
+				t.Errorf("Invalid license for %s, license contains %s", p.Name(), b)
 				break
 			}
 		}
-	}
-
-	if len(problems) > 0 {
-		for _, p := range problems {
-			fmt.Println(p)
-		}
-		t.Fatalf("The above packages require attention")
 	}
 }
