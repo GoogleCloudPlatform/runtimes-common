@@ -1,4 +1,4 @@
-package structure_tests
+package main
 
 import (
 	"io/ioutil"
