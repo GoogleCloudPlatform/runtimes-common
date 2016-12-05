@@ -22,6 +22,7 @@ def cleanup(appdir):
 
 
 def _authenticate(appdir):
+	logging.debug("authentcating service account credentials...")
 	auth_command = ['gcloud', 'auth', 'activate-service-account', '--key-file=/auth.json']
 	subprocess.call(auth_command)
 
@@ -38,17 +39,21 @@ def _authenticate(appdir):
 
 	# authenticate the same service account INSIDE the same application
 	# so it can write logs to this test driver's project
-	try
+	try:
+		owd = os.getcwd()
 		os.chdir(appdir)
 		current_dir = os.path.realpath('.')
 		copy("/auth.json", current_dir)
 	except:
 		logging.error("error copying auth.json from root dir!")
 		sys.exit(1)
+	finally:
+		os.chdir(owd)
 
 
 def _deploy_app(image, appdir):
 	try:
+		owd = os.getcwd()
 		os.chdir(appdir)
 		current_dir = os.path.realpath('.')
 		try:
@@ -88,3 +93,4 @@ def _deploy_app(image, appdir):
 
 	finally:
 		cleanup(appdir)
+		os.chdir(owd)
