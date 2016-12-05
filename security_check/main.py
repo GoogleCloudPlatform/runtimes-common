@@ -6,7 +6,20 @@ import logging
 import sys
 import subprocess
 
+
 _GCLOUD_CMD = ['gcloud', 'beta', 'container', 'images', '--format=json']
+
+
+# Severities
+_LOW = 'LOW'
+_MEDIUM = 'MEDIUM'
+_HIGH = 'HIGH'
+
+_SEV_MAP = {
+    _LOW: 0,
+    _MEDIUM: 1,
+    _HIGH: 2
+}
 
 
 def _run_gcloud(cmd):
@@ -15,18 +28,22 @@ def _run_gcloud(cmd):
     return json.loads(output)
 
 
-def _check_image(image):
+def _check_image(image, severity):
     digest = _resolve_latest(image)
     full_name = '%s@%s' % (image, digest)
     parsed = _run_gcloud(['describe', full_name])
-    vulnz = (parsed['total_vulnerability_found'] -
-             parsed['not_fixed_vulnerability_count'])
-    if vulnz:
+
+    unpatched = 0
+    for vuln in parsed['vulz_analysis']['FixesAvailable']:
+        if _filter_severity(vuln['severity'], severity):
+            unpatched += 1
+
+    if unpatched:
         logging.info('Found %s unpatched vulnerabilities in %s. Run '
                      '[gcloud beta container images describe %s] '
                      'to see the full list.',
-                     vulnz, image, full_name)
-    return vulnz
+                     unpatched, image, full_name)
+    return unpatched
 
 
 def _resolve_latest(image):
@@ -37,13 +54,21 @@ def _resolve_latest(image):
     raise Exception("Unable to find digest of 'latest' tag for %s" % image)
 
 
+def _filter_severity(sev1, sev2):
+    """Returns whether sev1 is higher than sev2"""
+    return _SEV_MAP[sev1] > _SEV_MAP[sev2]
+
+
 def _main():
     parser = argparse.ArgumentParser()
     parser.add_argument('image', help='The image to test')
+    parser.add_argument('--severity', choices=[_LOW, _MEDIUM, _HIGH],
+                        default=_MEDIUM,
+                        help='The minimum severity to filter on.')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG)
-    return _check_image(args.image)
+    return _check_image(args.image, args.severity)
 
 
 if __name__ == '__main__':
