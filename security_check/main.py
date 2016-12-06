@@ -14,11 +14,13 @@ _GCLOUD_CMD = ['gcloud', 'beta', 'container', 'images', '--format=json']
 _LOW = 'LOW'
 _MEDIUM = 'MEDIUM'
 _HIGH = 'HIGH'
+_CRITICAL = 'CRITICAL'
 
 _SEV_MAP = {
     _LOW: 0,
     _MEDIUM: 1,
-    _HIGH: 2
+    _HIGH: 2,
+    _CRITICAL: 3,
 }
 
 
@@ -34,7 +36,7 @@ def _check_image(image, severity):
     parsed = _run_gcloud(['describe', full_name])
 
     unpatched = 0
-    for vuln in parsed['vulz_analysis']['FixesAvailable']:
+    for vuln in parsed.get('vulz_analysis', {}).get('FixesAvailable', []):
         if _filter_severity(vuln['severity'], severity):
             unpatched += 1
 
@@ -56,13 +58,14 @@ def _resolve_latest(image):
 
 def _filter_severity(sev1, sev2):
     """Returns whether sev1 is higher than sev2"""
-    return _SEV_MAP[sev1] > _SEV_MAP[sev2]
+    return _SEV_MAP.get(sev1, _LOW) >= _SEV_MAP.get(sev2, _LOW)
 
 
 def _main():
     parser = argparse.ArgumentParser()
     parser.add_argument('image', help='The image to test')
-    parser.add_argument('--severity', choices=[_LOW, _MEDIUM, _HIGH],
+    parser.add_argument('--severity',
+                        choices=[_LOW, _MEDIUM, _HIGH, _CRITICAL],
                         default=_MEDIUM,
                         help='The minimum severity to filter on.')
     args = parser.parse_args()
