@@ -8,6 +8,12 @@ import (
 	"testing"
 )
 
+// Not currently used, but leaving the possibility open
+type LicenseTestv1 struct {
+	debian bool
+	file   []string
+}
+
 var (
 	// Whitelist is the list of packages that we want to automatically pass this
 	// check even if it would normally fail for one reason or another.
@@ -18,7 +24,7 @@ var (
 	blacklist = []string{"AGPL", "WTFPL"}
 )
 
-func checkLicenses(t *testing.T) {
+func checkLicenses(t *testing.T, tt LicenseTestv1) {
 	root := "/usr/share/doc"
 	packages, err := ioutil.ReadDir("/usr/share/doc")
 	if err != nil {

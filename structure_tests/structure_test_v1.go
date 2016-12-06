@@ -29,7 +29,7 @@ type StructureTestv1 struct {
 	CommandTests       []CommandTestv1
 	FileExistenceTests []FileExistenceTestv1
 	FileContentTests   []FileContentTestv1
-	LicenseTests       []string
+	LicenseTests       LicenseTestv1
 }
 
 func (st StructureTestv1) RunAll(t *testing.T) int {
@@ -116,7 +116,7 @@ func (st StructureTestv1) RunFileContentTests(t *testing.T) int {
 }
 
 func (st StructureTestv1) RunLicenseTests(t *testing.T) int {
-	checkLicenses(t)
+	checkLicenses(t, st.LicenseTests)
 	return 1
 }
 
