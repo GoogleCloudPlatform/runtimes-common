@@ -14,6 +14,7 @@ def _test_logging(base_url):
 	url = base_url + test_util.LOGGING_ENDPOINT
 	logging.debug("posting to endpoint: {0}".format(url))
 
+	# TODO (nkubala): possibly handle multiple log destinations depending on environments
 	payload = test_util._generate_logging_payload()
 	logging.debug("data: {0}".format(payload))
 

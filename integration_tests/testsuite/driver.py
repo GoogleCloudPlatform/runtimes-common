@@ -45,9 +45,10 @@ def _main():
 
 
 def _test_app(base_url):
+	# TODO (nkubala): check output from each test to log individul failures
 	logging.info("starting app test with base url {0}".format(base_url))
 	test_root._test_root(base_url)
-	test_logging._test_logging(base_url)
+	# test_logging._test_logging(base_url)
 	test_monitoring._test_monitoring(base_url)
 
 

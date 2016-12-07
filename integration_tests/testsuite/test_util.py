@@ -13,22 +13,29 @@ ROOT_EXPECTED_OUTPUT = "Hello World!"
 LOGGING_ENDPOINT = "/logging"
 MONITORING_ENDPOINT= "/monitoring"
 
-def _generate_name_and_token():
+METRIC_PREFIX = "custom.googleapis.com/{0}"
+
+
+def _generate_name():
 	# TODO (nkubala): log directly to stdout since we're in GAE flex???
-	# TODO (nkubala): possibly handle multiple log destinations depending on environments
 	name = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase) for i in range(LOGNAME_LENGTH))
 	# name = 'stdout'
-	token = binascii.b2a_hex(os.urandom(16))
-	return name, token
+	return name
+
+
+def _generate_hex_token():
+	return binascii.b2a_hex(os.urandom(16))
+
+
+def _generate_int64_token():
+	return random.randint(-(2 ** 31), (2 ** 31)-1)
 
 
 def _generate_logging_payload():
-  	logname, token = _generate_name_and_token()
-  	data = {'log_name':logname, 'token':token}
-  	return data
+	data = {'log_name':_generate_name(), 'token':_generate_hex_token()}
+	return data
 
 
 def _generate_metrics_payload():
-	name, token = _generate_name_and_token()
-	data = {'name':name, 'token':token}
+	data = {'name':METRIC_PREFIX.format(_generate_name()), 'token':_generate_int64_token()}
 	return data

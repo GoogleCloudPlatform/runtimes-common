@@ -3,6 +3,7 @@
 import json
 import logging
 import requests
+import time
 
 import test_util
 
@@ -24,8 +25,21 @@ def _test_monitoring(base_url):
 	if response.status_code - 200 >= 100: # 2xx
 		logging.error("error when posting metric request: exit code: {0}, text: {1}".format(response.status_code, response.text))
 
+	time.sleep(10) # wait for metric to propagate
+
 	try:
 		client = gcloud_monitoring.Client()
+		query = client.query(payload.get('name'), minutes=5)
+		for timeseries in query:
+			for point in timeseries.points:
+				if point.value == payload.get('token'):
+					logging.info("token {0} found in stackdriver metric".format(payload.get('token)')))
+					return True
+				print point.value
+
+		logging.error("token not found in stackdriver monitoring!")
+		return False
+
 		for descriptor in client.list_resource_descriptors():
 			print descriptor.type
 	except Exception as e:
