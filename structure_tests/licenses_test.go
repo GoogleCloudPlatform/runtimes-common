@@ -10,8 +10,8 @@ import (
 
 // Not currently used, but leaving the possibility open
 type LicenseTestv1 struct {
-	debian bool
-	file   []string
+	Debian bool
+	Files  []string
 }
 
 var (
@@ -24,50 +24,61 @@ var (
 	blacklist = []string{"AGPL", "WTFPL"}
 )
 
-func checkLicenses(t *testing.T, tt LicenseTestv1) {
-	root := "/usr/share/doc"
-	packages, err := ioutil.ReadDir(root)
+func checkFile(t *testing.T, licenseFile string) {
+	// Read through the copyright file and make sure don't have an unauthorized license
+	license, err := ioutil.ReadFile(licenseFile)
 	if err != nil {
-		t.Fatalf("%s", err)
+		t.Errorf("Error reading license file for %s: %s", licenseFile, err.Error())
+		return
 	}
-	for _, p := range packages {
-		if !p.IsDir() {
-			continue
+	contents := strings.ToUpper(string(license))
+	for _, b := range blacklist {
+		if strings.Contains(contents, b) {
+			t.Errorf("Invalid license for %s, license contains %s", licenseFile, b)
+			return
 		}
+	}
+}
 
-		t.Logf(p.Name())
-
-		// Skip over packages in the whitelist
-		whitelisted := false
-		for _, w := range whitelist {
-			if w == p.Name() {
-				whitelisted = true
-				break
-			}
-		}
-		if whitelisted {
-			continue
-		}
-
-		// If package doesn't have copyright file, log an error.
-		licenseFile := path.Join(root, p.Name(), "copyright")
-		_, err := os.Stat(licenseFile)
+func checkLicenses(t *testing.T, tt LicenseTestv1) {
+	if tt.Debian {
+		root := "/usr/share/doc"
+		packages, err := ioutil.ReadDir(root)
 		if err != nil {
-			t.Errorf("Error reading license file for %s: %s", p.Name(), err.Error())
-			continue
+			t.Fatalf("%s", err)
 		}
-		// Read through the copyright file and make sure don't have an unauthorized license
-		license, err := ioutil.ReadFile(licenseFile)
-		if err != nil {
-			t.Errorf("Error reading license file for %s: %s", p.Name(), err.Error())
-			continue
-		}
-		contents := strings.ToUpper(string(license))
-		for _, b := range blacklist {
-			if strings.Contains(contents, b) {
-				t.Errorf("Invalid license for %s, license contains %s", p.Name(), b)
-				break
+		for _, p := range packages {
+			if !p.IsDir() {
+				continue
 			}
+
+			t.Logf(p.Name())
+
+			// Skip over packages in the whitelist
+			whitelisted := false
+			for _, w := range whitelist {
+				if w == p.Name() {
+					whitelisted = true
+					break
+				}
+			}
+			if whitelisted {
+				continue
+			}
+
+			// If package doesn't have copyright file, log an error.
+			licenseFile := path.Join(root, p.Name(), "copyright")
+			_, err := os.Stat(licenseFile)
+			if err != nil {
+				t.Errorf("Error reading license file for %s: %s", p.Name(), err.Error())
+				continue
+			}
+
+			checkFile(t, licenseFile)
 		}
+	}
+
+	for _, file := range tt.Files {
+		checkFile(t, file)
 	}
 }
