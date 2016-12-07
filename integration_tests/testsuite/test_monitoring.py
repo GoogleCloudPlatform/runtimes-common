@@ -18,8 +18,8 @@ def _test_monitoring(base_url):
 
 	try:
 		headers = {'Content-Type': 'application/json'}
-		response = requests.post(url, json.dumps(payload), timeout=5, headers=headers)
-		util._check_response(response, "error when posting metric request!")
+		response = requests.post(url, json.dumps(payload), timeout=test_util.METRIC_TIMEOUT, headers=headers)
+		test_util._check_response(response, "error when posting metric request!")
 	except requests.exceptions.Timeout:
 		logging.error("timeout when posting metric data!")
 

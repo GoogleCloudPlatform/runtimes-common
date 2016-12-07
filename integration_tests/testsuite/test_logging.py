@@ -21,7 +21,7 @@ def _test_logging(base_url):
 	try:
 		headers = {'Content-Type': 'application/json'}
 		response = requests.post(url, json.dumps(payload), timeout=5, headers=headers)
-		util._check_response(response, "error when posting log request!")
+		test_util._check_response(response, "error when posting log request!")
 	except requests.exceptions.Timeout:
 		logging.error("timeout when posting log data!")
 
