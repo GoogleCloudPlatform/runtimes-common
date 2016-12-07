@@ -26,7 +26,7 @@ var (
 
 func checkLicenses(t *testing.T, tt LicenseTestv1) {
 	root := "/usr/share/doc"
-	packages, err := ioutil.ReadDir("/usr/share/doc")
+	packages, err := ioutil.ReadDir(root)
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
