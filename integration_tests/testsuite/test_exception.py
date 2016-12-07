@@ -11,7 +11,7 @@ from google.cloud import monitoring as gcloud_monitoring
 
 
 def _test_exception(base_url):
-	logging.info("testing monitoring")
-	url = base_url + test_util.MONITORING_ENDPOINT
-	
-	print ''
+  logging.info("testing monitoring")
+  url = base_url + test_util.MONITORING_ENDPOINT
+  
+  print ''
