@@ -21,11 +21,9 @@ def _test_logging(base_url):
 	try:
 		headers = {'Content-Type': 'application/json'}
 		response = requests.post(url, json.dumps(payload), timeout=5, headers=headers)
+		util._check_response(response, "error when posting log request!")
 	except requests.exceptions.Timeout:
 		logging.error("timeout when posting log data!")
-
-	if response.status_code - 200 >= 100: # 2xx
-		logging.error("error when posting log request: exit code: {0}, text: {1}".format(response.status_code, response.text))
 
 	try:
 		client = gcloud_logging.Client(credentials=GoogleCredentials.get_application_default())

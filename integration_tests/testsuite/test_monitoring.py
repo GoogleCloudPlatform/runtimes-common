@@ -19,11 +19,9 @@ def _test_monitoring(base_url):
 	try:
 		headers = {'Content-Type': 'application/json'}
 		response = requests.post(url, json.dumps(payload), timeout=5, headers=headers)
+		util._check_response(response, "error when posting metric request!")
 	except requests.exceptions.Timeout:
 		logging.error("timeout when posting metric data!")
-
-	if response.status_code - 200 >= 100: # 2xx
-		logging.error("error when posting metric request: exit code: {0}, text: {1}".format(response.status_code, response.text))
 
 	time.sleep(10) # wait for metric to propagate
 
