@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import binascii
+import logging
 import os
 import random
 import string
