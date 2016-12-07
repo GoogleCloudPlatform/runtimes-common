@@ -16,6 +16,7 @@ MONITORING_ENDPOINT= "/monitoring"
 
 METRIC_PREFIX = "custom.googleapis.com/{0}"
 METRIC_TIMEOUT = 60 # seconds
+METRIC_PROPAGATION_TIME = 45 # seconds
 
 
 def _generate_name():

@@ -23,15 +23,16 @@ def _test_monitoring(base_url):
   except requests.exceptions.Timeout:
     logging.error("timeout when posting metric data!")
 
-  time.sleep(10) # wait for metric to propagate
+  time.sleep(test_util.METRIC_PROPAGATION_TIME) # wait for metric to propagate
 
   try:
     client = gcloud_monitoring.Client()
     query = client.query(payload.get('name'), minutes=5)
     for timeseries in query:
       for point in timeseries.points:
+        logging.debug(point)
         if point.value == payload.get('token'):
-          logging.info("token {0} found in stackdriver metric".format(payload.get('token)')))
+          logging.info("token {0} found in stackdriver metric".format(payload.get('token')))
           return True
         print point.value
 
