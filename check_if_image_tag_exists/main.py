@@ -66,8 +66,8 @@ def main():
     args = parser.parse_args()
 
     if args.image is None:
-        sys.exit('Please provide fully qualified remote path for the ' \
-              'target image.')
+        sys.exit('Please provide fully qualified remote path for the '
+                 'target image.')
 
     check_if_tag_exists(args.image, args.force)
 
