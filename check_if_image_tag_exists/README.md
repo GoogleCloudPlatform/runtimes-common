@@ -11,6 +11,4 @@ prevent users from unintentionally overwriting a tag in a remote repository.
 ```
    - name: gcr.io/gcp-runtimes/check_if_tag_exists:latest
      args:
-       - 'python'
-       - '/main.py'
        - '--image=<target_image_path>'```
