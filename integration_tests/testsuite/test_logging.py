@@ -18,9 +18,9 @@ import json
 import logging
 import requests
 
-import test_util
+import google.cloud.logging
 
-from google.cloud import logging as gcloud_logging
+import test_util
 
 
 def _test_logging(base_url):
@@ -40,7 +40,7 @@ def _test_logging(base_url):
     logging.error("timeout when posting log data!")
 
   try:
-    client = gcloud_logging.Client(credentials=GoogleCredentials.get_application_default())
+    client = google.cloud.logging.Client()
     log_name = payload.get('log_name')
     logging.info("log name is {0}".format(log_name))
 

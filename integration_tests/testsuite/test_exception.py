@@ -21,11 +21,9 @@ import time
 
 import test_util
 
-from google.cloud import monitoring as gcloud_monitoring
-
 
 def _test_exception(base_url):
-  logging.info("testing monitoring")
-  url = base_url + test_util.MONITORING_ENDPOINT
+  logging.info("testing error reporting")
+  # url = base_url + test_util.MONITORING_ENDPOINT
   
   print ''

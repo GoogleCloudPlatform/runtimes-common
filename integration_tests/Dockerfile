@@ -29,6 +29,7 @@ RUN apt-get install -y python-dev gcc curl && \
 
 RUN pip install --upgrade google-cloud-logging
 RUN pip install --upgrade google-cloud-monitoring
+RUN pip install --upgrade google-cloud-error-reporting
 RUN pip install --upgrade oauth2client
 
 ENV GOOGLE_APPLICATION_CREDENTIALS=/auth.json
