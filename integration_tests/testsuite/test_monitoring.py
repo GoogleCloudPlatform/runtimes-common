@@ -19,6 +19,7 @@ import logging
 import requests
 import time
 import unittest
+from retrying import retry
 
 import google.cloud.monitoring
 
@@ -41,22 +42,45 @@ def _test_monitoring(base_url):
 
   try:
     client = google.cloud.monitoring.Client()
-    query = client.query(payload.get('name'), minutes=5)
-    for timeseries in query:
-      for point in timeseries.points:
-        logging.debug(point)
-        if point.value == payload.get('token'):
-          logging.info('Token {0} found in Stackdriver metric'.format(payload.get('token')))
-          return True
-        print point.value
-
-    logging.error('Token not found in Stackdriver monitoring!')
-    return False
 
     for descriptor in client.list_resource_descriptors():
       print descriptor.type
+
+    if not _read_metric(payload.get('name'), payload.get('token'), client):
+      logging.error('Token not found in Stackdriver monitoring!')
+      return False
+    return True
+
   except Exception as e:
     logging.error(e)
 
 if __name__ == '__main__':
   unittest.main()
+
+
+@retry(wait_exponential_multiplier=1000, stop_max_attempt_number=8, wait_exponential_max=8000)
+def _read_metric(name, target, client):
+  query = client.query(name, minutes=2)
+  if _query_is_empty(query):
+    raise Exception('Metric read retries exceeded!')
+
+  for timeseries in query:
+    for point in timeseries.points:
+      logging.info(point)
+      if point.value == target:
+        logging.info('Token {0} found in Stackdriver metric'.format(target))
+        return True
+      print point.value
+  return False
+
+
+def _query_is_empty(query):
+  if query is None:
+    logging.info('query is none')
+    return True
+  # query is a generator, so sum over it to get the length
+  query_length = sum(1 for timeseries in query)
+  if query_length == 0:
+    logging.info('query is empty')
+    return True
+  return False
