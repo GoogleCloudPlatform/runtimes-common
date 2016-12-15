@@ -26,7 +26,7 @@ import test_logging
 
 # TODO (nkubala): make this a configurable parameter from cloudbuild
 # required to be paired with '--no-deploy'
-DEFAULT_URL = "https://nick-cloudbuild.appspot.com"
+DEFAULT_URL = 'https://nick-cloudbuild.appspot.com'
 
 def _main():
   logging.getLogger().setLevel(logging.DEBUG)
@@ -45,14 +45,14 @@ def _main():
 
   if not args.no_deploy:
     if args.image is None:
-      logging.error("Please specify base image name!")
+      logging.error('Please specify base image name!')
       sys.exit(1)
 
     if args.directory is None:
-      logging.error("Please specify at least one application to deploy!")
+      logging.error('Please specify at least one application to deploy!')
       sys.exit(1)
 
-    logging.debug("deploying app!")
+    logging.debug('Deploying app!')
     deploy_app._deploy_app(args.image, args.directory)
 
   _test_app(args.url)
@@ -60,7 +60,7 @@ def _main():
 
 def _test_app(base_url):
   # TODO (nkubala): check output from each test to log individul failures
-  logging.info("starting app test with base url {0}".format(base_url))
+  logging.info('Starting app test with base url {0}'.format(base_url))
   test_root._test_root(base_url)
   # test_logging._test_logging(base_url)
   test_monitoring._test_monitoring(base_url)
