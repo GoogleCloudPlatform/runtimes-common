@@ -67,6 +67,8 @@ File existence tests check to make sure a specific file (or directory) exist wit
 - Path (string, **required**): Path to the file or directory under test
 - IsDirectory (boolean, **required**): Whether or not the specified path is a directory (as opposed to a file)
 - ShouldExist (boolean, **required**): Whether or not the specified file or directory should exist in the file system
+- Permissions (string, *optional*): The expected Unix permission string (e.g.
+  drwxrwxrwx) of the files or directory.
 
 Example:
 ```json
@@ -75,7 +77,8 @@ Example:
 		"name": "Root",
 		"path": "/",
 		"isDirectory": true,
-		"shouldExist": true
+		"shouldExist": true,
+                "permissions": "-rw-r--r--"
 	},{
 		"name": "Fake file",
 		"path": "/foo/bar",
@@ -92,6 +95,7 @@ fileExistenceTests:
   path: '/'
   isDirectory: true
   shouldExist: true
+  permissions: '-rw-r--r--'
 ```
 
 ## File Content Tests
