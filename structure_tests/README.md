@@ -30,6 +30,7 @@ Command tests ensure that certain commands run properly on top of the shell of t
 - Excluded Output (string[], *optional*): List of regexes that should **not** match the stdout from running the command.
 - Expected Error (string[], *optional*): List of regexes that should match the stderr from running the command.
 - Excluded Error (string[], *optional*): List of regexes that should **not** match the stderr from running the command.
+- Exit Code (int, *optional*): Exit code that the command should exit with.
 
 Example:
 ```json
@@ -46,6 +47,7 @@ Example:
                 "teardown": [["install_node", "v6.9.1"]],
                 "command": ["node", "-v"],
                 "expectedOutput": ["v5.9.0\n"]
+                "exitCode": 0
         }
 ]
 ```
