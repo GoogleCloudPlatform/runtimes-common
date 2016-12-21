@@ -21,14 +21,25 @@ import (
 	"testing"
 )
 
-const RED = "\033[0;31m"
-const GREEN = "\033[0;32m"
-const YELLOW = "\033[1;33m"
-const CYAN = "\033[0;36m"
-const BLUE = "\033[0;34m"
-const PURPLE = "\033[0;35m"
-const NC = "\033[0m" // No Color
+const (
+	RED = "\033[0;31m"
+	GREEN = "\033[0;32m"
+	YELLOW = "\033[1;33m"
+	CYAN = "\033[0;36m"
+	BLUE = "\033[0;34m"
+	PURPLE = "\033[0;35m"
+	NC = "\033[0m" // No Color
 
+
+	LOG_TEMPLATE = "LOG: %s"
+	INFO_TEMPLATE = YELLOW + "INFO: %s" + NC
+	HEADER_TEMPLATE = GREEN + "%s" + NC
+	SPECIAL_TEMPLATE = BLUE + "%s" + NC
+	ERROR_TEMPLATE = "\n" + RED + "ERROR: %s" + NC + "\n"
+	FATAL_TEMPLATE = "\n" + PURPLE + "FATAL: %s" + NC + "\n"
+)
+
+// ANSI Color Escape Codes
 // Black        0;30     Dark Gray     1;30
 // Red          0;31     Light Red     1;31
 // Green        0;32     Light Green   1;32
@@ -37,14 +48,6 @@ const NC = "\033[0m" // No Color
 // Purple       0;35     Light Purple  1;35
 // Cyan         0;36     Light Cyan    1;36
 // Light Gray   0;37     White         1;37
-
-const LOG_TEMPLATE = "LOG: %s"
-const INFO_TEMPLATE = YELLOW + "INFO: %s" + NC
-const HEADER_TEMPLATE = GREEN + "%s" + NC
-const SPECIAL_TEMPLATE = BLUE + "%s" + NC
-const ERROR_TEMPLATE = "\n" + RED + "ERROR: %s" + NC + "\n"
-const FATAL_TEMPLATE = "\n" + PURPLE + "FATAL: %s" + NC + "\n"
-
 
 var Log = log.New(os.Stdout,
 		"",
