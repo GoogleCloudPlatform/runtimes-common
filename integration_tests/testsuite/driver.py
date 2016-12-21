@@ -38,6 +38,8 @@ def _main():
   # TODO (nkubala): potentially add support for multiple app directories to deploy
   # parser.add_argument('--directory', '-d', help='Root directory of sample app', action='append')
   parser.add_argument('--no-deploy', action='store_true', help='Flag to skip deployment of app (must provide app URL)')
+  parser.add_argument('--no-logging', action='store_true', help='Flag to skip logging tests')
+  parser.add_argument('--no-monitoring', action='store_true', help='Flag to skip monitoring tests')
   parser.add_argument('--url', '-u', help='URL where deployed app is exposed (if applicable)', default=DEFAULT_URL)
   args = parser.parse_args()
 
@@ -55,15 +57,25 @@ def _main():
     logging.debug('Deploying app!')
     deploy_app._deploy_app(args.image, args.directory)
 
-  _test_app(args.url)
+  _test_app(args)
 
 
-def _test_app(base_url):
+def _test_app(args):
   # TODO (nkubala): check output from each test to log individul failures
+  base_url = args.base_url
   logging.info('Starting app test with base url {0}'.format(base_url))
   test_root._test_root(base_url)
-  # test_logging._test_logging(base_url)
-  test_monitoring._test_monitoring(base_url)
+  if not args.no_logging:
+    logging.info('Testing app logging')
+    test_logging._test_logging(base_url)
+
+  if not args.no_monitoring:
+    logging.info('Testing app monitoring')
+    test_monitoring._test_monitoring(base_url)
+
+  if not args.no_exception:
+    logging.info('Testing exception handling')
+    test_exception._test_exception(base_url)
 
 
 if __name__ == '__main__':

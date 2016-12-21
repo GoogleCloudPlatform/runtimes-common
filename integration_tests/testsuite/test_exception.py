@@ -23,7 +23,7 @@ import test_util
 
 
 def _test_exception(base_url):
-  logging.info("testing error reporting")
+  logging.info('testing error reporting')
   # url = base_url + test_util.MONITORING_ENDPOINT
   
   print ''
