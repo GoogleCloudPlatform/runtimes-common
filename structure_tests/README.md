@@ -46,7 +46,7 @@ Example:
                 "setup": [["install_node", "v5.9.0"]],
                 "teardown": [["install_node", "v6.9.1"]],
                 "command": ["node", "-v"],
-                "expectedOutput": ["v5.9.0\n"]
+                "expectedOutput": ["v5.9.0\n"],
                 "exitCode": 0
         }
 ]
