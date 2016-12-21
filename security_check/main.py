@@ -46,7 +46,7 @@ def _check_image(image, severity):
         base_unpatched = 0
         img = parsed.get('image_analysis')
         if img:
-            base_img_url = img[0]['base_img_url']
+            base_img_url = img[0]['base_image_url']
             base_image = base_img_url[len('https://'):base_img_url.find('@')]
             base_unpatched = _check_image(base_image, severity)
         unpatched -= base_unpatched
