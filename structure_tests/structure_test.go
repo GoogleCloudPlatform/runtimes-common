@@ -19,7 +19,6 @@ import (
 	"errors"
 	"flag"
 	"io/ioutil"
-	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -34,26 +33,31 @@ func TestAll(t *testing.T) {
 	for _, file := range configFiles {
 		tests, err := Parse(file)
 		if err != nil {
-			log.Fatalf("Error parsing config file: %s", err)
+			_Fatal(t, "Error parsing config file: %s", err)
 		}
-		log.Printf("Running tests for file %s", file)
-		totalTests += tests.RunAll(t)
+		_Special("Running tests for file %s", file)
+
+		numTests := tests.RunAll(t)
+		_Special("Total tests run from file %s: %d", file, numTests)
+		_Log("\n")
+		totalTests += numTests
 	}
 	if totalTests == 0 {
-		t.Fatalf("No tests run! Check config file format.")
+		_Fatal(t, "No tests run! Check config file format.")
 	} else {
-		t.Logf("Total tests run: %d", totalTests)
+		_Special("Total tests run: %d", totalTests)
 	}
 }
 
 func compileAndRunRegex(regex string, base string, t *testing.T, err string, shouldMatch bool) {
 	r, rErr := regexp.Compile(regex)
 	if rErr != nil {
-		t.Errorf("Error compiling regex %s : %s", regex, rErr.Error())
+		// t.Errorf("Error compiling regex %s : %s", regex, rErr.Error())
+		_Error(t, "Error compiling regex %s : %s", regex, rErr.Error())
 		return
 	}
 	if shouldMatch != r.MatchString(base) {
-		t.Errorf(err)
+		_Error(t, err)
 	}
 }
 
