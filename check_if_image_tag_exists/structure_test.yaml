@@ -6,21 +6,11 @@ commandTests:
   expectedError: ['']
   expectedOutput: ['Linux\n']
 
-- name: 'broken uname'
-  command: ['uname', '-s', '-asdf']
-  exitCode: 1
-  expectedError: ['.*[invalid | unrecognized].*']
-
 fileExistenceTests:
 - name: 'Root'
   path: '/'
   isDirectory: true
   shouldExist: true
-
-- name: 'Fake file'
-  path: '/foo/bar'
-  isDirectory: false
-  shouldExist: false  
 
 fileContentTests:  
 - name: 'main.py'
