@@ -2,33 +2,38 @@
 
 # Copyright 2016 Google Inc. All rights reserved.
 
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 
 # http://www.apache.org/licenses/LICENSE-2.0
 
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
 import binascii
+import json
 import logging
 import os
 import random
+import requests
 import string
 
 LOGNAME_LENGTH = 20
 
-ROOT_ENDPOINT = "/"
-ROOT_EXPECTED_OUTPUT = "Hello World!"
+DEFAULT_TIMEOUT = 30 # seconds
 
-LOGGING_ENDPOINT = "/logging"
-MONITORING_ENDPOINT= "/monitoring"
+ROOT_ENDPOINT = '/'
+ROOT_EXPECTED_OUTPUT = 'Hello World!'
 
-METRIC_PREFIX = "custom.googleapis.com/{0}"
+LOGGING_ENDPOINT = '/logging'
+MONITORING_ENDPOINT = '/monitoring'
+EXCEPTION_ENDPOINT = '/exception'
+
+METRIC_PREFIX = 'custom.googleapis.com/{0}'
 METRIC_TIMEOUT = 60 # seconds
 METRIC_PROPAGATION_TIME = 45 # seconds
 
@@ -58,6 +63,20 @@ def _generate_metrics_payload():
   return data
 
 
+def _generate_exception_payload():
+  data = {'token':_generate_int64_token()}
+  return data
+
+
+def _post(url, payload, timeout=DEFAULT_TIMEOUT):
+  try:
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(url, json.dumps(payload), timeout=timeout, headers=headers)
+    _check_response(response, 'error when posting request! url: {0}'.format(url))
+  except requests.exceptions.Timeout:
+    logging.error('POST to {0} timed out after {1} seconds!'.format(url, timeout))
+
+
 def _check_response(response, error_message):
   if response.status_code - 200 >= 100: # 2xx
-    logging.error("{0} exit code: {1}, text: {2}".format(error_message, response.status_code, response.text))
+    logging.error('{0} exit code: {1}, text: {2}'.format(error_message, response.status_code, response.text))

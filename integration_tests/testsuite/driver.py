@@ -19,10 +19,11 @@ import logging
 import sys
 
 import deploy_app
+import test_exception
+import test_logging
+import test_monitoring
 import test_root
 import test_util
-import test_monitoring
-import test_logging
 
 # TODO (nkubala): make this a configurable parameter from cloudbuild
 # required to be paired with '--no-deploy'
@@ -57,23 +58,23 @@ def _main():
     logging.debug('Deploying app!')
     deploy_app._deploy_app(args.image, args.directory)
 
-  _test_app(args)
+  _test_app(vars(args))
 
 
 def _test_app(args):
   # TODO (nkubala): check output from each test to log individul failures
-  base_url = args.base_url
+  base_url = args.get('url')
   logging.info('Starting app test with base url {0}'.format(base_url))
   test_root._test_root(base_url)
-  if not args.no_logging:
+  if not args.get('no_logging'):
     logging.info('Testing app logging')
     test_logging._test_logging(base_url)
 
-  if not args.no_monitoring:
+  if not args.get('no_monitoring'):
     logging.info('Testing app monitoring')
     test_monitoring._test_monitoring(base_url)
 
-  if not args.no_exception:
+  if not args.get('no_exception'):
     logging.info('Testing exception handling')
     test_exception._test_exception(base_url)
 

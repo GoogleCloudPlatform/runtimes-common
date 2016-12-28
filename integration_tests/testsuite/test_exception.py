@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import logging
-import requests
 import time
 
 import test_util
@@ -24,6 +22,7 @@ import test_util
 
 def _test_exception(base_url):
   logging.info('testing error reporting')
-  # url = base_url + test_util.MONITORING_ENDPOINT
-  
-  print ''
+  url = base_url + test_util.EXCEPTION_ENDPOINT
+
+  payload = test_util._generate_exception_payload()
+  test_util._post(url, payload)

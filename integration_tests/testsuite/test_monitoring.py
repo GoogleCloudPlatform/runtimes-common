@@ -14,9 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import logging
-import requests
 import time
 import unittest
 from retrying import retry
@@ -30,13 +28,7 @@ def _test_monitoring(base_url):
   url = base_url + test_util.MONITORING_ENDPOINT
 
   payload = test_util._generate_metrics_payload()
-
-  try:
-    headers = {'Content-Type': 'application/json'}
-    response = requests.post(url, json.dumps(payload), timeout=test_util.METRIC_TIMEOUT, headers=headers)
-    test_util._check_response(response, 'error when posting metric request!')
-  except requests.exceptions.Timeout:
-    logging.error('Timeout when posting metric data!')
+  test_util._post(url, payload, test_util.METRIC_TIMEOUT)
 
   time.sleep(test_util.METRIC_PROPAGATION_TIME) # wait for metric to propagate
 

@@ -3,7 +3,7 @@ FROM gcr.io/google-appengine/python
 ENV PATH=$PATH:/builder/google-cloud-sdk/bin/
 
 RUN apt-get update && \
-    apt-get install -y wget unzip ca-certificates git && \
+    apt-get install -y --force-yes wget unzip ca-certificates git && \
     # Setup Google Cloud SDK (latest)
     wget -nv https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.zip && \
     mkdir -p /builder && \
@@ -16,7 +16,7 @@ RUN apt-get update && \
     /builder/google-cloud-sdk/bin/gcloud -q components install alpha beta && \
     /builder/google-cloud-sdk/bin/gcloud -q components update
 
-RUN apt-get install -y python-dev gcc curl && \
+RUN apt-get install -y --force-yes python-dev gcc curl && \
 
     cp -v /usr/local/bin/python /usr/bin/python && \
  	cp -v /usr/local/bin/pip /usr/bin/pip && \
@@ -24,7 +24,7 @@ RUN apt-get install -y python-dev gcc curl && \
 
     curl https://get.docker.com/builds/Linux/x86_64/docker-1.9.1 > /usr/bin/docker && chmod +x /usr/bin/docker && \
     # Clean up
-    apt-get remove -y wget unzip gcc && \
+    apt-get remove -y --force-yes wget unzip gcc && \
     apt-get clean
 
 
