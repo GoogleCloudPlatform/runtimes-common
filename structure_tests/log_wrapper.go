@@ -22,21 +22,20 @@ import (
 )
 
 const (
-	RED = "\033[0;31m"
-	GREEN = "\033[0;32m"
+	RED    = "\033[0;31m"
+	GREEN  = "\033[0;32m"
 	YELLOW = "\033[1;33m"
-	CYAN = "\033[0;36m"
-	BLUE = "\033[0;34m"
+	CYAN   = "\033[0;36m"
+	BLUE   = "\033[0;34m"
 	PURPLE = "\033[0;35m"
-	NC = "\033[0m" // No Color
+	NC     = "\033[0m" // No Color
 
-
-	LOG_TEMPLATE = "LOG: %s"
-	INFO_TEMPLATE = YELLOW + "INFO: %s" + NC
-	HEADER_TEMPLATE = GREEN + "%s" + NC
+	LOG_TEMPLATE     = "LOG: %s"
+	INFO_TEMPLATE    = YELLOW + "INFO: %s" + NC
+	HEADER_TEMPLATE  = GREEN + "%s" + NC
 	SPECIAL_TEMPLATE = BLUE + "%s" + NC
-	ERROR_TEMPLATE = "\n" + RED + "ERROR: %s" + NC + "\n"
-	FATAL_TEMPLATE = "\n" + PURPLE + "FATAL: %s" + NC + "\n"
+	ERROR_TEMPLATE   = "\n" + RED + "ERROR: %s" + NC + "\n"
+	FATAL_TEMPLATE   = "\n" + PURPLE + "FATAL: %s" + NC + "\n"
 )
 
 // ANSI Color Escape Codes
@@ -50,16 +49,15 @@ const (
 // Light Gray   0;37     White         1;37
 
 var Log = log.New(os.Stdout,
-		"",
-		log.Ldate|log.Ltime)
+	"",
+	log.Ldate|log.Ltime)
 
 var Info = log.New(os.Stdout,
-        "", 0)
+	"", 0)
 
 var Error = log.New(os.Stderr,
-		"",
-		log.Ldate|log.Ltime)
-
+	"",
+	log.Ldate|log.Ltime)
 
 func _Log(text string, args ...interface{}) {
 	Log.Println(fmt.Sprintf(text, args...))
@@ -80,10 +78,10 @@ func _Header(text string, args ...interface{}) string {
 
 func _Error(t *testing.T, text string, args ...interface{}) {
 	Error.Println(fmt.Sprintf(ERROR_TEMPLATE, fmt.Sprintf(text, args...)))
-    t.Fail()
+	t.Fail()
 }
 
 func _Fatal(t *testing.T, text string, args ...interface{}) {
 	Error.Println(fmt.Sprintf(FATAL_TEMPLATE, fmt.Sprintf(text, args...)))
-    t.FailNow()
+	t.FailNow()
 }
