@@ -36,11 +36,20 @@ def _check_image(image, severity):
     parsed = _run_gcloud(['describe', full_name])
 
     unpatched = 0
-    for vuln in parsed.get('vulz_analysis', {}).get('FixesAvailable', []):
+    for vuln in parsed.get('vulz_analysis', []):
+        if vuln.get('patch_not_available'):
+            continue
         if _filter_severity(vuln['severity'], severity):
             unpatched += 1
 
     if unpatched:
+        base_unpatched = 0
+        img = parsed.get('image_analysis')
+        if img:
+            base_img_url = img[0]['base_image_url']
+            base_image = base_img_url[len('https://'):base_img_url.find('@')]
+            base_unpatched = _check_image(base_image, severity)
+        unpatched -= base_unpatched
         logging.info('Found %s unpatched vulnerabilities in %s. Run '
                      '[gcloud beta container images describe %s] '
                      'to see the full list.',
@@ -58,7 +67,8 @@ def _resolve_latest(image):
 
 def _filter_severity(sev1, sev2):
     """Returns whether sev1 is higher than sev2"""
-    return _SEV_MAP.get(sev1, _LOW) >= _SEV_MAP.get(sev2, _LOW)
+    DEFAULT = _SEV_MAP.get(_LOW)
+    return _SEV_MAP.get(sev1, DEFAULT) >= _SEV_MAP.get(sev2, DEFAULT)
 
 
 def _main():
