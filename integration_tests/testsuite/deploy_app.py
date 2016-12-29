@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse
 import logging
 import os
 import subprocess
@@ -25,86 +24,96 @@ from shutil import copy
 
 # TODO (nkubala): make this configurable param from caller
 PROJECT_ID = "nick-cloudbuild"
-DEPLOY_DELAY_SECONDS = 30 # time to give GAE to start app after deploy
+DEPLOY_DELAY_SECONDS = 30  # time to give GAE to start app after deploy
 
 
 def cleanup(appdir):
-  try:
-    os.remove(os.path.join(appdir, "Dockerfile"))
-  except:
-    pass
+    try:
+        os.remove(os.path.join(appdir, "Dockerfile"))
+    except:
+        pass
 
 
 def _authenticate(appdir):
-  logging.debug("authentcating service account credentials...")
-  auth_command = ['gcloud', 'auth', 'activate-service-account', '--key-file=/auth.json']
-  subprocess.call(auth_command)
+    logging.debug("authentcating service account credentials...")
+    auth_command = ['gcloud', 'auth', 'activate-service-account',
+                    '--key-file=/auth.json']
+    subprocess.call(auth_command)
 
-  p = subprocess.check_output(['gcloud', 'auth', 'list'])
-  logging.info(p)
+    p = subprocess.check_output(['gcloud', 'auth', 'list'])
+    logging.info(p)
 
-  # TODO (nkubala): make this work so we can handle failed authentication
-  # auth_command = ['gcloud', 'auth', 'activate-service-account', '--key-file=/auth.json']
-  # auth_proc = subprocess.Popen(auth_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    # TODO (nkubala): make this work so we can handle failed authentication
+    # auth_command = ['gcloud', 'auth', 'activate-service-account',
+    #                 '--key-file=/auth.json']
+    # auth_proc = subprocess.Popen(auth_command, shell=True,
+    #                              stdout=subprocess.PIPE,
+    #                              stderr=subprocess.STDOUT)
 
-  # output, error = auth_proc.communicate()
-  # if auth_proc.returncode != 0:
-  #   sys.exit("Error encountered when authenticating. Full log: \n\n" + output)
+    # output, error = auth_proc.communicate()
+    # if auth_proc.returncode != 0:
+    #   sys.exit('Error encountered when authenticating. /
+    #             Full log: \n\n' + output)
 
-  # authenticate the same service account INSIDE the same application
-  # so it can write logs to this test driver's project
-  try:
-    owd = os.getcwd()
-    os.chdir(appdir)
-    current_dir = os.path.realpath('.')
-    copy("/auth.json", current_dir)
-  except:
-    logging.error("error copying auth.json from root dir!")
-    sys.exit(1)
-  finally:
-    os.chdir(owd)
+    # authenticate the same service account INSIDE the same application
+    # so it can write logs to this test driver's project
+    try:
+        owd = os.getcwd()
+        os.chdir(appdir)
+        current_dir = os.path.realpath('.')
+        copy("/auth.json", current_dir)
+    except:
+        logging.error("error copying auth.json from root dir!")
+        sys.exit(1)
+    finally:
+        os.chdir(owd)
 
 
 def _deploy_app(image, appdir):
-  try:
-    owd = os.getcwd()
-    os.chdir(appdir)
-    current_dir = os.path.realpath('.')
     try:
-      copy("/app.yaml", current_dir)
-    except:
-      logging.error("error copying app.yaml from root dir!")
-      sys.exit(1)
+        owd = os.getcwd()
+        os.chdir(appdir)
+        current_dir = os.path.realpath('.')
+        try:
+            copy("/app.yaml", current_dir)
+        except:
+            logging.error("error copying app.yaml from root dir!")
+            sys.exit(1)
 
-    try:
-      os.remove("Dockerfile")
-    except:
-      pass
+        try:
+            os.remove("Dockerfile")
+        except:
+            pass
 
-    # substitute vars in Dockerfile (equivalent of envsubst)
-    with open("Dockerfile.in", 'r') as fin:
-      with open("Dockerfile", 'a+') as fout:
-        for line in fin:
-          fout.write(line.replace('${STAGING_IMAGE}', image))
-      fout.close()
-    fin.close()
+        # substitute vars in Dockerfile (equivalent of envsubst)
+        with open("Dockerfile.in", 'r') as fin:
+            with open("Dockerfile", 'a+') as fout:
+                for line in fin:
+                    fout.write(line.replace('${STAGING_IMAGE}', image))
+            fout.close()
+        fin.close()
 
+        deploy_command = ['gcloud', 'app', 'deploy',
+                          '--stop-previous-version', '--verbosity=debug']
+        subprocess.call(deploy_command)
 
-    deploy_command = ['gcloud', 'app', 'deploy', '--stop-previous-version', '--verbosity=debug']
-    subprocess.call(deploy_command)
+        # TODO (nkubala): make this work so we can handle failed deploys
+        # deploy_proc = subprocess.Popen(deploy_command,
+        #                                shell=True,
+        #                                stdout=subprocess.PIPE,
+        #                                stderr=subprocess.STDOUT)
 
-    # TODO (nkubala): make this work so we can handle failed deploys
-    # deploy_proc = subprocess.Popen(deploy_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        # output, error = deploy_proc.communicate()
+        # if deploy_proc.returncode != 0:
+        #   sys.exit('Error encountered when deploying app. \
+        #             Full log: \n\n' + output)
 
-    # output, error = deploy_proc.communicate()
-    # if deploy_proc.returncode != 0:
-    #   sys.exit("Error encountered when deploying app. Full log: \n\n" + output)
+        print 'waiting {0} seconds for app \
+               to deploy...'.format(DEPLOY_DELAY_SECONDS)
+        for i in range(0, DEPLOY_DELAY_SECONDS):
+            time.sleep(1)
+        print
 
-    print 'waiting {0} seconds for app to deploy...'.format(DEPLOY_DELAY_SECONDS)
-    for i in range(0, DEPLOY_DELAY_SECONDS):
-      time.sleep(1)
-    print
-
-  finally:
-    cleanup(appdir)
-    os.chdir(owd)
+    finally:
+        cleanup(appdir)
+        os.chdir(owd)

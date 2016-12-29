@@ -24,7 +24,7 @@ import string
 
 LOGNAME_LENGTH = 20
 
-DEFAULT_TIMEOUT = 30 # seconds
+DEFAULT_TIMEOUT = 30  # seconds
 
 ROOT_ENDPOINT = '/'
 ROOT_EXPECTED_OUTPUT = 'Hello World!'
@@ -34,49 +34,60 @@ MONITORING_ENDPOINT = '/monitoring'
 EXCEPTION_ENDPOINT = '/exception'
 
 METRIC_PREFIX = 'custom.googleapis.com/{0}'
-METRIC_TIMEOUT = 60 # seconds
-METRIC_PROPAGATION_TIME = 45 # seconds
+METRIC_TIMEOUT = 60  # seconds
+METRIC_PROPAGATION_TIME = 45  # seconds
 
 
 def _generate_name():
-  # TODO (nkubala): log directly to stdout since we're in GAE flex???
-  name = ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase) for i in range(LOGNAME_LENGTH))
-  # name = 'stdout'
-  return name
+    # TODO (nkubala): log directly to stdout since we're in GAE flex???
+    name = ''.join(random.choice(string.ascii_uppercase +
+                   string.ascii_lowercase) for i in range(LOGNAME_LENGTH))
+    # name = 'stdout'
+    return name
 
 
 def _generate_hex_token():
-  return binascii.b2a_hex(os.urandom(16))
+    return binascii.b2a_hex(os.urandom(16))
 
 
 def _generate_int64_token():
-  return random.randint(-(2 ** 31), (2 ** 31)-1)
+    return random.randint(-(2 ** 31), (2 ** 31)-1)
 
 
 def _generate_logging_payload():
-  data = {'log_name':_generate_name(), 'token':_generate_hex_token()}
-  return data
+    data = {'log_name': _generate_name(),
+            'token': _generate_hex_token()}
+    return data
 
 
 def _generate_metrics_payload():
-  data = {'name':METRIC_PREFIX.format(_generate_name()), 'token':_generate_int64_token()}
-  return data
+    data = {'name': METRIC_PREFIX.format(_generate_name()),
+            'token': _generate_int64_token()}
+    return data
 
 
 def _generate_exception_payload():
-  data = {'token':_generate_int64_token()}
-  return data
+    data = {'token': _generate_int64_token()}
+    return data
 
 
 def _post(url, payload, timeout=DEFAULT_TIMEOUT):
-  try:
-    headers = {'Content-Type': 'application/json'}
-    response = requests.post(url, json.dumps(payload), timeout=timeout, headers=headers)
-    _check_response(response, 'error when posting request! url: {0}'.format(url))
-  except requests.exceptions.Timeout:
-    logging.error('POST to {0} timed out after {1} seconds!'.format(url, timeout))
+    try:
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(url,
+                                 json.dumps(payload),
+                                 timeout=timeout,
+                                 headers=headers)
+        _check_response(response, 'error when posting request! url: {0}'
+                        .format(url))
+    except requests.exceptions.Timeout:
+        logging.error('POST to {0} timed out after {1} seconds!'
+                      .format(url, timeout))
 
 
 def _check_response(response, error_message):
-  if response.status_code - 200 >= 100: # 2xx
-    logging.error('{0} exit code: {1}, text: {2}'.format(error_message, response.status_code, response.text))
+    if response.status_code - 200 >= 100:  # 2xx
+        logging.error('{0} exit code: {1}, text: {2}'
+                      .format(error_message,
+                              response.status_code,
+                              response.text))

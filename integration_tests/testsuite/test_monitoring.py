@@ -23,56 +23,62 @@ import google.cloud.monitoring
 
 import test_util
 
+
 def _test_monitoring(base_url):
-  logging.info('testing monitoring')
-  url = base_url + test_util.MONITORING_ENDPOINT
+    url = base_url + test_util.MONITORING_ENDPOINT
 
-  payload = test_util._generate_metrics_payload()
-  test_util._post(url, payload, test_util.METRIC_TIMEOUT)
+    payload = test_util._generate_metrics_payload()
+    test_util._post(url, payload, test_util.METRIC_TIMEOUT)
 
-  time.sleep(test_util.METRIC_PROPAGATION_TIME) # wait for metric to propagate
+    # wait for metric to propagate
+    time.sleep(test_util.METRIC_PROPAGATION_TIME)
 
-  try:
-    client = google.cloud.monitoring.Client()
+    try:
+        client = google.cloud.monitoring.Client()
 
-    for descriptor in client.list_resource_descriptors():
-      print descriptor.type
+        # for descriptor in client.list_resource_descriptors():
+        #     print descriptor.type
 
-    if not _read_metric(payload.get('name'), payload.get('token'), client):
-      logging.error('Token not found in Stackdriver monitoring!')
-      return False
-    return True
-
-  except Exception as e:
-    logging.error(e)
-
-if __name__ == '__main__':
-  unittest.main()
-
-
-@retry(wait_exponential_multiplier=1000, stop_max_attempt_number=8, wait_exponential_max=8000)
-def _read_metric(name, target, client):
-  query = client.query(name, minutes=2)
-  if _query_is_empty(query):
-    raise Exception('Metric read retries exceeded!')
-
-  for timeseries in query:
-    for point in timeseries.points:
-      logging.info(point)
-      if point.value == target:
-        logging.info('Token {0} found in Stackdriver metric'.format(target))
+        if not _read_metric(payload.get('name'),
+                            payload.get('token'), client):
+            logging.error('Token not found in Stackdriver monitoring!')
+            return False
         return True
-      print point.value
-  return False
+
+    except Exception as e:
+        logging.error(e)
+
+
+@retry(wait_exponential_multiplier=1000,
+       stop_max_attempt_number=8,
+       wait_exponential_max=8000)
+def _read_metric(name, target, client):
+    query = client.query(name, minutes=2)
+    if _query_is_empty(query):
+        raise Exception('Metric read retries exceeded!')
+
+    for timeseries in query:
+        for point in timeseries.points:
+            # logging.info(point)
+            if point.value == target:
+                logging.info('Token {0} found in Stackdriver \
+                             metric'.format(target))
+                return True
+            print point.value
+    return False
 
 
 def _query_is_empty(query):
-  if query is None:
-    logging.info('query is none')
-    return True
-  # query is a generator, so sum over it to get the length
-  query_length = sum(1 for timeseries in query)
-  if query_length == 0:
-    logging.info('query is empty')
-    return True
-  return False
+    if query is None:
+        logging.info('query is none')
+        return True
+    # query is a generator, so sum over it to get the length
+    query_length = sum(1 for timeseries in query)
+    if query_length == 0:
+        logging.info('query is empty')
+        return True
+    return False
+
+
+if __name__ == '__main__':
+    unittest.main()

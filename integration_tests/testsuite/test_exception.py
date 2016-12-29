@@ -15,14 +15,12 @@
 # limitations under the License.
 
 import logging
-import time
 
 import test_util
 
 
 def _test_exception(base_url):
-  logging.info('testing error reporting')
-  url = base_url + test_util.EXCEPTION_ENDPOINT
+    url = base_url + test_util.EXCEPTION_ENDPOINT
 
-  payload = test_util._generate_exception_payload()
-  test_util._post(url, payload)
+    payload = test_util._generate_exception_payload()
+    test_util._post(url, payload)
