@@ -59,5 +59,4 @@ func validateCommandTestV1(t *testing.T, tt CommandTestv1) {
 			}
 		}
 	}
-	t.Logf("COMMAND TEST: %s", tt.Name)
 }

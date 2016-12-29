@@ -32,5 +32,4 @@ func validateFileContentTestV1(t *testing.T, tt FileContentTestv1) {
 	if tt.Path == "" {
 		t.Fatalf("Please provide a valid file path for test %s", tt.Name)
 	}
-	t.Logf("FILE CONTENT TEST: %s", tt.Name)
 }
