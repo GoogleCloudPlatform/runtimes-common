@@ -34,20 +34,20 @@ def _main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--image', '-i',
-                        help='Newly-constructed base \
-                        image to build sample app on')
+                        help='Newly-constructed base ' +
+                        'image to build sample app on')
 
     parser.add_argument('--directory', '-d',
                         help='Root directory of sample app')
     # TODO (nkubala): potentially add support for multiple app directories
     # to deploy
-    # parser.add_argument('--directory', '-d', help='Root directory of \
-    #                     sample app', action='append')
+    # parser.add_argument('--directory', '-d', help='Root directory of ' +
+    #                     'sample app', action='append')
     parser.add_argument('--no-deploy',
                         action='store_false',
                         dest='deploy',
-                        help='Flag to skip deployment of app \
-                        (must provide app URL)')
+                        help='Flag to skip deployment of app '+
+                        '(must provide app URL)')
     parser.add_argument('--no-logging',
                         action='store_false',
                         dest='logging',
@@ -61,8 +61,8 @@ def _main():
                         dest='exception',
                         help='Flag to skip error reporting tests')
     parser.add_argument('--url', '-u',
-                        help='URL where deployed app is \
-                        exposed (if applicable)',
+                        help='URL where deployed app is ' +
+                        'exposed (if applicable)',
                         default=DEFAULT_URL)
     args = parser.parse_args()
 
@@ -102,6 +102,7 @@ def _test_app(args):
         error_count += test_exception._test_exception(base_url)
 
     return error_count
+
 
 if __name__ == '__main__':
     sys.exit(_main())

@@ -38,10 +38,11 @@ def _test_monitoring(base_url):
 
         if not _read_metric(payload.get('name'),
                             payload.get('token'), client):
-            return test_util._fail('Token not found in Stackdriver monitoring!')
+            return test_util._fail('Token not found in Stackdriver ' +
+                                   'monitoring!')
         return 0
     except Exception as e:
-        return fail(e)
+        return test_util._fail(e)
 
 
 @retry(wait_exponential_multiplier=1000,
@@ -56,8 +57,8 @@ def _read_metric(name, target, client):
         for point in timeseries.points:
             # logging.info(point)
             if point.value == target:
-                logging.info('Token {0} found in Stackdriver \
-                    metrics'.format(target))
+                logging.info('Token {0} found in Stackdriver ' +
+                             'metrics'.format(target))
                 return True
             print point.value
     return False

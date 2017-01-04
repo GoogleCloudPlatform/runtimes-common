@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import logging
-import requests
 
 import test_util
 
@@ -30,5 +29,5 @@ def _test_root(base_url):
     logging.info('output is: {0}'.format(output))
     if output != test_util.ROOT_EXPECTED_OUTPUT:
         return test_util._fail('Unexpected output: expected {0}, received {1}'
-                      .format(test_util.ROOT_EXPECTED_OUTPUT, output))
+                               .format(test_util.ROOT_EXPECTED_OUTPUT, output))
     return 0
