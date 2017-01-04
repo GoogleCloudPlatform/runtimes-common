@@ -15,6 +15,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -59,4 +60,8 @@ func validateCommandTestV1(t *testing.T, tt CommandTestv1) {
 			}
 		}
 	}
+}
+
+func (ct CommandTestv1) Log() string {
+	return fmt.Sprintf("Command Test: %s", ct.Name)
 }
