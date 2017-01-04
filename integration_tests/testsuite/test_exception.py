@@ -23,4 +23,7 @@ def _test_exception(base_url):
     url = base_url + test_util.EXCEPTION_ENDPOINT
 
     payload = test_util._generate_exception_payload()
-    test_util._post(url, payload)
+    response_code = test_util._post(url, payload)
+    if response_code != 0:
+        return test_util._fail('Error encountered inside sample application!')
+    return 0

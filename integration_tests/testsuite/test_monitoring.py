@@ -16,7 +16,6 @@
 
 import logging
 import time
-import unittest
 from retrying import retry
 
 import google.cloud.monitoring
@@ -28,7 +27,8 @@ def _test_monitoring(base_url):
     url = base_url + test_util.MONITORING_ENDPOINT
 
     payload = test_util._generate_metrics_payload()
-    test_util._post(url, payload, test_util.METRIC_TIMEOUT)
+    if test_util._post(url, payload, test_util.METRIC_TIMEOUT) != 0:
+        return test_util._fail('Error encountered inside test application!')
 
     # wait for metric to propagate
     time.sleep(test_util.METRIC_PROPAGATION_TIME)
@@ -36,17 +36,12 @@ def _test_monitoring(base_url):
     try:
         client = google.cloud.monitoring.Client()
 
-        # for descriptor in client.list_resource_descriptors():
-        #     print descriptor.type
-
         if not _read_metric(payload.get('name'),
                             payload.get('token'), client):
-            logging.error('Token not found in Stackdriver monitoring!')
-            return False
-        return True
-
+            return test_util._fail('Token not found in Stackdriver monitoring!')
+        return 0
     except Exception as e:
-        logging.error(e)
+        return fail(e)
 
 
 @retry(wait_exponential_multiplier=1000,
@@ -62,7 +57,7 @@ def _read_metric(name, target, client):
             # logging.info(point)
             if point.value == target:
                 logging.info('Token {0} found in Stackdriver \
-                             metric'.format(target))
+                    metrics'.format(target))
                 return True
             print point.value
     return False
@@ -78,7 +73,3 @@ def _query_is_empty(query):
         logging.info('query is empty')
         return True
     return False
-
-
-if __name__ == '__main__':
-    unittest.main()

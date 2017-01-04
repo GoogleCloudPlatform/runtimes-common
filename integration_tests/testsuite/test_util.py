@@ -16,6 +16,7 @@
 
 import binascii
 import json
+import inspect
 import logging
 import os
 import random
@@ -71,6 +72,17 @@ def _generate_exception_payload():
     return data
 
 
+def _get(url, timeout=DEFAULT_TIMEOUT):
+    logging.info('making get request to url {0}'.format(url))
+    try:
+        response = requests.get(url)
+        return response.content, _check_response(response, 'error when making get request! \
+            url: {0}'.format(url))
+    except Exception as e:
+        logging.error('Error encountered when making get request!')
+        logging.error(e)
+        return None, 1
+
 def _post(url, payload, timeout=DEFAULT_TIMEOUT):
     try:
         headers = {'Content-Type': 'application/json'}
@@ -78,11 +90,12 @@ def _post(url, payload, timeout=DEFAULT_TIMEOUT):
                                  json.dumps(payload),
                                  timeout=timeout,
                                  headers=headers)
-        _check_response(response, 'error when posting request! url: {0}'
+        return _check_response(response, 'error when posting request! url: {0}'
                         .format(url))
     except requests.exceptions.Timeout:
         logging.error('POST to {0} timed out after {1} seconds!'
                       .format(url, timeout))
+        return 1
 
 
 def _check_response(response, error_message):
@@ -91,3 +104,11 @@ def _check_response(response, error_message):
                       .format(error_message,
                               response.status_code,
                               response.text))
+        return 1
+    return 0
+
+
+def _fail(error_msg):
+    logging.error('=== FAIL ===: {0}'.format(inspect.stack()[1][3]))
+    logging.error(error_msg)
+    return 1

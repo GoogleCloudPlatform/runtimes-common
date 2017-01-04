@@ -80,26 +80,28 @@ def _main():
         logging.debug('Deploying app!')
         deploy_app._deploy_app(args.image, args.directory)
 
-    _test_app(vars(args))
+    return _test_app(vars(args))
 
 
 def _test_app(args):
-    # TODO (nkubala): check output from each test to log individul failures
     base_url = args.get('url')
     logging.info('Starting app test with base url {0}'.format(base_url))
-    test_root._test_root(base_url)
+    error_count = 0
+
+    error_count += test_root._test_root(base_url)
     if args.get('logging'):
         logging.info('Testing app logging')
-        test_logging._test_logging(base_url)
+        error_count += test_logging._test_logging(base_url)
 
     if args.get('monitoring'):
         logging.info('Testing app monitoring')
-        test_monitoring._test_monitoring(base_url)
+        error_count += test_monitoring._test_monitoring(base_url)
 
     if args.get('exception'):
         logging.info('Testing error reporting')
-        test_exception._test_exception(base_url)
+        error_count += test_exception._test_exception(base_url)
 
+    return error_count
 
 if __name__ == '__main__':
     sys.exit(_main())

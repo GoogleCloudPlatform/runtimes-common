@@ -28,7 +28,8 @@ def _test_logging(base_url):
     # TODO (nkubala): possibly handle multiple log destinations
     # depending on environments
     payload = test_util._generate_logging_payload()
-    test_util._post(url, payload)
+    if test_util._post(url, payload) != 0:
+        return test_util._fail('Error encountered inside sample application!')
 
     try:
         client = google.cloud.logging.Client()
@@ -42,9 +43,7 @@ def _test_logging(base_url):
             logging.info('entry is {0}'.format(entry))
             logging.info('entry.payload is {0}'.format(entry.payload))
             if entry.payload == token:
-                return
-        logging.error('log entry not found for posted token!')
+                return 0
+        return test_util._fail('log entry not found for posted token!')
     except Exception as e:
-        logging.error('error encountered when retrieving log entries!')
-        logging.error('exception type: {0}'.format(type(e)))
-        logging.error(e)
+        return test_util._fail(e)
