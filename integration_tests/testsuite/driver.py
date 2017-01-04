@@ -33,35 +33,48 @@ def _main():
     logging.getLogger().setLevel(logging.DEBUG)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--image', '-i', help='Newly-constructed base \
+    parser.add_argument('--image', '-i',
+                        help='Newly-constructed base \
                         image to build sample app on')
 
-    parser.add_argument('--directory', '-d', help='Root directory of \
-                        sample app')
+    parser.add_argument('--directory', '-d',
+                        help='Root directory of sample app')
     # TODO (nkubala): potentially add support for multiple app directories
     # to deploy
     # parser.add_argument('--directory', '-d', help='Root directory of \
     #                     sample app', action='append')
-    parser.add_argument('--no-deploy', action='store_true',
+    parser.add_argument('--no-deploy',
+                        action='store_false',
+                        dest='deploy',
                         help='Flag to skip deployment of app \
                         (must provide app URL)')
-    parser.add_argument('--no-logging', action='store_true', help='Flag to \
-                        skip logging tests')
-    parser.add_argument('--no-monitoring', action='store_true', help='Flag to \
-                        skip monitoring tests')
-    parser.add_argument('--url', '-u', help='URL where deployed app is \
-                        exposed (if applicable)', default=DEFAULT_URL)
+    parser.add_argument('--no-logging',
+                        action='store_false',
+                        dest='logging',
+                        help='Flag to skip logging tests')
+    parser.add_argument('--no-monitoring',
+                        action='store_false',
+                        dest='monitoring',
+                        help='Flag to skip monitoring tests')
+    parser.add_argument('--no-exception',
+                        action='store_false',
+                        dest='exception',
+                        help='Flag to skip error reporting tests')
+    parser.add_argument('--url', '-u',
+                        help='URL where deployed app is \
+                        exposed (if applicable)',
+                        default=DEFAULT_URL)
     args = parser.parse_args()
 
     deploy_app._authenticate(args.directory)
 
-    if not args.no_deploy:
+    if args.deploy:
         if args.image is None:
-            logging.error('Please specify base image name!')
+            logging.error('Please specify base image name.')
             sys.exit(1)
 
         if args.directory is None:
-            logging.error('Please specify at least one application to deploy!')
+            logging.error('Please specify at least one application to deploy.')
             sys.exit(1)
 
         logging.debug('Deploying app!')
@@ -75,15 +88,15 @@ def _test_app(args):
     base_url = args.get('url')
     logging.info('Starting app test with base url {0}'.format(base_url))
     test_root._test_root(base_url)
-    if not args.get('no_logging'):
+    if args.get('logging'):
         logging.info('Testing app logging')
         test_logging._test_logging(base_url)
 
-    if not args.get('no_monitoring'):
+    if args.get('monitoring'):
         logging.info('Testing app monitoring')
         test_monitoring._test_monitoring(base_url)
 
-    if not args.get('no_exception'):
+    if args.get('exception'):
         logging.info('Testing error reporting')
         test_exception._test_exception(base_url)
 
