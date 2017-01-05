@@ -23,7 +23,7 @@ import random
 import requests
 import string
 
-LOGNAME_LENGTH = 20
+LOGNAME_LENGTH = 16
 
 DEFAULT_TIMEOUT = 30  # seconds
 
