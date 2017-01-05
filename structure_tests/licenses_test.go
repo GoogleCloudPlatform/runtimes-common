@@ -84,6 +84,6 @@ func checkLicenses(t *testing.T, tt LicenseTestv1) {
 	}
 }
 
-func (lt LicenseTestv1) Log(num int) string {
+func (lt LicenseTestv1) Name(num int) string {
 	return fmt.Sprintf("License Test #%d", num)
 }
