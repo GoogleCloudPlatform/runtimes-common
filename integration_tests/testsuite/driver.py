@@ -24,10 +24,6 @@ import test_logging
 import test_monitoring
 import test_root
 
-# TODO (nkubala): make this a configurable parameter from cloudbuild
-# required to be paired with '--no-deploy'
-DEFAULT_URL = 'https://nick-cloudbuild.appspot.com'
-
 
 def _main():
     logging.getLogger().setLevel(logging.DEBUG)
@@ -46,7 +42,7 @@ def _main():
     parser.add_argument('--no-deploy',
                         action='store_false',
                         dest='deploy',
-                        help='Flag to skip deployment of app '+
+                        help='Flag to skip deployment of app ' +
                         '(must provide app URL)')
     parser.add_argument('--no-logging',
                         action='store_false',
@@ -62,9 +58,9 @@ def _main():
                         help='Flag to skip error reporting tests')
     parser.add_argument('--url', '-u',
                         help='URL where deployed app is ' +
-                        'exposed (if applicable)',
-                        default=DEFAULT_URL)
+                        'exposed (if applicable)')
     args = parser.parse_args()
+    args_dict = vars(args)  # copy of args in mutable dictionary
 
     deploy_app._authenticate(args.directory)
 
@@ -78,9 +74,13 @@ def _main():
             sys.exit(1)
 
         logging.debug('Deploying app!')
-        deploy_app._deploy_app(args.image, args.directory)
+        deploy_url = deploy_app._deploy_app(args.image, args.directory)
+        if deploy_url is not '' and not deploy_url.startswith('https://'):
+            deploy_url = 'https://' + deploy_url
+        if args.url is None or args.url == '':
+            args_dict['url'] = deploy_url
 
-    return _test_app(vars(args))
+    return _test_app(args_dict)
 
 
 def _test_app(args):

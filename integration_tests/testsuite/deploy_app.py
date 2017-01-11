@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import logging
 import os
 import subprocess
@@ -21,8 +22,6 @@ import sys
 import shutil
 import time
 
-# TODO (nkubala): make this configurable param from caller
-PROJECT_ID = 'nick-cloudbuild'
 DEPLOY_DELAY_SECONDS = 30  # time to give GAE to start app after deploy
 
 
@@ -37,22 +36,15 @@ def _authenticate(appdir):
     logging.debug('Authenticating service account credentials...')
     auth_command = ['gcloud', 'auth', 'activate-service-account',
                     '--key-file=/auth.json']
-    subprocess.call(auth_command)
 
-    p = subprocess.check_output(['gcloud', 'auth', 'list'])
-    logging.info(p)
+    auth_proc = subprocess.Popen(auth_command,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT)
 
-    # TODO (nkubala): make this work so we can handle failed authentication
-    # auth_command = ['gcloud', 'auth', 'activate-service-account',
-    #                 '--key-file=/auth.json']
-    # auth_proc = subprocess.Popen(auth_command, shell=True,
-    #                              stdout=subprocess.PIPE,
-    #                              stderr=subprocess.STDOUT)
-
-    # output, error = auth_proc.communicate()
-    # if auth_proc.returncode != 0:
-    #   sys.exit('Error encountered when authenticating. /
-    #             Full log: \n\n' + output)
+    output, error = auth_proc.communicate()
+    if auth_proc.returncode != 0:
+        sys.exit('Error encountered when authenticating. ' +
+                 'Full log: \n\n' + output)
 
     # copy the auth file into the app directory. this is so we can
     # authenticate the same service account INSIDE the application
@@ -87,23 +79,33 @@ def _deploy_app(image, appdir):
 
         deploy_command = ['gcloud', 'app', 'deploy',
                           '--stop-previous-version', '--verbosity=debug']
-        subprocess.call(deploy_command)
 
-        # TODO (nkubala): make this work so we can handle failed deploys
-        # deploy_proc = subprocess.Popen(deploy_command,
-        #                                shell=True,
-        #                                stdout=subprocess.PIPE,
-        #                                stderr=subprocess.STDOUT)
+        deploy_proc = subprocess.Popen(deploy_command,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT)
 
-        # output, error = deploy_proc.communicate()
-        # if deploy_proc.returncode != 0:
-        #   sys.exit('Error encountered when deploying app. \
-        #             Full log: \n\n' + output)
+        output, error = deploy_proc.communicate()
+        if deploy_proc.returncode != 0:
+            sys.exit('Error encountered when deploying app. ' +
+                     'Full log: \n\n' + output)
 
-        print 'waiting {0} seconds for app \
-        to deploy...'.format(DEPLOY_DELAY_SECONDS)
+        print 'waiting {0} seconds for ' \
+              'app to deploy...'.format(DEPLOY_DELAY_SECONDS)
 
         time.sleep(DEPLOY_DELAY_SECONDS)
+
+        try:
+            # retrieve url of deployed app for test driver
+            url_command = ['gcloud', 'app', 'describe', '--format=json']
+            app_dict = json.loads(subprocess.check_output(url_command))
+            hostname = app_dict.get('defaultHostname')
+            if hostname is None:
+                return ''
+            return hostname.encode('ascii', 'ignore')
+        except Exception:
+            print 'Error encountered when retrieving app URL!'
+            print 'Defaulting to provided URL parameter.'
+            return ''
 
     finally:
         cleanup(appdir)
