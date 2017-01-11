@@ -62,7 +62,7 @@ def _main():
     args = parser.parse_args()
     args_dict = vars(args)  # copy of args in mutable dictionary
 
-    deploy_app._authenticate(args.directory)
+    # deploy_app._authenticate(args.directory)
 
     if args.deploy:
         if args.image is None:

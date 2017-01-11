@@ -32,7 +32,6 @@ COPY requirements.txt /
 
 RUN pip install --upgrade -r /requirements.txt
 
-
 COPY testsuite /testsuite
 
 ENTRYPOINT ["/testsuite/driver.py"]
