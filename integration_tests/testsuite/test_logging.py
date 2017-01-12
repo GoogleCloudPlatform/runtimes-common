@@ -15,7 +15,7 @@
 # limitations under the License.
 
 import logging
-import time
+from retrying import retry
 
 import google.cloud.logging
 
@@ -30,8 +30,6 @@ def _test_logging(base_url):
     if test_util._post(url, payload) != 0:
         return test_util._fail('Error encountered inside sample application!')
 
-    time.sleep(test_util.LOGGING_PROPAGATION_TIME)
-
     try:
         client = google.cloud.logging.Client()
         log_name = payload.get('log_name')
@@ -42,11 +40,18 @@ def _test_logging(base_url):
         project_id = test_util._project_id()
         FILTER = 'logName = projects/{0}/logs/' \
                  'appengine.googleapis.com%2Fstdout'.format(project_id)
-        for entry in client.list_entries(filter_=FILTER):
+
+        _read_log(client, log_name, token, FILTER)
+        return 0
+    except Exception as e:
+        return test_util._fail(e)
+
+
+@retry(wait_fixed=4000, stop_max_attempt_number=8)
+def _read_log(client, log_name, token, filter):
+    for entry in client.list_entries(filter_=filter):
             if token in entry.payload:
                 logging.info('Token {0} found in '
                              'Stackdriver logs!'.format(token))
-                return 0
-        return test_util._fail('Log entry not found for posted token!')
-    except Exception as e:
-        return test_util._fail(e)
+                return True
+    raise Exception('Log entry not found for posted token!')

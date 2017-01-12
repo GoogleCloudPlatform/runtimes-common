@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import logging
-import time
 from retrying import retry
 
 import google.cloud.monitoring
@@ -30,9 +29,6 @@ def _test_monitoring(base_url):
     if test_util._post(url, payload, test_util.METRIC_TIMEOUT) != 0:
         return test_util._fail('Error encountered inside test application!')
 
-    # wait for metric to propagate
-    time.sleep(test_util.METRIC_PROPAGATION_TIME)
-
     try:
         client = google.cloud.monitoring.Client()
 
@@ -45,9 +41,7 @@ def _test_monitoring(base_url):
         return test_util._fail(e)
 
 
-@retry(wait_exponential_multiplier=1000,
-       stop_max_attempt_number=8,
-       wait_exponential_max=8000)
+@retry(wait_fixed=6000, stop_max_attempt_number=8)
 def _read_metric(name, target, client):
     query = client.query(name, minutes=2)
     if _query_is_empty(query):
