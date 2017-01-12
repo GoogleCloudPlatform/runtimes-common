@@ -57,7 +57,7 @@ def _read_metric(name, target, client):
         for point in timeseries.points:
             # logging.info(point)
             if point.value == target:
-                logging.info('Token {0} found in Stackdriver ' \
+                logging.info('Token {0} found in Stackdriver '
                              'metrics'.format(target))
                 return True
             print point.value

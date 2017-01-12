@@ -22,6 +22,7 @@ import os
 import random
 import requests
 import string
+import subprocess
 
 LOGNAME_LENGTH = 16
 
@@ -37,6 +38,7 @@ EXCEPTION_ENDPOINT = '/exception'
 METRIC_PREFIX = 'custom.googleapis.com/{0}'
 METRIC_TIMEOUT = 60  # seconds
 METRIC_PROPAGATION_TIME = 45  # seconds
+LOGGING_PROPAGATION_TIME = 8
 
 
 def _generate_name():
@@ -115,3 +117,13 @@ def _fail(error_msg):
     logging.error('=== FAIL ===: {0}'.format(inspect.stack()[1][3]))
     logging.error(error_msg)
     return 1
+
+
+def _project_id():
+    try:
+        cmd = ['gcloud', 'config', 'list', '--format=json']
+        entries = json.loads(subprocess.check_output(cmd))
+        return entries.get('core').get('project')
+    except Exception as e:
+        logging.error('Error encountered when retrieving project id!')
+        logging.error(e)

@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import logging
+import time
 
 import google.cloud.logging
 
@@ -23,7 +24,7 @@ import test_util
 
 def _test_logging(base_url):
     url = base_url + test_util.LOGGING_ENDPOINT
-    logging.debug('posting to endpoint: {0}'.format(url))
+    logging.debug('Posting to endpoint: {0}'.format(url))
 
     # TODO (nkubala): possibly handle multiple log destinations
     # depending on environments
@@ -31,19 +32,23 @@ def _test_logging(base_url):
     if test_util._post(url, payload) != 0:
         return test_util._fail('Error encountered inside sample application!')
 
+    time.sleep(test_util.LOGGING_PROPAGATION_TIME)
+
     try:
         client = google.cloud.logging.Client()
         log_name = payload.get('log_name')
         token = payload.get('token')
-        logging.info('log name is {0} : token is {1}'.format(log_name, token))
 
-        FILTER = 'logName = projects/nick-cloudbuild/logs/\
-                  appengine.googleapis.com%2Fstdout'
+        logging.info('log name is {0}, token is {1}'.format(log_name, token))
+
+        project_id = test_util._project_id()
+        FILTER = 'logName = projects/{0}/logs/' \
+                 'appengine.googleapis.com%2Fstdout'.format(project_id)
         for entry in client.list_entries(filter_=FILTER):
-            logging.info('entry is {0}'.format(entry))
-            logging.info('entry.payload is {0}'.format(entry.payload))
-            if entry.payload == token:
+            if token in entry.payload:
+                logging.info('Token {0} found in '
+                             'Stackdriver logs!'.format(token))
                 return 0
-        return test_util._fail('log entry not found for posted token!')
+        return test_util._fail('Log entry not found for posted token!')
     except Exception as e:
         return test_util._fail(e)
