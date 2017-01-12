@@ -62,13 +62,6 @@ def _deploy_app(image, appdir):
         owd = os.getcwd()
         os.chdir(appdir)
 
-        # copy app.yaml file into app directory
-        try:
-            shutil.copy('/app.yaml', '.')
-        except:
-            logging.error('error copying app.yaml from root dir!')
-            sys.exit(1)
-
         # substitute vars in Dockerfile (equivalent of envsubst)
         with open('Dockerfile.in', 'r') as fin:
             with open('Dockerfile', 'w') as fout:

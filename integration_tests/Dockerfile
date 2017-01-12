@@ -16,15 +16,9 @@ RUN apt-get update && \
     /builder/google-cloud-sdk/bin/gcloud -q components install alpha beta && \
     /builder/google-cloud-sdk/bin/gcloud -q components update
 
-RUN apt-get install -y --force-yes python-dev gcc curl && \
 
-    cp -v /usr/local/bin/python /usr/bin/python && \
- 	cp -v /usr/local/bin/pip /usr/bin/pip && \
- 	cp -v /usr/bin/envsubst /usr/local/bin/ && \
-
-    curl https://get.docker.com/builds/Linux/x86_64/docker-1.9.1 > /usr/bin/docker && chmod +x /usr/bin/docker && \
-    # Clean up
-    apt-get remove -y --force-yes wget unzip gcc && \
+RUN apt-get install -y --force-yes python-dev && \
+    apt-get remove -y --force-yes wget unzip && \
     apt-get clean
 
 

@@ -18,6 +18,7 @@ import argparse
 import logging
 import sys
 
+from args import Args
 import deploy_app
 import test_exception
 import test_logging
@@ -32,7 +33,6 @@ def _main():
     parser.add_argument('--image', '-i',
                         help='Newly-constructed base ' +
                         'image to build sample app on')
-
     parser.add_argument('--directory', '-d',
                         help='Root directory of sample app')
     parser.add_argument('--no-deploy',
@@ -55,8 +55,7 @@ def _main():
     parser.add_argument('--url', '-u',
                         help='URL where deployed app is ' +
                         'exposed (if applicable)')
-    args = parser.parse_args()
-    args_dict = vars(args)  # copy of args in mutable dictionary
+    args = Args(parser.parse_args())
 
     # this is only necessary until container builder's build robot is granted
     # the full scopes to do a deploy, and only when being run through
@@ -78,26 +77,26 @@ def _main():
         if deploy_url is not '' and not deploy_url.startswith('https://'):
             deploy_url = 'https://' + deploy_url
         if args.url is None or args.url == '':
-            args_dict['url'] = deploy_url
+            args.url = deploy_url
 
-    return _test_app(args_dict)
+    return _test_app(args)
 
 
 def _test_app(args):
-    base_url = args.get('url')
+    base_url = args.url
     logging.info('Starting app test with base url {0}'.format(base_url))
     error_count = 0
 
     error_count += test_root._test_root(base_url)
-    if args.get('logging'):
+    if args.logging:
         logging.info('Testing app logging')
         error_count += test_logging._test_logging(base_url)
 
-    if args.get('monitoring'):
+    if args.monitoring:
         logging.info('Testing app monitoring')
         error_count += test_monitoring._test_monitoring(base_url)
 
-    if args.get('exception'):
+    if args.exception:
         logging.info('Testing error reporting')
         error_count += test_exception._test_exception(base_url)
 
