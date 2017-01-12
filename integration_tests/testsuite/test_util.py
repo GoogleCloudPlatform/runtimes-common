@@ -42,10 +42,8 @@ LOGGING_PROPAGATION_TIME = 8
 
 
 def _generate_name():
-    # TODO (nkubala): log directly to stdout since we're in GAE flex???
     name = ''.join(random.choice(string.ascii_uppercase +
                    string.ascii_lowercase) for i in range(LOGNAME_LENGTH))
-    # name = 'stdout'
     return name
 
 

@@ -35,10 +35,6 @@ def _main():
 
     parser.add_argument('--directory', '-d',
                         help='Root directory of sample app')
-    # TODO (nkubala): potentially add support for multiple app directories
-    # to deploy
-    # parser.add_argument('--directory', '-d', help='Root directory of ' +
-    #                     'sample app', action='append')
     parser.add_argument('--no-deploy',
                         action='store_false',
                         dest='deploy',
@@ -61,6 +57,10 @@ def _main():
                         'exposed (if applicable)')
     args = parser.parse_args()
     args_dict = vars(args)  # copy of args in mutable dictionary
+
+    # this is only necessary until container builder's build robot is granted
+    # the full scopes to do a deploy, and only when being run through
+    # a container build
 
     # deploy_app._authenticate(args.directory)
 

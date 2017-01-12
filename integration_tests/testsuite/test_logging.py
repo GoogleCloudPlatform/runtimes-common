@@ -26,8 +26,6 @@ def _test_logging(base_url):
     url = base_url + test_util.LOGGING_ENDPOINT
     logging.debug('Posting to endpoint: {0}'.format(url))
 
-    # TODO (nkubala): possibly handle multiple log destinations
-    # depending on environments
     payload = test_util._generate_logging_payload()
     if test_util._post(url, payload) != 0:
         return test_util._fail('Error encountered inside sample application!')
