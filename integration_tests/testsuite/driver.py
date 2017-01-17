@@ -27,7 +27,7 @@ import test_root
 
 
 def _main():
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--image', '-i',

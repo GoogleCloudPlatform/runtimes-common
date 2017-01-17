@@ -21,6 +21,7 @@ import logging
 import os
 import random
 import requests
+requests.packages.urllib3.disable_warnings()
 import string
 import subprocess
 
