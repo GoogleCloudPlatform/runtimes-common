@@ -23,6 +23,8 @@ _SEV_MAP = {
     _CRITICAL: 3,
 }
 
+_WHITELIST = json.load(open('whitelist.json', 'r'))
+
 
 def _run_gcloud(cmd):
     full_cmd = _GCLOUD_CMD + cmd
@@ -38,6 +40,8 @@ def _check_image(image, severity):
     unpatched = 0
     for vuln in parsed.get('vulz_analysis', []):
         if vuln.get('patch_not_available'):
+            continue
+        if vuln.get('vulnerability') in _WHITELIST:
             continue
         if _filter_severity(vuln['severity'], severity):
             unpatched += 1
