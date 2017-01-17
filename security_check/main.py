@@ -23,7 +23,10 @@ _SEV_MAP = {
     _CRITICAL: 3,
 }
 
-_WHITELIST = json.load(open('whitelist.json', 'r'))
+try:
+  _WHITELIST = json.load(open('whitelist.json', 'r+'))
+except IOError:
+  _WHITELIST = []
 
 
 def _run_gcloud(cmd):
