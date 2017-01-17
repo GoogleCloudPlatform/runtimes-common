@@ -3,7 +3,6 @@
 import argparse
 import json
 import logging
-import pprint
 import sys
 import subprocess
 
