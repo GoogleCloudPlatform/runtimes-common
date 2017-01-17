@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import pprint
 import sys
 import subprocess
 
@@ -23,11 +24,6 @@ _SEV_MAP = {
     _CRITICAL: 3,
 }
 
-try:
-    _WHITELIST = json.load(open('whitelist.json', 'r'))
-except IOError:
-    _WHITELIST = []
-
 
 def _run_gcloud(cmd):
     full_cmd = _GCLOUD_CMD + cmd
@@ -35,16 +31,22 @@ def _run_gcloud(cmd):
     return json.loads(output)
 
 
-def _check_image(image, severity):
+def _check_image(image, severity, whitelist_file):
     digest = _resolve_latest(image)
     full_name = '%s@%s' % (image, digest)
     parsed = _run_gcloud(['describe', full_name])
+
+    try:
+        whitelist = json.load(open(whitelist_file, 'r'))
+    except IOError:
+        whitelist = []
+    logging.info(whitelist)
 
     unpatched = 0
     for vuln in parsed.get('vulz_analysis', []):
         if vuln.get('patch_not_available'):
             continue
-        if vuln.get('vulnerability') in _WHITELIST:
+        if vuln.get('vulnerability') in whitelist:
             continue
         if _filter_severity(vuln['severity'], severity):
             unpatched += 1
@@ -55,7 +57,7 @@ def _check_image(image, severity):
         if img:
             base_img_url = img[0]['base_image_url']
             base_image = base_img_url[len('https://'):base_img_url.find('@')]
-            base_unpatched = _check_image(base_image, severity)
+            base_unpatched = _check_image(base_image, severity, whitelist_file)
         unpatched -= base_unpatched
         logging.info('Found %s unpatched vulnerabilities in %s. Run '
                      '[gcloud beta container images describe %s] '
@@ -85,10 +87,13 @@ def _main():
                         choices=[_LOW, _MEDIUM, _HIGH, _CRITICAL],
                         default=_MEDIUM,
                         help='The minimum severity to filter on.')
+    parser.add_argument('--whitelist-file', dest='whitelist',
+                        help='The path to the whitelist json file',
+                        default='whitelist.json')
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG)
-    return _check_image(args.image, args.severity)
+    return _check_image(args.image, args.severity, args.whitelist)
 
 
 if __name__ == '__main__':
