@@ -24,7 +24,7 @@ _SEV_MAP = {
 }
 
 try:
-  _WHITELIST = json.load(open('whitelist.json', 'r+'))
+  _WHITELIST = json.load(open('whitelist.json', 'r'))
 except IOError:
   _WHITELIST = []
 
