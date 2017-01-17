@@ -57,12 +57,6 @@ def _main():
                         'exposed (if applicable)')
     args = Args(parser.parse_args())
 
-    # this is only necessary until container builder's build robot is granted
-    # the full scopes to do a deploy, and only when being run through
-    # a container build
-
-    # deploy_app._authenticate(args.directory)
-
     if args.deploy:
         if args.image is None:
             logging.error('Please specify base image name.')

@@ -32,30 +32,6 @@ def cleanup(appdir):
         pass
 
 
-def _authenticate(appdir):
-    logging.debug('Authenticating service account credentials...')
-    auth_command = ['gcloud', 'auth', 'activate-service-account',
-                    '--key-file=/auth.json']
-
-    auth_proc = subprocess.Popen(auth_command,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.STDOUT)
-
-    output, error = auth_proc.communicate()
-    if auth_proc.returncode != 0:
-        sys.exit('Error encountered when authenticating. ' +
-                 'Full log: \n\n' + output)
-
-    # copy the auth file into the app directory. this is so we can
-    # authenticate the same service account INSIDE the application
-    # so it can write logs to this test driver's project
-    try:
-        shutil.copy('/auth.json', appdir)
-    except:
-        logging.error('error copying auth.json from root dir!')
-        sys.exit(1)
-
-
 def _deploy_app(image, appdir):
     try:
         # change to app directory (and remember original directory)
@@ -70,6 +46,7 @@ def _deploy_app(image, appdir):
             fout.close()
         fin.close()
 
+        # TODO: use sdk driver here
         deploy_command = ['gcloud', 'app', 'deploy',
                           '--stop-previous-version', '--verbosity=debug']
 
