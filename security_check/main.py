@@ -40,6 +40,8 @@ def _check_image(image, severity, whitelist):
         if vuln.get('patch_not_available'):
             continue
         if vuln.get('vulnerability') in whitelist:
+            logging.info('Vulnerability %s is whitelisted. Skipping.',
+                         vuln.get('vulnerability'))
             continue
         if _filter_severity(vuln['severity'], severity):
             unpatched += 1
