@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import pprint
 import sys
 import subprocess
 
@@ -31,11 +32,9 @@ def _run_gcloud(cmd):
 
 
 def _check_image(image, severity, whitelist):
-    digest = _resolve_latest(image)
-    full_name = '%s@%s' % (image, digest)
-    parsed = _run_gcloud(['describe', full_name])
+    parsed = _run_gcloud(['describe', image])
 
-    unpatched = 0
+    unpatched = {}
     for vuln in parsed.get('vulz_analysis', []):
         if vuln.get('patch_not_available'):
             continue
@@ -44,29 +43,25 @@ def _check_image(image, severity, whitelist):
                          vuln.get('vulnerability'))
             continue
         if _filter_severity(vuln['severity'], severity):
-            unpatched += 1
+            unpatched[vuln['vulnerability']] = vuln
 
     if unpatched:
-        base_unpatched = 0
+        base_unpatched = {}
         img = parsed.get('image_analysis')
         if img:
             base_img_url = img[0]['base_image_url']
             base_image = base_img_url[len('https://'):base_img_url.find('@')]
             base_unpatched = _check_image(base_image, severity, whitelist)
-        unpatched -= base_unpatched
-        logging.info('Found %s unpatched vulnerabilities in %s. Run '
-                     '[gcloud beta container images describe %s] '
-                     'to see the full list.',
-                     unpatched, image, full_name)
+        for vuln in base_unpatched.keys():
+            del unpatched[vuln]
+        if unpatched:
+            logging.info('Found %s unpatched vulnerabilities in %s. Run '
+                         '[gcloud beta container images describe %s] '
+                         'to see the full list.',
+                          len(unpatched), image, image)
+        for vuln in unpatched.values():
+            logging.info(pprint.pformat(vuln))
     return unpatched
-
-
-def _resolve_latest(image):
-    parsed = _run_gcloud(['list-tags', image, '--no-show-occurrences'])
-    for digest in parsed:
-        if 'latest' in digest['tags']:
-            return digest['digest']
-    raise Exception("Unable to find digest of 'latest' tag for %s" % image)
 
 
 def _filter_severity(sev1, sev2):
@@ -95,7 +90,7 @@ def _main():
         whitelist = []
     logging.info(whitelist)
 
-    return _check_image(args.image, args.severity, whitelist)
+    return len(_check_image(args.image, args.severity, whitelist))
 
 
 if __name__ == '__main__':
