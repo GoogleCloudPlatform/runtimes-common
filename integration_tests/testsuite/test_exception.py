@@ -14,14 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import unittest
+
 import test_util
 
 
-def _test_exception(base_url):
-    url = base_url + test_util.EXCEPTION_ENDPOINT
+class TestException(unittest.TestCase):
 
-    payload = test_util._generate_exception_payload()
-    response_code = test_util._post(url, payload)
-    if response_code != 0:
-        return test_util._fail('Error encountered inside sample application!')
-    return 0
+    def __init__(self, url, methodName='runTest'):
+        self._url = url + test_util.EXCEPTION_ENDPOINT
+        unittest.TestCase.__init__(self)
+
+    def runTest(self):
+        payload = test_util._generate_exception_payload()
+        response_code = test_util._post(self._url, payload)
+        if response_code != 0:
+            return self.fail('Error encountered inside sample application!')
+        logging.info('Token {0} written to Stackdriver '
+                     'Error Reporting'.format(payload.get('token')))

@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import logging
+import unittest
 from retrying import retry
 
 import google.cloud.logging
@@ -22,36 +23,41 @@ import google.cloud.logging
 import test_util
 
 
-def _test_logging(base_url):
-    url = base_url + test_util.LOGGING_ENDPOINT
-    logging.debug('Posting to endpoint: {0}'.format(url))
+class TestLogging(unittest.TestCase):
 
-    payload = test_util._generate_logging_payload()
-    if test_util._post(url, payload) != 0:
-        return test_util._fail('Error encountered inside sample application!')
+    def __init__(self, url, methodName='runTest'):
+        self._url = url + test_util.LOGGING_ENDPOINT
+        unittest.TestCase.__init__(self)
 
-    try:
-        client = google.cloud.logging.Client()
-        log_name = payload.get('log_name')
-        token = payload.get('token')
+    def runTest(self):
+        logging.debug('Posting to endpoint: {0}'.format(self._url))
 
-        logging.info('log name is {0}, token is {1}'.format(log_name, token))
+        payload = test_util._generate_logging_payload()
+        if test_util._post(self._url, payload) != 0:
+            return self.fail('Error encountered inside sample application!')
 
-        project_id = test_util._project_id()
-        FILTER = 'logName = projects/{0}/logs/' \
-                 'appengine.googleapis.com%2Fstdout'.format(project_id)
+        try:
+            client = google.cloud.logging.Client()
+            log_name = payload.get('log_name')
+            token = payload.get('token')
 
-        _read_log(client, log_name, token, FILTER)
-        return 0
-    except Exception as e:
-        return test_util._fail(e)
+            logging.info('log name is {0}, '
+                         'token is {1}'.format(log_name, token))
 
+            project_id = test_util._project_id()
+            FILTER = 'logName = projects/{0}/logs/' \
+                     'appengine.googleapis.com%2Fstdout'.format(project_id)
 
-@retry(wait_fixed=4000, stop_max_attempt_number=8)
-def _read_log(client, log_name, token, filter):
-    for entry in client.list_entries(filter_=filter):
-            if token in entry.payload:
-                logging.info('Token {0} found in '
-                             'Stackdriver logs!'.format(token))
-                return True
-    raise Exception('Log entry not found for posted token!')
+            self._read_log(client, log_name, token, FILTER)
+            return 0
+        except Exception as e:
+            return self.fail(e)
+
+    @retry(wait_fixed=4000, stop_max_attempt_number=8)
+    def _read_log(self, client, log_name, token, filter):
+        for entry in client.list_entries(filter_=filter):
+                if token in entry.payload:
+                    logging.info('Token {0} found in '
+                                 'Stackdriver logs!'.format(token))
+                    return True
+        raise Exception('Log entry not found for posted token!')

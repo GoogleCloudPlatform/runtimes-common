@@ -15,11 +15,9 @@
 # limitations under the License.
 
 import json
-import logging
 import os
 import subprocess
 import sys
-import shutil
 import time
 
 DEPLOY_DELAY_SECONDS = 30  # time to give GAE to start app after deploy

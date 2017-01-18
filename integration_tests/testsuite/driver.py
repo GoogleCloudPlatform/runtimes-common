@@ -17,6 +17,7 @@
 import argparse
 import logging
 import sys
+import unittest
 
 from args import Args
 import deploy_app
@@ -79,22 +80,21 @@ def _main():
 def _test_app(args):
     base_url = args.url
     logging.info('Starting app test with base url {0}'.format(base_url))
-    error_count = 0
 
-    error_count += test_root._test_root(base_url)
+    suite = unittest.TestSuite()
+
+    suite.addTest(test_root.TestRoot(base_url))
+
     if args.logging:
-        logging.info('Testing app logging')
-        error_count += test_logging._test_logging(base_url)
+        suite.addTest(test_logging.TestLogging(base_url))
 
     if args.monitoring:
-        logging.info('Testing app monitoring')
-        error_count += test_monitoring._test_monitoring(base_url)
+        suite.addTest(test_monitoring.TestMonitoring(base_url))
 
     if args.exception:
-        logging.info('Testing error reporting')
-        error_count += test_exception._test_exception(base_url)
+        suite.addTest(test_exception.TestException(base_url))
 
-    return error_count
+    return not unittest.TextTestRunner(verbosity=4).run(suite).wasSuccessful()
 
 
 if __name__ == '__main__':

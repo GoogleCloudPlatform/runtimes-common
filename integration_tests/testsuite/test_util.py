@@ -16,14 +16,14 @@
 
 import binascii
 import json
-import inspect
 import logging
 import os
 import random
 import requests
-requests.packages.urllib3.disable_warnings()
 import string
 import subprocess
+
+requests.packages.urllib3.disable_warnings()
 
 LOGNAME_LENGTH = 16
 
@@ -108,12 +108,6 @@ def _check_response(response, error_message):
                               response.text))
         return 1
     return 0
-
-
-def _fail(error_msg):
-    logging.error('=== FAIL ===: {0}'.format(inspect.stack()[1][3]))
-    logging.error(error_msg)
-    return 1
 
 
 def _project_id():

@@ -15,19 +15,24 @@
 # limitations under the License.
 
 import logging
+import unittest
 
 import test_util
 
 
-def _test_root(base_url):
-    url = base_url + test_util.ROOT_ENDPOINT
-    logging.debug('Hitting endpoint: {0}'.format(url))
-    output, status_code = test_util._get(url)
-    if status_code != 0:
-        return test_util._fail('Cannot connect to sample application!')
+class TestRoot(unittest.TestCase):
 
-    logging.info('output is: {0}'.format(output))
-    if output != test_util.ROOT_EXPECTED_OUTPUT:
-        return test_util._fail('Unexpected output: expected {0}, received {1}'
-                               .format(test_util.ROOT_EXPECTED_OUTPUT, output))
-    return 0
+    def __init__(self, url, methodName='runTest'):
+        self._url = url + test_util.ROOT_ENDPOINT
+        unittest.TestCase.__init__(self)
+
+    def runTest(self):
+        logging.debug('Hitting endpoint: {0}'.format(self._url))
+        output, status_code = test_util._get(self._url)
+        if status_code != 0:
+            return self.fail('Cannot connect to sample application!')
+
+        logging.info('output is: {0}'.format(output))
+        if output != test_util.ROOT_EXPECTED_OUTPUT:
+            return self.fail('Unexpected output: expected {0}, received {1}'
+                             .format(test_util.ROOT_EXPECTED_OUTPUT, output))
