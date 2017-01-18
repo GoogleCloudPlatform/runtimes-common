@@ -50,12 +50,12 @@ def _deploy_app(image, appdir):
 
         deploy_proc = subprocess.Popen(deploy_command,
                                        stdout=subprocess.PIPE,
-                                       stderr=subprocess.STDOUT)
+                                       stdin=subprocess.PIPE)
 
         output, error = deploy_proc.communicate()
         if deploy_proc.returncode != 0:
             sys.exit('Error encountered when deploying app. ' +
-                     'Full log: \n\n' + output)
+                     'Full log: \n\n' + (output or ''))
 
         print 'waiting {0} seconds for ' \
               'app to deploy...'.format(DEPLOY_DELAY_SECONDS)

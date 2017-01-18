@@ -19,12 +19,12 @@ import logging
 import sys
 import unittest
 
-from args import Args
 import deploy_app
 import test_exception
 import test_logging
 import test_monitoring
 import test_root
+import test_util
 
 
 def _main():
@@ -56,7 +56,10 @@ def _main():
     parser.add_argument('--url', '-u',
                         help='URL where deployed app is ' +
                         'exposed (if applicable)')
-    args = Args(parser.parse_args())
+    args = parser.parse_args()
+
+    deploy_url = ''
+    application_url = ''
 
     if args.deploy:
         if args.image is None:
@@ -69,16 +72,21 @@ def _main():
 
         logging.debug('Deploying app!')
         deploy_url = deploy_app._deploy_app(args.image, args.directory)
-        if deploy_url is not '' and not deploy_url.startswith('https://'):
-            deploy_url = 'https://' + deploy_url
-        if args.url is None or args.url == '':
-            args.url = deploy_url
 
-    return _test_app(args)
+    if deploy_url is not '' and not deploy_url.startswith('https://'):
+        deploy_url = 'https://' + deploy_url
+
+    if args.url is not None and args.url is not '':
+        application_url = args.url
+    elif deploy_url is not '':
+        application_url = deploy_url
+    else:
+        application_url = test_util._get_default_url()
+
+    return _test_app(application_url, args)
 
 
-def _test_app(args):
-    base_url = args.url
+def _test_app(base_url, args):
     logging.info('Starting app test with base url {0}'.format(base_url))
 
     suite = unittest.TestSuite()

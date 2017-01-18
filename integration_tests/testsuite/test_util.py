@@ -118,3 +118,7 @@ def _project_id():
     except Exception as e:
         logging.error('Error encountered when retrieving project id!')
         logging.error(e)
+
+
+def _get_default_url():
+    return 'https://{0}.appspot.com'.format(_project_id())
