@@ -58,7 +58,7 @@ def _check_image(image, severity, whitelist):
             logging.info('Found %s unpatched vulnerabilities in %s. Run '
                          '[gcloud beta container images describe %s] '
                          'to see the full list.',
-                          len(unpatched), image, image)
+                         len(unpatched), image, image)
         for vuln in unpatched.values():
             logging.info(pprint.pformat(vuln))
     return unpatched
