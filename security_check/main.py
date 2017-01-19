@@ -31,15 +31,23 @@ def _run_gcloud(cmd):
     return json.loads(output)
 
 
+def _find_base_image(image):
+    parsed = _run_gcloud(['describe', image])
+    img = parsed.get('image_analysis')
+    if img:
+        base_img_url = img[0]['base_image_url']
+        return base_img_url[len('https://'):base_img_url.find('@')]
+
+
 def _check_for_vulnz(image, severity, whitelist):
-    global _BASE_IMAGE
     unpatched = _check_image(image, severity, whitelist)
     if not unpatched:
         return unpatched
 
+    base_image = _find_base_image(image)
     base_unpatched = {}
-    if _BASE_IMAGE:
-        base_unpatched = _check_image(_BASE_IMAGE, severity, whitelist, True)
+    if base_image:
+        base_unpatched = _check_image(base_image, severity, whitelist)
     for vuln in base_unpatched.keys():
         logging.info('Vulnerability %s exists in the base image. Skipping.',
                      vuln)
@@ -56,8 +64,7 @@ def _check_for_vulnz(image, severity, whitelist):
     return unpatched
 
 
-def _check_image(image, severity, whitelist, base=False):
-    global _BASE_IMAGE
+def _check_image(image, severity, whitelist):
     parsed = _run_gcloud(['describe', image])
 
     unpatched = {}
@@ -70,12 +77,6 @@ def _check_image(image, severity, whitelist, base=False):
             continue
         if _filter_severity(vuln['severity'], severity):
             unpatched[vuln['vulnerability']] = vuln
-
-    if unpatched and not base:
-        img = parsed.get('image_analysis')
-        if img:
-            base_img_url = img[0]['base_image_url']
-            _BASE_IMAGE = base_img_url[len('https://'):base_img_url.find('@')]
 
     return unpatched
 
