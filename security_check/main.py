@@ -31,7 +31,33 @@ def _run_gcloud(cmd):
     return json.loads(output)
 
 
-def _check_image(image, severity, whitelist):
+def _check_for_vulnz(image, severity, whitelist):
+    global _BASE_IMAGE
+    unpatched = _check_image(image, severity, whitelist)
+    if not unpatched:
+        return unpatched
+
+    base_unpatched = {}
+    if _BASE_IMAGE:
+        base_unpatched = _check_image(_BASE_IMAGE, severity, whitelist, True)
+    for vuln in base_unpatched.keys():
+        logging.info('Vulnerability %s exists in the base image. Skipping.',
+                     vuln)
+        del unpatched[vuln]
+
+    if unpatched:
+        logging.info('Found %s unpatched vulnerabilities in %s. Run '
+                     '[gcloud beta container images describe %s] '
+                     'to see the full list.',
+                     len(unpatched), image, image)
+    for vuln in unpatched.values():
+        logging.info(pprint.pformat(vuln))
+
+    return unpatched
+
+
+def _check_image(image, severity, whitelist, base=False):
+    global _BASE_IMAGE
     parsed = _run_gcloud(['describe', image])
 
     unpatched = {}
@@ -45,22 +71,12 @@ def _check_image(image, severity, whitelist):
         if _filter_severity(vuln['severity'], severity):
             unpatched[vuln['vulnerability']] = vuln
 
-    if unpatched:
-        base_unpatched = {}
+    if unpatched and not base:
         img = parsed.get('image_analysis')
         if img:
             base_img_url = img[0]['base_image_url']
-            base_image = base_img_url[len('https://'):base_img_url.find('@')]
-            base_unpatched = _check_image(base_image, severity, whitelist)
-        for vuln in base_unpatched.keys():
-            del unpatched[vuln]
-        if unpatched:
-            logging.info('Found %s unpatched vulnerabilities in %s. Run '
-                         '[gcloud beta container images describe %s] '
-                         'to see the full list.',
-                         len(unpatched), image, image)
-        for vuln in unpatched.values():
-            logging.info(pprint.pformat(vuln))
+            _BASE_IMAGE = base_img_url[len('https://'):base_img_url.find('@')]
+
     return unpatched
 
 
@@ -88,9 +104,9 @@ def _main():
         whitelist = json.load(open(args.whitelist, 'r'))
     except IOError:
         whitelist = []
-    logging.info(whitelist)
+    logging.info("whitelist=%s", whitelist)
 
-    return len(_check_image(args.image, args.severity, whitelist))
+    return len(_check_for_vulnz(args.image, args.severity, whitelist))
 
 
 if __name__ == '__main__':
