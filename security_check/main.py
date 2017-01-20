@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import pprint
 import sys
 import subprocess
 
@@ -30,12 +31,47 @@ def _run_gcloud(cmd):
     return json.loads(output)
 
 
-def _check_image(image, severity, whitelist):
-    digest = _resolve_latest(image)
-    full_name = '%s@%s' % (image, digest)
-    parsed = _run_gcloud(['describe', full_name])
+def _find_base_image(image):
+    parsed = _run_gcloud(['describe', image])
+    img = parsed.get('image_analysis')
+    if img:
+        base_img_url = img[0]['base_image_url']
+        return base_img_url[len('https://'):base_img_url.find('@')]
 
-    unpatched = 0
+
+def _check_for_vulnz(image, severity, whitelist):
+    unpatched = _check_image(image, severity, whitelist)
+    if not unpatched:
+        return unpatched
+
+    base_image = _find_base_image(image)
+    base_unpatched = {}
+    if base_image:
+        base_unpatched = _check_image(base_image, severity, whitelist)
+    else:
+        logging.info("Could not find base image for %s", image)
+
+    count = 0
+    for k, vuln in unpatched.items():
+        if k not in base_unpatched.keys():
+            count += 1
+            logging.info(pprint.pformat(vuln))
+        else:
+            logging.info('Vulnerability %s exists in the base '
+                         'image. Skipping.', vuln)
+
+    if count > 0:
+        logging.info('Found %s unpatched vulnerabilities in %s. Run '
+                     '[gcloud beta container images describe %s] '
+                     'to see the full list.', count, image, image)
+
+    return unpatched
+
+
+def _check_image(image, severity, whitelist):
+    parsed = _run_gcloud(['describe', image])
+
+    unpatched = {}
     for vuln in parsed.get('vulz_analysis', []):
         if vuln.get('patch_not_available'):
             continue
@@ -44,29 +80,9 @@ def _check_image(image, severity, whitelist):
                          vuln.get('vulnerability'))
             continue
         if _filter_severity(vuln['severity'], severity):
-            unpatched += 1
+            unpatched[vuln['vulnerability']] = vuln
 
-    if unpatched:
-        base_unpatched = 0
-        img = parsed.get('image_analysis')
-        if img:
-            base_img_url = img[0]['base_image_url']
-            base_image = base_img_url[len('https://'):base_img_url.find('@')]
-            base_unpatched = _check_image(base_image, severity, whitelist)
-        unpatched -= base_unpatched
-        logging.info('Found %s unpatched vulnerabilities in %s. Run '
-                     '[gcloud beta container images describe %s] '
-                     'to see the full list.',
-                     unpatched, image, full_name)
     return unpatched
-
-
-def _resolve_latest(image):
-    parsed = _run_gcloud(['list-tags', image, '--no-show-occurrences'])
-    for digest in parsed:
-        if 'latest' in digest['tags']:
-            return digest['digest']
-    raise Exception("Unable to find digest of 'latest' tag for %s" % image)
 
 
 def _filter_severity(sev1, sev2):
@@ -93,9 +109,9 @@ def _main():
         whitelist = json.load(open(args.whitelist, 'r'))
     except IOError:
         whitelist = []
-    logging.info(whitelist)
+    logging.info("whitelist=%s", whitelist)
 
-    return _check_image(args.image, args.severity, whitelist)
+    return len(_check_for_vulnz(args.image, args.severity, whitelist))
 
 
 if __name__ == '__main__':
