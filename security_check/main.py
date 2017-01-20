@@ -48,18 +48,22 @@ def _check_for_vulnz(image, severity, whitelist):
     base_unpatched = {}
     if base_image:
         base_unpatched = _check_image(base_image, severity, whitelist)
-    for vuln in base_unpatched.keys():
-        logging.info('Vulnerability %s exists in the base image. Skipping.',
-                     vuln)
-        del unpatched[vuln]
+    else:
+        logging.info("Could not find base image for %s", image)
 
-    if unpatched:
+    count = 0
+    for k, vuln in unpatched.items():
+        if k not in base_unpatched.keys():
+            count += 1
+            logging.info(pprint.pformat(vuln))
+        else:
+            logging.info('Vulnerability %s exists in the base '
+                         'image. Skipping.', vuln)
+
+    if count > 0:
         logging.info('Found %s unpatched vulnerabilities in %s. Run '
                      '[gcloud beta container images describe %s] '
-                     'to see the full list.',
-                     len(unpatched), image, image)
-    for vuln in unpatched.values():
-        logging.info(pprint.pformat(vuln))
+                     'to see the full list.', count, image, image)
 
     return unpatched
 
