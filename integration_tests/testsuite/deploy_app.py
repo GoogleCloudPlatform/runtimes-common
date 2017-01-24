@@ -16,21 +16,19 @@
 
 import json
 import os
+from retrying import retry
 import subprocess
 import sys
-import time
-
-DEPLOY_DELAY_SECONDS = 30  # time to give GAE to start app after deploy
 
 
-def cleanup(appdir):
+def _cleanup(appdir):
     try:
         os.remove(os.path.join(appdir, 'Dockerfile'))
     except:
         pass
 
 
-def _deploy_app(image, appdir):
+def deploy_app(image, appdir):
     try:
         # change to app directory (and remember original directory)
         owd = os.getcwd()
@@ -57,24 +55,25 @@ def _deploy_app(image, appdir):
             sys.exit('Error encountered when deploying app. ' +
                      'Full log: \n\n' + (output or ''))
 
-        print 'waiting {0} seconds for ' \
-              'app to deploy...'.format(DEPLOY_DELAY_SECONDS)
-
-        time.sleep(DEPLOY_DELAY_SECONDS)
-
-        try:
-            # retrieve url of deployed app for test driver
-            url_command = ['gcloud', 'app', 'describe', '--format=json']
-            app_dict = json.loads(subprocess.check_output(url_command))
-            hostname = app_dict.get('defaultHostname')
-            if hostname is None:
-                return ''
-            return hostname.encode('ascii', 'ignore')
-        except Exception:
-            print 'Error encountered when retrieving app URL!'
-            print 'Defaulting to provided URL parameter.'
-            return ''
+        return _retrieve_url()
 
     finally:
-        cleanup(appdir)
+        _cleanup(appdir)
         os.chdir(owd)
+
+
+@retry(wait_fixed=10000, stop_max_attempt_number=4)
+def _retrieve_url():
+    try:
+        # retrieve url of deployed app for test driver
+        url_command = ['gcloud', 'app', 'describe', '--format=json']
+        app_dict = json.loads(subprocess.check_output(url_command))
+        hostname = app_dict.get('defaultHostname')
+        if hostname is None:
+            return ''
+        return hostname.encode('ascii', 'ignore')
+    except (subprocess.CalledProcessError, ValueError, KeyError):
+        print 'Error encountered when retrieving app URL!'
+        print 'Defaulting to provided URL parameter.'
+        return ''
+    raise Exception('Unable to contact deployed application!')

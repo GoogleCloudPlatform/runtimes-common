@@ -19,7 +19,7 @@ import logging
 import sys
 import unittest
 
-import deploy_app
+from deploy_app import deploy_app
 import test_exception
 import test_logging
 import test_monitoring
@@ -71,7 +71,7 @@ def _main():
             sys.exit(1)
 
         logging.debug('Deploying app!')
-        deploy_url = deploy_app._deploy_app(args.image, args.directory)
+        deploy_url = deploy_app(args.image, args.directory)
 
     if deploy_url is not '' and not deploy_url.startswith('https://'):
         deploy_url = 'https://' + deploy_url
