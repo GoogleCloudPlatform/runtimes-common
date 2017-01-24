@@ -34,15 +34,12 @@ class TestMonitoring(unittest.TestCase):
         if test_util._post(self._url, payload, test_util.METRIC_TIMEOUT) != 0:
             return self.fail('Error encountered inside test application!')
 
-        try:
-            client = google.cloud.monitoring.Client()
+        client = google.cloud.monitoring.Client()
 
-            if not self._read_metric(payload.get('name'),
-                                     payload.get('token'), client):
-                return self.fail('Token not found in '
-                                 'Stackdriver monitoring!')
-        except Exception as e:
-            return self.fail(e)
+        if not self._read_metric(payload.get('name'),
+                                 payload.get('token'), client):
+            return self.fail('Token not found in '
+                             'Stackdriver monitoring!')
 
     @retry(wait_fixed=6000, stop_max_attempt_number=10)
     def _read_metric(self, name, target, client):
