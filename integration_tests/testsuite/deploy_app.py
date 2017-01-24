@@ -69,8 +69,6 @@ def _retrieve_url():
         url_command = ['gcloud', 'app', 'describe', '--format=json']
         app_dict = json.loads(subprocess.check_output(url_command))
         hostname = app_dict.get('defaultHostname')
-        if hostname is None:
-            return ''
         return hostname.encode('ascii', 'ignore')
     except (subprocess.CalledProcessError, ValueError, KeyError):
         print 'Error encountered when retrieving app URL!'
