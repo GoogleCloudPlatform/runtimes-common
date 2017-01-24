@@ -14,10 +14,9 @@ RUN apt-get update && \
         --disable-installation-options && \
     # Install alpha and beta components
     /builder/google-cloud-sdk/bin/gcloud -q components install alpha beta && \
-    /builder/google-cloud-sdk/bin/gcloud -q components update
-
-
-RUN apt-get install -y --force-yes python-dev && \
+    /builder/google-cloud-sdk/bin/gcloud -q components update && \
+    apt-get install -y --force-yes python-dev && \
+    # Clean up
     apt-get remove -y --force-yes wget unzip && \
     apt-get clean
 
