@@ -53,7 +53,7 @@ class TestMonitoring(unittest.TestCase):
                     logging.info('Token {0} found in Stackdriver '
                                  'metrics'.format(target))
                     return True
-                print point.value
+                print(point.value)
         return False
 
     def _query_is_empty(self, query):

@@ -71,7 +71,7 @@ def _retrieve_url():
         hostname = app_dict.get('defaultHostname')
         return hostname.encode('ascii', 'ignore')
     except (subprocess.CalledProcessError, ValueError, KeyError):
-        print 'Error encountered when retrieving app URL!'
-        print 'Defaulting to provided URL parameter.'
+        print('Error encountered when retrieving app URL!')
+        print('Defaulting to provided URL parameter.')
         return ''
     raise Exception('Unable to contact deployed application!')
