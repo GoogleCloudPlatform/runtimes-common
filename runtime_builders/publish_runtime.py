@@ -26,8 +26,6 @@ import tempfile
 
 from google.cloud import storage
 
-# TAG_PATTERN = re.compile('.*/.*/.*:\$\{.*\}')
-
 LANGUAGES = [
     'java',
     'python',
@@ -35,8 +33,7 @@ LANGUAGES = [
     'nodejs',
     'golang',
     'dotnet',
-    'php',
-    'test'
+    'php'
 ]
 
 
@@ -81,28 +78,6 @@ published to GCS.
 '''
 def _resolve_tags(config_file):
     with open(config_file, 'r') as infile:
-
-        # try:
-        #   config = f.readlines()
-        #   with open('/tmp/test.txt', 'w') as outfile:
-        #     try:
-        #       for line in config:
-        #         # print line
-        #         # match = re.search(TAG_REGEX, line)
-        #         match = TAG_PATTERN.search(line)
-        #         if match is not None:
-        #           print 'match: {0}'.format(
-        #               match.string[match.start():match.end()])
-        #           # print match.span()
-        #         # if TAG_PATTERN.matches(line):
-        #           outfile.write(_resolve_tag_in_line(line))
-        #         else:
-        #           outfile.write(line)
-        #     finally:
-        #       outfile.close()
-        # finally:
-        #   f.close()
-
         try:
             config = yaml.round_trip_load(infile)
 
@@ -121,7 +96,7 @@ def _resolve_tags(config_file):
             return ofile
 
         except yaml.YAMLError as e:
-            print(e)
+            logging.error(e)
         finally:
             infile.close()
 
