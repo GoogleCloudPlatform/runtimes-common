@@ -64,19 +64,20 @@ def main():
     _publish_to_gcs(templated_file, args.language, args.bucket)
 
 
-'''
-Given a templated YAML cloudbuild config file, parse it, resolve image tags
-on each build step's image to the corresponding digest, and write new config
-with fully qualified images to temporary file for upload to GCS.
-
-Keyword arguments:
-config_file -- string representing path to templated cloudbuild YAML config file
-
-Return value:
-path to temporary file containing fully qualified config file, to be
-published to GCS.
-'''
 def _resolve_tags(config_file):
+    """
+    Given a templated YAML cloudbuild config file, parse it, resolve image tags
+    on each build step's image to the corresponding digest, and write new
+    config with fully qualified images to temporary file for upload to GCS.
+
+    Keyword arguments:
+    config_file -- string representing path to
+    templated cloudbuild YAML config file
+
+    Return value:
+    path to temporary file containing fully qualified config file, to be
+    published to GCS.
+    """
     with open(config_file, 'r') as infile:
         try:
             config = yaml.round_trip_load(infile)
@@ -101,11 +102,11 @@ def _resolve_tags(config_file):
             infile.close()
 
 
-'''
-Given a path to a tagged Docker image in GCR, replace the tag with its
-corresponding sha256 digest. 
-'''
 def _resolve_tag(image):
+    """
+    Given a path to a tagged Docker image in GCR, replace the tag with its
+    corresponding sha256 digest.
+    """
     if image is None:
         raise Exception('Please provide image')
 
@@ -135,10 +136,10 @@ def _resolve_tag(image):
                   'image {1}'.format(target_tag, base_image))
 
 
-'''
-Given a cloudbuild YAML config file, publish the file to a bucket in GCS.
-'''
 def _publish_to_gcs(builder_file, language, bucket):
+    """
+    Given a cloudbuild YAML config file, publish the file to a bucket in GCS.
+    """
     client = storage.Client()
 
     runtime_bucket = client.get_bucket(bucket)
