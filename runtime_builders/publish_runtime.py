@@ -39,21 +39,17 @@ LANGUAGES = [
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--infile', '-i', help='file(s) to read')
+    parser.add_argument('--infile', '-i',
+                        help='file(s) to read',
+                        required=True)
     parser.add_argument('--bucket', '-b',
                         help='GCS bucket to publish runtime to',
                         default='runtime-builders')
     parser.add_argument('--language', '-l',
-                        help='the language associated with this builder')
+                        help='the language associated with this builder',
+                        required=True)
     args = parser.parse_args()
 
-    if args.infile is None:
-        logging.error('Please specify templated input YAML file.')
-        return 1
-    if args.language is None:
-        logging.error('Please specify language to '
-                      'associate this builder with.')
-        return 1
     if args.language not in LANGUAGES:
         logging.error('Invalid language \'{0}\' specified! '
                       'Options:'.format(args.language))
@@ -119,16 +115,17 @@ def _resolve_tag(image):
         target_tag = image.split(':')[1].strip('${}')
 
     command = ['gcloud', 'beta', 'container', 'images',
-               'list-tags', base_image, '--format=json']
+               'describe', base_image, '--format=json']
 
     try:
         output = subprocess.check_output(command)
-        entries = json.loads(output)
-        for image in entries:
-            for tag in image.get('tags'):
-                if tag == target_tag:
-                    digest = image.get('digest')
-                    return base_image + '@' + digest
+        info = json.loads(output)
+        digest = info.get('digest')
+        if digest is None:
+            logging.error('Output of describe command for image {0}'
+                          'does not contain digest info!'.format(base_image))
+            sys.exit(1)
+        return digest.encode('ascii', 'ignore')
     except subprocess.CalledProcessError as e:
         logging.error(e)
 
