@@ -19,6 +19,7 @@ from datetime import datetime
 import json
 import logging
 import os
+import regex
 from ruamel import yaml
 import subprocess
 import sys
@@ -35,6 +36,8 @@ LANGUAGES = [
     'dotnet',
     'php'
 ]
+
+TAG_REGEX = '(?<=gcr\.io/.*/.*):\${.*}'
 
 
 def main():
@@ -103,29 +106,34 @@ def _resolve_tag(image):
     Given a path to a tagged Docker image in GCR, replace the tag with its
     corresponding sha256 digest.
     """
-    if image is None:
-        raise Exception('Please provide image')
-
     if ':' not in image:
-        logging.info('Image does not contain tag: defaulting to "latest"')
-        base_image = image
-        target_tag = 'latest'
+        logging.error('Image must contain explicit tag!')
+        sys.exit(1)
     else:
-        base_image = image.split(':')[0]
-        target_tag = image.split(':')[1].strip('${}')
+        m = regex.search(TAG_REGEX, image)
+        if m:
+            templated_tag = m.string[m.start():m.end()]
+            target_tag = templated_tag.strip(':${}')
+            base_image = m.string.replace(templated_tag, '')
+        else:
+            logging.error('Image must contain explicit tag, in the format:'
+                          '\'gcr.io/<project_id>/<image_name>:${<tag>}\'')
+            sys.exit(1)
 
     command = ['gcloud', 'beta', 'container', 'images',
-               'describe', base_image, '--format=json']
+               'list-tags', base_image, '--format=json']
 
     try:
         output = subprocess.check_output(command)
-        info = json.loads(output)
-        digest = info.get('digest')
-        if digest is None:
-            logging.error('Output of describe command for image {0}'
-                          'does not contain digest info!'.format(base_image))
-            sys.exit(1)
-        return digest.encode('ascii', 'ignore')
+        entries = json.loads(output)
+        for image in entries:
+            for tag in image.get('tags'):
+                if tag == target_tag:
+                    digest = image.get('digest')
+                    return base_image + '@' + digest
+        logging.error('Tag {0} not found on image {1}!'
+                      .format(target_tag, base_image))
+        sys.exit(1)
     except subprocess.CalledProcessError as e:
         logging.error(e)
 
