@@ -43,14 +43,15 @@ TAG_REGEX = '(?<=gcr\.io/.*/.*):\${.*}'
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--infile', '-i',
-                        help='file(s) to read',
+                        help='templated cloudbuild config file.',
                         required=True)
     parser.add_argument('--bucket', '-b',
                         help='GCS bucket to publish runtime to',
                         default='runtime-builders')
-    parser.add_argument('--language', '-l',
+    parser.add_argument('--language',
                         help='the language associated with this builder',
-                        required=True)
+                        required=True,
+                        choices=LANGUAGES)
     args = parser.parse_args()
 
     if args.language not in LANGUAGES:
@@ -91,14 +92,11 @@ def _resolve_tags(config_file):
             fd, ofile = tempfile.mkstemp()
             with open(ofile, 'w') as outfile:
                 outfile.write(s)
-            outfile.close()
             os.close(fd)
             return ofile
-
         except yaml.YAMLError as e:
             logging.error(e)
-        finally:
-            infile.close()
+            sys.exit(1)
 
 
 def _resolve_tag(image):
