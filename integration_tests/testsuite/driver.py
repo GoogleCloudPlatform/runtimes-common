@@ -80,12 +80,7 @@ def _main():
     if deploy_url and not deploy_url.startswith('https://'):
         deploy_url = 'https://' + deploy_url
 
-    if args.url and args.url is not '':
-        application_url = args.url
-    elif deploy_url:
-        application_url = deploy_url
-    else:
-        application_url = test_util.get_default_url()
+    application_url = args.url or deploy_url or test_util.get_default_url()
 
     return _test_app(application_url, args)
 
