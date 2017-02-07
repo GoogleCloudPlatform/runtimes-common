@@ -37,7 +37,7 @@ LANGUAGES = [
     'php'
 ]
 
-TAG_REGEX = '(?<=gcr\.io/.*/.*):\${.*}'
+TAG_REGEX = '(?<=:|@)(.*)'
 
 
 def main():
@@ -105,17 +105,19 @@ def _resolve_tag(image):
     corresponding sha256 digest.
     """
     if ':' not in image:
-        logging.error('Image must contain explicit tag!')
+        logging.error('Image \'{0}\' must contain explicit tag or '
+                      'digest!'.format(image))
         sys.exit(1)
+    elif 'sha256' in image:
+        return image
     else:
         m = regex.search(TAG_REGEX, image)
         if m:
-            templated_tag = m.string[m.start():m.end()]
-            target_tag = templated_tag.strip(':${}')
-            base_image = m.string.replace(templated_tag, '')
+            target_tag = m.string[m.start():m.end()]
+            base_image = m.string[0:m.start()-1]
         else:
-            logging.error('Image must contain explicit tag, in the format:'
-                          '\'gcr.io/<project_id>/<image_name>:${<tag>}\'')
+            logging.error('Error when parsing image tag!')
+            logging.error(e)
             sys.exit(1)
 
     command = ['gcloud', 'beta', 'container', 'images',
