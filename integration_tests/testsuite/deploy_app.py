@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import json
+import logging
 import os
 from retrying import retry
 import subprocess
@@ -42,7 +43,7 @@ def deploy_app(image, appdir):
             fout.close()
         fin.close()
 
-        # TODO: use sdk driver here
+        # TODO: once sdk driver is published, use it here
         deploy_command = ['gcloud', 'app', 'deploy',
                           '--stop-previous-version', '--verbosity=debug']
 
@@ -71,7 +72,6 @@ def _retrieve_url():
         hostname = app_dict.get('defaultHostname')
         return hostname.encode('ascii', 'ignore')
     except (subprocess.CalledProcessError, ValueError, KeyError):
-        print('Error encountered when retrieving app URL!')
-        print('Defaulting to provided URL parameter.')
-        return ''
+        logging.warn('Error encountered when retrieving app URL!')
+        return None
     raise Exception('Unable to contact deployed application!')
