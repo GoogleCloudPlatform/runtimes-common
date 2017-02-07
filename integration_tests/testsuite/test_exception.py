@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,9 +27,9 @@ class TestException(unittest.TestCase):
         unittest.TestCase.__init__(self)
 
     def runTest(self):
-        payload = test_util._generate_exception_payload()
+        payload = test_util.generate_exception_payload()
         response_code = test_util._post(self._url, payload)
-        if response_code != 0:
-            return self.fail('Error encountered inside sample application!')
+        self.assertEquals(response_code, 0,
+                          'Error encountered inside sample application!')
         logging.info('Token {0} written to Stackdriver '
                      'Error Reporting'.format(payload.get('token')))

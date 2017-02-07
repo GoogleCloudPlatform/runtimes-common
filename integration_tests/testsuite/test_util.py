@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 
 # Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
@@ -54,19 +54,19 @@ def _generate_int64_token():
     return random.randint(-(2 ** 31), (2 ** 31)-1)
 
 
-def _generate_logging_payload():
+def generate_logging_payload():
     data = {'log_name': _generate_name(),
             'token': _generate_hex_token()}
     return data
 
 
-def _generate_metrics_payload():
+def generate_metrics_payload():
     data = {'name': METRIC_PREFIX.format(_generate_name()),
             'token': _generate_int64_token()}
     return data
 
 
-def _generate_exception_payload():
+def generate_exception_payload():
     data = {'token': _generate_int64_token()}
     return data
 
@@ -120,5 +120,5 @@ def _project_id():
         logging.error(e)
 
 
-def _get_default_url():
+def get_default_url():
     return 'https://{0}.appspot.com'.format(_project_id())

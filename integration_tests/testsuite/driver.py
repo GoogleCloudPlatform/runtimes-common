@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,15 +41,15 @@ def _main():
                         dest='deploy',
                         help='Flag to skip deployment of app ' +
                         '(must provide app URL)')
-    parser.add_argument('--no-logging',
+    parser.add_argument('--skip-logging-tests',
                         action='store_false',
                         dest='logging',
                         help='Flag to skip logging tests')
-    parser.add_argument('--no-monitoring',
+    parser.add_argument('--skip-monitoring-tests',
                         action='store_false',
                         dest='monitoring',
                         help='Flag to skip monitoring tests')
-    parser.add_argument('--no-exception',
+    parser.add_argument('--skip-exception-tests',
                         action='store_false',
                         dest='exception',
                         help='Flag to skip error reporting tests')
@@ -73,15 +73,14 @@ def _main():
         logging.debug('Deploying app!')
         deploy_url = deploy_app(args.image, args.directory)
 
-    if deploy_url is not '' and not deploy_url.startswith('https://'):
+    if args.deploy and not deploy_url:
+        logging.info('Defaulting to provided URL parameter.')
+        deploy_url = test_util.get_default_url()
+
+    if deploy_url and not deploy_url.startswith('https://'):
         deploy_url = 'https://' + deploy_url
 
-    if args.url is not None and args.url is not '':
-        application_url = args.url
-    elif deploy_url is not '':
-        application_url = deploy_url
-    else:
-        application_url = test_util._get_default_url()
+    application_url = args.url or deploy_url or test_util.get_default_url()
 
     return _test_app(application_url, args)
 

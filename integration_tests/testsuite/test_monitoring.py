@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,16 +30,15 @@ class TestMonitoring(unittest.TestCase):
         unittest.TestCase.__init__(self)
 
     def runTest(self):
-        payload = test_util._generate_metrics_payload()
+        payload = test_util.generate_metrics_payload()
         if test_util._post(self._url, payload, test_util.METRIC_TIMEOUT) != 0:
             return self.fail('Error encountered inside test application!')
 
         client = google.cloud.monitoring.Client()
 
-        if not self._read_metric(payload.get('name'),
-                                 payload.get('token'), client):
-            return self.fail('Token not found in '
-                             'Stackdriver monitoring!')
+        self.assertTrue(self._read_metric(payload.get('name'),
+                                          payload.get('token'), client),
+                        'Token not found in Stackdriver monitoring!')
 
     @retry(wait_fixed=6000, stop_max_attempt_number=10)
     def _read_metric(self, name, target, client):

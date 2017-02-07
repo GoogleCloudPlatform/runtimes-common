@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,10 +29,10 @@ class TestRoot(unittest.TestCase):
     def runTest(self):
         logging.debug('Hitting endpoint: {0}'.format(self._url))
         output, status_code = test_util._get(self._url)
-        if status_code != 0:
-            return self.fail('Cannot connect to sample application!')
+        self.assertEquals(status_code, 0,
+                          'Cannot connect to sample application!')
 
         logging.info('output is: {0}'.format(output))
-        if output != test_util.ROOT_EXPECTED_OUTPUT:
-            return self.fail('Unexpected output: expected {0}, received {1}'
-                             .format(test_util.ROOT_EXPECTED_OUTPUT, output))
+        self.assertEquals(output, test_util.ROOT_EXPECTED_OUTPUT,
+                          'Unexpected output: expected {0}, received {1}'
+                          .format(test_util.ROOT_EXPECTED_OUTPUT, output))

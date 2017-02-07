@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ class TestLogging(unittest.TestCase):
     def runTest(self):
         logging.debug('Posting to endpoint: {0}'.format(self._url))
 
-        payload = test_util._generate_logging_payload()
+        payload = test_util.generate_logging_payload()
         if test_util._post(self._url, payload) != 0:
             return self.fail('Error encountered inside sample application!')
 
@@ -47,8 +47,8 @@ class TestLogging(unittest.TestCase):
         FILTER = 'logName = projects/{0}/logs/' \
                  'appengine.googleapis.com%2Fstdout'.format(project_id)
 
-        self._read_log(client, log_name, token, FILTER)
-        return 0
+        self.assertTrue(self._read_log(client, log_name, token, FILTER),
+                        'Log entry not found for posted token!')
 
     @retry(wait_fixed=4000, stop_max_attempt_number=8)
     def _read_log(self, client, log_name, token, filter):
