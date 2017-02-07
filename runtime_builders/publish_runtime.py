@@ -27,20 +27,11 @@ import tempfile
 
 from google.cloud import storage
 
-LANGUAGES = [
-    'java',
-    'python',
-    'ruby',
-    'nodejs',
-    'golang',
-    'dotnet',
-    'php'
-]
-
 TAG_REGEX = '(?<=:|@)(.*)'
 
 
 def main():
+    logging.getLogger().setLevel(logging.INFO)
     parser = argparse.ArgumentParser()
     parser.add_argument('--infile', '-i',
                         help='templated cloudbuild config file.',
@@ -48,20 +39,15 @@ def main():
     parser.add_argument('--bucket', '-b',
                         help='GCS bucket to publish runtime to',
                         default='runtime-builders')
-    parser.add_argument('--language',
-                        help='the language associated with this builder',
-                        required=True,
-                        choices=LANGUAGES)
+    parser.add_argument('--runtime-name',
+                        help='the name of the runtime associated '
+                             'with this builder',
+                        required=True)
     args = parser.parse_args()
 
-    if args.language not in LANGUAGES:
-        logging.error('Invalid language \'{0}\' specified! '
-                      'Options:'.format(args.language))
-        logging.error(LANGUAGES)
-        return 1
-
-    templated_file = _resolve_tags(args.infile)
-    _publish_to_gcs(templated_file, args.language, args.bucket)
+    templated_file_contents = _resolve_tags(args.infile)
+    logging.info(templated_file_contents)
+    _publish_to_gcs(templated_file_contents, args.runtime_name, args.bucket)
 
 
 def _resolve_tags(config_file):
@@ -87,13 +73,7 @@ def _resolve_tags(config_file):
                 templated_step = _resolve_tag(image)
                 step['name'] = templated_step
 
-            s = yaml.round_trip_dump(config)
-
-            fd, ofile = tempfile.mkstemp()
-            with open(ofile, 'w') as outfile:
-                outfile.write(s)
-            os.close(fd)
-            return ofile
+            return yaml.round_trip_dump(config)
         except yaml.YAMLError as e:
             logging.error(e)
             sys.exit(1)
@@ -141,7 +121,7 @@ def _resolve_tag(image):
                   'image {1}'.format(target_tag, base_image))
 
 
-def _publish_to_gcs(builder_file, language, bucket):
+def _publish_to_gcs(builder_file_contents, runtime_name, bucket):
     """
     Given a cloudbuild YAML config file, publish the file to a bucket in GCS.
     """
@@ -153,13 +133,12 @@ def _publish_to_gcs(builder_file, language, bucket):
         logging.error('Bucket {0} not found!'.format(bucket))
 
     builder_name = '{0}-runtime-{1}.yaml'.format(
-        language,
+        runtime_name,
         datetime.now().strftime('%Y%m%d%H%M%S'))
 
     blob = storage.Blob(builder_name, runtime_bucket)
 
-    with open(builder_file, 'r') as f:
-        blob.upload_from_file(f)
+    blob.upload_from_string(builder_file_contents)
 
 
 if __name__ == '__main__':
