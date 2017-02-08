@@ -37,15 +37,17 @@ def main():
     parser.add_argument('--bucket', '-b',
                         help='GCS bucket to publish runtime to',
                         default='runtime-builders')
-    parser.add_argument('--runtime-name',
-                        help='the name of the runtime associated '
-                             'with this builder',
+    parser.add_argument('--builder-name',
+                        help='the name of the runtime or project '
+                        'associated with this builder',
                         required=True)
     args = parser.parse_args()
 
     templated_file_contents = _resolve_tags(args.infile)
     logging.info(templated_file_contents)
-    _publish_to_gcs(templated_file_contents, args.runtime_name, args.bucket)
+    logging.info(_publish_to_gcs(templated_file_contents,
+                                 args.builder_name,
+                                 args.bucket))
 
 
 def _resolve_tags(config_file):
@@ -118,24 +120,26 @@ def _resolve_tag(image):
                   'image {1}'.format(target_tag, base_image))
 
 
-def _publish_to_gcs(builder_file_contents, runtime_name, bucket):
+def _publish_to_gcs(builder_file_contents, builder_name, bucket):
     """
     Given a cloudbuild YAML config file, publish the file to a bucket in GCS.
     """
     client = storage.Client()
-
     runtime_bucket = client.get_bucket(bucket)
 
     if runtime_bucket is None:
         logging.error('Bucket {0} not found!'.format(bucket))
 
-    builder_name = '{0}-runtime-{1}.yaml'.format(
-        runtime_name,
+    file_name = '{0}-builder-{1}.yaml'.format(
+        builder_name,
         datetime.now().strftime('%Y%m%d%H%M%S'))
 
-    blob = storage.Blob(builder_name, runtime_bucket)
-
+    blob = storage.Blob(file_name, runtime_bucket)
     blob.upload_from_string(builder_file_contents)
+
+    full_path = 'gs://{0}/{1}'.format(bucket, file_name)
+
+    return full_path
 
 
 if __name__ == '__main__':
