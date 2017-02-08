@@ -23,7 +23,7 @@ class DataIntegrityTest(unittest.TestCase):
 
     def test_data_consistency(self):
         failed_digests = []
-        for f in glob.glob('../config/*.json'):
+        for f in glob.glob('../tag_config/*.json'):
             logging.debug('Testing {0}'.format(f))
             with open(f) as tag_map:
                 data = json.load(tag_map)
