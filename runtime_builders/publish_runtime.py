@@ -18,12 +18,10 @@ import argparse
 from datetime import datetime
 import json
 import logging
-import os
 import regex
 from ruamel import yaml
 import subprocess
 import sys
-import tempfile
 
 from google.cloud import storage
 
@@ -97,7 +95,6 @@ def _resolve_tag(image):
             base_image = m.string[0:m.start()-1]
         else:
             logging.error('Error when parsing image tag!')
-            logging.error(e)
             sys.exit(1)
 
     command = ['gcloud', 'beta', 'container', 'images',
