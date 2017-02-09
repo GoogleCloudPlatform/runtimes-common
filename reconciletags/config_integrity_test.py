@@ -46,7 +46,7 @@ class ReconcilePresubmitTest(unittest.TestCase):
                       'authenticated')
 
     def test_json_structure(self):
-        for f in glob.glob('../config/*.json'):
+        for f in glob.glob('../config/tag/*.json'):
             logging.debug('Testing {0}'.format(f))
             with open(f) as tag_map:
                 data = json.load(tag_map)
