@@ -18,14 +18,11 @@ import argparse
 from datetime import datetime
 import json
 import logging
-import regex
 from ruamel import yaml
 import subprocess
 import sys
 
 from google.cloud import storage
-
-TAG_REGEX = '(?<=:|@)(.*)'
 
 
 def main():
@@ -88,16 +85,12 @@ def _resolve_tag(image):
         logging.error('Image \'{0}\' must contain explicit tag or '
                       'digest!'.format(image))
         sys.exit(1)
-    elif 'sha256' in image:
+    elif '@sha256' in image:
         return image
     else:
-        m = regex.search(TAG_REGEX, image)
-        if m:
-            target_tag = m.string[m.start():m.end()]
-            base_image = m.string[0:m.start()-1]
-        else:
-            logging.error('Error when parsing image tag!')
-            sys.exit(1)
+        parts = image.split(':')
+        base_image = parts[0]
+        target_tag = parts[1]
 
     command = ['gcloud', 'beta', 'container', 'images',
                'list-tags', base_image, '--format=json']
