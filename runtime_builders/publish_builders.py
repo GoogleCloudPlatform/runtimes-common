@@ -17,6 +17,7 @@
 import argparse
 import json
 import logging
+import os
 import subprocess
 import sys
 
@@ -25,26 +26,29 @@ def main():
     logging.getLogger().setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', '-c',
-                        help='builder config file',
+    parser.add_argument('--directory', '-d',
+                        help='directory containing builder config files',
                         required=True)
     args = parser.parse_args()
 
     failures = 0
     try:
-        with open(args.config, 'r') as f:
-            s = json.load(f)
-            for project in s.get('projects'):
-                for builder in project.get('builders'):
-                    staged_builder = builder.get('path')
-                    for tag in builder.get('tags'):
-                        failures += _copy(staged_builder, tag)
+        for filename in os.listdir(args.directory):
+            filepath = os.path.join(args.directory, filename)
+            if filepath.endswith('.json'):
+                with open(filepath, 'r') as f:
+                    config = json.load(f)
+                    for project in config['projects']:
+                        for builder in project['builders']:
+                            staged_builder = builder['path']
+                            for tag in builder['tags']:
+                                failures += _copy(staged_builder, tag)
     except ValueError as ve:
-        logging.error('Error when parsing JSON! Check file formatting.')
-        logging.error(ve)
+        logging.error('Error when parsing JSON! Check file formatting. \n{0}'
+                      .format(ve))
     except KeyError as ke:
-        logging.error('Config file is missing required field! Full error:')
-        logging.error(ke)
+        logging.error('Config file is missing required field! \n{0}'
+                      .format(ke))
     return failures
 
 
