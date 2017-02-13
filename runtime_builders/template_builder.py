@@ -18,6 +18,7 @@ import argparse
 from datetime import datetime
 import json
 import logging
+import os
 from ruamel import yaml
 import subprocess
 import sys
@@ -28,23 +29,42 @@ from google.cloud import storage
 def main():
     logging.getLogger().setLevel(logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--infile', '-i',
+    parser.add_argument('--directory', '-d',
                         help='templated cloudbuild config file.',
                         required=True)
     parser.add_argument('--bucket', '-b',
                         help='GCS bucket to publish runtime to',
                         default='runtime-builders')
-    parser.add_argument('--builder-name',
-                        help='the name of the runtime or project '
-                        'associated with this builder',
-                        required=True)
     args = parser.parse_args()
 
-    templated_file_contents = _resolve_tags(args.infile)
-    logging.info(templated_file_contents)
-    logging.info(_publish_to_gcs(templated_file_contents,
-                                 args.builder_name,
-                                 args.bucket))
+    return _resolve(args.directory, args.bucket)
+
+
+def _resolve(directory, bucket):
+    try:
+        for filename in os.listdir(directory):
+            filepath = os.path.join(directory, filename)
+            if filepath.endswith('.json'):
+                with open(filepath, 'r') as f:
+                    project_config = json.load(f)
+                    for project in project_config['projects']:
+                        project_name = project['project']
+                        for builder in project['builders']:
+                            cfg = os.path.abspath(str(builder['path']))
+                            name = builder['name']
+                            builder_name = project_name + '_' + name
+
+                            templated_file = _resolve_tags(cfg)
+                            logging.info(templated_file)
+                            logging.info(_publish_to_gcs(templated_file,
+                                                         builder_name,
+                                                         bucket))
+    except ValueError as ve:
+        logging.error('Error when parsing JSON! Check file formatting. \n{0}'
+                      .format(ve))
+    except KeyError as ke:
+        logging.error('Config file is missing required field! \n{0}'
+                      .format(ke))
 
 
 def _resolve_tags(config_file):
