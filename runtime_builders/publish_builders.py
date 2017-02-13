@@ -39,7 +39,7 @@ def main():
                 with open(filepath, 'r') as f:
                     config = json.load(f)
                     for project in config['projects']:
-                        for builder in project['builders']:
+                        for builder in project['releases']:
                             staged_builder = builder['path']
                             for tag in builder['tags']:
                                 failures += _copy(staged_builder, tag)
