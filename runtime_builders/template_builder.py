@@ -42,23 +42,26 @@ def main():
 
 def _resolve(directory, bucket):
     try:
+        gcs_paths = []
         for filename in os.listdir(directory):
             filepath = os.path.join(directory, filename)
             if filepath.endswith('.json'):
                 with open(filepath, 'r') as f:
-                    project_config = json.load(f)
-                    for project in project_config['projects']:
-                        project_name = project['project']
-                        for builder in project['builders']:
-                            cfg = os.path.abspath(str(builder['path']))
-                            name = builder['name']
-                            builder_name = project_name + '_' + name
+                    project_cfg = json.load(f)
+                    project_name = project_cfg['project']
+                    for builder in project_cfg['builders']:
+                        cfg = os.path.abspath(str(builder['path']))
+                        name = builder.get('name', 'default')
+                        builder_name = project_name + '_' + name
 
-                            templated_file = _resolve_tags(cfg)
-                            logging.info(templated_file)
-                            logging.info(_publish_to_gcs(templated_file,
+                        templated_file = _resolve_tags(cfg)
+                        logging.info(templated_file)
+                        gcs_paths.append(_publish_to_gcs(templated_file,
                                                          builder_name,
                                                          bucket))
+
+        logging.info('Published Runtimes:')
+        logging.info(gcs_paths)
     except ValueError as ve:
         logging.error('Error when parsing JSON! Check file formatting. \n{0}'
                       .format(ve))
