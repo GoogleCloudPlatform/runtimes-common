@@ -38,11 +38,10 @@ def main():
             if filepath.endswith('.json'):
                 with open(filepath, 'r') as f:
                     config = json.load(f)
-                    for project in config['projects']:
-                        for builder in project['releases']:
-                            staged_builder = builder['path']
-                            for tag in builder['tags']:
-                                failures += _copy(staged_builder, tag)
+                    for builder in config['releases']:
+                        staged_builder = builder['path']
+                        for tag in builder['tags']:
+                            failures += _copy(staged_builder, tag)
     except ValueError as ve:
         logging.error('Error when parsing JSON! Check file formatting. \n{0}'
                       .format(ve))
