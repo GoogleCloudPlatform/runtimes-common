@@ -50,7 +50,7 @@ def _resolve(directory, bucket):
                 project_name = project_cfg['project']
                 for builder in project_cfg['builders']:
                     cfg = os.path.abspath(str(builder['path']))
-                    name = builder.get('name', 'default')
+                    name = builder['name']
                     builder_name = project_name + '_' + name
 
                     templated_file = _resolve_tags(cfg)
