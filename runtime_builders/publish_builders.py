@@ -42,13 +42,13 @@ def main():
                         staged_builder = builder['path']
                         for tag in builder['tags']:
                             failures += _copy(staged_builder, tag)
+        return failures
     except ValueError as ve:
         logging.error('Error when parsing JSON! Check file formatting. \n{0}'
                       .format(ve))
     except KeyError as ke:
         logging.error('Config file is missing required field! \n{0}'
                       .format(ke))
-    return failures
 
 
 def _copy(builder, tag):
