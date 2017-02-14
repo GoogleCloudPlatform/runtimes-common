@@ -16,6 +16,7 @@
 
 import argparse
 from datetime import datetime
+import glob
 import json
 import logging
 import os
@@ -43,22 +44,20 @@ def main():
 def _resolve(directory, bucket):
     try:
         gcs_paths = []
-        for filename in os.listdir(directory):
-            filepath = os.path.join(directory, filename)
-            if filepath.endswith('.json'):
-                with open(filepath, 'r') as f:
-                    project_cfg = json.load(f)
-                    project_name = project_cfg['project']
-                    for builder in project_cfg['builders']:
-                        cfg = os.path.abspath(str(builder['path']))
-                        name = builder.get('name', 'default')
-                        builder_name = project_name + '_' + name
+        for filepath in glob.glob(os.path.join(directory, '*.json')):
+            with open(filepath, 'r') as f:
+                project_cfg = json.load(f)
+                project_name = project_cfg['project']
+                for builder in project_cfg['builders']:
+                    cfg = os.path.abspath(str(builder['path']))
+                    name = builder.get('name', 'default')
+                    builder_name = project_name + '_' + name
 
-                        templated_file = _resolve_tags(cfg)
-                        logging.info(templated_file)
-                        gcs_paths.append(_publish_to_gcs(templated_file,
-                                                         builder_name,
-                                                         bucket))
+                    templated_file = _resolve_tags(cfg)
+                    logging.info(templated_file)
+                    gcs_paths.append(_publish_to_gcs(templated_file,
+                                                     builder_name,
+                                                     bucket))
 
         logging.info('Published Runtimes:')
         logging.info(gcs_paths)
