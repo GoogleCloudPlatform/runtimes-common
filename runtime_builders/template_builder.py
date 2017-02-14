@@ -38,10 +38,10 @@ def main():
                         default='runtime-builders')
     args = parser.parse_args()
 
-    return _resolve(args.directory, args.bucket)
+    return _resolve_and_publish(args.directory, args.bucket)
 
 
-def _resolve(directory, bucket):
+def _resolve_and_publish(directory, bucket):
     try:
         gcs_paths = []
         for filepath in glob.glob(os.path.join(directory, '*.json')):
