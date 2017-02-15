@@ -32,7 +32,7 @@ class TagReconciler:
         if not dry_run:
             logging.debug('Running {0}'.format(command))
             output = subprocess.check_output([command], shell=True)
-            #logging.debug(output)
+            logging.debug(output)
             return output
         else:
             logging.debug('Would have run {0}'.format(command))
@@ -51,7 +51,7 @@ class TagReconciler:
             for tag in sublist['tags']:
                 if tag:
                     if tag == 'latest':
-                      latest = sublist['digest'][len('sha256:'):]
+                        latest = sublist['digest'][len('sha256:'):]
                     flat_tags_list.append(tag)
         return flat_tags_list, latest
 
@@ -86,8 +86,8 @@ class TagReconciler:
                     full_tag = full_repo + ':' + image['tag']
                     # Don't retag latest if it's already latest
                     if image['tag'] == 'latest' and image['digest'] == latest:
-                        logging.debug('Skipping tagging {0} as latest as it is'
-                                      'already latest.'.format(image['digest']))
+                        logging.debug('Skipping tagging %s as latest as it is '
+                                      'already latest.', image['digest'])
                         continue
                     self.add_tags(full_digest, full_tag, dry_run)
 
