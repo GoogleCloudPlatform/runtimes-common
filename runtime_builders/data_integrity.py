@@ -15,12 +15,14 @@
 # limitations under the License.
 
 import argparse
+import filecmp
 import glob
 import json
 import logging
 import os
+import subprocess
 import sys
-from google.cloud import storage
+import tempfile
 
 GCS_FILE_PREFIX = 'gs://'
 
@@ -38,7 +40,6 @@ def main():
 
 def _verify(directory):
     failures = 0
-    client = storage.Client()
 
     try:
         for config_file in glob.glob(os.path.join(directory, '*.json')):
@@ -47,7 +48,7 @@ def _verify(directory):
                 for release in config['releases']:
                     staging_path = release['path']
                     for tag in release['tags']:
-                        failures += _verify_files(client, staging_path, tag)
+                        failures += _verify_files(staging_path, tag)
         return failures
     except ValueError as ve:
         logging.error('Error when parsing JSON! Check file formatting. \n{0}'
@@ -57,27 +58,44 @@ def _verify(directory):
                       .format(ke))
 
 
-def _verify_files(client, staging_path, tagged_path):
+def _verify_files(staging_path, tagged_path):
     bucket_name = staging_path.replace(GCS_FILE_PREFIX, '').split('/')[0]
     if bucket_name not in tagged_path:
         logging.error('Buckets do not match!')
         logging.error('{0} || {1}'.format(staging_path, tagged_path))
         return 1
 
-    staging_file = staging_path.replace(GCS_FILE_PREFIX +
-                                        '{0}/'.format(bucket_name), '')
-    tagged_file = tagged_path.replace(GCS_FILE_PREFIX +
-                                      '{0}/'.format(bucket_name), '')
+    try:
+        tmp1 = os.path.join(tempfile._get_default_tempdir(),
+                            next(tempfile._get_candidate_names()))
 
-    bucket = client.get_bucket(bucket_name)
-    staging_hash = bucket.get_blob(staging_file).md5_hash
-    tagged_hash = bucket.get_blob(tagged_file).md5_hash
+        tmp2 = os.path.join(tempfile._get_default_tempdir(),
+                            next(tempfile._get_candidate_names()))
 
-    if staging_hash != tagged_hash:
-        logging.error('Files {0} and {1} do not match!'
-                      .format(staging_path, tagged_path))
-        return 1
-    return 0
+        print tmp1
+        print tmp2
+
+        _get_file_from_gcs(staging_path, tmp1)
+        _get_file_from_gcs(tagged_path, tmp2)
+
+        if not filecmp.cmp(tmp1, tmp2):
+            logging.error('Files {0} and {1} do not match!'
+                          .format(staging_path, tagged_path))
+            return 1
+        return 0
+    finally:
+        os.remove(tmp1)
+        os.remove(tmp2)
+
+
+def _get_file_from_gcs(gcs_file, temp_file):
+    command = ['gsutil', 'cp', gcs_file, temp_file]
+    try:
+        output = subprocess.check_output(command)
+    except subprocess.CalledProcessError as e:
+        logging.error('Error when retrieving file from GCS! {0}'
+                      .format(output))
+        logging.error(e)
 
 
 if __name__ == '__main__':
