@@ -32,7 +32,7 @@ class TagReconciler:
         if not dry_run:
             logging.debug('Running {0}'.format(command))
             output = subprocess.check_output([command], shell=True)
-            logging.debug(output)
+            #logging.debug(output)
             return output
         else:
             logging.debug('Would have run {0}'.format(command))
@@ -46,19 +46,22 @@ class TagReconciler:
     # This turns a list of lists into one flat list of tags
     def flatten_tags_list(self, list_of_lists):
         flat_tags_list = []
+        latest = ''
         for sublist in list_of_lists:
-            for tag in sublist:
+            for tag in sublist['tags']:
                 if tag:
+                    if tag == 'latest':
+                      latest = sublist['digest'][len('sha256:'):]
                     flat_tags_list.append(tag)
-        return flat_tags_list
+        return flat_tags_list, latest
 
     def get_existing_tags(self, repo):
         output = json.loads(self.call('gcloud beta container images list-tags '
                             '--no-show-occurrences {0}'.format(repo), False))
 
-        list_of_tags = [image['tags'] for image in output]
-        existing_tags = self.flatten_tags_list(list_of_tags)
-        return existing_tags
+        list_of_tags = [image for image in output]
+        existing_tags, latest = self.flatten_tags_list(list_of_tags)
+        return existing_tags, latest
 
     def reconcile_tags(self, data, dry_run):
         # Hardcode dry_run to False for this call because we always want
@@ -75,11 +78,17 @@ class TagReconciler:
                 full_repo = os.path.join(registry, project['repository'])
                 default_repo = os.path.join(default_registry,
                                             project['repository'])
-                logging.debug(self.get_existing_tags(full_repo))
+                existing_tags, latest = self.get_existing_tags(full_repo)
+                logging.debug(existing_tags)
 
                 for image in project['images']:
                     full_digest = default_repo + '@sha256:' + image['digest']
                     full_tag = full_repo + ':' + image['tag']
+                    # Don't retag latest if it's already latest
+                    if image['tag'] == 'latest' and image['digest'] == latest:
+                        logging.debug('Skipping tagging {0} as latest as it is'
+                                      'already latest.'.format(image['digest']))
+                        continue
                     self.add_tags(full_digest, full_tag, dry_run)
 
                 logging.debug(self.get_existing_tags(full_repo))
