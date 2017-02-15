@@ -146,7 +146,6 @@ def _publish_to_gcs(builder_file_contents, builder_name, bucket):
 
     try:
         fd, f_name = tempfile.mkstemp(suffix='.yaml', text=True)
-        print f_name
         os.write(fd, builder_file_contents)
 
         command = ['gsutil', 'cp', f_name, full_path]

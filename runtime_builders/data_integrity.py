@@ -20,6 +20,7 @@ import glob
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -66,14 +67,9 @@ def _verify_files(staging_path, tagged_path):
         return 1
 
     try:
-        tmp1 = os.path.join(tempfile._get_default_tempdir(),
-                            next(tempfile._get_candidate_names()))
-
-        tmp2 = os.path.join(tempfile._get_default_tempdir(),
-                            next(tempfile._get_candidate_names()))
-
-        print tmp1
-        print tmp2
+        tmpdir = tempfile.mkdtemp()
+        tmp1 = os.path.join(tmpdir, 'tmp1.yaml')
+        tmp2 = os.path.join(tmpdir, 'tmp2.yaml')
 
         _get_file_from_gcs(staging_path, tmp1)
         _get_file_from_gcs(tagged_path, tmp2)
@@ -81,11 +77,14 @@ def _verify_files(staging_path, tagged_path):
         if not filecmp.cmp(tmp1, tmp2):
             logging.error('Files {0} and {1} do not match!'
                           .format(staging_path, tagged_path))
+            with open(tmp1, 'r') as f:
+                logging.error('\n' + staging_path + '\n' + f.read())
+            with open(tmp2, 'r') as f:
+                logging.error('\n' + tagged_path + '\n' + f.read())
             return 1
         return 0
     finally:
-        os.remove(tmp1)
-        os.remove(tmp2)
+        shutil.rmtree(tmpdir)
 
 
 def _get_file_from_gcs(gcs_file, temp_file):
