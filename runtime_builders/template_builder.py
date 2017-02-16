@@ -83,6 +83,7 @@ def _resolve_tags(config_file):
     published to GCS.
     """
     with open(config_file, 'r') as infile:
+        logging.info('Templating file: {0}'.format(config_file))
         try:
             config = yaml.round_trip_load(infile)
 
