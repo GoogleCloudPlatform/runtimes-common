@@ -23,8 +23,7 @@ import os
 from ruamel import yaml
 import subprocess
 import sys
-
-from google.cloud import storage
+import tempfile
 
 
 def main():
@@ -139,20 +138,25 @@ def _publish_to_gcs(builder_file_contents, builder_name, bucket):
     """
     Given a cloudbuild YAML config file, publish the file to a bucket in GCS.
     """
-    client = storage.Client()
-    runtime_bucket = client.get_bucket(bucket)
-
-    if runtime_bucket is None:
-        logging.error('Bucket {0} not found!'.format(bucket))
-
     file_name = '{0}-builder-{1}.yaml'.format(
         builder_name,
         datetime.now().strftime('%Y%m%d%H%M%S'))
 
-    blob = storage.Blob(file_name, runtime_bucket)
-    blob.upload_from_string(builder_file_contents)
-
     full_path = 'gs://{0}/{1}'.format(bucket, file_name)
+
+    try:
+        fd, f_name = tempfile.mkstemp(suffix='.yaml', text=True)
+        os.write(fd, builder_file_contents)
+
+        command = ['gsutil', 'cp', f_name, full_path]
+        try:
+            output = subprocess.check_output(command)
+        except subprocess.CalledProcessError as e:
+            logging.error('Error encountered when writing to GCS!: {0}'
+                          .format(output))
+            logging.error(e)
+    finally:
+        os.remove(f_name)
 
     return full_path
 
