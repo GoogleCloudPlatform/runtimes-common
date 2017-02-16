@@ -1,0 +1,44 @@
+_templates:
+- &BaseImage
+  image: wordpress:apache
+taskGroups:
+- title: Example Task Group
+  tasks:
+  - title: Run base
+    instructions:
+    - run: &BaseRun
+        <<: *BaseImage
+        runtimes:
+        - DOCKER
+        - DOCKER_COMPOSE
+        - KUBERNETES
+        runType: LONG_RUNNING
+  - title: Run with environment variables
+    instructions:
+    - run: &EnvRun
+        <<: *BaseRun
+        environment: &EnvRun_environment
+          USERNAME:
+            value: root
+          PASSWORD:
+            value: example-password
+            runtimeSpecificValues:
+            - value: ~
+              runtimes: [KUBERNETES]
+  - title: Run with more environment variables
+    instructions:
+    - run:
+        <<: *EnvRun
+        environment:
+          <<: *EnvRun_environment
+          MYSQL_HOST:
+            value: 127.128.129.130
+  - title: Run with dependencies
+    instructions:
+    - run:
+        <<: *BaseRun
+        dependencies:
+        - name: mysql
+          image: mysql:5
+          environment:
+            <<: *EnvRun_environment
