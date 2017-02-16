@@ -11,6 +11,8 @@ import os
 import subprocess
 import unittest
 
+DEFAULT_AGE_THRESHOLD = 14
+
 
 class LatestAgeTest(unittest.TestCase):
 
@@ -24,7 +26,6 @@ class LatestAgeTest(unittest.TestCase):
             if 'latest' in image['tags']:
                 return datetime.datetime.strptime(
                     image['timestamp']['datetime'], '%Y-%m-%d %H:%M:%S')
-        return None
 
     def test_latest_age(self):
         old_repos = []
@@ -40,17 +41,20 @@ class LatestAgeTest(unittest.TestCase):
                     full_repo = os.path.join(project['base_registry'],
                                              project['repository'])
                     last_deploy = self._get_latest_timestamp(full_repo)
-                    if last_deploy is None:
+                    if not last_deploy:
                         invalid_repos.append(full_repo)
-                    threshold = last_deploy + datetime.timedelta(weeks=2)
+                    age_threshold = project.get('age_threshold',
+                                                DEFAULT_AGE_THRESHOLD)
+                    threshold = (last_deploy +
+                                 datetime.timedelta(days=age_threshold))
                     if threshold < datetime.datetime.now():
                         old_repos.append(full_repo)
 
         if len(old_repos) > 0 or len(invalid_repos) > 0:
             msg = ''
             if len(old_repos) > 0:
-                msg += ('The following repos have not been deployed in '
-                        'over two weeks: {0}. '.format(str(old_repos)))
+                msg += ('The following repos have a latest tag that is '
+                        'too old: {0}. '.format(str(old_repos)))
 
             if len(invalid_repos) > 0:
                 msg += ('The following repos have no latest tag: {0}.'
