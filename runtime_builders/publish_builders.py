@@ -18,8 +18,9 @@ import argparse
 import json
 import logging
 import os
-import subprocess
 import sys
+
+import builder_util
 
 
 def main():
@@ -31,18 +32,20 @@ def main():
                         required=True)
     args = parser.parse_args()
 
-    failures = 0
     try:
         for filename in os.listdir(args.directory):
             filepath = os.path.join(args.directory, filename)
             if filepath.endswith('.json'):
                 with open(filepath, 'r') as f:
                     config = json.load(f)
-                    for builder in config['releases']:
-                        staged_builder = builder['path']
-                        for tag in builder['tags']:
-                            failures += _copy(staged_builder, tag)
-        return failures
+                    project_name = config['project']
+                    latest = config['latest']
+                    prefix = builder_util.RUNTIME_BUCKET_PREFIX
+                    latest_file = latest.lstrip(prefix) \
+                                        .lstrip(project_name) \
+                                        .lstrip('-')
+                    logging.info(latest_file)
+                    _write_version_file(project_name, latest_file)
     except ValueError as ve:
         logging.error('Error when parsing JSON! Check file formatting. \n{0}'
                       .format(ve))
@@ -51,15 +54,13 @@ def main():
                       .format(ke))
 
 
-def _copy(builder, tag):
-    logging.info('Copying builder {0} to: {1}'.format(builder, tag))
-    try:
-        output = subprocess.check_output(['gsutil', 'cp', builder, tag])
-    except subprocess.CalledProcessError as e:
-        logging.error(e)
-        return 1
-    logging.debug(output)
-    return 0
+def _write_version_file(project_name, latest_version):
+    file_name = '{0}.version'.format(project_name)
+    full_path = builder_util.RUNTIME_BUCKET_PREFIX + file_name
+
+    logging.info(full_path)
+
+    builder_util.write_to_gcs(full_path, latest_version)
 
 
 if __name__ == '__main__':
