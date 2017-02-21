@@ -77,9 +77,10 @@ def _verify_latest_files_match(project_name, config_latest):
                 project_name + '-' + version_contents
             if version_latest != config_latest:
                 logging.error('Builders do not match!')
-                logging.error('runtime.version: {0}'.format(version_latest))
-                logging.error('Builder Config Latest: '
-                              '{0}'.format(config_latest))
+                logging.error('Latest builder in internal runtime config: '
+                              '{0}'.format(version_latest))
+                logging.error('Latest builder in runtime.version file: '
+                              '{0}'.format(version_latest))
                 return 1
         return 0
     finally:

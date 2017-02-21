@@ -41,9 +41,7 @@ def main():
                     project_name = config['project']
                     latest = config['latest']
                     prefix = builder_util.RUNTIME_BUCKET_PREFIX
-                    latest_file = latest.lstrip(prefix) \
-                                        .lstrip(project_name) \
-                                        .lstrip('-')
+                    latest_file = latest[len(prefix+project_name+'-')]
                     logging.info(latest_file)
                     _write_version_file(project_name, latest_file)
     except ValueError as ve:
