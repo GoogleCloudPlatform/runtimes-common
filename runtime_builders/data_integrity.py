@@ -15,17 +15,16 @@
 # limitations under the License.
 
 import argparse
-import filecmp
 import glob
 import json
 import logging
 import os
+from ruamel import yaml
 import shutil
-import subprocess
 import sys
 import tempfile
 
-GCS_FILE_PREFIX = 'gs://'
+import builder_util
 
 
 def main():
@@ -46,10 +45,11 @@ def _verify(directory):
         for config_file in glob.glob(os.path.join(directory, '*.json')):
             with open(config_file, 'r') as f:
                 config = json.load(f)
-                for release in config['releases']:
-                    staging_path = release['path']
-                    for tag in release['tags']:
-                        failures += _verify_files(staging_path, tag)
+                project_name = config['project']
+                latest_file = config['latest']
+                failures += _verify_latest_files_match(project_name,
+                                                       latest_file)
+                failures += _verify_latest_file_exists(latest_file)
         return failures
     except ValueError as ve:
         logging.error('Error when parsing JSON! Check file formatting. \n{0}'
@@ -59,42 +59,55 @@ def _verify(directory):
                       .format(ke))
 
 
-def _verify_files(staging_path, tagged_path):
-    bucket_name = staging_path.replace(GCS_FILE_PREFIX, '').split('/')[0]
-    if bucket_name not in tagged_path:
-        logging.error('Buckets do not match!')
-        logging.error('{0} || {1}'.format(staging_path, tagged_path))
-        return 1
-
+def _verify_latest_files_match(project_name, config_latest):
+    """
+    Verify that the file pointed to by <project_name>.version is the same
+    as the file specified in the builder config
+    """
+    remote_version = builder_util.RUNTIME_BUCKET_PREFIX + \
+        project_name + '.version'
     try:
         tmpdir = tempfile.mkdtemp()
-        tmp1 = os.path.join(tmpdir, 'tmp1.yaml')
-        tmp2 = os.path.join(tmpdir, 'tmp2.yaml')
+        version_file = os.path.join(tmpdir, 'runtime.version')
+        builder_util._get_file_from_gcs(remote_version, version_file)
 
-        _get_file_from_gcs(staging_path, tmp1)
-        _get_file_from_gcs(tagged_path, tmp2)
-
-        if not filecmp.cmp(tmp1, tmp2):
-            logging.error('Files {0} and {1} do not match!'
-                          .format(staging_path, tagged_path))
-            with open(tmp1, 'r') as f:
-                logging.error('\n' + staging_path + '\n' + f.read())
-            with open(tmp2, 'r') as f:
-                logging.error('\n' + tagged_path + '\n' + f.read())
-            return 1
+        with open(version_file, 'r') as f:
+            version_contents = f.read().strip('\n').strip(' ')
+            version_latest = builder_util.RUNTIME_BUCKET_PREFIX + \
+                project_name + '-' + version_contents
+            if version_latest != config_latest:
+                logging.error('Builders do not match!')
+                logging.error('Latest builder in internal runtime config: '
+                              '{0}'.format(version_latest))
+                logging.error('Latest builder in runtime.version file: '
+                              '{0}'.format(version_latest))
+                return 1
         return 0
     finally:
         shutil.rmtree(tmpdir)
 
 
-def _get_file_from_gcs(gcs_file, temp_file):
-    command = ['gsutil', 'cp', gcs_file, temp_file]
+def _verify_latest_file_exists(latest_file_path):
+    """
+    Verify that the latest file pointed to by <project_name>.version
+    exists and is valid yaml
+    """
     try:
-        output = subprocess.check_output(command)
-    except subprocess.CalledProcessError as e:
-        logging.error('Error when retrieving file from GCS! {0}'
-                      .format(output))
-        logging.error(e)
+        logging.info('Checking file {0}'.format(latest_file_path))
+        tmpdir = tempfile.mkdtemp()
+        latest_file = os.path.join(tmpdir, 'latest.yaml')
+        if not builder_util._get_file_from_gcs(latest_file_path, latest_file):
+            logging.error('File {0} not found in GCS!'
+                          .format(latest_file_path))
+            return 1
+        with open(latest_file, 'r') as f:
+            yaml.round_trip_load(f)
+        return 0
+    except yaml.YAMLError as ye:
+        logging.error(ye)
+        return 1
+    finally:
+        shutil.rmtree(tmpdir)
 
 
 if __name__ == '__main__':

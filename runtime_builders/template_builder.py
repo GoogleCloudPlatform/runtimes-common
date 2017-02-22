@@ -23,7 +23,8 @@ import os
 from ruamel import yaml
 import subprocess
 import sys
-import tempfile
+
+import builder_util
 
 
 def main():
@@ -50,7 +51,7 @@ def _resolve_and_publish(directory, bucket):
                 for builder in project_cfg['builders']:
                     cfg = os.path.abspath(str(builder['path']))
                     name = builder['name']
-                    builder_name = project_name + '_' + name
+                    builder_name = project_name + '-' + name
 
                     templated_file = _resolve_tags(cfg)
                     logging.info(templated_file)
@@ -145,19 +146,7 @@ def _publish_to_gcs(builder_file_contents, builder_name, bucket):
 
     full_path = 'gs://{0}/{1}'.format(bucket, file_name)
 
-    try:
-        fd, f_name = tempfile.mkstemp(suffix='.yaml', text=True)
-        os.write(fd, builder_file_contents)
-
-        command = ['gsutil', 'cp', f_name, full_path]
-        try:
-            output = subprocess.check_output(command)
-        except subprocess.CalledProcessError as e:
-            logging.error('Error encountered when writing to GCS!: {0}'
-                          .format(output))
-            logging.error(e)
-    finally:
-        os.remove(f_name)
+    builder_util.write_to_gcs(full_path, builder_file_contents)
 
     return full_path
 
