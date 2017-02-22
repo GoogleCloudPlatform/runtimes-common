@@ -52,7 +52,8 @@ def main():
                         logging.error('Please provide yaml config file to '
                                       'publish as latest!')
                         sys.exit(1)
-                    latest_file = parts[0][len(prefix+project_name+'-'):]
+                    full_prefix = prefix + project_name + '-'
+                    latest_file = parts[0][len(full_prefix):]
                     logging.info(latest_file)
                     _write_version_file(project_name, latest_file)
     except ValueError as ve:
