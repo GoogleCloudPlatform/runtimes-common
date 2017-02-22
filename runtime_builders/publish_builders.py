@@ -44,6 +44,8 @@ def main():
                     if not latest.startswith(prefix):
                         logging.error('Please provide fully qualified '
                                       'path to config file in GCS!')
+                        logging.error('Path should start with \'{0}\''
+                                      ''.format(prefix))
                         sys.exit(1)
                     parts = os.path.splitext(latest)
                     if parts[1] != '.yaml':
