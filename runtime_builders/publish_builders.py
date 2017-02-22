@@ -45,12 +45,12 @@ def main():
                         logging.error('Please provide fully qualified '
                                       'path to config file in GCS!')
                         sys.exit(1)
-                    if not latest.endswith('.yaml'):
+                    parts = os.path.splitext(latest)
+                    if parts[1] != '.yaml':
                         logging.error('Please provide yaml config file to '
                                       'publish as latest!')
                         sys.exit(1)
-                    latest_file = latest[len(prefix+project_name+'-') \
-                                         :-(len('.yaml'))]
+                    latest_file = parts[0][len(prefix+project_name+'-'):]
                     logging.info(latest_file)
                     _write_version_file(project_name, latest_file)
     except ValueError as ve:
