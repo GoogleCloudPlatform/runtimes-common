@@ -1,9 +1,11 @@
 """Checks the specified image for security vulnerabilities."""
 
+import apt_pkg
 import argparse
 import json
 import logging
 import pprint
+import re
 import sys
 import subprocess
 
@@ -75,6 +77,8 @@ def _check_image(image, severity, whitelist):
     for vuln in parsed.get('vulz_analysis', []):
         if vuln.get('patch_not_available'):
             continue
+        if not _check_vuln_is_valid(vuln):
+            continue
         if vuln.get('vulnerability') in whitelist:
             logging.info('Vulnerability %s is whitelisted. Skipping.',
                          vuln.get('vulnerability'))
@@ -91,7 +95,30 @@ def _filter_severity(sev1, sev2):
     return _SEV_MAP.get(sev1, DEFAULT) >= _SEV_MAP.get(sev2, DEFAULT)
 
 
+def _check_vuln_is_valid(vuln):
+    for pkg in vuln.get('pkg_vulnerabilities', []):
+        if 'affected_package' in pkg and 'fixed_package' in pkg:
+            # Parse the version out of the "package_name (version)" string.
+            version_re = r'.*\((.*)\)'
+            affected_version = re.match(
+                version_re,
+                pkg.get('affected_package')).groups()[0]
+            fixed_version = re.match(
+                version_re,
+                pkg.get('fixed_package')).groups()[0]
+            if apt_pkg.version_compare(fixed_version, affected_version) > 0:
+                return True
+    logging.info('Vulnerability %s is already fixed. '
+                 'The affected package: %s is greater '
+                 'than the fixed package: %s',
+                 vuln.get('vulnerability'),
+                 affected_version,
+                 fixed_version)
+    return False
+
+
 def _main():
+    apt_pkg.init()
     parser = argparse.ArgumentParser()
     parser.add_argument('image', help='The image to test')
     parser.add_argument('--severity',
