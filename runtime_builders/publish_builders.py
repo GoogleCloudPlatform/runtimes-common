@@ -41,7 +41,16 @@ def main():
                     project_name = config['project']
                     latest = config['latest']
                     prefix = builder_util.RUNTIME_BUCKET_PREFIX
-                    latest_file = latest[len(prefix+project_name+'-'):]
+                    if not latest.startswith(prefix):
+                        logging.error('Please provide fully qualified '
+                                      'path to config file in GCS!')
+                        sys.exit(1)
+                    if not latest.endswith('.yaml'):
+                        logging.error('Please provide yaml config file to '
+                                      'publish as latest!')
+                        sys.exit(1)
+                    latest_file = latest[len(prefix+project_name+'-') \
+                                         :-(len('.yaml'))]
                     logging.info(latest_file)
                     _write_version_file(project_name, latest_file)
     except ValueError as ve:
