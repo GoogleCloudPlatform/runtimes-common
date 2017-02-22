@@ -61,7 +61,7 @@ class TagReconciler:
         return existing_tags
 
     def get_latest_digest(self, repo):
-        output = json.loads(self.call('gcloud beta container images list-tags'
+        output = json.loads(self.call('gcloud beta container images list-tags '
                             '--no-show-occurrences {0}'.format(repo), False))
         for image in output:
             if 'latest' in image['tags']:
