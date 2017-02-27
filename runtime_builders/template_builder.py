@@ -20,7 +20,7 @@ import glob
 import json
 import logging
 import os
-import regex
+import re
 from ruamel import yaml
 import subprocess
 import sys
@@ -98,7 +98,7 @@ def _resolve_tags(config_file):
                 args = step.get('args', [])
                 for i in range(0, len(args)):
                     arg = args[i]
-                    m = regex.search(IMAGE_REGEX, arg)
+                    m = re.search(IMAGE_REGEX, arg)
                     if m:
                         args[i] = _resolve_tag(arg)
 
