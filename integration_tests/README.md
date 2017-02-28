@@ -15,10 +15,10 @@ To run these tests through a cloudbuild, add the following build step to the **e
 
 
 The sample application directory should contain the application fulfilling the integration test spec, as well as the necessary build artifacts to deploy the application via gcloud, which means at minimum:
-	
+
 	* a templated Dockerfile, with the first line being
 		` FROM ${STAGING_IMAGE} `
-	
+
 	* an app.yaml config
 
 Alternatively, the application can be manually deployed *before* running the tests; in this scenario, the '--no-deploy' flag can be passed to the build step to opt out of deploying, in tandem with the URL at which the deployed application can be accessed:
@@ -44,7 +44,7 @@ This is the most basic integration test. The driver performs a GET request to th
 
 
 ### Logging
-#####` - GET http://<application_url>/logging`
+#####` - POST http://<application_url>/logging`
 
 *Request Body*
 
@@ -61,7 +61,7 @@ This tests the runtime’s integration with Stackdriver Logging. The driver will
 
 
 ### Monitoring
-#####` - GET http://<application_url>/monitoring`
+#####` - POST http://<application_url>/monitoring`
 
 *Request Body*
 
@@ -78,7 +78,7 @@ The monitoring test confirms the runtime’s ability to write metrics to Stackdr
 
 
 ### Error Reporting/Exceptions
-#####` - GET http://<application_url>/exception`
+#####` - POST http://<application_url>/exception`
 
 *Request Body*
 
