@@ -40,6 +40,7 @@ EXCEPTION_ENDPOINT = '/exception'
 METRIC_PREFIX = 'custom.googleapis.com/{0}'
 METRIC_TIMEOUT = 60  # seconds
 
+
 class Severity(Enum):
     DEFAULT = 0
     DEBUG = 100
