@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import binascii
+from enum import Enum
 import json
 import logging
 import os
@@ -39,6 +40,17 @@ EXCEPTION_ENDPOINT = '/exception'
 METRIC_PREFIX = 'custom.googleapis.com/{0}'
 METRIC_TIMEOUT = 60  # seconds
 
+class Severity(Enum):
+    DEFAULT = 0
+    DEBUG = 100
+    INFO = 200
+    NOTICE = 300
+    WARNING = 400
+    ERROR = 500
+    CRITICAL = 600
+    ALERT = 700
+    EMERGENCY = 800
+
 
 def _generate_name():
     name = ''.join(random.choice(string.ascii_uppercase +
@@ -51,7 +63,7 @@ def _generate_hex_token():
 
 
 def _generate_log_level():
-    return random.randint(0, 5) * 10
+    return random.choice(list(Severity)).name
 
 
 def _generate_int64_token():
