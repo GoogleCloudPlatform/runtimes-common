@@ -39,22 +39,24 @@ class TestLogging(unittest.TestCase):
         client = google.cloud.logging.Client()
         log_name = payload.get('log_name')
         token = payload.get('token')
+        level = payload.get('level')
 
         logging.info('log name is {0}, '
-                     'token is {1}'.format(log_name, token))
+                     'token is {1}, '
+                     'level is {2}'.format(log_name, token, level))
 
-        project_id = test_util._project_id()
-        FILTER = 'logName = projects/{0}/logs/' \
-                 'appengine.googleapis.com%2Fstdout'.format(project_id)
-
-        self.assertTrue(self._read_log(client, log_name, token, FILTER),
+        self.assertTrue(self._read_log(client, log_name, token, level),
                         'Log entry not found for posted token!')
 
     @retry(wait_fixed=4000, stop_max_attempt_number=8)
-    def _read_log(self, client, log_name, token, filter):
-        for entry in client.list_entries(filter_=filter):
-                if token in entry.payload:
-                    logging.info('Token {0} found in '
-                                 'Stackdriver logs!'.format(token))
-                    return True
+    def _read_log(self, client, log_name, token, level):
+        project_id = test_util._project_id()
+        FILTER = 'logName = projects/{0}/logs/' \
+                 '{1} AND severity = {2}'.format(project_id, log_name, level)
+        for entry in client.list_entries(filter_=FILTER):
+            print entry.payload
+            if token in entry.payload:
+                logging.info('Token {0} found in '
+                             'Stackdriver logs!'.format(token))
+                return True
         raise Exception('Log entry not found for posted token!')

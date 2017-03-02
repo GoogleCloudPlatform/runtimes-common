@@ -50,13 +50,18 @@ def _generate_hex_token():
     return binascii.b2a_hex(os.urandom(16))
 
 
+def _generate_log_level():
+    return random.randint(0, 5) * 10
+
+
 def _generate_int64_token():
     return random.randint(-(2 ** 31), (2 ** 31)-1)
 
 
 def generate_logging_payload():
     data = {'log_name': _generate_name(),
-            'token': _generate_hex_token()}
+            'token': _generate_hex_token(),
+            'level': _generate_log_level()}
     return data
 
 
