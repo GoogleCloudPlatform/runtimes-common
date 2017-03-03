@@ -77,7 +77,14 @@ if [ -z "$IMAGE_NAME" ]; then
 fi
 
 # Get id of container we're currently in.  This method is
-# system-specific but probably better than looking at $HOSTNAME.
-THIS_CONTAINER=$(basename $(head -1 /proc/self/cgroup))
+# system-specific.  We could look at $HOSTNAME instead, but $HOSTNAME
+# is truncated at 12 characters so collisions are possible, and it
+# will fail if this container is started with something like:
+#   docker run --name=foo --hostname=bar
+THIS_CONTAINER=$(basename "$(head -1 /proc/self/cgroup)")
+if [ -z "$THIS_CONTAINER" ]; then
+	echo "Failed to read container id from /proc"
+	exit 1
+fi
 
 docker run --privileged=true --volumes-from="${THIS_CONTAINER}" --entrypoint="$ENTRYPOINT" "$IMAGE_NAME" -c "$CMD_STRING"
