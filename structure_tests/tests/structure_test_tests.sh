@@ -20,49 +20,45 @@
 #End to end tests to make sure the structure tests do what we expect them
 #to do on a known quantity, the latest debian docker image.
 
-export TEST_TAG
+set -eu
+
 TEST_TAG="test_tag-$(date +%Y-%M-%d-%H%M%S)"
 export FILE="debian_test.json"
-export IMAGE="gcr.io/google-appengine/debian8"
+export IMAGE="gcr.io/google-appengine/debian8:latest"
+DOCKER_NAMESPACE=${DOCKER_NAMESPACE:-"gcr.io/gcp-runtimes"}
+export STRUCTURE_TEST_IMAGE="${DOCKER_NAMESPACE}/structure-test-test:${TEST_TAG}"
 
 failures=0
+failure() {
+  echo "$1"
+  failures=$((failures + 1))
+}
+
 # build newest structure test image
 pushd ..
-./build.sh gcr.io/gcp-runtimes/structure-test-test:"$TEST_TAG"
+./build.sh "${STRUCTURE_TEST_IMAGE}"
 popd
 
 # Run the debian tests, they should always pass on latest
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
-gcloud beta container builds submit . --config=cloudbuild.yaml
-if [ "$?" -gt "0" ]
-then
-  echo "Success case test failed"
-  failures=$((failures + 1))
-fi
+gcloud beta container builds submit . --config=cloudbuild.yaml || \
+  failure "Success case test failed"
 
 # Run some bogus tests, they should fail as expected
+IMAGE="gcr.io/google-appengine/debian8:latest"
 FILE="debian_failure_test.json"
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
-gcloud beta container builds submit . --config=cloudbuild.yaml
-if [ "$?" -ne "1" ]
-then
-  echo "Failure case test failed"
-  failures=$((failures + 1))
-fi
+gcloud beta container builds submit . --config=cloudbuild.yaml && \
+  failure "Failure case test failed"
 
 # Run some structure tests on the structure test image itself
-IMAGE="gcr.io/gcp-runtimes/structure_test"
+IMAGE="${STRUCTURE_TEST_IMAGE}"
 FILE="structure_test_test.json"
 envsubst < cloudbuild.yaml.in > cloudbuild.yaml
-gcloud beta container builds submit . --config=cloudbuild.yaml
-if [ "$?" -gt "0" ]
-then
-  echo "Structure test failed"
-  failures=$((failures + 1))
-fi
+gcloud beta container builds submit . --config=cloudbuild.yaml || \
+  failure "Structure test failed"
 
-
-echo "Failures: $failures"
+echo "Failure Count: $failures"
 if [ "$failures" -gt "0" ]
 then
   exit 1
