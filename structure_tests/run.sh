@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -eu
+
 usage() {
 	echo "Usage: $0 [-i <image>] [-c <config>] [-v] [-e <entrypoint>]"
 	exit 1
@@ -21,9 +23,9 @@ usage() {
 
 export DOCKER_API_VERSION="1.21"
 
-export VERBOSE=0
-export CMD_STRING="/workspace/structure_test"
-export ENTRYPOINT="/bin/sh"
+VERBOSE=0
+CMD_STRING="/workspace/structure_test"
+ENTRYPOINT="/bin/sh"
 
 while test $# -gt 0; do
 	case "$1" in
@@ -74,4 +76,8 @@ if [ -z "$IMAGE_NAME" ]; then
 	usage
 fi
 
-docker run --privileged=true -v /workspace:/workspace --entrypoint="$ENTRYPOINT" "$IMAGE_NAME" -c "$CMD_STRING"
+# Get id of container we're currently in.  This method is
+# system-specific but probably better than looking at $HOSTNAME.
+THIS_CONTAINER=$(basename $(head -1 /proc/self/cgroup))
+
+docker run --privileged=true --volumes-from="${THIS_CONTAINER}" --entrypoint="$ENTRYPOINT" "$IMAGE_NAME" -c "$CMD_STRING"
