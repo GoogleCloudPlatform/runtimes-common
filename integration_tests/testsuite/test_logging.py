@@ -33,8 +33,11 @@ class TestLogging(unittest.TestCase):
         logging.debug('Posting to endpoint: {0}'.format(self._url))
 
         payload = test_util.generate_logging_payload()
-        if test_util._post(self._url, payload) != 0:
+        response, response_code = test_util._post(self._url, payload)
+        if response_code != 0:
             return self.fail('Error encountered inside sample application!')
+
+        print response
 
         client = google.cloud.logging.Client()
         log_name = payload.get('log_name')
