@@ -115,7 +115,7 @@ def _post(url, payload, timeout=DEFAULT_TIMEOUT):
     except requests.exceptions.Timeout:
         logging.error('POST to {0} timed out after {1} seconds!'
                       .format(url, timeout))
-        return 1
+        return 'ERROR', 1
 
 
 def _check_response(response, error_message):
@@ -124,8 +124,8 @@ def _check_response(response, error_message):
                       .format(error_message,
                               response.status_code,
                               response.text))
-        return 1
-    return 0
+        return response.text, 1
+    return response.text, 0
 
 
 def _project_id():
