@@ -29,10 +29,10 @@ class TestRoot(unittest.TestCase):
     def runTest(self):
         logging.debug('Hitting endpoint: {0}'.format(self._url))
         output, status_code = test_util._get(self._url)
+        logging.info('output is: {0}'.format(output))
         self.assertEquals(status_code, 0,
                           'Cannot connect to sample application!')
 
-        logging.info('output is: {0}'.format(output))
         self.assertEquals(output, test_util.ROOT_EXPECTED_OUTPUT,
                           'Unexpected output: expected {0}, received {1}'
                           .format(test_util.ROOT_EXPECTED_OUTPUT, output))

@@ -93,10 +93,10 @@ def _get(url, timeout=DEFAULT_TIMEOUT):
     logging.info('making get request to url {0}'.format(url))
     try:
         response = requests.get(url)
-        return response.content, _check_response(response,
-                                                 'error when making get ' +
-                                                 'request! url: {0}'
-                                                 .format(url))
+        return _check_response(response,
+                               'error when making get ' +
+                               'request! url: {0}'
+                               .format(url))
     except Exception as e:
         logging.error('Error encountered when making get request!')
         logging.error(e)
