@@ -42,15 +42,15 @@ METRIC_TIMEOUT = 60  # seconds
 
 
 class Severity(Enum):
-    DEFAULT = 0
+    # DEFAULT = 0
     DEBUG = 100
     INFO = 200
-    NOTICE = 300
+    # NOTICE = 300
     WARNING = 400
     ERROR = 500
     CRITICAL = 600
-    ALERT = 700
-    EMERGENCY = 800
+    # ALERT = 700
+    # EMERGENCY = 800
 
 
 def _generate_name():

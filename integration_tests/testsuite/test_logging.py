@@ -33,14 +33,14 @@ class TestLogging(unittest.TestCase):
         logging.debug('Posting to endpoint: {0}'.format(self._url))
 
         payload = test_util.generate_logging_payload()
-        response, response_code = test_util._post(self._url, payload)
+        log_name, response_code = test_util._post(self._url, payload)
         if response_code != 0:
             return self.fail('Error encountered inside sample application!')
 
-        print response
+        print 'response from sample app: {0}'.format(log_name)
 
         client = google.cloud.logging.Client()
-        log_name = payload.get('log_name')
+        # log_name = payload.get('log_name')
         token = payload.get('token')
         level = payload.get('level')
 
@@ -55,9 +55,11 @@ class TestLogging(unittest.TestCase):
     def _read_log(self, client, log_name, token, level):
         project_id = test_util._project_id()
         FILTER = 'logName = projects/{0}/logs/' \
-                 '{1} AND severity = {2}'.format(project_id, log_name, level)
+                 '{1}'.format(project_id, log_name)
+        # print FILTER
         for entry in client.list_entries(filter_=FILTER):
-            print entry.payload
+            # print entry.payload
+            # print entry.severity
             if token in entry.payload:
                 logging.info('Token {0} found in '
                              'Stackdriver logs!'.format(token))
