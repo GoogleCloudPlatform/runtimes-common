@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import binascii
+from enum import Enum
 import json
 import logging
 import os
@@ -40,6 +41,18 @@ METRIC_PREFIX = 'custom.googleapis.com/{0}'
 METRIC_TIMEOUT = 60  # seconds
 
 
+class Severity(Enum):
+    # DEFAULT = 0
+    DEBUG = 100
+    INFO = 200
+    # NOTICE = 300
+    WARNING = 400
+    ERROR = 500
+    CRITICAL = 600
+    # ALERT = 700
+    # EMERGENCY = 800
+
+
 def _generate_name():
     name = ''.join(random.choice(string.ascii_uppercase +
                    string.ascii_lowercase) for i in range(LOGNAME_LENGTH))
@@ -50,13 +63,18 @@ def _generate_hex_token():
     return binascii.b2a_hex(os.urandom(16))
 
 
+def _generate_log_level():
+    return random.choice(list(Severity)).name
+
+
 def _generate_int64_token():
     return random.randint(-(2 ** 31), (2 ** 31)-1)
 
 
 def generate_logging_payload():
     data = {'log_name': _generate_name(),
-            'token': _generate_hex_token()}
+            'token': _generate_hex_token(),
+            'level': _generate_log_level()}
     return data
 
 
@@ -75,10 +93,10 @@ def _get(url, timeout=DEFAULT_TIMEOUT):
     logging.info('making get request to url {0}'.format(url))
     try:
         response = requests.get(url)
-        return response.content, _check_response(response,
-                                                 'error when making get ' +
-                                                 'request! url: {0}'
-                                                 .format(url))
+        return _check_response(response,
+                               'error when making get ' +
+                               'request! url: {0}'
+                               .format(url))
     except Exception as e:
         logging.error('Error encountered when making get request!')
         logging.error(e)
@@ -97,7 +115,7 @@ def _post(url, payload, timeout=DEFAULT_TIMEOUT):
     except requests.exceptions.Timeout:
         logging.error('POST to {0} timed out after {1} seconds!'
                       .format(url, timeout))
-        return 1
+        return 'ERROR', 1
 
 
 def _check_response(response, error_message):
@@ -106,8 +124,8 @@ def _check_response(response, error_message):
                       .format(error_message,
                               response.status_code,
                               response.text))
-        return 1
-    return 0
+        return response.text, 1
+    return response.text, 0
 
 
 def _project_id():
