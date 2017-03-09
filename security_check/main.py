@@ -18,7 +18,6 @@ import apt_pkg
 import argparse
 import json
 import logging
-import pprint
 import re
 import sys
 import subprocess
@@ -71,7 +70,7 @@ def _check_for_vulnz(image, severity, whitelist):
     for k, vuln in unpatched.items():
         if k not in base_unpatched.keys():
             count += 1
-            logging.info(pprint.pformat(vuln))
+            logging.info(_format_vuln(vuln))
         else:
             logging.info('Vulnerability %s exists in the base '
                          'image. Skipping.', vuln)
@@ -82,6 +81,20 @@ def _check_for_vulnz(image, severity, whitelist):
                      'to see the full list.', count, image, image)
 
     return unpatched
+
+
+def _format_vuln(vuln):
+    return '''
+Vulnerability found.
+CVE: {0}
+SEVERITY: {1}
+PACKAGES: {2}
+FIXED PACKAGES: {3}
+    '''.format(
+        vuln['vulnerability'],
+        vuln['severity'],
+        ' '.join([v['affected_package'] for v in vuln['pkg_vulnerabilities']]),
+        ' '.join(v['fixed_package'] for v in vuln['pkg_vulnerabilities']))
 
 
 def _check_image(image, severity, whitelist):
