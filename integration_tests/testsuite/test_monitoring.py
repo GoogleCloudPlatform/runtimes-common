@@ -31,8 +31,10 @@ class TestMonitoring(unittest.TestCase):
 
     def runTest(self):
         payload = test_util.generate_metrics_payload()
-        if test_util._post(self._url, payload, test_util.METRIC_TIMEOUT) != 0:
-            return self.fail('Error encountered inside test application!')
+        _, response_code = test_util._post(self._url, payload,
+                                           test_util.METRIC_TIMEOUT)
+        self.assertEquals(response_code, 0,
+                          'Error encountered inside sample application!')
 
         client = google.cloud.monitoring.Client()
 

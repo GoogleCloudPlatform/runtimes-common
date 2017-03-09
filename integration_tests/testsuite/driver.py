@@ -21,7 +21,8 @@ import unittest
 
 from deploy_app import deploy_app
 import test_exception
-import test_logging
+import test_logging_standard
+import test_logging_custom
 import test_monitoring
 import test_root
 import test_util
@@ -41,10 +42,14 @@ def _main():
                         dest='deploy',
                         help='Flag to skip deployment of app ' +
                         '(must provide app URL)')
-    parser.add_argument('--skip-logging-tests',
+    parser.add_argument('--skip-standard-logging-tests',
                         action='store_false',
-                        dest='logging',
-                        help='Flag to skip logging tests')
+                        dest='standard_logging',
+                        help='Flag to skip standard logging tests')
+    parser.add_argument('--skip-custom-logging-tests',
+                        action='store_false',
+                        dest='custom_logging',
+                        help='Flag to skip custom logging tests')
     parser.add_argument('--skip-monitoring-tests',
                         action='store_false',
                         dest='monitoring',
@@ -92,8 +97,11 @@ def _test_app(base_url, args):
 
     suite.addTest(test_root.TestRoot(base_url))
 
-    if args.logging:
-        suite.addTest(test_logging.TestLogging(base_url))
+    if args.standard_logging:
+        suite.addTest(test_logging_standard.TestStandardLogging(base_url))
+
+    if args.custom_logging:
+        suite.addTest(test_logging_custom.TestCustomLogging(base_url))
 
     if args.monitoring:
         suite.addTest(test_monitoring.TestMonitoring(base_url))

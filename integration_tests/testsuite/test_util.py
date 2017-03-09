@@ -33,7 +33,8 @@ DEFAULT_TIMEOUT = 30  # seconds
 ROOT_ENDPOINT = '/'
 ROOT_EXPECTED_OUTPUT = 'Hello World!'
 
-LOGGING_ENDPOINT = '/logging'
+STANDARD_LOGGING_ENDPOINT = '/logging_standard'
+CUSTOM_LOGGING_ENDPOINT = '/logging_custom'
 MONITORING_ENDPOINT = '/monitoring'
 EXCEPTION_ENDPOINT = '/exception'
 
@@ -42,15 +43,11 @@ METRIC_TIMEOUT = 60  # seconds
 
 
 class Severity(Enum):
-    # DEFAULT = 0
     DEBUG = 100
     INFO = 200
-    # NOTICE = 300
     WARNING = 400
     ERROR = 500
     CRITICAL = 600
-    # ALERT = 700
-    # EMERGENCY = 800
 
 
 def _generate_name():
@@ -71,11 +68,15 @@ def _generate_int64_token():
     return random.randint(-(2 ** 31), (2 ** 31)-1)
 
 
-def generate_logging_payload():
-    data = {'log_name': _generate_name(),
+def generate_logging_payloads():
+    payloads = []
+    for l in list(Severity):
+        payloads.append({
+            'log_name': _generate_name(),
             'token': _generate_hex_token(),
-            'level': _generate_log_level()}
-    return data
+            'level': l.name
+            })
+    return payloads
 
 
 def generate_metrics_payload():
