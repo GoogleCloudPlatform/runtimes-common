@@ -60,10 +60,6 @@ def _generate_hex_token():
     return binascii.b2a_hex(os.urandom(16))
 
 
-def _generate_log_level():
-    return random.choice(list(Severity)).name
-
-
 def _generate_int64_token():
     return random.randint(-(2 ** 31), (2 ** 31)-1)
 
