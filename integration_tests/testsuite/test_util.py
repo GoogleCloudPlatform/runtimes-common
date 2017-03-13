@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import binascii
-from enum import Enum
 import json
 import logging
 import os
@@ -41,13 +40,15 @@ EXCEPTION_ENDPOINT = '/exception'
 METRIC_PREFIX = 'custom.googleapis.com/{0}'
 METRIC_TIMEOUT = 60  # seconds
 
-
-class Severity(Enum):
-    DEBUG = 100
-    INFO = 200
-    WARNING = 400
-    ERROR = 500
-    CRITICAL = 600
+# subset of levels found at
+# https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity
+SEVERITIES = [
+    'DEBUG',
+    'INFO',
+    'WARNING',
+    'ERROR',
+    'CRITICAL'
+]
 
 
 def _generate_name():
@@ -66,11 +67,11 @@ def _generate_int64_token():
 
 def generate_logging_payloads():
     payloads = []
-    for l in list(Severity):
+    for s in SEVERITIES:
         payloads.append({
             'log_name': _generate_name(),
             'token': _generate_hex_token(),
-            'level': l.name
+            'level': s
             })
     return payloads
 
