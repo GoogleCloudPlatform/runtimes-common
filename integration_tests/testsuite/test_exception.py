@@ -28,7 +28,7 @@ class TestException(unittest.TestCase):
 
     def runTest(self):
         payload = test_util.generate_exception_payload()
-        _, response_code = test_util._post(self._url, payload)
+        _, response_code = test_util.post(self._url, payload)
         self.assertEquals(response_code, 0,
                           'Error encountered inside sample application!')
         logging.info('Token {0} written to Stackdriver '

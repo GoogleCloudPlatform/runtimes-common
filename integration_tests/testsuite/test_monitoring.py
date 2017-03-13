@@ -31,7 +31,7 @@ class TestMonitoring(unittest.TestCase):
 
     def runTest(self):
         payload = test_util.generate_metrics_payload()
-        _, response_code = test_util._post(self._url, payload,
+        _, response_code = test_util.post(self._url, payload,
                                            test_util.METRIC_TIMEOUT)
         self.assertEquals(response_code, 0,
                           'Error encountered inside sample application!')

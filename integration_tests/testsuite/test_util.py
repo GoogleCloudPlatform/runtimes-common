@@ -36,6 +36,7 @@ STANDARD_LOGGING_ENDPOINT = '/logging_standard'
 CUSTOM_LOGGING_ENDPOINT = '/logging_custom'
 MONITORING_ENDPOINT = '/monitoring'
 EXCEPTION_ENDPOINT = '/exception'
+CUSTOM_ENDPOINT = '/custom'
 
 METRIC_PREFIX = 'custom.googleapis.com/{0}'
 METRIC_TIMEOUT = 60  # seconds
@@ -87,7 +88,7 @@ def generate_exception_payload():
     return data
 
 
-def _get(url, timeout=DEFAULT_TIMEOUT):
+def get(url, timeout=DEFAULT_TIMEOUT):
     logging.info('making get request to url {0}'.format(url))
     try:
         response = requests.get(url)
@@ -101,7 +102,7 @@ def _get(url, timeout=DEFAULT_TIMEOUT):
         return None, 1
 
 
-def _post(url, payload, timeout=DEFAULT_TIMEOUT):
+def post(url, payload, timeout=DEFAULT_TIMEOUT):
     try:
         headers = {'Content-Type': 'application/json'}
         response = requests.post(url,

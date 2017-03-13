@@ -34,7 +34,7 @@ class TestCustomLogging(unittest.TestCase):
 
         payloads = test_util.generate_logging_payloads()
         for payload in payloads:
-            _, response_code = test_util._post(self._url, payload)
+            _, response_code = test_util.post(self._url, payload)
             if response_code != 0:
                 self.fail('Error encountered inside '
                           'sample application!')
