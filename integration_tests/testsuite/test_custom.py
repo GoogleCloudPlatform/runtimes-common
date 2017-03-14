@@ -46,6 +46,3 @@ class TestCustom(unittest.TestCase):
             response, code = test_util.get(full_endpoint, timeout=timeout)
 
             logging.debug(response)
-
-
-
