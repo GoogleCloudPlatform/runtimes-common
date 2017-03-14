@@ -36,8 +36,8 @@ class TestStandardLogging(unittest.TestCase):
         for payload in payloads:
             log_name, response_code = test_util._post(self._url, payload)
             if response_code != 0:
-                return self.fail('Error encountered inside '
-                                 'sample application!')
+                self.fail('Error encountered inside '
+                          'sample application!')
 
             logging.info('response from sample app: {0}'.format(log_name))
 
@@ -58,6 +58,9 @@ class TestStandardLogging(unittest.TestCase):
         FILTER = 'logName = projects/{0}/logs/' \
                  '{1}'.format(project_id, log_name)
         for entry in client.list_entries(filter_=FILTER):
+            # since the logs we're examining are for the deployed flex app,
+            # we can safely log from the test driver without contaminating
+            # the logs under examination.
             logging.debug(entry.payload)
             if token in entry.payload:
                 logging.info('Token {0} found in '

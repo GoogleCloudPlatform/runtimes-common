@@ -36,8 +36,8 @@ class TestCustomLogging(unittest.TestCase):
         for payload in payloads:
             _, response_code = test_util._post(self._url, payload)
             if response_code != 0:
-                return self.fail('Error encountered inside '
-                                 'sample application!')
+                self.fail('Error encountered inside '
+                          'sample application!')
 
             client = google.cloud.logging.Client()
             log_name = payload.get('log_name')
