@@ -37,12 +37,20 @@ class TestCustom(unittest.TestCase):
 
         logging.debug('output: {0}'.format(output))
 
-        for endpoint_info in json.loads(output):
-            endpoint = endpoint_info[0]
-            timeout = endpoint_info[1]
+        test_num = 0
+        for test_info in json.loads(output):
+            test_num+=1
+            name = test_info.get('name', 'test_{0}'.format(test_num))
+            path = test_info.get('path')
+            if path is None:
+                logging.warn('Test \'{0}\' has no path specified! '
+                             'Skipping...'.format(name))
+                continue
 
-            full_endpoint = self._base_url + endpoint
-            logging.info('making get request to {0}'.format(full_endpoint))
-            response, code = test_util.get(full_endpoint, timeout=timeout)
+            timeout = test_info.get('timeout', 500)
+
+            test_endpoint = self._base_url + path
+            logging.info('Running custom test: {0}'.format(name))
+            response, code = test_util.get(test_endpoint, timeout=timeout)
 
             logging.debug(response)

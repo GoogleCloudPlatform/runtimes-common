@@ -59,10 +59,10 @@ def _main():
                         action='store_false',
                         dest='exception',
                         help='Flag to skip error reporting tests')
-    parser.add_argument('--custom-tests',
-                        action='store_true',
+    parser.add_argument('--skip-custom-tests',
+                        action='store_false',
                         dest='custom',
-                        help='Flag to run custom integration tests')
+                        help='Flag to skip custom integration tests')
     parser.add_argument('--url', '-u',
                         help='URL where deployed app is ' +
                         'exposed (if applicable)')

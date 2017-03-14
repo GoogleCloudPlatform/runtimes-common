@@ -29,7 +29,7 @@ Alternatively, the application can be manually deployed *before* running the tes
 		'--url', '<application_url>'
 	]
 
-In addition, each test (detailed below) can be skipped by passing the corresponding flag to the build step. For example, to opt out of the monitoring test in the run, pass the `--no-monitoring` flag to the build step.
+In addition, each test (detailed below) can be skipped by passing the corresponding flag to the build step. For example, to opt out of the monitoring test in the run, pass the `--skip-monitoring-tests` flag to the build step.
 
 ## Tests
 
@@ -113,3 +113,16 @@ The monitoring test confirms the runtime’s ability to write metrics to Stackdr
 This tests the runtime’s ability to report errors to Stackdriver. The driver will generate a request payload and POST it to the sample application. Upon receiving the payload, the application will create a Cloud Error Reporting Client. It will then use this client to report a generic exception. Additionally, it will use the client to report an exception with the provided token. Finally, it will report back to the test driver indicating that the exceptions were recorded successfully, or that an error was encountered, failing the test.
 
 At this time, there is no support within the google-cloud-python client library for reading exceptions from Stackdriver, though the public API exists. It is potentially planned to add support within this client library to do this, enabling the test driver to actually verify the specific exception was recorded in Stackdriver successfully.
+
+
+### Custom Tests
+#####` - GET http://<application_url>/custom`
+
+The integration test framework also contains support for running custom tests inside of the sample application, and reporting the results of these tests through the integration framework's report. This provides a convenient way of running standard and custom tests inside of the same test run.
+
+The test driver will make a GET request to `/custom` at the sample application's URL, and retrieve a list of test configuration specs (see below) that specify the custom tests the sample application is set up to run. The driver will then make sequential GET requests to each of these paths, each of which should contain a single custom integration test that will be run by the sample application. The application should then report back to the test driver with the results of the test, usually either an 'OK' (and 200 response code) in the event of a success, or the logs of the failed run in the event of a failure (with a 4xx or 5xx response code). These successes/failures will then be added to the integration test framework's report.
+
+Each custom test config should be a dictionary that contains three fields:
+	* `name` (optional): the name of the test
+	* `path` (required): the path at which the test can be accessed
+	* `timeout` (optional): the amount of time (in ms) to wait before the test fails
