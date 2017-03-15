@@ -92,8 +92,10 @@ class TagReconciler:
 
                     # Don't retag latest if it's already latest
                     if latest:
+                        if latest.startswith('sha256:'):
+                            latest = latest[len('sha256:'):]
                         if (image['tag'] == 'latest'
-                           and image['digest'] == latest):
+                           and latest.startswith(image['digest'])):
                             logging.debug('Skipping tagging %s as latest as '
                                           'it is already latest.',
                                           image['digest'])
