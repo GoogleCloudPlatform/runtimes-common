@@ -122,7 +122,7 @@ The integration test framework also contains support for running custom tests in
 
 The test driver will make a GET request to `/custom` at the sample application's URL, and retrieve a list of test configuration specs (see below) that specify the custom tests the sample application is set up to run. The driver will then make sequential GET requests to each of these paths, each of which should contain a single custom integration test that will be run by the sample application. The application should then report back to the test driver with the results of the test, usually either an 'OK' (and 200 response code) in the event of a success, or the logs of the failed run in the event of a failure (with a 4xx or 5xx response code). These successes/failures will then be added to the integration test framework's report.
 
-Each custom test config should be a dictionary that contains three fields:
+Each custom test config should be a JSON map that contains three fields:
 	* `name` (optional): the name of the test
 	* `path` (required): the path at which the test can be accessed
-	* `timeout` (optional): the amount of time (in ms) to wait before the test fails
+	* `timeout` (optional): the amount of time (in ms) to wait before the test fails. default value is 500ms.

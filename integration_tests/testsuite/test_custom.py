@@ -17,6 +17,7 @@
 import json
 import logging
 import unittest
+from urlparse import urljoin
 from retrying import retry
 
 import test_util
@@ -35,8 +36,6 @@ class TestCustom(unittest.TestCase):
         self.assertEquals(status_code, 0,
                           'Cannot connect to sample application!')
 
-        logging.debug('output: {0}'.format(output))
-
         test_num = 0
         for test_info in json.loads(output):
             test_num+=1
@@ -49,7 +48,7 @@ class TestCustom(unittest.TestCase):
 
             timeout = test_info.get('timeout', 500)
 
-            test_endpoint = self._base_url + path
+            test_endpoint = urljoin(self._base_url, path)
             logging.info('Running custom test: {0}'.format(name))
             response, code = test_util.get(test_endpoint, timeout=timeout)
 
