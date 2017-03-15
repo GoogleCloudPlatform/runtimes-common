@@ -95,7 +95,7 @@ class TagReconciler:
                         if latest.startswith('sha256:'):
                             latest = latest[len('sha256:'):]
                         if (image['tag'] == 'latest'
-                            and latest.startswith(image['digest'])):
+                           and latest.startswith(image['digest'])):
                             logging.debug('Skipping tagging %s as latest as '
                                           'it is already latest.',
                                           image['digest'])
