@@ -18,7 +18,6 @@ import json
 import logging
 import unittest
 from urlparse import urljoin
-from retrying import retry
 
 import test_util
 
@@ -38,7 +37,7 @@ class TestCustom(unittest.TestCase):
 
         test_num = 0
         for test_info in json.loads(output):
-            test_num+=1
+            test_num += 1
             name = test_info.get('name', 'test_{0}'.format(test_num))
             path = test_info.get('path')
             if path is None:
