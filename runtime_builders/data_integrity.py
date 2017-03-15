@@ -74,11 +74,11 @@ def _verify_latest_files_match(project_name, config_latest):
         with open(version_file, 'r') as f:
             version_contents = f.read().strip('\n').strip(' ')
             version_latest = builder_util.RUNTIME_BUCKET_PREFIX + \
-                project_name + '-' + version_contents
+                project_name + '-' + version_contents + '.yaml'
             if version_latest != config_latest:
                 logging.error('Builders do not match!')
                 logging.error('Latest builder in internal runtime config: '
-                              '{0}'.format(version_latest))
+                              '{0}'.format(config_latest))
                 logging.error('Latest builder in runtime.version file: '
                               '{0}'.format(version_latest))
                 return 1

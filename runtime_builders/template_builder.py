@@ -20,11 +20,15 @@ import glob
 import json
 import logging
 import os
+import re
 from ruamel import yaml
 import subprocess
 import sys
 
 import builder_util
+
+
+IMAGE_REGEX = '(.*gcr\.io/).*'
 
 
 def main():
@@ -90,8 +94,13 @@ def _resolve_tags(config_file):
 
             for step in config.get('steps'):
                 image = step.get('name')
-                templated_step = _resolve_tag(image)
-                step['name'] = templated_step
+                step['name'] = _resolve_tag(image)
+                args = step.get('args', [])
+                for i in range(0, len(args)):
+                    arg = args[i]
+                    m = re.search(IMAGE_REGEX, arg)
+                    if m:
+                        args[i] = _resolve_tag(arg)
 
             return yaml.round_trip_dump(config)
         except yaml.YAMLError as e:
