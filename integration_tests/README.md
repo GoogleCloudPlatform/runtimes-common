@@ -43,8 +43,27 @@ In addition, each test (detailed below) can be skipped by passing the correspond
 This is the most basic integration test. The driver performs a GET request to the root endpoint at the deployed application's URL. It retrieves data from the application, and verifies it matches the expected output (the text ‘Hello World!’).
 
 
-### Logging
-#####` - POST http://<application_url>/logging`
+### Standard Logging
+#####` - POST http://<application_url>/logging_standard`
+
+*Request Body*
+
+| Property Name | Value | Description |
+| --- | --- | --- |
+| token | 16 character (8 byte) hexadecimal string (uppercase) | The token to write in Stackdriver logs. |
+| level | string; alphabetic (uppercase) | String representing the severity of the log entry. |
+
+*Response*
+
+- If successful, the application should respond with the source that the logs were written to in Stackdriver, and a 200 response code.
+
+This tests the runtime’s integration with Stackdriver Logging through its standard logging module. The driver will generate a token and a log level, and send this payload to the sample application via a POST request. Once the application receives the payload, it will log the token at the provided level through its standard logging module (e.g. [logging](https://docs.python.org/2/library/logging.html) in Python). The application will then send back to the test driver the location in Stackdriver to which the log entry was written; this varies across runtimes. See the [Logging v2 API Docs](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry) for details; as an example, integration with Python's standard logging module sends all logs to `projects/<project_id>/logs/appengine.googleapis.com%2Fstderr`, so the sample application will return back to the test driver `appengine.googleapis.com%2Fstderr`.
+
+If the write succeeded, the test driver will wait a short period of time for the log entry to propagate through Stackdriver, then retrieve all log entries written to the provided log source in the previous 2 minutes and verify that the provided token/level pair appears in Stackdriver.
+
+
+### Custom Logging
+#####` - POST http://<application_url>/logging_custom`
 
 *Request Body*
 
@@ -52,12 +71,13 @@ This is the most basic integration test. The driver performs a GET request to th
 | --- | --- | --- |
 | log_name      | string; 16 characters; alphabetic (upper/lower case) | The name of the log to write in Stackdriver. |
 | token | 16 character (8 byte) hexadecimal string (uppercase) | The token to write in Stackdriver logs. |
+| level | string; alphabetic (uppercase) | String representing the severity of the log entry. |
 
 *Response*
 
-- If successful, the application should respond with a 200 response code and the string ‘OK’.
+- If successful, the application should respond with the source that the logs were written to in Stackdriver, and a 200 response code.
 
-This tests the runtime’s integration with Stackdriver Logging. The driver will generate a log name and token, and send this payload to the sample application via a POST request. Once the application receives the payload, it will create a [Cloud Logging Client](https://github.com/GoogleCloudPlatform/google-cloud-python/blob/master/logging/google/cloud/logging/client.py) instance. The application will use this client to write a log entry to Stackdriver with the provided name and token value (through the default channel, which for all compliant runtimes should be stdout), and then signal back to the driver that either the log entry has been written successfully, or that an error was encountered (causing the test to fail). If the write succeeded, the test driver will wait a short period of time for the log entry to propagate through Stackdriver, then retrieve all log entries written to stdout in the previous 2 minutes and verify that the provided name/token pair appears in Stackdriver.
+This tests the runtime’s integration with writing custom log entries to Stackdriver Logging through a client library. The driver will generate a payload containing a log name, token, and level, and send this payload to the sample application via a POST request. Once the application receives the payload, it will write a log entry to Stackdriver with the provided name and token value, at the specified level. *This is commonly done by using a language-specific client library, such as [google-cloud-python](https://github.com/GoogleCloudPlatform/google-cloud-python), though the implementation is left up to the runtime maintainers.* The application will then signal back to the driver that either the log entry has been written successfully by providing it with the source to which the log entry was written, or that an error was encountered (causing the test to fail). If the write succeeded, the test driver will wait a short period of time for the log entry to propagate through Stackdriver, then retrieve all log entries written to that specified log name in the previous 2 minutes and verify that the provided token/level pair appears in Stackdriver.
 
 
 ### Monitoring

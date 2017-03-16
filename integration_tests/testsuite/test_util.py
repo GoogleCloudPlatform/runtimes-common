@@ -32,12 +32,23 @@ DEFAULT_TIMEOUT = 30  # seconds
 ROOT_ENDPOINT = '/'
 ROOT_EXPECTED_OUTPUT = 'Hello World!'
 
-LOGGING_ENDPOINT = '/logging'
+STANDARD_LOGGING_ENDPOINT = '/logging_standard'
+CUSTOM_LOGGING_ENDPOINT = '/logging_custom'
 MONITORING_ENDPOINT = '/monitoring'
 EXCEPTION_ENDPOINT = '/exception'
 
 METRIC_PREFIX = 'custom.googleapis.com/{0}'
 METRIC_TIMEOUT = 60  # seconds
+
+# subset of levels found at
+# https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity
+SEVERITIES = [
+    'DEBUG',
+    'INFO',
+    'WARNING',
+    'ERROR',
+    'CRITICAL'
+]
 
 
 def _generate_name():
@@ -54,10 +65,15 @@ def _generate_int64_token():
     return random.randint(-(2 ** 31), (2 ** 31)-1)
 
 
-def generate_logging_payload():
-    data = {'log_name': _generate_name(),
-            'token': _generate_hex_token()}
-    return data
+def generate_logging_payloads():
+    payloads = []
+    for s in SEVERITIES:
+        payloads.append({
+            'log_name': _generate_name(),
+            'token': _generate_hex_token(),
+            'level': s
+            })
+    return payloads
 
 
 def generate_metrics_payload():
@@ -75,10 +91,10 @@ def _get(url, timeout=DEFAULT_TIMEOUT):
     logging.info('making get request to url {0}'.format(url))
     try:
         response = requests.get(url)
-        return response.content, _check_response(response,
-                                                 'error when making get ' +
-                                                 'request! url: {0}'
-                                                 .format(url))
+        return _check_response(response,
+                               'error when making get ' +
+                               'request! url: {0}'
+                               .format(url))
     except Exception as e:
         logging.error('Error encountered when making get request!')
         logging.error(e)
@@ -97,7 +113,7 @@ def _post(url, payload, timeout=DEFAULT_TIMEOUT):
     except requests.exceptions.Timeout:
         logging.error('POST to {0} timed out after {1} seconds!'
                       .format(url, timeout))
-        return 1
+        return 'ERROR', 1
 
 
 def _check_response(response, error_message):
@@ -106,8 +122,8 @@ def _check_response(response, error_message):
                       .format(error_message,
                               response.status_code,
                               response.text))
-        return 1
-    return 0
+        return response.text, 1
+    return response.text, 0
 
 
 def _project_id():
