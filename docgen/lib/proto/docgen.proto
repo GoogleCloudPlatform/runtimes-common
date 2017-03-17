@@ -300,7 +300,12 @@ message ExecInstruction {
   ExecType exec_type = 1;
 
   // Name of the container to exec within. Required.
-  string container_name = 2;
+  oneof container_name_oneof {
+    // Specifies the container name directly.
+    string container_name = 2;
+    // Gets the container name from the run instruction.
+    RunInstruction container_from_run = 6;
+  }
 
   // Full exec command. Required.
   string command = 3;
