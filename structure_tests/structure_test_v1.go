@@ -78,21 +78,21 @@ func (st StructureTestv1) RunFileExistenceTests(t *testing.T) int {
 			}
 			if tt.ShouldExist && err != nil {
 				if tt.IsDirectory {
-					_Error("Directory %s should exist but does not!", tt.Path)
+					_Error(t, "Directory %s should exist but does not!", tt.Path)
 				} else {
-					_Error("File %s should exist but does not!", tt.Path)
+					_Error(t, "File %s should exist but does not!", tt.Path)
 				}
 			} else if !tt.ShouldExist && err == nil {
 				if tt.IsDirectory {
-					_Error("Directory %s should not exist but does!", tt.Path)
+					_Error(t, "Directory %s should not exist but does!", tt.Path)
 				} else {
-					_Error("File %s should not exist but does!", tt.Path)
+					_Error(t, "File %s should not exist but does!", tt.Path)
 				}
 			}
 			if tt.Permissions != "" {
 				perms := info.Mode()
 				if perms.String() != tt.Permissions {
-					_Error("%s has incorrect permissions. Expected: %s, Actual: %s", tt.Path, tt.Permissions, perms.String())
+					_Error(t, "%s has incorrect permissions. Expected: %s, Actual: %s", tt.Path, tt.Permissions, perms.String())
 				}
 			}
 			counter++
@@ -108,7 +108,7 @@ func (st StructureTestv1) RunFileContentTests(t *testing.T) int {
 			validateFileContentTestV1(t, tt)
 			actualContents, err := ioutil.ReadFile(tt.Path)
 			if err != nil {
-				_Error("Failed to open %s. Error: %s", tt.Path, err)
+				_Error(t, "Failed to open %s. Error: %s", tt.Path, err)
 			}
 
 			contents := string(actualContents[:])

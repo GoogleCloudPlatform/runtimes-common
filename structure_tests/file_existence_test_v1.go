@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -37,5 +36,6 @@ func validateFileExistenceTestV1(t *testing.T, tt FileExistenceTestv1) {
 }
 
 func (ft FileExistenceTestv1) LogName() string {
-	return _Header("FILE EXISTENCE TEST: %s", ft.Name)
+	_Header("FILE EXISTENCE TEST: %s", ft.Name)
+	return ft.Name
 }

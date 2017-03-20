@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -36,5 +35,6 @@ func validateFileContentTestV1(t *testing.T, tt FileContentTestv1) {
 }
 
 func (ft FileContentTestv1) LogName() string {
-	return _Header("FILE CONTENT TEST: %s", ft.Name)
+	_Header("FILE CONTENT TEST: %s", ft.Name)
+	return ft.Name
 }

@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -63,5 +62,6 @@ func validateCommandTestV1(t *testing.T, tt CommandTestv1) {
 }
 
 func (ct CommandTestv1) LogName() string {
-	return _Header("COMMAND TEST: %s", ct.Name)
+	_Header("COMMAND TEST: %s", ct.Name)
+	return ct.Name
 }

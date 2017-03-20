@@ -71,9 +71,8 @@ func _Special(text string, args ...interface{}) {
 	Info.Println(fmt.Sprintf(SPECIAL_TEMPLATE, fmt.Sprintf(text, args...)))
 }
 
-func _Header(text string, args ...interface{}) string {
-	// returns formatted string to be passed to t.Run()
-	return fmt.Sprintf(HEADER_TEMPLATE, fmt.Sprintf(text, args...))
+func _Header(text string, args ...interface{}) {
+	Info.Println(fmt.Sprintf(HEADER_TEMPLATE, fmt.Sprintf(text, args...)))
 }
 
 func _Error(t *testing.T, text string, args ...interface{}) {
