@@ -93,7 +93,7 @@ def get(url, timeout=DEFAULT_TIMEOUT):
     try:
         response = requests.get(url)
         logging.debug('Response: {0}'.format(response.content))
-        return response.content, _check_response(response,
+        return _check_response(response,
                                                  'error when making get ' +
                                                  'request! url: {0}'
                                                  .format(url))
