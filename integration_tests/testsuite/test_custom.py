@@ -26,7 +26,7 @@ class TestCustom(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
         self._base_url = url
-        self._url = url + test_util.CUSTOM_ENDPOINT
+        self._url = urljoin(url, test_util.CUSTOM_ENDPOINT)
         unittest.TestCase.__init__(self)
 
     def runTest(self):

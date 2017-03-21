@@ -16,6 +16,7 @@
 
 import logging
 import unittest
+from urlparse import urljoin
 
 import test_util
 
@@ -23,7 +24,7 @@ import test_util
 class TestException(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
-        self._url = url + test_util.EXCEPTION_ENDPOINT
+        self._url = urljoin(url, test_util.EXCEPTION_ENDPOINT)
         unittest.TestCase.__init__(self)
 
     def runTest(self):

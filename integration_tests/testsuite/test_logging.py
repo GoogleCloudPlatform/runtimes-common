@@ -16,6 +16,7 @@
 
 import logging
 import unittest
+from urlparse import urljoin
 from retrying import retry
 
 import google.cloud.logging
@@ -26,7 +27,7 @@ import test_util
 class TestLogging(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
-        self._url = url + test_util.LOGGING_ENDPOINT
+        self._url = urljoin(url, test_util.LOGGING_ENDPOINT)
         unittest.TestCase.__init__(self)
 
     def runTest(self):
