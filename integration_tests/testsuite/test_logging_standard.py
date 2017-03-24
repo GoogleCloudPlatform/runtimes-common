@@ -27,7 +27,7 @@ class TestStandardLogging(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
         self._url = url + test_util.STANDARD_LOGGING_ENDPOINT
-        unittest.TestCase.__init__(self)
+        super(TestStandardLogging, self).__init__()
 
     def runTest(self):
         logging.debug('Posting to endpoint: {0}'.format(self._url))

@@ -16,7 +16,7 @@
 
 import logging
 import unittest
-from urlparse import urljoin
+import urlparse
 
 import test_util
 
@@ -24,8 +24,8 @@ import test_util
 class TestException(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
-        self._url = urljoin(url, test_util.EXCEPTION_ENDPOINT)
-        unittest.TestCase.__init__(self)
+        self._url = urlparse.urljoin(url, test_util.EXCEPTION_ENDPOINT)
+        super(TestException, self).__init__()
 
     def runTest(self):
         payload = test_util.generate_exception_payload()
