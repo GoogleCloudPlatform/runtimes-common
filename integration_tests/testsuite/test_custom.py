@@ -17,7 +17,7 @@
 import json
 import logging
 import unittest
-from urlparse import urljoin
+import urlparse
 
 import test_util
 
@@ -26,7 +26,7 @@ class TestCustom(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
         self._base_url = url
-        self._url = urljoin(url, test_util.CUSTOM_ENDPOINT)
+        self._url = urlparse.urljoin(url, test_util.CUSTOM_ENDPOINT)
         unittest.TestCase.__init__(self)
 
     def runTest(self):
@@ -47,7 +47,7 @@ class TestCustom(unittest.TestCase):
 
             timeout = test_info.get('timeout', 500)
 
-            test_endpoint = urljoin(self._base_url, path)
+            test_endpoint = urlparse.urljoin(self._base_url, path)
             logging.info('Running custom test: {0}'.format(name))
             response, code = test_util.get(test_endpoint, timeout=timeout)
 
