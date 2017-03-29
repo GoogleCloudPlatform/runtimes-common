@@ -20,7 +20,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"reflect"
 	"syscall"
 	"testing"
 )
@@ -187,13 +186,12 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkO
 		} else {
 			t.Fatalf("Error running setup/teardown command: %s.", err)
 		}
-		errType := reflect.TypeOf(err)
-		t.Logf("err type is %s", errType.String())
 
 		exitErr, ok := err.(*exec.ExitError)
 		if !ok {
-			t.Logf("Command failed to run!")
-			exitCode = 12345
+			t.Logf("Command failed to run! Attempting to run in shell mode.")
+			shellCommand := append([]string{"sh", "-c"}, fullCommand...)
+			return ProcessCommand(t, envVars, shellCommand, checkOutput)
 		} else {
 			exitCode = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
 		}
