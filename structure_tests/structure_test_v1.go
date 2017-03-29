@@ -189,7 +189,13 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkO
 
 		exitErr, ok := err.(*exec.ExitError)
 		if !ok {
-			t.Logf("Command failed to run! Attempting to run in shell mode.")
+			exitErr, ok := err.(*exec.Error)
+			if ok {
+				t.Logf("Command %s failed to run! Error: %s", exitErr.Name, exitErr.Error)
+				t.Logf("Attempting to run in shell mode.")
+			} else {
+				t.Logf("Command failed to run! Unable to retrieve error info!")
+			}
 			shellCommand := append([]string{"sh", "-c"}, fullCommand...)
 			return ProcessCommand(t, envVars, shellCommand, checkOutput)
 		} else {
