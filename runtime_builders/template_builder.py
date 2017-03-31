@@ -16,7 +16,6 @@
 
 import argparse
 from datetime import datetime
-import glob
 import json
 import logging
 import os
@@ -34,7 +33,7 @@ IMAGE_REGEX = '(.*gcr\.io/).*'
 def main():
     logging.getLogger().setLevel(logging.INFO)
     parser = argparse.ArgumentParser()
-    parser.add_argument('--directory', '-d',
+    parser.add_argument('--filename', '-f',
                         help='templated cloudbuild config file.',
                         required=True)
     parser.add_argument('--bucket', '-b',
@@ -42,26 +41,25 @@ def main():
                         default='runtime-builders')
     args = parser.parse_args()
 
-    return _resolve_and_publish(args.directory, args.bucket)
+    return _resolve_and_publish(args.filename, args.bucket)
 
 
-def _resolve_and_publish(directory, bucket):
+def _resolve_and_publish(config_file, bucket):
     try:
         gcs_paths = []
-        for filepath in glob.glob(os.path.join(directory, '*.json')):
-            with open(filepath, 'r') as f:
-                project_cfg = json.load(f)
-                project_name = project_cfg['project']
-                for builder in project_cfg['builders']:
-                    cfg = os.path.abspath(str(builder['path']))
-                    name = builder['name']
-                    builder_name = project_name + '-' + name
+        with open(config_file, 'r') as f:
+            project_cfg = json.load(f)
+            project_name = project_cfg['project']
+            for builder in project_cfg['builders']:
+                cfg = os.path.abspath(str(builder['path']))
+                name = builder['name']
+                builder_name = project_name + '-' + name
 
-                    templated_file = _resolve_tags(cfg)
-                    logging.info(templated_file)
-                    gcs_paths.append(_publish_to_gcs(templated_file,
-                                                     builder_name,
-                                                     bucket))
+                templated_file = _resolve_tags(cfg)
+                logging.info(templated_file)
+                gcs_paths.append(_publish_to_gcs(templated_file,
+                                                 builder_name,
+                                                 bucket))
 
         logging.info('Published Runtimes:')
         logging.info(gcs_paths)
