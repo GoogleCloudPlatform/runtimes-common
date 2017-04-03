@@ -5,4 +5,4 @@ packages:
     ppas:
       [ppa:webupd8team/java]
     packages:
-      [sl=3.03-17, figlet]
+      [sl=3.03-17, nodejs]
