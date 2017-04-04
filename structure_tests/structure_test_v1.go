@@ -191,7 +191,7 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkO
 		if !ok {
 			exitErr, ok := err.(*exec.Error)
 			if ok {
-				t.Logf("Command %s failed to run! Error: %s", exitErr.Name, exitErr.Error)
+				t.Logf("Command %s failed to run! Error: %s", exitErr.Name, exitErr.Error())
 				t.Logf("Attempting to run in shell mode.")
 			} else {
 				t.Logf("Command failed to run! Unable to retrieve error info!")
