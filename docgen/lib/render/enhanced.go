@@ -252,6 +252,13 @@ func (t *TaskInstruction) GetDockerfile() *DockerfileInstruction {
 	return &DockerfileInstruction{t.TaskInstruction.GetDockerfile(), t}
 }
 
+func (t *TaskInstruction) GetCopy() *CopyInstruction {
+	if t.TaskInstruction.GetCopy() == nil {
+		return nil
+	}
+	return &CopyInstruction{t.TaskInstruction.GetCopy(), t.Runtime, t}
+}
+
 func (t *TaskInstruction) Description() string {
 	return t.Document.expandAnchors(t.TaskInstruction.Description, t.Runtime)
 }
@@ -570,6 +577,24 @@ func (t *ExecInstruction) ContainerName() string {
 		return runInstruction.ContainerName()
 	}
 	return t.GetContainerName()
+}
+
+type CopyInstruction struct {
+	*proto.CopyInstruction
+	Runtime         Runtime
+	TaskInstruction *TaskInstruction
+}
+
+func (t *CopyInstruction) ContainerName() string {
+	if t.GetContainerFromRun() != nil {
+		runInstruction := &RunInstruction{t.GetContainerFromRun(), t.Runtime, t.TaskInstruction}
+		return runInstruction.ContainerName()
+	}
+	return t.GetContainerName()
+}
+
+func (t *CopyInstruction) ToContainer() bool {
+	return t.Direction == proto.CopyInstruction_TO_CONTAINER
 }
 
 type PortReference struct {
