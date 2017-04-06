@@ -571,6 +571,14 @@ func (t *ExecInstruction) Interactive() bool {
 	return t.ExecType == proto.ExecInstruction_INTERACTIVE_SHELL
 }
 
+func (t *ExecInstruction) ContainerName() string {
+	if t.GetContainerFromRun() != nil {
+		runInstruction := &RunInstruction{t.GetContainerFromRun(), t.Runtime, t.TaskInstruction}
+		return runInstruction.ContainerName()
+	}
+	return t.GetContainerName()
+}
+
 type CopyInstruction struct {
 	*proto.CopyInstruction
 	Runtime         Runtime
