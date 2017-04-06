@@ -121,6 +121,7 @@ message TaskInstruction {
     RunInstruction run = 3;
     DockerfileInstruction dockerfile = 4;
     ExecInstruction exec = 5;
+    CopyInstruction copy = 6;
   }
 }
 
@@ -312,6 +313,31 @@ message ExecInstruction {
   // A file name on the host to redirect the stdout to. Optional and only
   // applicable in ONESHOT exec type.
   string redirect_output_to = 5;
+}
+
+// Defines instruction to copy files from or to a running container.
+message CopyInstruction {
+
+  enum Direction {
+    FROM_CONTAINER = 0;
+    TO_CONTAINER = 1;
+  }
+  // Direction of the copy. Required.
+  Direction direction = 1;
+
+  // Path on the running container. Required.
+  string path = 2;
+
+  // Path on the local host. Required.
+  string host_path = 3;
+
+  // Name of the running container to copy from. Required.
+  oneof container_name_oneof {
+    // Name of the running container.
+    string container_name = 4;
+    // Gets the container name from a Run instruction.
+    RunInstruction container_from_run = 5;
+  }
 }
 
 // Defines the port reference section.

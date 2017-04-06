@@ -401,12 +401,44 @@ kubectl exec {{.ContainerName}} -- {{.Command}}
 {{- end}}{{/* define "execInstruction" */}}
 
 
+{{- define "copyInstruction"}}{{/* input: enhanced.CopyInstruction */}}
+
+{{- if .Runtime.IsDocker}}
+
+{{- if .ToContainer}}
+```shell
+docker cp {{.HostPath}} {{.ContainerName}}:{{.Path}}
+```
+{{- else}}
+```shell
+docker cp {{.ContainerName}}:{{.Path}} {{.HostPath}}
+```
+{{- end}}
+
+{{- else}}
+
+{{- if .ToContainer}}
+```shell
+kubectl cp {{.HostPath}} {{.ContainerName}}:{{.Path}}
+```
+{{- else}}
+```shell
+kubectl cp {{.ContainerName}}:{{.Path}} {{.HostPath}}
+```
+{{- end}}
+
+{{- end}}
+
+{{- end}}{{/* define "copyInstruction" */}}
+
+
 {{- define "instruction"}}{{/* input: enhanced.TaskInstruction */}}
 
 {{- template "insertBlankLine" .Description}}
 {{- if .GetRun}}{{template "runInstruction" .GetRun}}{{end}}
 {{- if .GetDockerfile}}{{template "dockerfileInstruction" .GetDockerfile}}{{end}}
 {{- if .GetExec}}{{template "execInstruction" .GetExec}}{{end}}
+{{- if .GetCopy}}{{template "copyInstruction" .GetCopy}}{{end}}
 
 {{- end}}{{/* define "instruction" */}}
 
