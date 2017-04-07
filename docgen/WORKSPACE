@@ -1,7 +1,7 @@
 git_repository(
     name = "io_bazel_rules_go",
     remote = "https://github.com/bazelbuild/rules_go.git",
-    tag = "0.4.0",
+    tag = "0.4.2",
 )
 
 load(
@@ -19,7 +19,8 @@ go_proto_repositories()
 new_go_repository(
     name = "in_gopkg_yaml_v2",
     importpath = "gopkg.in/yaml.v2",
-    remote = "github.com/go-yaml/yaml",
+    remote = "https://github.com/go-yaml/yaml",
+    vcs = "git",
     tag = "v2",
 )
 
