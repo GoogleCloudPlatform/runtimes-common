@@ -114,6 +114,7 @@ Expectations on STDOUT and STDERR can use zero or more of the following attribut
 |---|---|
 | equals | String. The output is trimmed before comparing. |
 | exactly | String. The output is compared verbatim. |
+| matches | String. The output must _partially_ match the regex defined. |
 | mustBeEmpty | Boolean. If true, no output is expected. |
 
 For example:

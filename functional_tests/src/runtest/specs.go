@@ -52,6 +52,7 @@ type Expect struct {
 type StringAssert struct {
 	Exactly     string
 	Equals      string
+	Matches     string
 	MustBeEmpty bool `yaml:"mustBeEmpty"`
 }
 
