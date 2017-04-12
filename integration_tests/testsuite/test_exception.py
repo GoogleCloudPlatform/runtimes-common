@@ -16,6 +16,7 @@
 
 import logging
 import unittest
+import urlparse
 
 import test_util
 
@@ -23,12 +24,12 @@ import test_util
 class TestException(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
-        self._url = url + test_util.EXCEPTION_ENDPOINT
-        unittest.TestCase.__init__(self)
+        self._url = urlparse.urljoin(url, test_util.EXCEPTION_ENDPOINT)
+        super(TestException, self).__init__()
 
     def runTest(self):
         payload = test_util.generate_exception_payload()
-        _, response_code = test_util._post(self._url, payload)
+        _, response_code = test_util.post(self._url, payload)
         self.assertEquals(response_code, 0,
                           'Error encountered inside sample application!')
         logging.info('Token {0} written to Stackdriver '
