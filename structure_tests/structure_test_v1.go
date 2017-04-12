@@ -154,7 +154,7 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string,
 	var flags []string
 	if shellMode {
 		command = "sh"
-		flags = []string{"-c", strings.Join(fullCommand[0:], " ")}
+		flags = []string{"-c", strings.Join(fullCommand, " ")}
 	} else {
 		command = fullCommand[0]
 		flags = fullCommand[1:]
