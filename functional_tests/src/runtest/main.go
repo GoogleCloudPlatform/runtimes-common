@@ -154,6 +154,12 @@ func doOneTest(index int, test Test, suite Suite, results map[int]string, passin
 		} else {
 			result = fmt.Sprintf("%s: Encountered error: %v", FAILED, err)
 		}
+		if len(stdout) > 0 {
+			result = fmt.Sprintf("%s\nSTDOUT>>>%s<<<STDOUT", result, stdout)
+		}
+		if len(stderr) > 0 {
+			result = fmt.Sprintf("%s\nSTDERR>>>%s<<<STDERR", result, stderr)
+		}
 		return
 	}
 
