@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 	"syscall"
 	"testing"
 )
@@ -49,14 +50,14 @@ func (st StructureTestv1) RunCommandTests(t *testing.T) int {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateCommandTestV1(t, tt)
 			for _, setup := range tt.Setup {
-				ProcessCommand(t, tt.EnvVars, setup, false)
+				ProcessCommand(t, tt.EnvVars, setup, tt.ShellMode, false)
 			}
 
-			stdout, stderr, exitcode := ProcessCommand(t, tt.EnvVars, tt.Command, true)
+			stdout, stderr, exitcode := ProcessCommand(t, tt.EnvVars, tt.Command, tt.ShellMode, true)
 			CheckOutput(t, tt, stdout, stderr, exitcode)
 
 			for _, teardown := range tt.Teardown {
-				ProcessCommand(t, tt.EnvVars, teardown, false)
+				ProcessCommand(t, tt.EnvVars, teardown, tt.ShellMode, false)
 			}
 			counter++
 		})
@@ -142,14 +143,22 @@ func (st StructureTestv1) RunLicenseTests(t *testing.T) int {
 // current environment. a list of environment variables can be passed to be set in the
 // environment before the command is executed. additionally, a boolean flag is passed
 // to specify whether or not we care about the output of the command.
-func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkOutput bool) (string, string, int) {
+func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string,
+					shellMode bool, checkOutput bool) (string, string, int) {
 	var cmd *exec.Cmd
 	if len(fullCommand) == 0 {
 		t.Logf("empty command provided: skipping...")
 		return "", "", -1
 	}
-	command := fullCommand[0]
-	flags := fullCommand[1:]
+	var command string
+	var flags []string
+	if shellMode {
+		command = "sh"
+		flags = []string{"-c", strings.Join(fullCommand[0:], " ")}
+	} else {
+		command = fullCommand[0]
+		flags = fullCommand[1:]
+	}
 	originalVars := SetEnvVars(t, envVars)
 	defer ResetEnvVars(t, originalVars)
 	if len(flags) > 0 {

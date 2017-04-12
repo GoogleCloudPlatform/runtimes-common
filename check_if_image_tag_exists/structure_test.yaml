@@ -11,6 +11,11 @@ commandTests:
   exitCode: 1
   expectedError: ['.*[invalid | unrecognized].*']
 
+- name: 'Non-existent Binary in Shell Mode'
+  command: ['asdf']
+  shellMode: true
+  exitCode: 127
+
 fileExistenceTests:
 - name: 'Root'
   path: '/'
