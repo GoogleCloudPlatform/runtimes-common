@@ -103,15 +103,17 @@ func doRunTests(suite Suite) func() {
 	}
 
 	report := func() {
-		info(">>> Summary:")
+		allPassing := true
+		for index := range suite.Tests {
+			allPassing = allPassing && passing[index]
+		}
+		if allPassing {
+			info(">>> Summary: %s", PASSED)
+		} else {
+			info(">>> Summary: %s", FAILED)
+		}
 		for index := range suite.Tests {
 			info(" > %s", results[index])
-		}
-
-		for index := range suite.Tests {
-			if !passing[index] {
-				log.Fatalf("Some test has failed.")
-			}
 		}
 	}
 	return report
