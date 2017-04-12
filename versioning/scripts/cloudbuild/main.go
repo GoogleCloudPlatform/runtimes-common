@@ -34,8 +34,8 @@ type cloudBuildOptions struct {
 	TimeoutSeconds int
 }
 
-const cloudBuildTemplateString = `
-steps:
+// TODO(huyhg): Replace "gcr.io/$PROJECT_ID/functional_test" with gcp-runtimes one.
+const cloudBuildTemplateString = `steps:
 {{- if .RequireNewTags }}
 # Check if tags exist.
 {{- range .Images }}
@@ -56,10 +56,14 @@ steps:
       - '{{ .Directory }}'
 {{- end }}
 
-# Run tests
-{{- range .ImageBuilds }}
-{{- $primary := .Tag }}
-{{- range .Tests }}
+{{- range $imageIndex, $image := .ImageBuilds }}
+{{- $primary := $image.Tag }}
+
+{{- range $image.StructureTests }}
+{{- if eq $imageIndex 0}}
+
+# Run structure tests
+{{- end}}
   - name: gcr.io/gcp-runtimes/structure_test
     args:
       - '--image'
@@ -67,6 +71,20 @@ steps:
       - '--config'
       - '{{ . }}'
 {{- end }}
+
+{{- range $image.FunctionalTests }}
+{{- if eq $imageIndex 0}}
+
+# Run functional tests
+{{- end }}
+  - name: gcr.io/$PROJECT_ID/functional_test
+    args:
+      - '--vars'
+      - 'IMAGE={{ $primary }}'
+      - '--test_spec'
+      - '{{ . }}'
+{{- end }}
+
 {{- end }}
 
 # Add alias tags
@@ -86,20 +104,23 @@ images:
   - '{{ . }}'
 {{- end }}
 
-{{- if not eq .TimeoutSeconds 0 }}
+{{- if not (eq .TimeoutSeconds 0) }}
+
 timeout: {{ .TimeoutSeconds }}s
-{{- end }}
-`
+{{- end }}`
 
 const testsDir = "tests"
+const functionalTestsDir = "tests/functional_tests"
+const structureTestsDir = "tests/structure_tests"
 const testJsonSuffix = "_test.json"
 const testYamlSuffix = "_test.yaml"
 
 type imageBuildTemplateData struct {
-	Directory string
-	Tag       string
-	Aliases   []string
-	Tests     []string
+	Directory       string
+	Tag             string
+	Aliases         []string
+	StructureTests  []string
+	FunctionalTests []string
 }
 
 type cloudBuildTemplateData struct {
@@ -127,17 +148,13 @@ func newCloudBuildTemplateData(
 	}
 
 	// Extract tests to run.
-	var tests []string
+	var structureTests []string
+	var functionalTests []string
 	if options.RunTests {
-		if info, err := os.Stat(testsDir); err == nil && info.IsDir() {
-			files, err := ioutil.ReadDir(testsDir)
-			check(err)
-			for _, f := range files {
-				if strings.HasSuffix(f.Name(), testJsonSuffix) || strings.HasSuffix(f.Name(), testYamlSuffix) {
-					tests = append(tests, fmt.Sprintf("/workspace/tests/%s", f.Name()))
-				}
-			}
-		}
+		// Legacy structure tests reside in the root tests/ directory.
+		structureTests = append(structureTests, readTests(testsDir)...)
+		structureTests = append(structureTests, readTests(structureTestsDir)...)
+		functionalTests = append(functionalTests, readTests(functionalTestsDir)...)
 	}
 
 	// Extract a list of full image names to build.
@@ -155,11 +172,27 @@ func newCloudBuildTemplateData(
 		}
 		data.AllImages = append(data.AllImages, images...)
 		data.ImageBuilds = append(
-			data.ImageBuilds, imageBuildTemplateData{v.Dir, images[0], images[1:], tests})
+			data.ImageBuilds, imageBuildTemplateData{v.Dir, images[0], images[1:], structureTests, functionalTests})
 	}
 
 	data.TimeoutSeconds = options.TimeoutSeconds
 	return data
+}
+
+func readTests(testsDir string) (tests []string) {
+	if info, err := os.Stat(testsDir); err == nil && info.IsDir() {
+		files, err := ioutil.ReadDir(testsDir)
+		check(err)
+		for _, f := range files {
+			if f.IsDir() {
+				continue
+			}
+			if strings.HasSuffix(f.Name(), testJsonSuffix) || strings.HasSuffix(f.Name(), testYamlSuffix) {
+				tests = append(tests, fmt.Sprintf("/workspace/%s/%s", testsDir, f.Name()))
+			}
+		}
+	}
+	return
 }
 
 func renderCloudBuildConfig(
