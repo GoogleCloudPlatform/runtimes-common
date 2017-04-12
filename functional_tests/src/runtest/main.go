@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"syscall"
 )
@@ -27,6 +28,7 @@ const FAILED = "FAILED"
 const PASSED = "PASSED"
 
 var verbose = flag.Bool("verbose", false, "Verbose logging")
+var vars = FlagStringMap("vars", "Variable substitutions")
 
 func main() {
 	testSpec := flag.String("test_spec", "", "Path to a yaml or json file containing the test spec")
@@ -48,10 +50,19 @@ func info(text string, arg ...interface{}) {
 }
 
 func runCommand(name string, args ...string) (err error, stdout string, stderr string) {
+	expandedName, expandedArgs := expandCommand(name, args...)
 	if *verbose {
-		info("Running command: %v", append([]string{name}, args...))
+		originalCommand := fmt.Sprintf("%v", append([]string{name}, args...))
+		expandedCommand := fmt.Sprintf("%v", append([]string{expandedName}, expandedArgs...))
+		if originalCommand == expandedCommand {
+			info("Running command: %s", originalCommand)
+		} else {
+			info("Running command (original): %s", originalCommand)
+			info("Running command (expanded): %s", expandedCommand)
+		}
 	}
-	cmd := exec.Command(name, args...)
+
+	cmd := exec.Command(expandedName, expandedArgs...)
 	var stdoutBuffer bytes.Buffer
 	var stderrBuffer bytes.Buffer
 	cmd.Stdout = &stdoutBuffer
@@ -62,6 +73,18 @@ func runCommand(name string, args ...string) (err error, stdout string, stderr s
 	if *verbose {
 		commandOutput("STDOUT", stdout)
 		commandOutput("STDERR", stderr)
+	}
+	return
+}
+
+func expandCommand(name string, args ...string) (nameOut string, argsOut []string) {
+	mapping := func(key string) string {
+		return (*vars)[key]
+	}
+	nameOut = os.Expand(name, mapping)
+	argsOut = make([]string, 0, len(args))
+	for _, arg := range args {
+		argsOut = append(argsOut, os.Expand(arg, mapping))
 	}
 	return
 }
