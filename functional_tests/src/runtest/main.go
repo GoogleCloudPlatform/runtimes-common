@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
-	"strings"
 	"syscall"
 )
 
@@ -156,36 +155,16 @@ func doOneTest(index int, test Test, suite Suite, results map[int]string, passin
 		return
 	}
 
-	msg = doStringAssert(stdout, test.Expect.Stdout)
+	msg = DoStringAssert(stdout, test.Expect.Stdout)
 	if len(msg) > 0 {
 		result = fmt.Sprintf("%s: stdout assertion failure\n%s", FAILED, msg)
 		return
 	}
-	msg = doStringAssert(stderr, test.Expect.Stderr)
+	msg = DoStringAssert(stderr, test.Expect.Stderr)
 	if len(msg) > 0 {
 		result = fmt.Sprintf("%s: stderr assertion failure\n%s", FAILED, msg)
 		return
 	}
 
 	result = PASSED
-}
-
-func doStringAssert(value string, rule StringAssert) string {
-	if len(rule.Exactly) > 0 {
-		if value != rule.Exactly {
-			return fmt.Sprintf("Should have matched exactly:\n%s\n... but was:\n%s", rule.Exactly, value)
-		}
-	}
-	if len(rule.Equals) > 0 {
-		trimmed := strings.TrimSpace(value)
-		if trimmed != rule.Equals {
-			return fmt.Sprintf("Should have been:\n%s\n... but was:\n%s", rule.Equals, trimmed)
-		}
-	}
-	if rule.MustBeEmpty {
-		if len(value) > 0 {
-			return fmt.Sprintf("Should have been empty, but was:\n%s", value)
-		}
-	}
-	return ""
 }
