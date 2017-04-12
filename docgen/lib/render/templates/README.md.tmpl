@@ -92,6 +92,7 @@ Use the following content for the `docker-compose.yml` file, then run `docker-co
 version: '2'
 services:
   {{.Name}}:
+    container_name: {{ .ContainerName }}
     image: {{.Image}}
     {{- if gt (len .Arguments) 0}} \
     command:
