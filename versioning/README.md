@@ -61,12 +61,5 @@ cloudbuild > cloudbuild.yaml
 You can use the generated `cloudbuild.yaml` file as followed:
 
 ```console
-export BUCKET=<your gcs bucket>
-gcloud container builds submit . \
-  --config=cloudbuild.yaml \
-  --verbosity=info \
-  --gcs-source-staging-dir="gs://$BUCKET/staging" \
-  --gcs-log-dir="gs://$BUCKET/logs"
+gcloud container builds submit --config=cloudbuild.yaml .
 ```
-
-Note: `BUCKET` is typically the name of the active project in your gcloud.
