@@ -88,7 +88,7 @@ target: some-redis
 ## Tests
 
 The tests section specifies zero or more tests. The tests are run in the order
-they are specified. Each test can have side effects and subsequent tests depend
+they are specified. Each test can have side effects that subsequent tests depend
 upon.
 
 Each test has the following attributes:
