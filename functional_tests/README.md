@@ -137,6 +137,13 @@ tests:
       mustBeEmpty: true
 ```
 
+## Substitutions
+
+Test commands can use substitutions, which are specified in the test spec as
+shell variable substitutions `${VAR_NAME}` or `$VAR_NAME`. The values of the
+variables are specified in the command line argument `--vars VAR_NAME=value`.
+This arugment can be specified multiple times.
+
 # Development
 
 `examples/build-and-run/cloudbuild.yaml` conveniently builds this image and run
