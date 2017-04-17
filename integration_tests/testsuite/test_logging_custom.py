@@ -27,14 +27,14 @@ class TestCustomLogging(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
         self._url = url + test_util.CUSTOM_LOGGING_ENDPOINT
-        unittest.TestCase.__init__(self)
+        super(TestCustomLogging, self).__init__()
 
     def runTest(self):
         logging.debug('Posting to endpoint: {0}'.format(self._url))
 
         payloads = test_util.generate_logging_payloads()
         for payload in payloads:
-            _, response_code = test_util._post(self._url, payload)
+            _, response_code = test_util.post(self._url, payload)
             if response_code != 0:
                 self.fail('Error encountered inside '
                           'sample application!')

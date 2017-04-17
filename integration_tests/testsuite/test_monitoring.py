@@ -17,6 +17,7 @@
 import logging
 from retrying import retry
 import unittest
+import urlparse
 
 import google.cloud.monitoring
 
@@ -26,13 +27,13 @@ import test_util
 class TestMonitoring(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
-        self._url = url + test_util.MONITORING_ENDPOINT
-        unittest.TestCase.__init__(self)
+        self._url = urlparse.urljoin(url, test_util.MONITORING_ENDPOINT)
+        super(TestMonitoring, self).__init__()
 
     def runTest(self):
         payload = test_util.generate_metrics_payload()
-        _, response_code = test_util._post(self._url, payload,
-                                           test_util.METRIC_TIMEOUT)
+        _, response_code = test_util.post(self._url, payload,
+                                          test_util.METRIC_TIMEOUT)
         self.assertEquals(response_code, 0,
                           'Error encountered inside sample application!')
 
