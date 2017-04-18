@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"flag"
 	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
 	"text/template"
 
@@ -33,6 +35,8 @@ func check(e error) {
 
 func main() {
 	templateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template")
+	verifyPtr := flag.Bool("verify", false, "Verify dockerfiles")
+	flag.Parse()
 
 	var spec versions.Spec
 	spec = versions.LoadVersions("versions.yaml")
@@ -47,8 +51,42 @@ func main() {
 		Parse(templateString)
 	check(err)
 
-	for _, version := range spec.Versions {
-		data := renderDockerfile(version, *tmpl)
-		writeDockerfile(version, data)
+	if *verifyPtr {
+		foundDockerfile := make(map[string]bool)
+		failureCount := 0
+
+		for _, version := range spec.Versions {
+			data := renderDockerfile(version, *tmpl)
+
+			path := filepath.Join(version.Dir, "Dockerfile")
+			dockerfile, err := ioutil.ReadFile(path)
+			check(err)
+
+			foundDockerfile[path] = true
+
+			if string(dockerfile) == string(data) {
+				log.Printf("%s: OK", path)
+			} else {
+				failureCount++
+				log.Printf("%s: FAIL", path)
+			}
+		}
+
+		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+			check(err)
+			if info.Name() == "Dockerfile" && !info.IsDir() && !foundDockerfile[path] {
+				failureCount++
+				log.Printf("%s: UNIDENTIFIED", path)
+			}
+			return nil
+		})
+		check(err)
+
+		os.Exit(failureCount)
+	} else {
+		for _, version := range spec.Versions {
+			data := renderDockerfile(version, *tmpl)
+			writeDockerfile(version, data)
+		}
 	}
 }
