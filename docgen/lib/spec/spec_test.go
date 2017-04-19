@@ -16,7 +16,7 @@ import (
 
 // Verifies that the YAML files under testdata can be converted to Document proto.
 func TestYamlToProtoConversion(t *testing.T) {
-	const testdataPath = "lib/spec/testdata"
+	const testdataPath = "docgen/lib/spec/testdata"
 	files, err := ioutil.ReadDir(testdataPath)
 	if err != nil {
 		t.Fatal(err)
