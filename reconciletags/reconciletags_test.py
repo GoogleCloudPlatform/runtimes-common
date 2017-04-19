@@ -42,14 +42,14 @@ _LIST_RESP = """
 """
 
 _GCLOUD_CONFIG = 'gcloud config list --format=json'
-_GCLOUD_LIST = ('gcloud beta container images list-tags '
+_GCLOUD_LIST = ('gcloud container images list-tags '
                 '--no-show-occurrences {0} --format=json'.format(_FULL_REPO))
 
 
 class ReconcileTagsTest(unittest.TestCase):
 
     def _gcloudAdd(self, digest, tag):
-        return ('gcloud beta container images add-tag {0} {1} -q --format=json'
+        return ('gcloud container images add-tag {0} {1} -q --format=json'
                 .format(_FULL_REPO+'@sha256:'+digest, _FULL_REPO+':'+tag))
 
     def setUp(self):

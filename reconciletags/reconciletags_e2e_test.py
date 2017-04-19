@@ -44,7 +44,7 @@ class ReconciletagsE2eTest(unittest.TestCase):
 
     def _ListTags(self, repo):
         output = json.loads(
-            subprocess.check_output(['gcloud', 'beta', 'container',
+            subprocess.check_output(['gcloud', 'container',
                                      'images', 'list-tags',
                                      '--no-show-occurrences',
                                      '--format=json', repo]))
@@ -52,7 +52,7 @@ class ReconciletagsE2eTest(unittest.TestCase):
 
     def _BuildImage(self, full_image_name):
         # create a non-functional but tiny docker image
-        subprocess.call(['gcloud', 'beta', 'container', 'builds',
+        subprocess.call(['gcloud', 'container', 'builds',
                          'submit', self._DIR, '-q', '--tag', full_image_name])
 
         # grab the just created digest
@@ -68,7 +68,7 @@ class ReconciletagsE2eTest(unittest.TestCase):
         self._BuildImage(self._REPO + ':' + self._TAG)
 
     def tearDown(self):
-        subprocess.call(['gcloud', 'beta', 'container', 'images',
+        subprocess.call(['gcloud', 'container', 'images',
                          'delete', self._REPO + '@sha256:' + self.digest,
                          '-q'])
 
