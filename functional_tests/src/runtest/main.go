@@ -41,7 +41,11 @@ func main() {
 	suite := LoadSuite(*testSpec)
 	doSetup(suite)
 	report := doRunTests(suite)
-	defer report()
+	reportAndExit := func() {
+		failureCount := report()
+		os.Exit(failureCount)
+	}
+	defer reportAndExit()
 	doTeardown(suite)
 }
 
@@ -117,7 +121,10 @@ func doTeardown(suite Suite) {
 	}
 }
 
-func doRunTests(suite Suite) func() {
+// doRunTests executes the tests in the suite and returns a function
+// to do a summary report. This report function returns the number of
+// test failures, i.e. its returning 0 means all tests are passing.
+func doRunTests(suite Suite) func() int {
 	info(">>> Testing...")
 	results := make(map[int]string)
 	passing := make(map[int]bool)
@@ -125,12 +132,14 @@ func doRunTests(suite Suite) func() {
 		doOneTest(index, test, suite, results, passing)
 	}
 
-	report := func() {
-		allPassing := true
+	report := func() int {
+		failureCount := 0
 		for index := range suite.Tests {
-			allPassing = allPassing && passing[index]
+			if !passing[index] {
+				failureCount++
+			}
 		}
-		if allPassing {
+		if failureCount == 0 {
 			info(">>> Summary: %s", PASSED)
 		} else {
 			info(">>> Summary: %s", FAILED)
@@ -138,6 +147,7 @@ func doRunTests(suite Suite) func() {
 		for index := range suite.Tests {
 			info(" > %s", results[index])
 		}
+		return failureCount
 	}
 	return report
 }
