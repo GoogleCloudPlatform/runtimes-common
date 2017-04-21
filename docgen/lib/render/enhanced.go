@@ -492,15 +492,6 @@ func (t *RunInstruction_MountedVolume) KubernetesClaimName() string {
 	return t.KubernetesName()
 }
 
-func (t *RunInstruction_MountedVolume) Path() string {
-	path := t.RunInstruction_MountedVolume.Path
-	if t.GetSingleFile() != nil {
-		_, file := filepath.Split(t.GetSingleFile().HostFile())
-		return filepath.Join(path, file)
-	}
-	return path
-}
-
 func (t *RunInstruction_MountedVolume) GetEmptyPersistentVolume() *RunInstruction_MountedVolume_EmptyPersistentVolume {
 	p := t.RunInstruction_MountedVolume
 	if p.GetEmptyPersistentVolume() == nil {
@@ -541,6 +532,11 @@ func (t *RunInstruction_MountedVolume_SingleFile) HostFile() string {
 		return f
 	}
 	return "$(pwd)/" + f
+}
+
+func (t *RunInstruction_MountedVolume_SingleFile) HostFileBaseName() string {
+	_, file := filepath.Split(t.HostFile())
+	return file
 }
 
 func (t *RunInstruction_MountedVolume_SingleFile) ConfigMapName() string {
