@@ -5,26 +5,24 @@ taskGroups:
 - title: Example Task Group
   tasks:
   - title: Run base
+    runtimes:
+    - DOCKER
+    - KUBERNETES
     instructions:
     - run: &BaseRun
         <<: *BaseImage
-        runtimes:
-        - DOCKER
-        - DOCKER_COMPOSE
-        - KUBERNETES
         runType: LONG_RUNNING
   - title: Run with environment variables
     instructions:
-    - run: &EnvRun
+    - applicableRuntimes: [DOCKER]
+      run: &EnvRun
         <<: *BaseRun
         environment: &EnvRun_environment
           USERNAME:
             value: root
           PASSWORD:
             value: example-password
-            runtimeSpecificValues:
-            - value: ~
-              runtimes: [KUBERNETES]
+            kubernetesValue: ~
   - title: Run with more environment variables
     instructions:
     - run:
