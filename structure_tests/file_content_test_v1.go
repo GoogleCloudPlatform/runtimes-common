@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -28,13 +27,14 @@ type FileContentTestv1 struct {
 
 func validateFileContentTestV1(t *testing.T, tt FileContentTestv1) {
 	if tt.Name == "" {
-		t.Fatalf("Please provide a valid name for every test!")
+		_Fatal(t, "Please provide a valid name for every test!")
 	}
 	if tt.Path == "" {
-		t.Fatalf("Please provide a valid file path for test %s", tt.Name)
+		_Fatal(t, "Please provide a valid file path for test %s", tt.Name)
 	}
 }
 
 func (ft FileContentTestv1) LogName() string {
-	return fmt.Sprintf("File Content Test: %s", ft.Name)
+	_Header("FILE CONTENT TEST: %s", ft.Name)
+	return ft.Name
 }

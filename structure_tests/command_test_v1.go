@@ -15,7 +15,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -34,34 +33,35 @@ type CommandTestv1 struct {
 
 func validateCommandTestV1(t *testing.T, tt CommandTestv1) {
 	if tt.Name == "" {
-		t.Fatalf("Please provide a valid name for every test!")
+		_Fatal(t, "Please provide a valid name for every test!")
 	}
 	if tt.Command == nil || len(tt.Command) == 0 {
-		t.Fatalf("Please provide a valid command to run for test %s", tt.Name)
+		_Fatal(t, "Please provide a valid command to run for test %s", tt.Name)
 	}
 	if tt.Setup != nil {
 		for _, c := range tt.Setup {
 			if len(c) == 0 {
-				t.Fatalf("Error in setup command configuration encountered; please check formatting and remove all empty setup commands.")
+				_Fatal(t, "Error in setup command configuration encountered; please check formatting and remove all empty setup commands.")
 			}
 		}
 	}
 	if tt.Teardown != nil {
 		for _, c := range tt.Teardown {
 			if len(c) == 0 {
-				t.Fatalf("Error in teardown command configuration encountered; please check formatting and remove all empty teardown commands.")
+				_Fatal(t, "Error in teardown command configuration encountered; please check formatting and remove all empty teardown commands.")
 			}
 		}
 	}
 	if tt.EnvVars != nil {
 		for _, env_var := range tt.EnvVars {
 			if env_var.Key == "" || env_var.Value == "" {
-				t.Fatalf("Please provide non-empty keys and values for all specified env_vars")
+				_Fatal(t, "Please provide non-empty keys and values for all specified env_vars")
 			}
 		}
 	}
 }
 
 func (ct CommandTestv1) LogName() string {
-	return fmt.Sprintf("Command Test: %s", ct.Name)
+	_Header("COMMAND TEST: %s", ct.Name)
+	return ct.Name
 }

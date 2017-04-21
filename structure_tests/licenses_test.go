@@ -29,13 +29,13 @@ func checkFile(t *testing.T, licenseFile string) {
 	// Read through the copyright file and make sure don't have an unauthorized license
 	license, err := ioutil.ReadFile(licenseFile)
 	if err != nil {
-		t.Errorf("Error reading license file for %s: %s", licenseFile, err.Error())
+		_Error(t, "Error reading license file for %s: %s", licenseFile, err.Error())
 		return
 	}
 	contents := strings.ToUpper(string(license))
 	for _, b := range blacklist {
 		if strings.Contains(contents, b) {
-			t.Errorf("Invalid license for %s, license contains %s", licenseFile, b)
+			_Error(t, "Invalid license for %s, license contains %s", licenseFile, b)
 			return
 		}
 	}
@@ -46,14 +46,14 @@ func checkLicenses(t *testing.T, tt LicenseTestv1) {
 		root := "/usr/share/doc"
 		packages, err := ioutil.ReadDir(root)
 		if err != nil {
-			t.Fatalf("%s", err)
+			_Fatal(t, "%s", err)
 		}
 		for _, p := range packages {
 			if !p.IsDir() {
 				continue
 			}
 
-			t.Logf(p.Name())
+			_Info("License Test: %s", p.Name())
 
 			// Skip over packages in the whitelist
 			whitelisted := false
@@ -71,7 +71,7 @@ func checkLicenses(t *testing.T, tt LicenseTestv1) {
 			licenseFile := path.Join(root, p.Name(), "copyright")
 			_, err := os.Stat(licenseFile)
 			if err != nil {
-				t.Errorf("Error reading license file for %s: %s", p.Name(), err.Error())
+				_Error(t, "Error reading license file for %s: %s", p.Name(), err.Error())
 				continue
 			}
 
