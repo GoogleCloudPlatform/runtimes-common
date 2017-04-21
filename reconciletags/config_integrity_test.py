@@ -32,7 +32,7 @@ class ReconcilePresubmitTest(unittest.TestCase):
     def _get_digests(self, repo):
         try:
             output = json.loads(
-                subprocess.check_output(['gcloud', 'beta', 'container',
+                subprocess.check_output(['gcloud', 'container',
                                          'images', 'list-tags',
                                          '--no-show-occurrences',
                                          '--format=json', repo]))

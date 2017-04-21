@@ -15,7 +15,7 @@
 """Reads json files mapping docker digests to tags and reconciles them.
 
 Reads all json files in current directory and parses it into repositories
-and tags. Calls gcloud beta container images add-tag on each entry.
+and tags. Calls gcloud container images add-tag on each entry.
 If there are no changes that api call is no-op.
 """
 
@@ -39,7 +39,7 @@ class TagReconciler:
 
     def add_tags(self, digest, tag, dry_run):
         logging.debug('Tagging {0} with {1}'.format(digest, tag))
-        command = ('gcloud beta container images add-tag {0} {1} '
+        command = ('gcloud container images add-tag {0} {1} '
                    '-q'.format(digest, tag))
         self.call(command, dry_run)
 
@@ -53,7 +53,7 @@ class TagReconciler:
         return flat_tags_list
 
     def get_existing_tags(self, repo):
-        output = json.loads(self.call('gcloud beta container images list-tags '
+        output = json.loads(self.call('gcloud container images list-tags '
                             '--no-show-occurrences {0}'.format(repo), False))
 
         list_of_tags = [image['tags'] for image in output]
@@ -61,7 +61,7 @@ class TagReconciler:
         return existing_tags
 
     def get_latest_digest(self, repo):
-        output = json.loads(self.call('gcloud beta container images list-tags '
+        output = json.loads(self.call('gcloud container images list-tags '
                             '--no-show-occurrences {0}'.format(repo), False))
         for image in output:
             if 'latest' in image['tags']:

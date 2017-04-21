@@ -23,7 +23,7 @@ import sys
 import subprocess
 
 
-_GCLOUD_CMD = ['gcloud', 'beta', 'container', 'images', '--format=json']
+_GCLOUD_CMD = ['gcloud', 'container', 'images', '--format=json']
 
 
 # Severities
@@ -77,7 +77,7 @@ def _check_for_vulnz(image, severity, whitelist):
 
     if count > 0:
         logging.info('Found %s unpatched vulnerabilities in %s. Run '
-                     '[gcloud beta container images describe %s] '
+                     '[gcloud container images describe %s] '
                      'to see the full list.', count, image, image)
 
     return unpatched

@@ -18,7 +18,7 @@ class LatestAgeTest(unittest.TestCase):
 
     def _get_latest_timestamp(self, repo):
         images = json.loads(
-                  subprocess.check_output(['gcloud', 'beta', 'container',
+                  subprocess.check_output(['gcloud', 'container',
                                            'images', 'list-tags',
                                            '--no-show-occurrences',
                                            '--format=json', repo]))

@@ -122,7 +122,7 @@ def _resolve_tag(image):
         base_image = parts[0]
         target_tag = parts[1]
 
-    command = ['gcloud', 'beta', 'container', 'images',
+    command = ['gcloud', 'container', 'images',
                'list-tags', base_image, '--format=json']
 
     try:
