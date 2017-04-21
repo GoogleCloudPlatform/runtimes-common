@@ -114,6 +114,7 @@ Expectations on STDOUT and STDERR can use zero or more of the following attribut
 |---|---|
 | equals | String. The output is trimmed before comparing. |
 | exactly | String. The output is compared verbatim. |
+| matches | String. The output must _partially_ match the regex defined. |
 | mustBeEmpty | Boolean. If true, no output is expected. |
 
 For example:
@@ -135,6 +136,13 @@ tests:
     stderr:
       mustBeEmpty: true
 ```
+
+## Substitutions
+
+Test commands can use substitutions, which are specified in the test spec as
+shell variable substitutions `${VAR_NAME}` or `$VAR_NAME`. The values of the
+variables are specified in the command line argument `--vars VAR_NAME=value`.
+This arugment can be specified multiple times.
 
 # Development
 

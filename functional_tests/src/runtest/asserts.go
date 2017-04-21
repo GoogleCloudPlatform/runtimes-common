@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -31,6 +32,15 @@ func DoStringAssert(value string, rule StringAssert) string {
 		trimmed := strings.TrimSpace(value)
 		if trimmed != rule.Equals {
 			return fmt.Sprintf("Should have been:\n%s\n... but was:\n%s", rule.Equals, trimmed)
+		}
+	}
+	if len(rule.Matches) > 0 {
+		r, err := regexp.Compile(rule.Matches)
+		if err != nil {
+			return fmt.Sprintf("Regex failed to compile: %s", rule.Matches)
+		}
+		if !r.MatchString(value) {
+			return fmt.Sprintf("Should have matched regex:\n%s\n... but was:\n%s", rule.Matches, value)
 		}
 	}
 	if rule.MustBeEmpty {

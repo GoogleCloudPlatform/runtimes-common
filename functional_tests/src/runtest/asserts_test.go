@@ -36,6 +36,18 @@ func TestStringAssertEquals(t *testing.T) {
 	assertShouldFail(t, "to be equal\nbut", rule)
 }
 
+func TestStringAssertMatches(t *testing.T) {
+	rule := StringAssert{Matches: "a[bc]d"}
+	assertShouldPass(t, "abd", rule)
+	assertShouldPass(t, "123acd456", rule)
+	assertShouldFail(t, "ad", rule)
+}
+
+func TestStringAssertMatchesBadRegex(t *testing.T) {
+	rule := StringAssert{Matches: `\`}
+	assertShouldFail(t, `\`, rule)
+}
+
 func TestStringAssertMustBeEmpty(t *testing.T) {
 	rule := StringAssert{MustBeEmpty: true}
 	assertShouldPass(t, "", rule)
@@ -45,13 +57,15 @@ func TestStringAssertMustBeEmpty(t *testing.T) {
 func assertShouldPass(t *testing.T, value string, rule StringAssert) {
 	outcome := DoStringAssert(value, rule)
 	if len(outcome) > 0 {
-		t.Errorf("Expected to pass, but failed with error: %s", outcome)
+		t.Errorf("Expected to pass for string: %s\n...but failed with error: %s", value, outcome)
 	}
 }
 
 func assertShouldFail(t *testing.T, value string, rule StringAssert) {
 	outcome := DoStringAssert(value, rule)
 	if len(outcome) == 0 {
-		t.Error("Expected to fail but was passing")
+		t.Errorf("Expected to fail but was passing for string: %s", value)
+	} else {
+		t.Logf("DoStringAssert() output: %s", outcome)
 	}
 }

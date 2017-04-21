@@ -19,6 +19,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"syscall"
 )
@@ -27,6 +28,7 @@ const FAILED = "FAILED"
 const PASSED = "PASSED"
 
 var verbose = flag.Bool("verbose", false, "Verbose logging")
+var vars = FlagStringMap("vars", "Variable substitutions")
 
 func main() {
 	testSpec := flag.String("test_spec", "", "Path to a yaml or json file containing the test spec")
@@ -39,7 +41,11 @@ func main() {
 	suite := LoadSuite(*testSpec)
 	doSetup(suite)
 	report := doRunTests(suite)
-	defer report()
+	reportAndExit := func() {
+		failureCount := report()
+		os.Exit(failureCount)
+	}
+	defer reportAndExit()
 	doTeardown(suite)
 }
 
@@ -48,10 +54,19 @@ func info(text string, arg ...interface{}) {
 }
 
 func runCommand(name string, args ...string) (err error, stdout string, stderr string) {
+	expandedName, expandedArgs := expandCommand(name, args...)
 	if *verbose {
-		info("Running command: %v", append([]string{name}, args...))
+		originalCommand := fmt.Sprintf("%v", append([]string{name}, args...))
+		expandedCommand := fmt.Sprintf("%v", append([]string{expandedName}, expandedArgs...))
+		if originalCommand == expandedCommand {
+			info("Running command: %s", originalCommand)
+		} else {
+			info("Running command (original): %s", originalCommand)
+			info("Running command (expanded): %s", expandedCommand)
+		}
 	}
-	cmd := exec.Command(name, args...)
+
+	cmd := exec.Command(expandedName, expandedArgs...)
 	var stdoutBuffer bytes.Buffer
 	var stderrBuffer bytes.Buffer
 	cmd.Stdout = &stdoutBuffer
@@ -62,6 +77,18 @@ func runCommand(name string, args ...string) (err error, stdout string, stderr s
 	if *verbose {
 		commandOutput("STDOUT", stdout)
 		commandOutput("STDERR", stderr)
+	}
+	return
+}
+
+func expandCommand(name string, args ...string) (nameOut string, argsOut []string) {
+	mapping := func(key string) string {
+		return (*vars)[key]
+	}
+	nameOut = os.Expand(name, mapping)
+	argsOut = make([]string, 0, len(args))
+	for _, arg := range args {
+		argsOut = append(argsOut, os.Expand(arg, mapping))
 	}
 	return
 }
@@ -94,7 +121,10 @@ func doTeardown(suite Suite) {
 	}
 }
 
-func doRunTests(suite Suite) func() {
+// doRunTests executes the tests in the suite and returns a function
+// to do a summary report. This report function returns the number of
+// test failures, i.e. its returning 0 means all tests are passing.
+func doRunTests(suite Suite) func() int {
 	info(">>> Testing...")
 	results := make(map[int]string)
 	passing := make(map[int]bool)
@@ -102,12 +132,14 @@ func doRunTests(suite Suite) func() {
 		doOneTest(index, test, suite, results, passing)
 	}
 
-	report := func() {
-		allPassing := true
+	report := func() int {
+		failureCount := 0
 		for index := range suite.Tests {
-			allPassing = allPassing && passing[index]
+			if !passing[index] {
+				failureCount++
+			}
 		}
-		if allPassing {
+		if failureCount == 0 {
 			info(">>> Summary: %s", PASSED)
 		} else {
 			info(">>> Summary: %s", FAILED)
@@ -115,6 +147,7 @@ func doRunTests(suite Suite) func() {
 		for index := range suite.Tests {
 			info(" > %s", results[index])
 		}
+		return failureCount
 	}
 	return report
 }
