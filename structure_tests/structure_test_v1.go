@@ -144,7 +144,7 @@ func (st StructureTestv1) RunLicenseTests(t *testing.T) int {
 // environment before the command is executed. additionally, a boolean flag is passed
 // to specify whether or not we care about the output of the command.
 func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string,
-					shellMode bool, checkOutput bool) (string, string, int) {
+	shellMode bool, checkOutput bool) (string, string, int) {
 	var cmd *exec.Cmd
 	if len(fullCommand) == 0 {
 		t.Logf("empty command provided: skipping...")
@@ -153,7 +153,7 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string,
 	var command string
 	var flags []string
 	if shellMode {
-		command = "sh"
+		command = "/bin/sh"
 		flags = []string{"-c", strings.Join(fullCommand, " ")}
 	} else {
 		command = fullCommand[0]

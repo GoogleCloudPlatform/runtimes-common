@@ -54,9 +54,8 @@ Example:
                 "name": "Non-Existent Binary in Shell Mode",
                 "command": ["which", "asdf"],
                 "exitCode": 127,
-                "shellMode", true
+                "shellMode": true
         }
-      }
 ]
 ```
 
