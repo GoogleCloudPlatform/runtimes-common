@@ -69,7 +69,7 @@ def _verify_latest_files_match(project_name, config_latest):
     try:
         tmpdir = tempfile.mkdtemp()
         version_file = os.path.join(tmpdir, 'runtime.version')
-        builder_util._get_file_from_gcs(remote_version, version_file)
+        builder_util.get_file_from_gcs(remote_version, version_file)
 
         with open(version_file, 'r') as f:
             version_contents = f.read().strip('\n').strip(' ')
@@ -96,7 +96,7 @@ def _verify_latest_file_exists(latest_file_path):
         logging.info('Checking file {0}'.format(latest_file_path))
         tmpdir = tempfile.mkdtemp()
         latest_file = os.path.join(tmpdir, 'latest.yaml')
-        if not builder_util._get_file_from_gcs(latest_file_path, latest_file):
+        if not builder_util.get_file_from_gcs(latest_file_path, latest_file):
             logging.error('File {0} not found in GCS!'
                           .format(latest_file_path))
             return 1

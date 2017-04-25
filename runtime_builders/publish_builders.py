@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import json
 import logging
 import os
 import sys
+from ruamel import yaml
+from collections import OrderedDict
 
 import builder_util
 
@@ -31,6 +33,8 @@ def main():
                         help='directory containing builder config files',
                         required=True)
     args = parser.parse_args()
+
+    manifest = {}
 
     try:
         for filename in os.listdir(args.directory):
@@ -54,8 +58,11 @@ def main():
                         sys.exit(1)
                     full_prefix = prefix + project_name + '-'
                     latest_file = parts[0][len(full_prefix):]
-                    logging.info(latest_file)
+                    latest_file_with_project = latest[len(prefix):]
+                    manifest[project_name] = \
+                        {'target': {'file': latest_file_with_project}}
                     _write_version_file(project_name, latest_file)
+        builder_util.write_manifest_file(manifest)
     except ValueError as ve:
         logging.error('Error when parsing JSON! Check file formatting. \n{0}'
                       .format(ve))
@@ -67,8 +74,6 @@ def main():
 def _write_version_file(project_name, latest_version):
     file_name = '{0}.version'.format(project_name)
     full_path = builder_util.RUNTIME_BUCKET_PREFIX + file_name
-
-    logging.info(full_path)
 
     builder_util.write_to_gcs(full_path, latest_version)
 
