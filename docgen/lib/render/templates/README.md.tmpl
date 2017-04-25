@@ -37,7 +37,7 @@ docker run \
   {{- if .GetEmptyPersistentVolume}}
   -v {{.GetEmptyPersistentVolume.HostPath}}:{{.Path}} \
   {{- else if .GetSingleFile}}
-  -v {{.GetSingleFile.HostFile}}:{{.Path}} \
+  -v {{.GetSingleFile.HostFile}}:{{.Path}}/{{.GetSingleFile.HostFileBaseName}} \
   {{- end}}
   {{- end}}{{/* range .Volumes */}}
   -d \
@@ -59,7 +59,7 @@ docker run \
   {{- if .GetEmptyPersistentVolume}}
   -v {{.GetEmptyPersistentVolume.HostPath}}:{{.Path}} \
   {{- else if .GetSingleFile}}
-  -v {{.GetSingleFile.HostFile}}:{{.Path}} \
+  -v {{.GetSingleFile.HostFile}}:{{.Path}}/{{.GetSingleFile.HostFileBaseName}} \
   {{- end}}
   {{- end}}{{/* range .Volumes */}}
   {{- range .DependenciesWithLinkAlias}}
@@ -118,7 +118,7 @@ services:
       {{- if .GetEmptyPersistentVolume}}
       - {{.GetEmptyPersistentVolume.HostPath}}:{{.Path}}
       {{- else if .GetSingleFile}}
-      - {{.GetSingleFile.HostFile}}:{{.Path}}
+      - {{.GetSingleFile.HostFile}}:{{.Path}}/{{.GetSingleFile.HostFileBaseName}}
       {{- end}}
       {{- end}}{{/* range .Volumes */}}
     {{- end}}
@@ -149,7 +149,7 @@ services:
       {{- if .GetEmptyPersistentVolume}}
       - {{.GetEmptyPersistentVolume.HostPath}}:{{.Path}}
       {{- else if .GetSingleFile}}
-      - {{.GetSingleFile.HostFile}}:{{.Path}}
+      - {{.GetSingleFile.HostFile}}:{{.Path}}/{{.GetSingleFile.HostFileBaseName}}
       {{- end}}
       {{- end}}{{/* range .Volumes */}}
     {{- end}}
