@@ -56,6 +56,21 @@ def get_file_from_gcs(gcs_file, temp_file):
                       .format(e.output))
         return False
 
+
 def write_manifest_file(manifest):
-    manifest_contents = yaml.round_trip_dump(manifest, default_flow_style=False)
+    manifest_contents = yaml.round_trip_dump(manifest,
+                                             default_flow_style=False)
     write_to_gcs(MANIFEST_FILE, SCHEMA_LINE + manifest_contents)
+
+
+def load_manifest_file():
+    try:
+        _, tmp = tempfile.mkstemp(text=True)
+        command = ['gsutil', 'cp', MANIFEST_FILE, tmp]
+        subprocess.check_output(command, stderr=subprocess.STDOUT)
+        with open(tmp) as f:
+            return yaml.safe_load(f)
+    except subprocess.CalledProcessError:
+        logging.info('Manifest file not found in GCS: creating new one.')
+    finally:
+        os.remove(tmp)
