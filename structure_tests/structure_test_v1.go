@@ -186,7 +186,21 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string, checkO
 		} else {
 			t.Fatalf("Error running setup/teardown command: %s.", err)
 		}
-		exitCode = err.(*exec.ExitError).Sys().(syscall.WaitStatus).ExitStatus()
+
+		exitErr, ok := err.(*exec.ExitError)
+		if !ok {
+			exitErr, ok := err.(*exec.Error)
+			if ok {
+				t.Logf("Command %s failed to run! Error: %s", exitErr.Name, exitErr.Error())
+				t.Logf("Attempting to run in shell mode.")
+			} else {
+				t.Logf("Command failed to run! Unable to retrieve error info!")
+			}
+			shellCommand := append([]string{"sh", "-c"}, fullCommand...)
+			return ProcessCommand(t, envVars, shellCommand, checkOutput)
+		} else {
+			exitCode = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
+		}
 	} else {
 		exitCode = cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus()
 	}
