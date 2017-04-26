@@ -85,11 +85,11 @@ var configFile string
 func main() {
 	init_templates()
 	flag.StringVar(&configFile, "yaml", "",
-				   "path to the .yaml file containing test definitions.")
+				   "path to the .yaml file containing packages to install.")
 	flag.Parse()
 
 	if configFile == "" {
-		os.Exit(1)
+		log.Fatalf("Please provide path to yaml config file.")
 	}
 	log.Printf(configFile)
 	generateDockerfile()
