@@ -32,9 +32,7 @@ def main():
                         required=True)
     args = parser.parse_args()
 
-    manifest = builder_util.load_manifest_file()
-    if manifest is None:
-        manifest = {}
+    manifest = builder_util.load_manifest_file() or {}
     logging.info(manifest)
 
     try:
