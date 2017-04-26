@@ -195,17 +195,14 @@ func ProcessCommand(t *testing.T, envVars []EnvVar, fullCommand []string,
 		} else {
 			t.Fatalf("Error running setup/teardown command: %s.", err)
 		}
-		exitErr, ok := err.(*exec.ExitError)
-		if ok {
-			exitCode = exitErr.Sys().(syscall.WaitStatus).ExitStatus()
-		} else {
-			exitErr, ok := err.(*exec.Error)
-			if ok {
-				// Command started but failed to finish, so we can at least check the stderr
-				stderr = exitErr.Error()
-			} else {
-				t.Errorf("Command failed to start! Unable to retrieve error info!")
-			}
+		switch err := err.(type) {
+		default:
+			t.Errorf("Command failed to start! Unable to retrieve error info!")
+		case *exec.ExitError:
+			exitCode = err.Sys().(syscall.WaitStatus).ExitStatus()
+		case *exec.Error:
+			// Command started but failed to finish, so we can at least check the stderr
+			stderr = err.Error()
 		}
 	} else {
 		exitCode = cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus()
