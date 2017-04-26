@@ -16,6 +16,10 @@ commandTests:
   shellMode: true
   exitCode: 127
 
+- name: 'Non-existent Binary'
+  command: ['asdf']
+  expectedError: ['.*not found.*']
+
 fileExistenceTests:
 - name: 'Root'
   path: '/'
