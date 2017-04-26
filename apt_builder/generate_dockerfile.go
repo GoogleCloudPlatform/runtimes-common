@@ -16,6 +16,7 @@ package main
 
 import (
 	// "errors"
+	"bufio"
 	"flag"
 	// "io/ioutil"
 	"log"
@@ -35,48 +36,87 @@ func init_templates() {
 	var err error
 
 	INSTALL_TOOLS := `FROM {{.BaseImage}}
-	RUN apt-get update && apt-get install -y --force-yes \\
-	    software-properties-common python-software-properties \\`
+RUN apt-get update && apt-get install -y --force-yes \\
+    software-properties-common python-software-properties \\`
 
 	INSTALL_TMPL, err = template.New("INSTALL_TOOLS").Parse(INSTALL_TOOLS)
 	if err != nil { log.Fatalf("Error creating template: %s", err) }
 
 	// PPA_ADD := `
- //    	&& add-apt-repository -y {ppa} \\`
+ //    && add-apt-repository -y {{range $ppa := .PpaList}}{{$ppa}}{{" "}}{{end}} \\`
 
- //    PPA_TMPL, err := template.New("PPA_ADD").Parse(PPA_ADD)
-	// if err != nil { log.Fatalf("Error creating template: %s", err) }
+    PPA_ADD := `
+    && add-apt-repository -y {{.PPA}} \\`
 
-	// APT_INSTALL := `
-	//     && apt-get install -y --force-yes \\
-	//     {package_list} \\`
+    PPA_TMPL, err = template.New("PPA_ADD").Parse(PPA_ADD)
+	if err != nil { log.Fatalf("Error creating template: %s", err) }
 
-	// APT_TMPL, err := template.New("APT_INSTALL").Parse(APT_INSTALL)
-	// if err != nil { log.Fatalf("Error creating template: %s", err) }
+	APT_INSTALL := `
+    && apt-get install -y --force-yes \\
+	{{range $pkg := .PackageList}}{{$pkg}}{{" \\\\ \n        "}}{{end}} \\`
 
-	// REMOVE_TOOLS := `
-	//     && apt-get remove -y --force-yes software-properties-common \\
-	//     python-software-properties \\
-	//     && apt-get autoremove -y --force-yes \\
-	//     && apt-get clean -y --force-yes
+	APT_TMPL, err = template.New("APT_INSTALL").Parse(APT_INSTALL)
+	if err != nil { log.Fatalf("Error creating template: %s", err) }
 
-	// `
+	REMOVE_TOOLS := `
+    && apt-get remove -y --force-yes software-properties-common \\
+    python-software-properties \\
+    && apt-get autoremove -y --force-yes \\
+    && apt-get clean -y --force-yes
+`
 
-	// REMOVE_TOOLS_TMPL, err := template.New("REMOVE_TOOLS").Parse(REMOVE_TOOLS)
-	// if err != nil { log.Fatalf("Error creating template: %s", err) }
+	REMOVE_TOOLS_TMPL, err = template.New("REMOVE_TOOLS").Parse(REMOVE_TOOLS)
+	if err != nil { log.Fatalf("Error creating template: %s", err) }
 }
 
 type Installer struct {
-	BaseImage string
+	BaseImage   string
+	PpaList     []string
+	PackageList []string
+}
+
+type PpaHolder struct {
+    PPA string
 }
 
 func generateDockerfile() {
-	installer := Installer{"foobar"}
+	var err error
+
+    f, err := os.Create("/tmp/Dockerfile")
+    if err != nil {
+        log.Fatalf("Error opening file for writing: %s", err)
+    }
+
+    defer f.Close()
+
+    w := bufio.NewWriter(f)
+
+	installer := Installer{"foobar", []string{"ppa1", "ppa2"}, []string{"package1", "package2"}}
 	// TODO: change ostream to file
-	err := INSTALL_TMPL.Execute(os.Stdout, installer)
+	err = INSTALL_TMPL.Execute(w, installer)
 	if err != nil {
 		log.Fatalf("Error when executing template: %s", err)
 	}
+    for _, ppa := range installer.PpaList {
+        err = PPA_TMPL.Execute(w, PpaHolder{ppa})
+        if err != nil {
+            log.Fatalf("Error when executing template: %s", err)
+        }
+    }
+	// err = PPA_TMPL.Execute(w, installer)
+	// if err != nil {
+	// 	log.Fatalf("Error when executing template: %s", err)
+	// }
+	err = APT_TMPL.Execute(w, installer)
+	if err != nil {
+		log.Fatalf("Error when executing template: %s", err)
+	}
+	err = REMOVE_TOOLS_TMPL.Execute(w, installer)
+	if err != nil {
+		log.Fatalf("Error when executing template: %s", err)
+	}
+
+    w.Flush()
 }
 
 
