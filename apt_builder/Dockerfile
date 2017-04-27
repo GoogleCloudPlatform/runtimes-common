@@ -1,7 +1,5 @@
-FROM gcr.io/google-appengine/python
+FROM scratch
 
-RUN pip install ruamel.yaml==0.13.13
+COPY apt_builder /
 
-COPY install_packages.py /
-
-ENTRYPOINT ["/install_packages.py"]
+ENTRYPOINT ["/apt_builder"]

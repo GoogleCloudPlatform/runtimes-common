@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright 2016 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,4 +24,5 @@ if [ -z "$IMAGE" ]; then
   usage
 fi
 
-gcloud beta container builds submit . --config cloudbuild.yaml --substitutions=_IMAGE="$IMAGE"
+cd ..
+gcloud container builds submit . --config apt_builder/cloudbuild.yaml --substitutions=_IMAGE="$IMAGE"

@@ -15,74 +15,18 @@
 package main
 
 import (
-	// "errors"
 	"bufio"
 	"flag"
-	// "io/ioutil"
+	"io/ioutil"
 	"log"
 	"os"
-	// "regexp"
-	// "strings"
-	// "testing"
-	"text/template"
-
-	// "github.com/ghodss/yaml"
+	"github.com/ghodss/yaml"
 )
 
-var INSTALL_TMPL, PPA_TMPL, APT_TMPL, REMOVE_TOOLS_TMPL *template.Template
-
-
-func init_templates() {
+func generateDockerfile(installer Installer) {
 	var err error
 
-	INSTALL_TOOLS := `FROM {{.BaseImage}}
-RUN apt-get update && apt-get install -y --force-yes \\
-    software-properties-common python-software-properties \\`
-
-	INSTALL_TMPL, err = template.New("INSTALL_TOOLS").Parse(INSTALL_TOOLS)
-	if err != nil { log.Fatalf("Error creating template: %s", err) }
-
-	// PPA_ADD := `
- //    && add-apt-repository -y {{range $ppa := .PpaList}}{{$ppa}}{{" "}}{{end}} \\`
-
-    PPA_ADD := `
-    && add-apt-repository -y {{.PPA}} \\`
-
-    PPA_TMPL, err = template.New("PPA_ADD").Parse(PPA_ADD)
-	if err != nil { log.Fatalf("Error creating template: %s", err) }
-
-	APT_INSTALL := `
-    && apt-get install -y --force-yes \\
-	{{range $pkg := .PackageList}}{{$pkg}}{{" \\\\ \n        "}}{{end}} \\`
-
-	APT_TMPL, err = template.New("APT_INSTALL").Parse(APT_INSTALL)
-	if err != nil { log.Fatalf("Error creating template: %s", err) }
-
-	REMOVE_TOOLS := `
-    && apt-get remove -y --force-yes software-properties-common \\
-    python-software-properties \\
-    && apt-get autoremove -y --force-yes \\
-    && apt-get clean -y --force-yes
-`
-
-	REMOVE_TOOLS_TMPL, err = template.New("REMOVE_TOOLS").Parse(REMOVE_TOOLS)
-	if err != nil { log.Fatalf("Error creating template: %s", err) }
-}
-
-type Installer struct {
-	BaseImage   string
-	PpaList     []string
-	PackageList []string
-}
-
-type PpaHolder struct {
-    PPA string
-}
-
-func generateDockerfile() {
-	var err error
-
-    f, err := os.Create("/tmp/Dockerfile")
+    f, err := os.Create("./test/Dockerfile")
     if err != nil {
         log.Fatalf("Error opening file for writing: %s", err)
     }
@@ -91,13 +35,11 @@ func generateDockerfile() {
 
     w := bufio.NewWriter(f)
 
-	installer := Installer{"foobar", []string{"ppa1", "ppa2"}, []string{"package1", "package2"}}
-	// TODO: change ostream to file
 	err = INSTALL_TMPL.Execute(w, installer)
 	if err != nil {
 		log.Fatalf("Error when executing template: %s", err)
 	}
-    for _, ppa := range installer.PpaList {
+    for _, ppa := range installer.AptPackages.PPAs {
         err = PPA_TMPL.Execute(w, PpaHolder{ppa})
         if err != nil {
             log.Fatalf("Error when executing template: %s", err)
@@ -107,11 +49,11 @@ func generateDockerfile() {
 	// if err != nil {
 	// 	log.Fatalf("Error when executing template: %s", err)
 	// }
-	err = APT_TMPL.Execute(w, installer)
+	err = APT_TMPL.Execute(w, installer.AptPackages)
 	if err != nil {
 		log.Fatalf("Error when executing template: %s", err)
 	}
-	err = REMOVE_TOOLS_TMPL.Execute(w, installer)
+	err = REMOVE_TOOLS_TMPL.Execute(w, installer.AptPackages)
 	if err != nil {
 		log.Fatalf("Error when executing template: %s", err)
 	}
@@ -120,17 +62,30 @@ func generateDockerfile() {
 }
 
 
-var configFile string
+var baseImage, configFile string
 
 func main() {
 	init_templates()
-	flag.StringVar(&configFile, "yaml", "",
+	flag.StringVar(&configFile, "yaml", "/workspace/app.yaml",
 				   "path to the .yaml file containing packages to install.")
+	flag.StringVar(&baseImage, "base", "",
+				   "base runtime image to install packages on.")
 	flag.Parse()
 
-	if configFile == "" {
-		log.Fatalf("Please provide path to yaml config file.")
+	if baseImage == "" {
+		log.Fatalf("Please provide base image.")
 	}
-	log.Printf(configFile)
-	generateDockerfile()
+
+	configContents, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		log.Fatalf("Error when reading config file: %s", err)
+	}
+
+	var config Installer
+
+	if err := yaml.Unmarshal(configContents, &config); err != nil {
+		log.Fatalf("Error when unmarshaling yaml file: %s", err)
+	}
+
+	generateDockerfile(config)
 }
