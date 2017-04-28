@@ -1,8 +1,8 @@
 runtime: custom
 
-packages:
-  apt:
-    ppas:
-      [ppa:webupd8team/java]
-    packages:
-      [sl=3.03-17, nodejs]
+api_version: 1
+threadsafe: true
+
+apt:
+  ppas: ['ppa:webupd8team/java']
+  packages: ['sl=3.03-17', 'nodejs']
