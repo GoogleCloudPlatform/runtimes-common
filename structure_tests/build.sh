@@ -24,6 +24,5 @@ if [ -z "$IMAGE" ]; then
   usage
 fi
 
-envsubst < cloudbuild.yaml.in > cloudbuild.yaml
 cd ..
-gcloud container builds submit . --config=structure_tests/cloudbuild.yaml
+gcloud container builds submit . --config=structure_tests/cloudbuild.yaml --subtitutions "_IMAGE=${IMAGE}"

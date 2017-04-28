@@ -1,6 +1,5 @@
 *.pyc
 structure_tests.test
-cloudbuild.yaml
 config/*
 .cfg/
 **/bazel-*
