@@ -31,7 +31,7 @@ TODOs:
 docker run \
   --name {{.ContainerName}} \
   {{- range $k, $v := .DockerEnvironment}}
-  -e {{$k}}={{$v}} \
+  -e "{{$k}}={{$v}}" \
   {{- end}}
   {{- range .Volumes}}
   {{- if .GetEmptyPersistentVolume}}
@@ -50,7 +50,7 @@ docker run \
 docker run \
   --name {{.ContainerName}} \
   {{- range $k, $v := .DockerEnvironment}}
-  -e {{$k}}={{$v}} \
+  -e "{{$k}}={{$v}}" \
   {{- end}}
   {{- range .MappedExposedPorts}}
   -p {{.Mapped}}:{{.Port}}{{.DockerPortMappingProtocol}} \
@@ -88,6 +88,7 @@ docker run \
 {{- define "dockerComposeRun"}}{{/* input: enhanced.RunInstruction */}}
 
 Use the following content for the `docker-compose.yml` file, then run `docker-compose up`.
+
 ```yaml
 version: '2'
 services:
@@ -103,7 +104,7 @@ services:
     {{- if .DockerComposeEnvironment}}
     environment:
       {{- range $k, $v := .DockerComposeEnvironment}}
-      {{$k}}: {{$v}}
+      "{{$k}}": "{{$v}}"
       {{- end}}
     {{- end}}
     {{- if gt (len .MappedExposedPorts) 0}}
@@ -140,7 +141,7 @@ services:
     {{- if .DockerComposeEnvironment}}
     environment:
       {{- range $k, $v := .DockerComposeEnvironment}}
-      {{$k}}: {{$v}}
+      "{{$k}}": "{{$v}}"
       {{- end}}
     {{- end}}
     {{- if gt (len .Volumes) 0}}
@@ -175,6 +176,7 @@ services:
 {{- if gt (len .AllSingleFileVolumes) 0}}
 
 Create the following `configmap`{{ if gt (len .AllSingleFileVolumes) 1}}s{{end}}:
+
 ```shell
 {{- range .AllSingleFileVolumes}}
 kubectl create configmap {{.GetSingleFile.ConfigMapName}} \
@@ -184,6 +186,7 @@ kubectl create configmap {{.GetSingleFile.ConfigMapName}} \
 {{- end}}
 
 Copy the following content to `pod.yaml` file, and run `kubectl create -f pod.yaml`.
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -204,8 +207,8 @@ spec:
       {{- if.KubernetesEnvironment}}
       env:
         {{- range $k, $v := .KubernetesEnvironment}}
-        - name: {{$k}}
-          value: {{$v}}
+        - name: "{{$k}}"
+          value: "{{$v}}"
         {{- end}}
       {{- end}}
       {{- if gt (len .Volumes) 0}}
@@ -226,8 +229,8 @@ spec:
       {{- if.KubernetesEnvironment}}
       env:
         {{- range $k, $v := .KubernetesEnvironment}}
-        - name: {{$k}}
-          value: {{$v}}
+        - name: "{{$k}}"
+          value: "{{$v}}"
         {{- end}}
       {{- end}}
       {{- if gt (len .Volumes) 0}}
@@ -279,6 +282,7 @@ spec:
 {{- if gt (len .ExposedPorts) 0}}
 
 Run the following to expose the port{{if gt (len .ExposedPorts) 1}}s{{end}}:
+
 ```shell
 {{- range .ExposedPorts}}
 kubectl expose pod {{$.ContainerName}} --name {{$.ContainerName}}-{{.NamingPort}} \
@@ -332,12 +336,14 @@ Or you can use `docker run` directly:
 {{- define "dockerfileInstruction"}}{{/* input: enhanced.DockerfileInstruction */}}
 
 Use the following content for the `Dockerfile` file:
+
 ```dockerfile
 FROM {{.BaseImage}}
 {{.Content}}
 ```
 
 Then build the image with:
+
 ```shell
 docker build -t {{.DeriveTargetImage}}
 ```
@@ -391,6 +397,7 @@ kubectl exec {{.ContainerName}} -- {{.Command}}
 {{.Description}}
 {{- end}}
 {{- if gt (len .Command) 0}}
+
 ```
 {{.Command}}
 ```
@@ -407,10 +414,12 @@ kubectl exec {{.ContainerName}} -- {{.Command}}
 {{- if .Runtime.IsDocker}}
 
 {{- if .ToContainer}}
+
 ```shell
 docker cp {{.HostPath}} {{.ContainerName}}:{{.Path}}
 ```
 {{- else}}
+
 ```shell
 docker cp {{.ContainerName}}:{{.Path}} {{.HostPath}}
 ```
@@ -419,10 +428,12 @@ docker cp {{.ContainerName}}:{{.Path}} {{.HostPath}}
 {{- else}}
 
 {{- if .ToContainer}}
+
 ```shell
 kubectl cp {{.HostPath}} {{.ContainerName}}:{{.Path}}
 ```
 {{- else}}
+
 ```shell
 kubectl cp {{.ContainerName}}:{{.Path}} {{.HostPath}}
 ```
@@ -569,6 +580,7 @@ These are the filesystem paths used by the container image.
 {{.Overview.Description}}
 
 Pull command:
+
 ```shell
 {{.Overview.PullCommand}}
 ```
