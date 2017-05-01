@@ -179,7 +179,8 @@ def _main():
         whitelist = []
     logging.info("whitelist=%s", whitelist)
 
-    return len(_check_for_vulnz(_sub_image(args.image), args.severity, whitelist))
+    return len(_check_for_vulnz(_sub_image(args.image),
+                                args.severity, whitelist))
 
 
 if __name__ == '__main__':
