@@ -27,7 +27,7 @@ func init_templates() {
 
 	INSTALL_TOOLS := `FROM {{.BaseImage}}
 RUN apt-get update && apt-get install -y --force-yes \
-    software-properties-common python-software-properties \`
+    apt-utils software-properties-common python-software-properties \`
 
 	INSTALL_TMPL, err = template.New("INSTALL_TOOLS").Parse(INSTALL_TOOLS)
 	if err != nil { log.Fatalf("Error creating template: %s", err) }
@@ -47,7 +47,7 @@ RUN apt-get update && apt-get install -y --force-yes \
 
 	REMOVE_TOOLS := `
     && apt-get remove -y --force-yes software-properties-common \
-    python-software-properties \
+    python-software-properties apt-utils \
     && apt-get autoremove -y --force-yes \
     && apt-get clean -y --force-yes
 	`
