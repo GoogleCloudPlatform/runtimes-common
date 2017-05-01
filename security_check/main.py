@@ -52,7 +52,9 @@ def _find_base_image(image):
     if img:
         base_img_url = img[0]['base_image_url']
         base_img = base_img_url[len('https://'):base_img_url.find('@')]
-        return base_img.replace('launcher.gcr.io/google', 'gcr.io/google-appengine').replace('l.gcr.io/google', 'gcr.io/google-appengine')
+        return (base_img.replace('launcher.gcr.io/google',
+                                 'gcr.io/google-appengine')
+                .replace('l.gcr.io/google', 'gcr.io/google-appengine'))
 
 
 def _check_for_vulnz(image, severity, whitelist):
