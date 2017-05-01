@@ -17,15 +17,14 @@ package main
 import (
 	"bufio"
 	"flag"
+	"github.com/ghodss/yaml"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
-	"github.com/ghodss/yaml"
 )
 
 var INTERMEDIATE_IMAGE_TAG = "apt:intermediate"
-
 
 func generateDockerfile(installer Installer) (int, string) {
 	var err error
@@ -36,28 +35,28 @@ func generateDockerfile(installer Installer) (int, string) {
 		return 1, ""
 	}
 
-    f, err := os.Create(build_dir + "/Dockerfile")
-    if err != nil {
-        log.Printf("Error opening file for writing: %s", err)
-        return 1, build_dir
-    }
+	f, err := os.Create(build_dir + "/Dockerfile")
+	if err != nil {
+		log.Printf("Error opening file for writing: %s", err)
+		return 1, build_dir
+	}
 
-    defer f.Close()
+	defer f.Close()
 
-    w := bufio.NewWriter(f)
+	w := bufio.NewWriter(f)
 
 	err = INSTALL_TMPL.Execute(w, installer)
 	if err != nil {
 		log.Printf("Error when executing template: %s", err)
 		return 1, build_dir
 	}
-    for _, ppa := range installer.AptPackages.PPAs {
-        err = PPA_TMPL.Execute(w, PpaHolder{ppa})
-        if err != nil {
-            log.Printf("Error when executing template: %s", err)
-            return 1, build_dir
-        }
-    }
+	for _, ppa := range installer.AptPackages.PPAs {
+		err = PPA_TMPL.Execute(w, PpaHolder{ppa})
+		if err != nil {
+			log.Printf("Error when executing template: %s", err)
+			return 1, build_dir
+		}
+	}
 	err = APT_TMPL.Execute(w, installer.AptPackages)
 	if err != nil {
 		log.Printf("Error when executing template: %s", err)
@@ -69,10 +68,9 @@ func generateDockerfile(installer Installer) (int, string) {
 		return 1, build_dir
 	}
 
-    w.Flush()
-    return 0, build_dir
+	w.Flush()
+	return 0, build_dir
 }
-
 
 func doBuild(build_dir string) int {
 	docker_flags := []string{"build", "--no-cache", "-t", INTERMEDIATE_IMAGE_TAG, build_dir}
@@ -86,15 +84,14 @@ func doBuild(build_dir string) int {
 	return 0
 }
 
-
 var baseImage, configFile string
 
 func main() {
 	init_templates()
 	flag.StringVar(&configFile, "yaml", "/workspace/app.yaml",
-				   "path to the .yaml file containing packages to install.")
+		"path to the .yaml file containing packages to install.")
 	flag.StringVar(&baseImage, "base", "",
-				   "base runtime image to install packages on.")
+		"base runtime image to install packages on.")
 	flag.Parse()
 
 	if baseImage == "" {

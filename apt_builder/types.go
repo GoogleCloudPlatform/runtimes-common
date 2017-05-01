@@ -25,7 +25,7 @@ type AptPackageHolder struct {
 }
 
 type PpaHolder struct {
-    PPA string
+	PPA string
 }
 
 type BaseImageHolder struct {
