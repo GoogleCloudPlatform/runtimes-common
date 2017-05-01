@@ -32,9 +32,6 @@ RUN apt-get update && apt-get install -y --force-yes \
 	INSTALL_TMPL, err = template.New("INSTALL_TOOLS").Parse(INSTALL_TOOLS)
 	if err != nil { log.Fatalf("Error creating template: %s", err) }
 
-	// PPA_ADD := `
- //    && add-apt-repository -y {{range $ppa := .PpaList}}{{$ppa}}{{" "}}{{end}} \\`
-
     PPA_ADD := `
     && add-apt-repository -y {{.PPA}} \`
 
@@ -53,7 +50,7 @@ RUN apt-get update && apt-get install -y --force-yes \
     python-software-properties \
     && apt-get autoremove -y --force-yes \
     && apt-get clean -y --force-yes
-`
+	`
 
 	REMOVE_TOOLS_TMPL, err = template.New("REMOVE_TOOLS").Parse(REMOVE_TOOLS)
 	if err != nil { log.Fatalf("Error creating template: %s", err) }
