@@ -46,11 +46,9 @@ _SUB_MAP = {
 
 
 def _sub_image(image):
-    for k in _SUB_MAP.keys():
-        if k in image:
-            image = image.replace(k, _SUB_MAP.get(k))
-
-    return image
+    repoAndImage = image.rsplit('/', 1)
+    repo = _SUB_MAP.get(repoAndImage[0], repoAndImage[0])
+    return '/'.join((repo, repoAndImage[1]))
 
 
 def _run_gcloud(cmd):
