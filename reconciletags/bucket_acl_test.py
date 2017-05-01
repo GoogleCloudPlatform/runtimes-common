@@ -3,11 +3,8 @@
 Looks at the GCS buckets where all GCR container information is stored and
 makes sure they're all world readable."""
 
-import datetime
-import glob
 import json
 import logging
-import os
 import subprocess
 import unittest
 
@@ -27,17 +24,18 @@ class BucketAclTest(unittest.TestCase):
         return 'gs://{0}'.format(bucket_name)
 
     def test_bucket_acls(self):
-        repos = ['gcp-runtimes', 'google-appengine']
+        repos = ['gcp-runtimes', 'google-appengine', 'runtime-builders']
         mirrors = ['', 'asia', 'eu', 'us']
         bad_buckets = []
         for repo in repos:
             for mirror in mirrors:
                 # Construct bucket name
                 bucket_name = self._get_bucket_name(repo, mirror)
+
                 # Grab acls json
                 acls = self._get_acls(bucket_name)
-                # check that entity: allUsers and role: READER are somewhere in the
-                # json. if not, add to list of failing buckets
+
+                # Make sure its world readable
                 valid = False
                 for acl in acls:
                     if acl['entity'] == 'allUsers':
@@ -50,6 +48,7 @@ class BucketAclTest(unittest.TestCase):
         if len(bad_buckets) > 0:
             self.fail('The following buckets have incorrect ACLs:'
                       + str(bad_buckets))
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
