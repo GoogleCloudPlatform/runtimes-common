@@ -49,10 +49,8 @@ func generateDockerfile(installer Installer) (error, string) {
 		return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
 	}
 
-	for _, ppa := range installer.AptPackages.PPAs {
-		if err := PPA_TMPL.Execute(w, PpaHolder{ppa}); err != nil {
-			return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
-		}
+	if err := PPA_TMPL.Execute(w, installer.AptPackages); err != nil {
+		return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
 	}
 
 	if err := APT_TMPL.Execute(w, installer.AptPackages); err != nil {

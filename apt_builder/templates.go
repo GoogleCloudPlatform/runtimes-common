@@ -33,8 +33,7 @@ RUN apt-get update && apt-get install -y --force-yes \
 		log.Fatalf("Error creating template: %s", err)
 	}
 
-	PPA_ADD := `
-    && add-apt-repository -y {{.PPA}} \`
+	PPA_ADD := `{{range $ppa := .PPAs}}{{"\n    && add-apt-repository -y "}}{{$ppa}} \{{end}}`
 
 	PPA_TMPL, err = template.New("PPA_ADD").Parse(PPA_ADD)
 	if err != nil {
@@ -43,19 +42,19 @@ RUN apt-get update && apt-get install -y --force-yes \
 
 	APT_INSTALL := `{{if .Packages}}
     && apt-get update && apt-get install -y --force-yes \
-	{{range $pkg := .Packages}}{{$pkg}}{{" \\ \n        "}}{{end}} \{{end}}`
+    {{range $pkg := .Packages}}   {{$pkg }} \
+    {{end}}{{end}}`
 
 	APT_TMPL, err = template.New("APT_INSTALL").Parse(APT_INSTALL)
 	if err != nil {
 		log.Fatalf("Error creating template: %s", err)
 	}
 
-	REMOVE_TOOLS := `
-    && apt-get remove -y --force-yes software-properties-common \
-    python-software-properties apt-utils \
+	REMOVE_TOOLS := `&& apt-get remove -y --force-yes software-properties-common \
+       python-software-properties apt-utils \
     && apt-get autoremove -y --force-yes \
     && apt-get clean -y --force-yes
-	`
+`
 
 	REMOVE_TOOLS_TMPL, err = template.New("REMOVE_TOOLS").Parse(REMOVE_TOOLS)
 	if err != nil {
