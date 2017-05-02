@@ -19,44 +19,27 @@ import (
 	"text/template"
 )
 
-var INSTALL_TMPL, PPA_TMPL, APT_TMPL, REMOVE_TOOLS_TMPL *template.Template
+var DOCKERFILE_TMPL *template.Template
 
 func init_templates() {
 	var err error
 
-	INSTALL_TOOLS := `FROM {{.BaseImage}}
+	DOCKERFILE := `FROM {{.BaseImage}}
 RUN apt-get update && apt-get install -y --force-yes \
-    apt-utils software-properties-common python-software-properties \`
-
-	INSTALL_TMPL, err = template.New("INSTALL_TOOLS").Parse(INSTALL_TOOLS)
-	if err != nil {
-		log.Fatalf("Error creating template: %s", err)
-	}
-
-	PPA_ADD := `{{range $ppa := .PPAs}}{{"\n    && add-apt-repository -y "}}{{$ppa}} \{{end}}`
-
-	PPA_TMPL, err = template.New("PPA_ADD").Parse(PPA_ADD)
-	if err != nil {
-		log.Fatalf("Error creating template: %s", err)
-	}
-
-	APT_INSTALL := `{{if .Packages}}
+    apt-utils software-properties-common python-software-properties \
+    {{range $ppa := .AptPackages.PPAs}}
+    {{"&& add-apt-repository -y "}}{{$ppa}} \{{end}}
+    {{if .AptPackages.Packages}}
     && apt-get update && apt-get install -y --force-yes \
-    {{range $pkg := .Packages}}   {{$pkg }} \
-    {{end}}{{end}}`
-
-	APT_TMPL, err = template.New("APT_INSTALL").Parse(APT_INSTALL)
-	if err != nil {
-		log.Fatalf("Error creating template: %s", err)
-	}
-
-	REMOVE_TOOLS := `&& apt-get remove -y --force-yes software-properties-common \
+    {{range $pkg := .AptPackages.Packages}}   {{$pkg }} \
+    {{end}}{{end}}
+    && apt-get remove -y --force-yes software-properties-common \
        python-software-properties apt-utils \
     && apt-get autoremove -y --force-yes \
     && apt-get clean -y --force-yes
 `
 
-	REMOVE_TOOLS_TMPL, err = template.New("REMOVE_TOOLS").Parse(REMOVE_TOOLS)
+	DOCKERFILE_TMPL, err = template.New("DOCKERFILE").Parse(DOCKERFILE)
 	if err != nil {
 		log.Fatalf("Error creating template: %s", err)
 	}

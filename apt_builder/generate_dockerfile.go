@@ -45,19 +45,7 @@ func generateDockerfile(installer Installer) (error, string) {
 	defer f.Close()
 	w := bufio.NewWriter(f)
 
-	if err := INSTALL_TMPL.Execute(w, installer); err != nil {
-		return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
-	}
-
-	if err := PPA_TMPL.Execute(w, installer.AptPackages); err != nil {
-		return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
-	}
-
-	if err := APT_TMPL.Execute(w, installer.AptPackages); err != nil {
-		return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
-	}
-
-	if err := REMOVE_TOOLS_TMPL.Execute(w, installer.AptPackages); err != nil {
+	if err := DOCKERFILE_TMPL.Execute(w, installer); err != nil {
 		return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
 	}
 
