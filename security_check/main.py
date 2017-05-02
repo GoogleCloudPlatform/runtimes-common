@@ -45,10 +45,13 @@ _SUB_MAP = {
 }
 
 
-def _sub_image(image):
-    repo, image = image.rsplit('/', 1)
+def _sub_image(full_image):
+    repo, image = full_image.rsplit('/', 1)
     repo = _SUB_MAP.get(repo, repo)
-    return '/'.join((repo, image))
+    new_image = '/'.join((repo, image))
+    if new_image != full_image:
+        logging.info('Checking %s instead of %s', new_image, full_image)
+    return new_image
 
 
 def _run_gcloud(cmd):
