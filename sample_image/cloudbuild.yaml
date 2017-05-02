@@ -1,5 +1,5 @@
 steps:
-  - name: gcr.io/nick-cloudbuild/apt-builder
+  - name: gcr.io/gcp-runtimes/apt-builder
     args: ['--yaml', 'app.yaml']
   - name: gcr.io/cloud-builders/docker:latest
     args: ['build', '--tag=${_IMAGE}', '.']
