@@ -25,6 +25,7 @@ func init_templates() {
 	var err error
 
 	DOCKERFILE := `FROM {{.BaseImage}}
+{{if or .AptPackages.Packages .AptPackages.PPAs}}
 RUN apt-get update && apt-get install -y --force-yes \
     apt-utils software-properties-common python-software-properties \
     {{range $ppa := .AptPackages.PPAs}}
@@ -37,6 +38,7 @@ RUN apt-get update && apt-get install -y --force-yes \
        python-software-properties apt-utils \
     && apt-get autoremove -y --force-yes \
     && apt-get clean -y --force-yes
+{{end}}
 `
 
 	DOCKERFILE_TMPL, err = template.New("DOCKERFILE").Parse(DOCKERFILE)
