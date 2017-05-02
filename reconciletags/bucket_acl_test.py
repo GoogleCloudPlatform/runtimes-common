@@ -17,18 +17,21 @@ class BucketAclTest(unittest.TestCase):
                                            'get', bucket]))
         return acls
 
-    def _get_bucket_name(self, repo, mirror):
-        bucket_name = 'artifacts.{0}.appspot.com'.format(repo)
+    def _get_bucket_name(self, bucket_name, mirror):
         if mirror:
             bucket_name = '{0}.{1}'.format(mirror, bucket_name)
         return 'gs://{0}'.format(bucket_name)
 
     def test_bucket_acls(self):
-        repos = ['gcp-runtimes', 'google-appengine', 'runtime-builders']
+        repos = ['artifacts.gcp-runtimes.appspot.com',
+                 'artifacts.google-appengine.appspot.com',
+                 'runtime-builders']
         mirrors = ['', 'asia', 'eu', 'us']
         bad_buckets = []
         for repo in repos:
             for mirror in mirrors:
+                if repo == 'runtime-builders' and mirror != '':
+                    continue
                 # Construct bucket name
                 bucket_name = self._get_bucket_name(repo, mirror)
 
