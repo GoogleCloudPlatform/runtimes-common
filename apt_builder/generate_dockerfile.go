@@ -16,72 +16,67 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
+	"fmt"
 	"github.com/ghodss/yaml"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
+	"path"
 )
 
 var INTERMEDIATE_IMAGE_TAG = "apt:intermediate"
 
-func generateDockerfile(installer Installer) (int, string) {
+func generateDockerfile(installer Installer) (error, string) {
 	var err error
 
 	build_dir, err := ioutil.TempDir(".", "intermediate_base.")
 	if err != nil {
-		log.Printf("Error when creating temp_dir: %s", err)
-		return 1, ""
+		return errors.New(fmt.Sprintf("Error when creating temp_dir: %s", err)), ""
 	}
 
-	f, err := os.Create(build_dir + "/Dockerfile")
+	f, err := os.Create(path.Join(build_dir, "/Dockerfile"))
 	if err != nil {
-		log.Printf("Error opening file for writing: %s", err)
-		return 1, build_dir
+		return errors.New(fmt.Sprintf("Error opening file for writing: %s", err)), build_dir
 	}
 
 	defer f.Close()
-
 	w := bufio.NewWriter(f)
 
-	err = INSTALL_TMPL.Execute(w, installer)
-	if err != nil {
-		log.Printf("Error when executing template: %s", err)
-		return 1, build_dir
+	if err := INSTALL_TMPL.Execute(w, installer); err != nil {
+		return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
 	}
+
 	for _, ppa := range installer.AptPackages.PPAs {
-		err = PPA_TMPL.Execute(w, PpaHolder{ppa})
-		if err != nil {
-			log.Printf("Error when executing template: %s", err)
-			return 1, build_dir
+		if err := PPA_TMPL.Execute(w, PpaHolder{ppa}); err != nil {
+			return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
 		}
 	}
-	err = APT_TMPL.Execute(w, installer.AptPackages)
-	if err != nil {
-		log.Printf("Error when executing template: %s", err)
-		return 1, build_dir
+
+	if err := APT_TMPL.Execute(w, installer.AptPackages); err != nil {
+		return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
 	}
-	err = REMOVE_TOOLS_TMPL.Execute(w, installer.AptPackages)
-	if err != nil {
-		log.Printf("Error when executing template: %s", err)
-		return 1, build_dir
+
+	if err := REMOVE_TOOLS_TMPL.Execute(w, installer.AptPackages); err != nil {
+		return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
 	}
 
 	w.Flush()
-	return 0, build_dir
+	return nil, build_dir
 }
 
-func doBuild(build_dir string) int {
+func doBuild(build_dir string) error {
 	docker_flags := []string{"build", "--no-cache", "-t", INTERMEDIATE_IMAGE_TAG, build_dir}
 	cmd := exec.Command("docker", docker_flags...)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		return 1
+		return err
 	}
-	return 0
+	return nil
 }
 
 var baseImage, configFile string
@@ -110,14 +105,17 @@ func main() {
 	}
 	config.BaseImage = baseImage
 
-	gen_code, build_dir := generateDockerfile(config)
-	if gen_code != 0 {
+	err, build_dir := generateDockerfile(config)
+	if err != nil {
+		log.Printf(err.Error())
 		if build_dir != "" {
 			os.RemoveAll(build_dir)
 		}
-		os.Exit(gen_code)
+		os.Exit(1)
 	}
-	build_code := doBuild(build_dir)
+	err = doBuild(build_dir)
 	os.RemoveAll(build_dir)
-	os.Exit(build_code)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
 }
