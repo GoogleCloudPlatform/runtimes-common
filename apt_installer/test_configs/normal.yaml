@@ -1,0 +1,5 @@
+runtime: test
+
+apt:
+  packages: ['ruby', 'nodejs']
+  ppas: ['ppa:webupd8team/java']

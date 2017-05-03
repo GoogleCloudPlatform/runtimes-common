@@ -29,7 +29,25 @@ import (
 )
 
 var INTERMEDIATE_IMAGE_TAG = "apt:intermediate"
-var DOCKERFILE_TMPL *template.Template
+
+var DOCKERFILE = `FROM {{.BaseImage}}
+{{if or .AptPackages.Packages .AptPackages.PPAs}}
+RUN apt-get update && apt-get install -y --force-yes \
+    apt-utils software-properties-common python-software-properties \
+    {{range $ppa := .AptPackages.PPAs}}
+    {{"&& add-apt-repository -y "}}{{$ppa}} \{{end}}
+    {{if .AptPackages.Packages}}
+    && apt-get update && apt-get install -y --force-yes \
+    {{range $pkg := .AptPackages.Packages}}   {{$pkg }} \
+    {{end}}{{end}}
+    && apt-get remove -y --force-yes software-properties-common \
+       python-software-properties apt-utils \
+    && apt-get autoremove -y --force-yes \
+    && apt-get clean -y --force-yes
+{{end}}
+`
+
+var DOCKERFILE_TMPL = template.Must(template.New("DOCKERFILE").Parse(DOCKERFILE))
 
 func generateDockerfile(installer Installer) (error, string) {
 	var err error
@@ -67,36 +85,7 @@ func doBuild(build_dir string) error {
 	return nil
 }
 
-var baseImage, configFile string
-
-func main() {
-	var err error
-
-	DOCKERFILE := `FROM {{.BaseImage}}
-{{if or .AptPackages.Packages .AptPackages.PPAs}}
-RUN apt-get update && apt-get install -y --force-yes \
-    apt-utils software-properties-common python-software-properties \
-    {{range $ppa := .AptPackages.PPAs}}
-    {{"&& add-apt-repository -y "}}{{$ppa}} \{{end}}
-    {{if .AptPackages.Packages}}
-    && apt-get update && apt-get install -y --force-yes \
-    {{range $pkg := .AptPackages.Packages}}   {{$pkg }} \
-    {{end}}{{end}}
-    && apt-get remove -y --force-yes software-properties-common \
-       python-software-properties apt-utils \
-    && apt-get autoremove -y --force-yes \
-    && apt-get clean -y --force-yes
-{{end}}
-`
-
-	DOCKERFILE_TMPL = template.Must(template.New("DOCKERFILE").Parse(DOCKERFILE))
-
-	flag.StringVar(&configFile, "yaml", "/workspace/app.yaml",
-		"path to the .yaml file containing packages to install.")
-	flag.StringVar(&baseImage, "base", "",
-		"base runtime image to install packages on.")
-	flag.Parse()
-
+func createInstaller(baseImage string, configFile string) Installer {
 	if baseImage == "" {
 		log.Fatalf("Please provide base image.")
 	}
@@ -112,6 +101,21 @@ RUN apt-get update && apt-get install -y --force-yes \
 		log.Fatalf("Error when unmarshaling yaml file: %s", err)
 	}
 	config.BaseImage = baseImage
+	return config
+}
+
+var baseImage, configFile string
+
+func main() {
+	var err error
+
+	flag.StringVar(&configFile, "yaml", "/workspace/app.yaml",
+		"path to the .yaml file containing packages to install.")
+	flag.StringVar(&baseImage, "base", "",
+		"base runtime image to install packages on.")
+	flag.Parse()
+
+	config := createInstaller(baseImage, configFile)
 
 	err, build_dir := generateDockerfile(config)
 	if err != nil {

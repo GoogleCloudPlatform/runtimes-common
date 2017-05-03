@@ -1,0 +1,4 @@
+runtime: test
+
+apt:
+  packages: ['ruby', 'nodejs']

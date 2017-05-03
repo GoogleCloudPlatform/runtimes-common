@@ -1,0 +1,4 @@
+runtime: test
+
+apt:
+  ppas: ['ppa:webupd8team/java']
