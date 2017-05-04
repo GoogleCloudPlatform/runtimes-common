@@ -114,6 +114,7 @@ const functionalTestsDir = "tests/functional_tests"
 const structureTestsDir = "tests/structure_tests"
 const testJsonSuffix = "_test.json"
 const testYamlSuffix = "_test.yaml"
+const workspacePrefix = "/workspace/"
 
 type imageBuildTemplateData struct {
 	Directory       string
@@ -171,8 +172,9 @@ func newCloudBuildTemplateData(
 			}
 		}
 		data.AllImages = append(data.AllImages, images...)
+		versionSTests, versionFTests := filterTests(structureTests, functionalTests, v)
 		data.ImageBuilds = append(
-			data.ImageBuilds, imageBuildTemplateData{v.Dir, images[0], images[1:], structureTests, functionalTests})
+			data.ImageBuilds, imageBuildTemplateData{v.Dir, images[0], images[1:], versionSTests, versionFTests})
 	}
 
 	data.TimeoutSeconds = options.TimeoutSeconds
@@ -188,8 +190,35 @@ func readTests(testsDir string) (tests []string) {
 				continue
 			}
 			if strings.HasSuffix(f.Name(), testJsonSuffix) || strings.HasSuffix(f.Name(), testYamlSuffix) {
-				tests = append(tests, fmt.Sprintf("/workspace/%s/%s", testsDir, f.Name()))
+				tests = append(tests, workspacePrefix+fmt.Sprintf("%s/%s", testsDir, f.Name()))
 			}
+		}
+	}
+	return
+}
+
+func filterTests(structureTests []string, functionalTests []string, version versions.Version) (outStructureTests []string, outFunctionalTests []string) {
+	included := make(map[string]bool, len(structureTests)+len(functionalTests))
+	for _, test := range append(structureTests, functionalTests...) {
+		included[test] = true
+	}
+	for _, excluded := range version.ExcludeTests {
+		if !included[workspacePrefix+excluded] {
+			log.Fatalf("No such test to exclude: %s", excluded)
+		}
+		included[workspacePrefix+excluded] = false
+	}
+
+	outStructureTests = make([]string, 0, len(structureTests))
+	for _, test := range structureTests {
+		if included[test] {
+			outStructureTests = append(outStructureTests, test)
+		}
+	}
+	outFunctionalTests = make([]string, 0, len(functionalTests))
+	for _, test := range functionalTests {
+		if included[test] {
+			outFunctionalTests = append(outFunctionalTests, test)
 		}
 	}
 	return
