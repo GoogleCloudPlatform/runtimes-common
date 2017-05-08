@@ -1,0 +1,15 @@
+project: java
+builders:
+  - name: java-jetty-9
+    file: path/to/jetty.yaml
+    latest: java-jetty-9-1234.yaml
+  - name: java-openjdk-8
+    file: path/to/openjdk.yaml
+    latest: java-openjdk-8-1234.yaml
+aliases:
+  - name: java
+    alias: java-openjdk
+  - name: java-openjdk
+    alias: java-openjdk-8
+  - name: java-jetty
+    alias: java-jetty-9
