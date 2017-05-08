@@ -48,18 +48,25 @@ def _resolve_and_publish(config_file, bucket):
     try:
         gcs_paths = []
         with open(config_file, 'r') as f:
-            project_cfg = json.load(f)
+            if 'json' in config_file:
+                project_cfg = json.load(f)
+            elif 'yaml' in config_file:
+                project_cfg = yaml.round_trip_load(f)
+            else:
+                logging.error('Please provide a valid yaml or json config file.')
+                sys.exit(1)
+            print yaml.round_trip_dump(project_cfg, indent=2)
             project_name = project_cfg['project']
             for builder in project_cfg['builders']:
-                cfg = os.path.abspath(str(builder['path']))
+                cfg = os.path.abspath(str(builder['file']))
                 name = builder['name']
                 builder_name = project_name + '-' + name
 
                 templated_file = _resolve_tags(cfg)
                 logging.info(templated_file)
-                gcs_paths.append(_publish_to_gcs(templated_file,
-                                                 builder_name,
-                                                 bucket))
+                # gcs_paths.append(_publish_to_gcs(templated_file,
+                #                                  builder_name,
+                #                                  bucket))
 
         logging.info('Published Runtimes:')
         logging.info(gcs_paths)

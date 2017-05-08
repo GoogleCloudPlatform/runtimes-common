@@ -21,12 +21,12 @@ import subprocess
 import tempfile
 
 
-RUNTIME_BUCKET = 'runtime-builders'
+# RUNTIME_BUCKET = 'runtime-builders'
+RUNTIME_BUCKET = 'runtimes'
 RUNTIME_BUCKET_PREFIX = 'gs://{0}/'.format(RUNTIME_BUCKET)
 MANIFEST_FILE = RUNTIME_BUCKET_PREFIX + 'runtimes.yaml'
 
 SCHEMA_VERSION = 1
-SCHEMA_LINE = 'schema_version: {0}\n'.format(SCHEMA_VERSION)
 
 
 def write_to_gcs(gcs_path, file_contents):
@@ -57,10 +57,13 @@ def get_file_from_gcs(gcs_file, temp_file):
         return False
 
 
-def write_manifest_file(manifest):
+def verify_manifest(manifest):
+    return 0
+
+def write_manifest(manifest):
     manifest_contents = yaml.round_trip_dump(manifest,
                                              default_flow_style=False)
-    write_to_gcs(MANIFEST_FILE, SCHEMA_LINE + manifest_contents)
+    write_to_gcs(MANIFEST_FILE, manifest_contents)
 
 
 def load_manifest_file():
@@ -69,8 +72,9 @@ def load_manifest_file():
         command = ['gsutil', 'cp', MANIFEST_FILE, tmp]
         subprocess.check_output(command, stderr=subprocess.STDOUT)
         with open(tmp) as f:
-            return yaml.safe_load(f)
+            return yaml.round_trip_load(f)
     except subprocess.CalledProcessError:
         logging.info('Manifest file not found in GCS: creating new one.')
+        return {'schema_version': builder_util.SCHEMA_VERSION}
     finally:
         os.remove(tmp)

@@ -18,6 +18,7 @@ import argparse
 import json
 import logging
 import os
+from ruamel import yaml
 import sys
 
 import builder_util
@@ -32,8 +33,8 @@ def main():
                         required=True)
     args = parser.parse_args()
 
-    manifest = builder_util.load_manifest_file() or {}
-    logging.info(manifest)
+    manifest = builder_util.load_manifest_file()
+    logging.debug(yaml.round_trip_dump(manifest, indent=4))
 
     try:
         for filename in os.listdir(args.directory):
@@ -41,16 +42,15 @@ def main():
             if filepath.endswith('.json'):
                 with open(filepath, 'r') as f:
                     config = json.load(f)
-                prefix = builder_util.RUNTIME_BUCKET_PREFIX
-                latest = config['latest']
-                if not latest.startswith(prefix):
-                    logging.error('Please provide fully qualified path to '
-                                  'config file in GCS!')
-                    logging.error('Path should start with \'{0}\''
-                                  ''.format(prefix))
-                    sys.exit(1)
-                _format_and_write(config['project'], latest, prefix, manifest)
-        builder_util.write_manifest_file(manifest)
+            elif filepath.endswith('.yaml'):
+                with open(filepath, 'r') as f:
+                    config = yaml.round_trip_load(f)
+            else:
+                continue
+            _parse_and_write(config, manifest)
+        # logging.info('final manifest: {0}'.format(yaml.round_trip_dump(manifest, indent=4)))
+        # builder_util.verify_manifest(manifest)
+        builder_util.write_manifest(manifest)
     except ValueError as ve:
         logging.error('Error when parsing JSON! Check file formatting. \n{0}'
                       .format(ve))
@@ -59,38 +59,64 @@ def main():
                       .format(ke))
 
 
-def _format_and_write(project_name, latest, prefix, manifest):
+def _parse_and_write(config, manifest):
+    project_name = config['project']
+    builders = config['builders']
+    aliases = config['aliases']
+    for builder in builders:
+        _process_builder(builder, project_name, manifest)
+    for alias in aliases:
+        _process_alias(alias, manifest)
+
+    ### TODO: remove once we deprecate old <runtime>.version file
+    latest = config['latest']
+    _publish_latest(latest, project_name)
+
+
+def _publish_latest(latest, project_name):
+    parts = os.path.splitext(latest)
+    project_prefix = builder_util.RUNTIME_BUCKET_PREFIX + project_name + '-'
+    latest_file = parts[0][len(project_prefix):]
+    file_name = '{0}.version'.format(project_name)
+    full_path = builder_util.RUNTIME_BUCKET_PREFIX + file_name
+    builder_util.write_to_gcs(full_path, latest_file)
+
+
+def _process_builder(builder, project_name, manifest):
+    prefix = builder_util.RUNTIME_BUCKET_PREFIX
+    latest = builder['latest']
+    if not latest.startswith(prefix):
+        logging.error('Please provide fully qualified path to '
+                      'config file in GCS!')
+        logging.error('Path \'{0}\' should start with \'{1}\''
+                      ''.format(latest, prefix))
+        sys.exit(1)
     parts = os.path.splitext(latest)
     if parts[1] != '.yaml':
         logging.error('Please provide yaml config file to publish as latest!')
         sys.exit(1)
     try:
-        project_prefix = prefix + project_name + '-'
-        latest_file = parts[0][len(project_prefix):]
         full_latest_file = latest[len(prefix):]
-        if project_name not in manifest.keys():
-            manifest[project_name] = {}
-            manifest[project_name]['target'] = {}
-            manifest[project_name]['target']['file'] = None
-            # TODO: add logic here for 'file' vs 'runtime' when
-            # we add support for versioning
-        m_project = manifest[project_name]
+        name = builder['name']
+        if name not in manifest.keys():
+            manifest[name] = {}
+            manifest[name]['target'] = {}
+            manifest[name]['target']['file'] = None
+        m_project = manifest[name]
         prev_builder = m_project['target']['file']
         if prev_builder is not None and prev_builder != full_latest_file:
             logging.warn('Overwriting old {0} builder: {1}'
-                         .format(project_name, prev_builder))
+                         .format(name, prev_builder))
         m_project['target']['file'] = full_latest_file
-        _write_version_file(project_name, latest_file)
     except KeyError as ke:
         logging.error('FATAL: Formatting issue encountered in manifest. '
                       'Exiting. \n{0}'.format(ke))
         sys.exit(1)
 
 
-def _write_version_file(project_name, latest_version):
-    file_name = '{0}.version'.format(project_name)
-    full_path = builder_util.RUNTIME_BUCKET_PREFIX + file_name
-    builder_util.write_to_gcs(full_path, latest_version)
+def _process_alias(alias, manifest):
+    # print alias
+    return 0
 
 
 if __name__ == '__main__':
