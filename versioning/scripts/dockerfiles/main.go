@@ -35,7 +35,7 @@ func check(e error) {
 
 func main() {
 	templateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template")
-	verifyPtr := flag.Bool("verify", false, "Verify dockerfiles")
+	verifyPtr := flag.Bool("verify-only", false, "Verify dockerfiles")
 	flag.Parse()
 
 	var spec versions.Spec
