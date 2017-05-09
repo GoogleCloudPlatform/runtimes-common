@@ -37,10 +37,10 @@ Follow the format defined in `versions.go`. See an example on
 Primary folders in the Dockerfile source repo:
 
 - `templates` contains `Dockerfile.template`, which is a Go template for
-  generating `Dockerfile`s.
+  generating `Dockerfiles`.
 - `tests` contains any tests that should be included in the generated cloud
   build configuration.
-- Version folders as defined in `versions.yaml`. The `Dockerfile`s are
+- Version folders as defined in `versions.yaml`. The `Dockerfiles` are
   generated into these folders. The folders should also contain all
   supporting files for each version, for example `docker-entrypoint.sh` files.
 
