@@ -64,9 +64,9 @@ def _resolve_and_publish(config_file, bucket):
 
                 templated_file = _resolve_tags(cfg)
                 logging.info(templated_file)
-                # gcs_paths.append(_publish_to_gcs(templated_file,
-                #                                  builder_name,
-                #                                  bucket))
+                gcs_paths.append(_publish_to_gcs(templated_file,
+                                                 builder_name,
+                                                 bucket))
 
         logging.info('Published Runtimes:')
         logging.info(gcs_paths)
