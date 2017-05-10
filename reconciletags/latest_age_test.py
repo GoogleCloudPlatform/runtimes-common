@@ -26,9 +26,8 @@ class LatestAgeTest(unittest.TestCase):
                                            repo]))
         image = images[0]
         if image:
-            return datetime.datetime.strptime(
-                      images[0]['timestamp']['datetime'],
-                      '%Y-%m-%d %H:%M:%S-07:00')
+            return datetime.datetime.strptime(image['timestamp']['datetime'],
+                                              '%Y-%m-%d %H:%M:%S-07:00')
 
     def test_latest_age(self):
         old_repos = []
