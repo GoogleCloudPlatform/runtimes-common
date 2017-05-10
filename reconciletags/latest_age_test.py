@@ -29,6 +29,7 @@ class LatestAgeTest(unittest.TestCase):
             return datetime.datetime.strptime(
                       images[0]['timestamp']['datetime'],
                       '%Y-%m-%d %H:%M:%S-07:00')
+
     def test_latest_age(self):
         old_repos = []
         invalid_repos = []
