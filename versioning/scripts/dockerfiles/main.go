@@ -27,6 +27,40 @@ func writeDockerfile(version versions.Version, data []byte) {
 	check(err)
 }
 
+func verifyDockerfiles(spec versions.Spec, tmpl template.Template) {
+	foundDockerfile := make(map[string]bool)
+	failureCount := 0
+
+	for _, version := range spec.Versions {
+		data := renderDockerfile(version, tmpl)
+
+		path := filepath.Join(version.Dir, "Dockerfile")
+		dockerfile, err := ioutil.ReadFile(path)
+		check(err)
+
+		foundDockerfile[path] = true
+
+		if string(dockerfile) == string(data) {
+			log.Printf("%s: OK", path)
+		} else {
+			failureCount++
+			log.Printf("%s: FAIL", path)
+		}
+	}
+
+	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		check(err)
+		if info.Name() == "Dockerfile" && !info.IsDir() && !foundDockerfile[path] {
+			failureCount++
+			log.Printf("%s: UNIDENTIFIED", path)
+		}
+		return nil
+	})
+	check(err)
+
+	os.Exit(failureCount)
+}
+
 func check(e error) {
 	if e != nil {
 		panic(e)
@@ -52,37 +86,7 @@ func main() {
 	check(err)
 
 	if *verifyPtr {
-		foundDockerfile := make(map[string]bool)
-		failureCount := 0
-
-		for _, version := range spec.Versions {
-			data := renderDockerfile(version, *tmpl)
-
-			path := filepath.Join(version.Dir, "Dockerfile")
-			dockerfile, err := ioutil.ReadFile(path)
-			check(err)
-
-			foundDockerfile[path] = true
-
-			if string(dockerfile) == string(data) {
-				log.Printf("%s: OK", path)
-			} else {
-				failureCount++
-				log.Printf("%s: FAIL", path)
-			}
-		}
-
-		err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-			check(err)
-			if info.Name() == "Dockerfile" && !info.IsDir() && !foundDockerfile[path] {
-				failureCount++
-				log.Printf("%s: UNIDENTIFIED", path)
-			}
-			return nil
-		})
-		check(err)
-
-		os.Exit(failureCount)
+		verifyDockerfiles(spec, *tmpl)
 	} else {
 		for _, version := range spec.Versions {
 			data := renderDockerfile(version, *tmpl)
