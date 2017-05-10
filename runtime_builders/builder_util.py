@@ -58,10 +58,8 @@ def get_file_from_gcs(gcs_file, temp_file):
         return False
 
 
-def verify_manifest(manifest):
-    return 0
-
-def write_manifest(manifest):
+def verify_and_write_manifest(manifest):
+    # TODO: verify manifest contents before writing
     manifest_contents = yaml.round_trip_dump(manifest,
                                              default_flow_style=False)
     write_to_gcs(MANIFEST_FILE, manifest_contents)

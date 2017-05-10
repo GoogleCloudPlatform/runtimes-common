@@ -53,7 +53,7 @@ def _resolve_and_publish(config_file, bucket):
             elif 'yaml' in config_file:
                 project_cfg = yaml.round_trip_load(f)
             else:
-                logging.error('Please provide a valid yaml or json config file.')
+                logging.error('Please provide a valid yaml/json config file.')
                 sys.exit(1)
             print yaml.round_trip_dump(project_cfg, indent=2)
             project_name = project_cfg['project']

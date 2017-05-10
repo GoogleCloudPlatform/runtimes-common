@@ -48,9 +48,7 @@ def main():
             else:
                 continue
             _parse_and_write(config, manifest)
-        # logging.info('final manifest: {0}'.format(yaml.round_trip_dump(manifest, indent=4)))
-        # builder_util.verify_manifest(manifest)
-        builder_util.write_manifest(manifest)
+        builder_util.verify_and_write_manifest(manifest)
     except ValueError as ve:
         logging.error('Error when parsing JSON! Check file formatting. \n{0}'
                       .format(ve))
@@ -73,7 +71,7 @@ def _parse_and_write(config, manifest):
                       .format(ke))
         sys.exit(1)
 
-    ### TODO: remove once we deprecate old <runtime>.version file
+    # TODO: remove once we deprecate old <runtime>.version file
     latest = config['latest']
     _publish_latest(latest, project_name)
 
