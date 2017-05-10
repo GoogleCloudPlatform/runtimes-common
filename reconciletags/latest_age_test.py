@@ -21,12 +21,14 @@ class LatestAgeTest(unittest.TestCase):
                   subprocess.check_output(['gcloud', 'container',
                                            'images', 'list-tags',
                                            '--no-show-occurrences',
-                                           '--format=json', repo]))
-        for image in images:
-            if 'latest' in image['tags']:
-                return datetime.datetime.strptime(
-                    image['timestamp']['datetime'], '%Y-%m-%d %H:%M:%S')
-
+                                           '--format=json',
+                                           '--filter=tags=latest',
+                                           repo]))
+        image = images[0]
+        if image:
+            return datetime.datetime.strptime(
+                      images[0]['timestamp']['datetime'],
+                      '%Y-%m-%d %H:%M:%S-07:00')
     def test_latest_age(self):
         old_repos = []
         invalid_repos = []
@@ -45,6 +47,8 @@ class LatestAgeTest(unittest.TestCase):
                         invalid_repos.append(full_repo)
                     age_threshold = project.get('age_threshold',
                                                 DEFAULT_AGE_THRESHOLD)
+                    if age_threshold == 0:
+                        continue
                     threshold = (last_deploy +
                                  datetime.timedelta(days=age_threshold))
                     if threshold < datetime.datetime.now():
