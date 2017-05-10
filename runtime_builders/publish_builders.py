@@ -60,13 +60,18 @@ def main():
 
 
 def _parse_and_write(config, manifest):
-    project_name = config['project']
-    builders = config['builders']
-    aliases = config['aliases']
-    for builder in builders:
-        _process_builder(builder, project_name, manifest)
-    for alias in aliases:
-        _process_alias(alias, manifest)
+    try:
+        project_name = config['project']
+        builders = config['builders']
+        aliases = config['aliases']
+        for builder in builders:
+            _process_builder(builder, manifest)
+        for alias in aliases:
+            _process_alias(alias, manifest)
+    except KeyError as ke:
+        logging.error('Fatal error encountered when parsing config: {0}'
+                      .format(ke))
+        sys.exit(1)
 
     ### TODO: remove once we deprecate old <runtime>.version file
     latest = config['latest']
@@ -82,7 +87,7 @@ def _publish_latest(latest, project_name):
     builder_util.write_to_gcs(full_path, latest_file)
 
 
-def _process_builder(builder, project_name, manifest):
+def _process_builder(builder, manifest):
     prefix = builder_util.RUNTIME_BUCKET_PREFIX
     latest = builder['latest']
     if not latest.startswith(prefix):
@@ -95,28 +100,31 @@ def _process_builder(builder, project_name, manifest):
     if parts[1] != '.yaml':
         logging.error('Please provide yaml config file to publish as latest!')
         sys.exit(1)
+
+    full_latest_file = latest[len(prefix):]
+    _process_entry(builder['name'], full_latest_file, 'file', manifest)
+
+
+def _process_alias(alias, manifest):
+    _process_entry(alias['name'], alias['alias'], 'runtime', manifest)
+
+
+def _process_entry(entry_key, entry_value, manifest_key, manifest):
     try:
-        full_latest_file = latest[len(prefix):]
-        name = builder['name']
-        if name not in manifest.keys():
-            manifest[name] = {}
-            manifest[name]['target'] = {}
-            manifest[name]['target']['file'] = None
-        m_project = manifest[name]
-        prev_builder = m_project['target']['file']
-        if prev_builder is not None and prev_builder != full_latest_file:
-            logging.warn('Overwriting old {0} builder: {1}'
-                         .format(name, prev_builder))
-        m_project['target']['file'] = full_latest_file
+        if entry_key not in manifest.keys():
+            manifest[entry_key] = {}
+            manifest[entry_key]['target'] = {}
+            manifest[entry_key]['target'][manifest_key] = None
+        m_project = manifest[entry_key]
+        prev_entry = m_project['target'][manifest_key]
+        if prev_entry is not None and prev_entry != entry_value:
+            logging.warn('Overwriting old {0} {1} entry: {2}'
+                         .format(entry_key, manifest_key, prev_entry))
+        manifest[entry_key]['target'][manifest_key] = entry_value
     except KeyError as ke:
         logging.error('FATAL: Formatting issue encountered in manifest. '
                       'Exiting. \n{0}'.format(ke))
         sys.exit(1)
-
-
-def _process_alias(alias, manifest):
-    # print alias
-    return 0
 
 
 if __name__ == '__main__':
