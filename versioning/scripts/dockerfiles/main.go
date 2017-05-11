@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"flag"
 	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
 	"text/template"
 
@@ -25,6 +27,27 @@ func writeDockerfile(version versions.Version, data []byte) {
 	check(err)
 }
 
+func verifyDockerfiles(spec versions.Spec, tmpl template.Template) {
+	failureCount := 0
+
+	for _, version := range spec.Versions {
+		data := renderDockerfile(version, tmpl)
+
+		path := filepath.Join(version.Dir, "Dockerfile")
+		dockerfile, err := ioutil.ReadFile(path)
+		check(err)
+
+		if string(dockerfile) == string(data) {
+			log.Printf("%s: OK", path)
+		} else {
+			failureCount++
+			log.Printf("%s: FAILED", path)
+		}
+	}
+
+	os.Exit(failureCount)
+}
+
 func check(e error) {
 	if e != nil {
 		panic(e)
@@ -33,6 +56,8 @@ func check(e error) {
 
 func main() {
 	templateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template")
+	verifyPtr := flag.Bool("verify_only", false, "Verify dockerfiles")
+	flag.Parse()
 
 	var spec versions.Spec
 	spec = versions.LoadVersions("versions.yaml")
@@ -47,8 +72,12 @@ func main() {
 		Parse(templateString)
 	check(err)
 
-	for _, version := range spec.Versions {
-		data := renderDockerfile(version, *tmpl)
-		writeDockerfile(version, data)
+	if *verifyPtr {
+		verifyDockerfiles(spec, *tmpl)
+	} else {
+		for _, version := range spec.Versions {
+			data := renderDockerfile(version, *tmpl)
+			writeDockerfile(version, data)
+		}
 	}
 }
