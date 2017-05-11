@@ -28,7 +28,6 @@ func writeDockerfile(version versions.Version, data []byte) {
 }
 
 func verifyDockerfiles(spec versions.Spec, tmpl template.Template) {
-	foundDockerfile := make(map[string]bool)
 	failureCount := 0
 
 	for _, version := range spec.Versions {
@@ -38,25 +37,13 @@ func verifyDockerfiles(spec versions.Spec, tmpl template.Template) {
 		dockerfile, err := ioutil.ReadFile(path)
 		check(err)
 
-		foundDockerfile[path] = true
-
 		if string(dockerfile) == string(data) {
 			log.Printf("%s: OK", path)
 		} else {
 			failureCount++
-			log.Printf("%s: FAIL", path)
+			log.Printf("%s: FAILED", path)
 		}
 	}
-
-	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-		check(err)
-		if info.Name() == "Dockerfile" && !info.IsDir() && !foundDockerfile[path] {
-			failureCount++
-			log.Printf("%s: UNIDENTIFIED", path)
-		}
-		return nil
-	})
-	check(err)
 
 	os.Exit(failureCount)
 }
@@ -69,7 +56,7 @@ func check(e error) {
 
 func main() {
 	templateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template")
-	verifyPtr := flag.Bool("verify-only", false, "Verify dockerfiles")
+	verifyPtr := flag.Bool("verify_only", false, "Verify dockerfiles")
 	flag.Parse()
 
 	var spec versions.Spec
