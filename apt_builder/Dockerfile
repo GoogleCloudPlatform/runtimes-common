@@ -1,3 +1,3 @@
-FROM gcr.io/cloud-builders/docker
+FROM scratch
 ADD builder /builder
 ENTRYPOINT ["/builder"]

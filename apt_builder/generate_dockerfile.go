@@ -24,33 +24,28 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 )
 
 var INTERMEDIATE_IMAGE_TAG = "apt:intermediate"
 
-func generateDockerfile(installer Installer) (error, string) {
+func generateDockerfile(config RuntimeConfig) error {
 	var err error
 
-	build_dir, err := ioutil.TempDir(".", "intermediate_base.")
+	f, err := os.OpenFile(config.Dockerfile, os.O_RDONLY|os.O_APPEND|os.O_WRONLY, 0666)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error when creating temp_dir: %s", err)), ""
-	}
-
-	f, err := os.Create(path.Join(build_dir, "/Dockerfile"))
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error opening file for writing: %s", err)), build_dir
+		return errors.New(fmt.Sprintf("Error when reading Dockerfile %s: %s",
+									  config.Dockerfile, err))
 	}
 
 	defer f.Close()
 	w := bufio.NewWriter(f)
 
-	if err := DOCKERFILE_TMPL.Execute(w, installer); err != nil {
-		return errors.New(fmt.Sprintf("Error when executing template: %s", err)), build_dir
+	if err := DOCKERFILE_TMPL.Execute(w, config); err != nil {
+		return errors.New(fmt.Sprintf("Error when executing template: %s", err))
 	}
 
 	w.Flush()
-	return nil, build_dir
+	return nil
 }
 
 func doBuild(build_dir string) error {
@@ -65,18 +60,18 @@ func doBuild(build_dir string) error {
 	return nil
 }
 
-var baseImage, configFile string
+var dockerfile, configFile string
 
 func main() {
 	init_templates()
 	flag.StringVar(&configFile, "yaml", "/workspace/app.yaml",
 		"path to the .yaml file containing packages to install.")
-	flag.StringVar(&baseImage, "base", "",
-		"base runtime image to install packages on.")
+	flag.StringVar(&dockerfile, "dockerfile", "",
+		"path to the Dockerfile for the application.")
 	flag.Parse()
 
-	if baseImage == "" {
-		log.Fatalf("Please provide base image.")
+	if dockerfile == "" {
+		log.Fatalf("Please provide path to Dockerfile")
 	}
 
 	configContents, err := ioutil.ReadFile(configFile)
@@ -84,23 +79,14 @@ func main() {
 		log.Fatalf("Error when reading config file: %s", err)
 	}
 
-	var config Installer
+	var config RuntimeConfig
 
 	if err := yaml.Unmarshal(configContents, &config); err != nil {
 		log.Fatalf("Error when unmarshaling yaml file: %s", err)
 	}
-	config.BaseImage = baseImage
+	config.Dockerfile = dockerfile
 
-	err, build_dir := generateDockerfile(config)
-	if err != nil {
-		log.Printf(err.Error())
-		if build_dir != "" {
-			os.RemoveAll(build_dir)
-		}
-		os.Exit(1)
-	}
-	err = doBuild(build_dir)
-	os.RemoveAll(build_dir)
+	err = generateDockerfile(config)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}

@@ -24,8 +24,7 @@ var DOCKERFILE_TMPL *template.Template
 func init_templates() {
 	var err error
 
-	DOCKERFILE := `FROM {{.BaseImage}}
-{{if or .AptPackages.Packages .AptPackages.PPAs}}
+	DOCKERFILE := `{{if or .AptPackages.Packages .AptPackages.PPAs}}
 RUN apt-get update && apt-get install -y --force-yes \
     apt-utils software-properties-common python-software-properties \
     {{range $ppa := .AptPackages.PPAs}}

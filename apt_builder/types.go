@@ -14,20 +14,12 @@
 
 package main
 
-type Installer struct {
-	AptPackages AptPackageHolder `json:"apt"`
-	BaseImage   string
+type RuntimeConfig struct {
+	AptPackages AptPackageHolder `json:"runtime_config"`
+	Dockerfile string
 }
 
 type AptPackageHolder struct {
-	PPAs     []string `ppas`
+	PPAs     []string `sources`
 	Packages []string `packages`
-}
-
-type PpaHolder struct {
-	PPA string
-}
-
-type BaseImageHolder struct {
-	BaseImage string
 }
