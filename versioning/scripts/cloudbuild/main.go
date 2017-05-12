@@ -58,9 +58,8 @@ const cloudBuildTemplateString = `steps:
 
 {{- range $imageIndex, $image := .ImageBuilds }}
 {{- $primary := $image.Tag }}
-
-{{- range $image.StructureTests }}
-{{- if eq $imageIndex 0}}
+{{- range $testIndex, $test := $image.StructureTests }}
+{{- if and (eq $imageIndex 0) (eq $testIndex 0) }}
 
 # Run structure tests
 {{- end}}
@@ -69,20 +68,24 @@ const cloudBuildTemplateString = `steps:
       - '--image'
       - '{{ $primary }}'
       - '--config'
-      - '{{ . }}'
+      - '{{ $test }}'
+{{- end }}
 {{- end }}
 
-{{- range $image.FunctionalTests }}
-{{- if eq $imageIndex 0}}
+{{- range $imageIndex, $image := .ImageBuilds }}
+{{- $primary := $image.Tag }}
+{{- range $testIndex, $test := $image.FunctionalTests }}
+{{- if and (eq $imageIndex 0) (eq $testIndex 0) }}
 
 # Run functional tests
 {{- end }}
   - name: gcr.io/$PROJECT_ID/functional_test
     args:
+      - '--verbose'
       - '--vars'
       - 'IMAGE={{ $primary }}'
       - '--test_spec'
-      - '{{ . }}'
+      - '{{ $test }}'
 {{- end }}
 
 {{- end }}
