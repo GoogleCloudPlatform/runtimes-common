@@ -16,7 +16,7 @@ package main
 
 type RuntimeConfig struct {
 	AptPackages AptPackageHolder `json:"runtime_config"`
-	Dockerfile string
+	Dockerfile  string
 }
 
 type AptPackageHolder struct {

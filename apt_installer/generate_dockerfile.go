@@ -46,14 +46,13 @@ RUN apt-get update && apt-get install -y --force-yes \
 
 var DOCKERFILE_TMPL = template.Must(template.New("DOCKERFILE").Parse(DOCKERFILE))
 
-
 func generateDockerfile(config RuntimeConfig) error {
 	var err error
 
 	f, err := os.OpenFile(config.Dockerfile, os.O_RDONLY|os.O_APPEND|os.O_WRONLY, 0666)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error when reading Dockerfile %s: %s",
-									  config.Dockerfile, err))
+			config.Dockerfile, err))
 	}
 
 	defer f.Close()
@@ -66,7 +65,6 @@ func generateDockerfile(config RuntimeConfig) error {
 	w.Flush()
 	return nil
 }
-
 
 func createInstaller(dockerfile string, configFile string) RuntimeConfig {
 	if dockerfile == "" {
@@ -86,7 +84,6 @@ func createInstaller(dockerfile string, configFile string) RuntimeConfig {
 	config.Dockerfile = dockerfile
 	return config
 }
-
 
 var dockerfile, configFile string
 
