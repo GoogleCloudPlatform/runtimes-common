@@ -25,4 +25,4 @@ if [ -z "$IMAGE" ]; then
 fi
 
 cd ..
-gcloud container builds submit . --config apt_builder/cloudbuild.yaml --substitutions=_IMAGE="$IMAGE"
+gcloud container builds submit . --config apt_installer/cloudbuild.yaml --substitutions=_IMAGE="$IMAGE"

@@ -23,10 +23,29 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
+	"text/template"
 )
 
 var INTERMEDIATE_IMAGE_TAG = "apt:intermediate"
+
+var DOCKERFILE = `{{if or .AptPackages.Packages .AptPackages.PPAs}}
+RUN apt-get update && apt-get install -y --force-yes \
+    apt-utils software-properties-common python-software-properties \
+    {{range $ppa := .AptPackages.PPAs}}
+    {{"&& add-apt-repository -y "}}{{$ppa}} \{{end}}
+    {{if .AptPackages.Packages}}
+    && apt-get update && apt-get install -y --force-yes \
+    {{range $pkg := .AptPackages.Packages}}   {{$pkg }} \
+    {{end}}{{end}}
+    && apt-get remove -y --force-yes software-properties-common \
+       python-software-properties apt-utils \
+    && apt-get autoremove -y --force-yes \
+    && apt-get clean -y --force-yes
+{{end}}
+`
+
+var DOCKERFILE_TMPL = template.Must(template.New("DOCKERFILE").Parse(DOCKERFILE))
+
 
 func generateDockerfile(config RuntimeConfig) error {
 	var err error
@@ -48,28 +67,8 @@ func generateDockerfile(config RuntimeConfig) error {
 	return nil
 }
 
-func doBuild(build_dir string) error {
-	docker_flags := []string{"build", "--no-cache", "-t", INTERMEDIATE_IMAGE_TAG, build_dir}
-	cmd := exec.Command("docker", docker_flags...)
 
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	return nil
-}
-
-var dockerfile, configFile string
-
-func main() {
-	init_templates()
-	flag.StringVar(&configFile, "yaml", "/workspace/app.yaml",
-		"path to the .yaml file containing packages to install.")
-	flag.StringVar(&dockerfile, "dockerfile", "",
-		"path to the Dockerfile for the application.")
-	flag.Parse()
-
+func createInstaller(dockerfile string, configFile string) RuntimeConfig {
 	if dockerfile == "" {
 		log.Fatalf("Please provide path to Dockerfile")
 	}
@@ -85,6 +84,22 @@ func main() {
 		log.Fatalf("Error when unmarshaling yaml file: %s", err)
 	}
 	config.Dockerfile = dockerfile
+	return config
+}
+
+
+var dockerfile, configFile string
+
+func main() {
+	var err error
+
+	flag.StringVar(&configFile, "yaml", "/workspace/app.yaml",
+		"path to the .yaml file containing packages to install.")
+	flag.StringVar(&dockerfile, "dockerfile", "",
+		"path to the Dockerfile for the application.")
+	flag.Parse()
+
+	config := createInstaller(dockerfile, configFile)
 
 	err = generateDockerfile(config)
 	if err != nil {

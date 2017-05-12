@@ -1,7 +1,0 @@
-steps:
-  - name: gcr.io/cloud-builders/go
-    args: ['build', '-o', '/workspace/apt_builder/builder', 'github.com/GoogleCloudPlatform/runtimes-common/apt_builder']
-    env: ['PROJECT_ROOT=github.com/GoogleCloudPlatform/runtimes-common']
-  - name: gcr.io/cloud-builders/docker
-    args: ['build', '--tag', '${_IMAGE}', './apt_builder']
-images: ['${_IMAGE}']
