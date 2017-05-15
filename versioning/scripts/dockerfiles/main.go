@@ -30,6 +30,7 @@ func writeDockerfile(version versions.Version, data []byte) {
 func verifyDockerfiles(spec versions.Spec, tmpl template.Template) {
 	foundDockerfile := make(map[string]bool)
 	failureCount := 0
+	warningCount := 0
 
 	for _, version := range spec.Versions {
 		data := renderDockerfile(version, tmpl)
@@ -51,16 +52,19 @@ func verifyDockerfiles(spec versions.Spec, tmpl template.Template) {
 	err := filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
 		check(err)
 		if info.Name() == "Dockerfile" && !info.IsDir() && !foundDockerfile[path] {
-			log.Printf("%s: UNIDENTIFIED (only WARNING)", path)
+			warningCount++
+			log.Printf("%s: UNIDENTIFIED (warning)", path)
 		}
 		return nil
 	})
 	check(err)
 
-	if failureCount == 0 {
-		log.Print(">>> Summary: PASSED")
+	if failureCount == 0 && warningCount > 0 {
+		log.Print("Dockerfile verification completed: PASSED (with warnings)")
+	} else if failureCount == 0 {
+		log.Print("Dockerfile verification completed: PASSED")
 	} else {
-		log.Print(">>> Summary: FAILED")
+		log.Print("Dockerfile verification completed: FAILED")
 	}
 
 	os.Exit(failureCount)
