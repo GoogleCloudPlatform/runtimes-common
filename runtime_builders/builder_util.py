@@ -71,7 +71,7 @@ def verify_and_write_manifest(manifest):
     """
     try:
         node_graph = {}
-        for item in manifest.items():
+        for item in manifest.get('runtimes').items():
             key = item[0]
             if key == 'schema_version':
                 continue
@@ -93,6 +93,7 @@ def verify_and_write_manifest(manifest):
                                   .format(child.name, child.child))
                     sys.exit(1)
                 child = node_graph[child.child]
+            print 'child of {0}: {1}'.format(node.name, child.name)
             if not child.isBuilder:
                 logging.error('No terminating builder for alias {0}'
                               .format(node.name))
