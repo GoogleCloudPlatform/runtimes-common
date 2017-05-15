@@ -29,21 +29,25 @@ MANIFEST_FILE = RUNTIME_BUCKET_PREFIX + 'runtimes.yaml'
 SCHEMA_VERSION = 1
 
 
+def copy_to_gcs(file_path, gcs_path):
+    command = ['gsutil', 'cp', file_path, gcs_path]
+    try:
+        output = subprocess.check_output(command)
+    except subprocess.CalledProcessError as cpe:
+        logging.error('Error encountered when writing to GCS!')
+    except Exception as e:
+        logging.error('Fatal error encountered when shelling command {0}'
+                      .format(command))
+        logging.error(e)
+
+
 def write_to_gcs(gcs_path, file_contents):
     try:
         logging.info(gcs_path)
         fd, f_name = tempfile.mkstemp(text=True)
         os.write(fd, file_contents)
 
-        command = ['gsutil', 'cp', f_name, gcs_path]
-        output = ''
-        try:
-            output = subprocess.check_output(command)
-        except subprocess.CalledProcessError as e:
-            logging.error('Error encountered when writing to GCS!')
-            if output is not '':
-                logging.error(output)
-            logging.error(e)
+        copy_to_gcs(f_name, gcs_path)
     finally:
         os.remove(f_name)
 
@@ -59,7 +63,7 @@ def get_file_from_gcs(gcs_file, temp_file):
         return False
 
 
-def verify_and_write_manifest(manifest):
+def verify_manifest(manifest):
     """Verify that the provided runtime manifest is valid before publishing.
 
     Aliases are provided for runtime 'names' that can be included in users'
@@ -68,14 +72,24 @@ def verify_and_write_manifest(manifest):
 
     All builders and aliases are turned into nodes in a graph, which is then
     traversed to be sure that all nodes lead down to a builder node.
+
+    Example formatting of the manifest, showing both an 'alias' and
+    an actual builder file:
+
+    runtimes:
+      java:
+        target:
+          runtime: java-openjdk
+      java-openjdk:
+        target:
+          file: gs://runtimes/java-openjdk-1234.yaml
     """
     try:
         node_graph = {}
-        for item in manifest.get('runtimes').items():
-            key = item[0]
+        for key, val in manifest.get('runtimes').iteritems():
             if key == 'schema_version':
                 continue
-            target = item[1]['target']
+            target = val['target']
             child = None
             isBuilder = 'file' in target.keys()
             if not isBuilder:
@@ -93,7 +107,6 @@ def verify_and_write_manifest(manifest):
                                   .format(child.name, child.child))
                     sys.exit(1)
                 child = node_graph[child.child]
-            print 'child of {0}: {1}'.format(node.name, child.name)
             if not child.isBuilder:
                 logging.error('No terminating builder for alias {0}'
                               .format(node.name))
@@ -101,9 +114,6 @@ def verify_and_write_manifest(manifest):
     except KeyError as ke:
         logging.error('Error encountered when verifying manifest:', ke)
         sys.exit(1)
-    manifest_contents = yaml.round_trip_dump(manifest,
-                                             default_flow_style=False)
-    write_to_gcs(MANIFEST_FILE, manifest_contents)
 
 
 def load_manifest_file():
