@@ -27,7 +27,7 @@ import sys
 import builder_util
 
 
-IMAGE_REGEX = '(.*gcr\.io/).*'
+IMAGE_REGEX = '((us.|eu.|asia.)?gcr\.io/).*'
 
 
 def main():
