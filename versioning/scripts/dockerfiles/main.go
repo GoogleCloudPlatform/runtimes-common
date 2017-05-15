@@ -57,6 +57,12 @@ func verifyDockerfiles(spec versions.Spec, tmpl template.Template) {
 	})
 	check(err)
 
+	if failureCount == 0 {
+		log.Print(">>> Summary: PASSED")
+	} else {
+		log.Print(">>> Summary: FAILED")
+	}
+
 	os.Exit(failureCount)
 }
 
