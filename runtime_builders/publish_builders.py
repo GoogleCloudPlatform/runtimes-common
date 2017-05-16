@@ -48,7 +48,7 @@ def main():
         builder_util.verify_manifest(manifest)
         manifest_contents = yaml.round_trip_dump(manifest,
                                              default_flow_style=False)
-        builder_util.copy_to_gcs(builder_util.MANIFEST_FILE, args.manifest)
+        builder_util.copy_to_gcs(args.manifest, builder_util.MANIFEST_FILE)
 
         if args.directory:
             _publish_latest(args.directory)

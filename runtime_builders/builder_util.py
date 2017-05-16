@@ -83,24 +83,31 @@ def verify_manifest(manifest):
       java-openjdk:
         target:
           file: gs://runtimes/java-openjdk-1234.yaml
+        deprecation:
+          message: "openjdk is deprecated."
     """
     try:
         node_graph = {}
         for key, val in manifest.get('runtimes').iteritems():
-            if key == 'schema_version':
+            target = val.get('target', {})
+            if not target:
+                deprecation = val.get('deprecation', {})
+                if not deprecation:
+                    logging.error('No target or deprecation specified for '
+                                  'runtime: {0}'.format(key))
+                    sys.exit(1)
                 continue
-            target = val['target']
             child = None
             isBuilder = 'file' in target.keys()
             if not isBuilder:
                 child = target['runtime']
-            node = node_graph.get(key, None)
-            if node is None:
+            node = node_graph.get(key, {})
+            if not node:
                 node_graph[key] = Node(key, isBuilder, child)
         for _, node in node_graph.items():
             child = node
             while True:
-                if child.child is None:
+                if not child.child:
                     break
                 elif child.child not in node_graph.keys():
                     logging.error('Non-existent alias provided for {0}: {1}'
