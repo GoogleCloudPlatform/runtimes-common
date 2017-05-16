@@ -98,8 +98,8 @@ def _resolve_tags(config_file):
                     arg = args[i]
                     m = re.search(IMAGE_REGEX, arg)
                     if m:
-                        prefix = m.string[0:m.start()]
-                        suffix = m.string[m.start():m.end()]
+                        suffix = m.group()
+                        prefix = arg.replace(suffix, '')
                         args[i] = prefix + _resolve_tag(suffix)
 
             return yaml.round_trip_dump(config)
