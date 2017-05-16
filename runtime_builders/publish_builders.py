@@ -46,8 +46,6 @@ def main():
         with open(args.manifest, 'r') as f:
             manifest = yaml.safe_load(f)
         builder_util.verify_manifest(manifest)
-        manifest_contents = yaml.round_trip_dump(manifest,
-                                             default_flow_style=False)
         builder_util.copy_to_gcs(args.manifest, builder_util.MANIFEST_FILE)
 
         if args.directory:
