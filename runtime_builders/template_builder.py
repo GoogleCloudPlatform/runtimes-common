@@ -55,7 +55,6 @@ def _resolve_and_publish(config_file, bucket):
             else:
                 logging.error('Please provide a valid yaml/json config file.')
                 sys.exit(1)
-            print yaml.round_trip_dump(project_cfg, indent=2)
             project_name = project_cfg['project']
             for builder in project_cfg['builders']:
                 cfg = os.path.abspath(str(builder['file']))

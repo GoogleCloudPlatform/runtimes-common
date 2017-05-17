@@ -59,8 +59,8 @@ def main():
 
 
 def _publish_latest(builder_dir):
-    for file in glob.glob(os.path.join(builder_dir, '*.json')):
-        with open(file, 'r') as f:
+    for f in glob.glob(os.path.join(builder_dir, '*.json')):
+        with open(f, 'r') as f:
             config = json.load(f)
 
         latest = config['latest']

@@ -17,6 +17,7 @@
 import logging
 import os
 from ruamel import yaml
+from sets import Set
 import subprocess
 import sys
 import tempfile
@@ -106,8 +107,10 @@ def verify_manifest(manifest):
             if not node:
                 node_graph[key] = Node(key, isBuilder, child)
         for _, node in node_graph.items():
+            seen = Set()
             child = node
             while True:
+                seen.add(child)
                 if not child.child:
                     break
                 elif child.child not in node_graph.keys():
@@ -115,6 +118,10 @@ def verify_manifest(manifest):
                                   .format(child.name, child.child))
                     sys.exit(1)
                 child = node_graph[child.child]
+                if child in seen:
+                    logging.error('Circular dependency found in manifest! '
+                                  'Check node {0}'.format(child))
+                    sys.exit(1)
             if not child.isBuilder:
                 logging.error('No terminating builder for alias {0}'
                               .format(node.name))
