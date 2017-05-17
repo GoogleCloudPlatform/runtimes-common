@@ -1,19 +1,33 @@
-language: python
+sudo: required
+dist: trusty
+
+language: java
 python:
         - "2.7"
+jdk:
+  - oraclejdk8
 
 before_install:
-        - pip install --upgrade -r requirements.txt
+        - pip install --user --upgrade -r requirements.txt
 
 addons:
   apt:
     sources:
-    - debian-sid    # Grab shellcheck from the Debian repo (o_O)
+    - sourceline: 'deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8'
+      key_url: 'https://storage.googleapis.com/bazel-apt/doc/apt-key.pub.gpg'
+    - debian-sid
+
     packages:
     - shellcheck
+    - bazel
+
+install:
+  - go get -u github.com/bazelbuild/buildifier/buildifier
 
 script:
  - find . -name "*.sh" | xargs shellcheck
  - flake8 .
  - ./.gofmt.sh
+ - ./.buildifier.sh
  - python -m unittest discover -s reconciletags -p 'reconciletags_test.py'
+ - bazel clean && bazel build //...
