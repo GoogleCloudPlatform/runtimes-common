@@ -64,7 +64,7 @@ def _resolve_and_publish(config_file, bucket):
         logging.info('Published Runtimes:')
         logging.info(gcs_paths)
     except ValueError as ve:
-        logging.error('Error when parsing JSON! Check file formatting. \n{0}'
+        logging.error('Error when parsing config! Check file formatting. \n{0}'
                       .format(ve))
     except KeyError as ke:
         logging.error('Config file is missing required field! \n{0}'
@@ -98,7 +98,9 @@ def _resolve_tags(config_file):
                     arg = args[i]
                     m = re.search(IMAGE_REGEX, arg)
                     if m:
-                        args[i] = _resolve_tag(arg)
+                        suffix = m.group()
+                        prefix = re.sub(suffix, '', arg)
+                        args[i] = prefix + _resolve_tag(suffix)
 
             return yaml.round_trip_dump(config)
         except yaml.YAMLError as e:
