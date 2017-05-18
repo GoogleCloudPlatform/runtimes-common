@@ -17,7 +17,6 @@
 import logging
 import os
 from ruamel import yaml
-from sets import Set
 import subprocess
 import sys
 import tempfile
@@ -88,13 +87,40 @@ def verify_manifest(manifest):
         deprecation:
           message: "openjdk is deprecated."
     """
+    node_graph = _build_manifest_graph(manifest)
+    _verify_manifest_graph(node_graph)
+
+
+def _verify_manifest_graph(node_graph):
+    for _, node in node_graph.items():
+        seen = set()
+        child = node
+        while True:
+            seen.add(child)
+            if not child.child:
+                break
+            elif child.child not in node_graph.keys():
+                logging.error('Non-existent alias provided for {0}: {1}'
+                              .format(child.name, child.child))
+                sys.exit(1)
+            child = node_graph[child.child]
+            if child in seen:
+                logging.error('Circular dependency found in manifest! '
+                              'Check node {0}'.format(child))
+                sys.exit(1)
+        if not child.isBuilder:
+            logging.error('No terminating builder for alias {0}'
+                          .format(node.name))
+            sys.exit(1)
+
+
+def _build_manifest_graph(manifest):
     try:
         node_graph = {}
         for key, val in manifest.get('runtimes').iteritems():
             target = val.get('target', {})
             if not target:
-                deprecation = val.get('deprecation', {})
-                if not deprecation:
+                if 'deprecation' not in val:
                     logging.error('No target or deprecation specified for '
                                   'runtime: {0}'.format(key))
                     sys.exit(1)
@@ -106,27 +132,8 @@ def verify_manifest(manifest):
             node = node_graph.get(key, {})
             if not node:
                 node_graph[key] = Node(key, isBuilder, child)
-        for _, node in node_graph.items():
-            seen = Set()
-            child = node
-            while True:
-                seen.add(child)
-                if not child.child:
-                    break
-                elif child.child not in node_graph.keys():
-                    logging.error('Non-existent alias provided for {0}: {1}'
-                                  .format(child.name, child.child))
-                    sys.exit(1)
-                child = node_graph[child.child]
-                if child in seen:
-                    logging.error('Circular dependency found in manifest! '
-                                  'Check node {0}'.format(child))
-                    sys.exit(1)
-            if not child.isBuilder:
-                logging.error('No terminating builder for alias {0}'
-                              .format(node.name))
-                sys.exit(1)
-    except KeyError as ke:
+        return node_graph
+    except (KeyError, AttributeError) as ke:
         logging.error('Error encountered when verifying manifest:', ke)
         sys.exit(1)
 
