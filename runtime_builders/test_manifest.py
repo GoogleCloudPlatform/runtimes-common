@@ -19,22 +19,22 @@ import yaml
 
 
 def test_simple_manifest():
-	_load_build_verify('test_manifests/simple.yaml')
+    _load_build_verify('test_manifests/simple.yaml')
 
 
 def test_circular_manifest():
-	with pytest.raises(SystemExit):
-		_load_build_verify('test_manifests/circular.yaml')
+    with pytest.raises(SystemExit):
+        _load_build_verify('test_manifests/circular.yaml')
 
 
 def test_broken_manifest():
-	with pytest.raises(SystemExit):
-		_load_build_verify('test_manifests/broken_link.yaml')
+    with pytest.raises(SystemExit):
+        _load_build_verify('test_manifests/broken_link.yaml')
 
 
 def _load_build_verify(manifest_file):
-	with open(manifest_file) as f:
-		manifest = yaml.load(f)
-	graph = builder_util._build_manifest_graph(manifest)
+    with open(manifest_file) as f:
+        manifest = yaml.load(f)
+    graph = builder_util._build_manifest_graph(manifest)
 
-	builder_util._verify_manifest_graph(graph)
+    builder_util._verify_manifest_graph(graph)

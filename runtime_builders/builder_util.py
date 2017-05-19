@@ -16,7 +16,7 @@
 
 import logging
 import os
-from ruamel import yaml
+import yaml
 import subprocess
 import sys
 import tempfile
@@ -144,7 +144,7 @@ def load_manifest_file():
         command = ['gsutil', 'cp', MANIFEST_FILE, tmp]
         subprocess.check_output(command, stderr=subprocess.STDOUT)
         with open(tmp) as f:
-            return yaml.round_trip_load(f)
+            return yaml.load(f)
     except subprocess.CalledProcessError:
         logging.info('Manifest file not found in GCS: creating new one.')
         return {'schema_version': SCHEMA_VERSION}
