@@ -19,7 +19,7 @@ import glob
 import json
 import logging
 import os
-from ruamel import yaml
+import yaml
 import sys
 
 import builder_util
@@ -36,9 +36,6 @@ def main():
                         help='path to builder config directory for '
                              'publishing latest')
     args = parser.parse_args()
-
-    manifest = builder_util.load_manifest_file()
-    logging.debug(yaml.round_trip_dump(manifest, indent=4))
 
     try:
         if not args.manifest.endswith('.yaml'):
