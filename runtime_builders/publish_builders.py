@@ -64,8 +64,8 @@ def _publish_latest(builder_dir):
         project_name = config['project']
 
         parts = os.path.splitext(latest)
-        project_prefix = builder_util.RUNTIME_BUCKET_PREFIX \
-            + project_name + '-'
+        project_prefix = os.path.join(builder_util.RUNTIME_BUCKET_PREFIX,
+                                      project_name, '-')
         latest_file = parts[0][len(project_prefix):]
         file_name = '{0}.version'.format(project_name)
         full_path = builder_util.RUNTIME_BUCKET_PREFIX + file_name

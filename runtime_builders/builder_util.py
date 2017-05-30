@@ -35,7 +35,7 @@ def copy_to_gcs(file_path, gcs_path):
         output = subprocess.check_output(command)
         logging.debug(output)
     except subprocess.CalledProcessError:
-        logging.error('Error encountered when writing to GCS!')
+        logging.error('Error encountered when writing to GCS!', e)
     except Exception as e:
         logging.error('Fatal error encountered when shelling command {0}'
                       .format(command))
