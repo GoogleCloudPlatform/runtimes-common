@@ -48,10 +48,13 @@ def _resolve_and_publish(config_file, bucket):
     try:
         gcs_paths = []
         with open(config_file, 'r') as f:
-            project_cfg = json.load(f)
+            if 'yaml' not in config_file:
+                logging.error('Please provide a valid yaml config file.')
+                sys.exit(1)
+            project_cfg = yaml.round_trip_load(f)
             project_name = project_cfg['project']
             for builder in project_cfg['builders']:
-                cfg = os.path.abspath(str(builder['path']))
+                cfg = os.path.abspath(str(builder['file']))
                 name = builder['name']
                 builder_name = project_name + '-' + name
 
