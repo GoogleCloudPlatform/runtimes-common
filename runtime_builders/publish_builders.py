@@ -16,7 +16,6 @@
 
 import argparse
 import glob
-import json
 import logging
 import os
 import yaml
@@ -48,7 +47,7 @@ def main():
         if args.directory:
             _publish_latest(args.directory)
     except ValueError as ve:
-        logging.error('Error when parsing JSON! Check file formatting. \n{0}'
+        logging.error('Error when parsing yaml! Check file formatting. \n{0}'
                       .format(ve))
     except KeyError as ke:
         logging.error('Config file is missing required field! \n{0}'
