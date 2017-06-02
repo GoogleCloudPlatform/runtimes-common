@@ -56,9 +56,9 @@ def main():
 
 
 def _publish_latest(builder_dir):
-    for f in glob.glob(os.path.join(builder_dir, '*.json')):
+    for f in glob.glob(os.path.join(builder_dir, '*.yaml')):
         with open(f, 'r') as f:
-            config = json.load(f)
+            config = yaml.safe_load(f)
 
         latest = config['latest']
         project_name = config['project']
