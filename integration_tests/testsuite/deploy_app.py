@@ -21,6 +21,8 @@ from retrying import retry
 import subprocess
 import sys
 
+import test_util
+
 
 def _cleanup(appdir):
     try:
@@ -43,9 +45,11 @@ def deploy_app(image, appdir):
             fout.close()
         fin.close()
 
+        version = test_util.generate_version()
+
         # TODO: once sdk driver is published, use it here
-        deploy_command = ['gcloud', 'app', 'deploy',
-                          '--stop-previous-version', '--verbosity=debug']
+        deploy_command = ['gcloud', 'app', 'deploy', '--version',
+                          version, '--verbosity=debug']
 
         deploy_proc = subprocess.Popen(deploy_command,
                                        stdout=subprocess.PIPE,
@@ -56,7 +60,7 @@ def deploy_app(image, appdir):
             sys.exit('Error encountered when deploying app. ' +
                      'Full log: \n\n' + (output or ''))
 
-        return _retrieve_url()
+        return _retrieve_url(version)
 
     finally:
         _cleanup(appdir)
@@ -64,13 +68,14 @@ def deploy_app(image, appdir):
 
 
 @retry(wait_fixed=10000, stop_max_attempt_number=4)
-def _retrieve_url():
+def _retrieve_url(version):
     try:
         # retrieve url of deployed app for test driver
         url_command = ['gcloud', 'app', 'describe', '--format=json']
         app_dict = json.loads(subprocess.check_output(url_command))
         hostname = app_dict.get('defaultHostname')
-        return hostname.encode('ascii', 'ignore')
+        raw_url = version + '-dot-' + hostname
+        return raw_url.encode('ascii', 'ignore')
     except (subprocess.CalledProcessError, ValueError, KeyError):
         logging.warn('Error encountered when retrieving app URL!')
         return None

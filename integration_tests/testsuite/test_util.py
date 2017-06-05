@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import binascii
+import datetime
 import json
 import logging
 import os
@@ -140,3 +141,7 @@ def _project_id():
 
 def get_default_url():
     return 'https://{0}.appspot.com'.format(_project_id())
+
+
+def generate_version():
+    return datetime.datetime.now().strftime('%Y%m%d%H%m%S')
