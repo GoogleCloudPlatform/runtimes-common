@@ -51,14 +51,15 @@ class TestCustomLogging(unittest.TestCase):
             self.assertTrue(self._read_log(client, log_name, token, level),
                             'Log entry not found for posted token!')
 
-    @retry(wait_fixed=4000, stop_max_attempt_number=8)
+    @retry(wait_fixed=8000, stop_max_attempt_number=10)
     def _read_log(self, client, log_name, token, level):
         project_id = test_util.project_id()
         FILTER = 'logName = projects/{0}/logs/' \
                  '{1}'.format(project_id, log_name)
         for entry in client.list_entries(filter_=FILTER):
-            logging.debug(entry.payload)
-            if token in entry.payload:
+            logging.debug('payload is {0}'.format(entry.payload))
+            logging.debug('severity is {0}'.format(entry.severity))
+            if token in entry.payload and level == entry.severity:
                 logging.info('Token {0} found in '
                              'Stackdriver logs!'.format(token))
                 return True

@@ -22,6 +22,8 @@ import google.cloud.logging
 
 import test_util
 
+LOG_PAGE_SIZE = 50
+
 
 class TestStandardLogging(unittest.TestCase):
 
@@ -52,18 +54,26 @@ class TestStandardLogging(unittest.TestCase):
             self.assertTrue(self._read_log(client, log_name, token, level),
                             'Log entry not found for posted token!')
 
-    @retry(wait_fixed=4000, stop_max_attempt_number=8)
+    @retry(wait_fixed=8000, stop_max_attempt_number=10)
     def _read_log(self, client, log_name, token, level):
+        currentLog = 0
         project_id = test_util.project_id()
         FILTER = 'logName = projects/{0}/logs/' \
-                 '{1}'.format(project_id, log_name)
-        for entry in client.list_entries(filter_=FILTER):
+                 '{1} AND NOT textPayload:"/_ah/health"' \
+                 .format(project_id, log_name)
+        for entry in client.list_entries(filter_=FILTER,
+                                         order_by='timestamp desc'):
+            currentLog += 1
             # since the logs we're examining are for the deployed flex app,
             # we can safely log from the test driver without contaminating
             # the logs under examination.
+            logging.debug(currentLog)
             logging.debug(entry.payload)
             if token in entry.payload:
                 logging.info('Token {0} found in '
                              'Stackdriver logs!'.format(token))
                 return True
+            if currentLog == LOG_PAGE_SIZE:
+                logging.debug('max entries reached, retrying')
+                break
         raise Exception('Log entry not found for posted token!')
