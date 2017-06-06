@@ -19,14 +19,13 @@ import logging
 import sys
 import unittest
 
-from deploy_app import deploy_app
+import deploy_app
 import test_custom
 import test_exception
 import test_logging_standard
 import test_logging_custom
 import test_monitoring
 import test_root
-import test_util
 
 
 def _main():
@@ -66,7 +65,11 @@ def _main():
     parser.add_argument('--url', '-u',
                         help='URL where deployed app is ' +
                         'exposed (if applicable)')
+    parser.add_argument('--verbose', '-v', action='store_true')
     args = parser.parse_args()
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
 
     deploy_url = ''
     application_url = ''
@@ -81,18 +84,16 @@ def _main():
             sys.exit(1)
 
         logging.debug('Deploying app!')
-        deploy_url = deploy_app(args.image, args.directory)
+        deploy_url = deploy_app.deploy_app(args.image, args.directory)
 
-    if args.deploy and not deploy_url:
-        logging.info('Defaulting to provided URL parameter.')
-        deploy_url = test_util.get_default_url()
+    application_url = args.url or deploy_url
 
-    if deploy_url and not deploy_url.startswith('https://'):
-        deploy_url = 'https://' + deploy_url
+    code = _test_app(application_url, args)
 
-    application_url = args.url or deploy_url or test_util.get_default_url()
+    if args.deploy:
+        deploy_app.stop_app()
 
-    return _test_app(application_url, args)
+    return code
 
 
 def _test_app(base_url, args):

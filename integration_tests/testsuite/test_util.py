@@ -45,8 +45,6 @@ METRIC_TIMEOUT = 60  # seconds
 # subset of levels found at
 # https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity
 SEVERITIES = [
-    'DEBUG',
-    'INFO',
     'WARNING',
     'ERROR',
     'CRITICAL'
@@ -139,9 +137,6 @@ def _project_id():
         logging.error(e)
 
 
-def get_default_url():
-    return 'https://{0}.appspot.com'.format(_project_id())
-
-
 def generate_version():
-    return datetime.datetime.now().strftime('%Y%m%d%H%m%S')
+    return 'integration-{0}'.format(
+        datetime.datetime.now().strftime('%Y%m%d%H%m%S'))

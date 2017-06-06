@@ -17,17 +17,19 @@
 import json
 import logging
 import os
-from retrying import retry
 import subprocess
 import sys
+from retrying import retry
 
 import test_util
+
+DEPLOYED_VERSION = None
 
 
 def _cleanup(appdir):
     try:
         os.remove(os.path.join(appdir, 'Dockerfile'))
-    except:
+    except Exception:
         pass
 
 
@@ -45,37 +47,64 @@ def deploy_app(image, appdir):
             fout.close()
         fin.close()
 
-        version = test_util.generate_version()
+        global DEPLOYED_VERSION
+        DEPLOYED_VERSION = test_util.generate_version()
 
         # TODO: once sdk driver is published, use it here
         deploy_command = ['gcloud', 'app', 'deploy', '--version',
-                          version, '--verbosity=debug']
+                          DEPLOYED_VERSION, '--verbosity=debug']
 
         deploy_proc = subprocess.Popen(deploy_command,
                                        stdout=subprocess.PIPE,
                                        stdin=subprocess.PIPE)
 
-        output, error = deploy_proc.communicate()
+        output, _ = deploy_proc.communicate()
         if deploy_proc.returncode != 0:
             sys.exit('Error encountered when deploying app. ' +
                      'Full log: \n\n' + (output or ''))
 
-        return _retrieve_url(version)
+        return _retrieve_url()
 
     finally:
         _cleanup(appdir)
         os.chdir(owd)
 
 
+def stop_app():
+    if not DEPLOYED_VERSION:
+        logging.error('App was never deployed!')
+    logging.debug('Stopping application at version %s', DEPLOYED_VERSION)
+    stop_command = ['gcloud', 'app', 'versions', 'stop', DEPLOYED_VERSION]
+    stop_proc = subprocess.Popen(stop_command,
+                                 stdout=subprocess.PIPE,
+                                 stdin=subprocess.PIPE)
+
+    output, _ = stop_proc.communicate()
+    if stop_proc.returncode != 0:
+        sys.exit('Error encountered when stopping version! ' +
+                 'Full log: \n\n' + (output or ''))
+    delete_command = ['gcloud', 'app', 'services', 'delete', 'default',
+                      '--version', DEPLOYED_VERSION]
+
+    delete_proc = subprocess.Popen(delete_command,
+                                   stdout=subprocess.PIPE,
+                                   stdin=subprocess.PIPE)
+
+    output, _ = delete_proc.communicate()
+    if stop_proc.returncode != 0:
+        sys.exit('Error encountered when deleting version! ' +
+                 'Full log: \n\n' + (output or ''))
+
+
 @retry(wait_fixed=10000, stop_max_attempt_number=4)
-def _retrieve_url(version):
+def _retrieve_url():
     try:
         # retrieve url of deployed app for test driver
-        url_command = ['gcloud', 'app', 'describe', '--format=json']
+        url_command = ['gcloud', 'app', 'versions', 'describe',
+                       DEPLOYED_VERSION, '--service',
+                       'default', '--format=json']
         app_dict = json.loads(subprocess.check_output(url_command))
-        hostname = app_dict.get('defaultHostname')
-        raw_url = version + '-dot-' + hostname
-        return raw_url.encode('ascii', 'ignore')
+        return app_dict.get('versionUrl')
     except (subprocess.CalledProcessError, ValueError, KeyError):
         logging.warn('Error encountered when retrieving app URL!')
         return None
