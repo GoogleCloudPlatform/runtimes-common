@@ -84,14 +84,14 @@ def _main():
             sys.exit(1)
 
         logging.debug('Deploying app!')
-        deploy_url = deploy_app.deploy_app(args.image, args.directory)
+        version, deploy_url = deploy_app.deploy_app(args.image, args.directory)
 
     application_url = args.url or deploy_url
 
     code = _test_app(application_url, args)
 
     if args.deploy:
-        deploy_app.stop_app()
+        deploy_app.stop_app(version)
 
     return code
 
