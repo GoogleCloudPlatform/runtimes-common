@@ -18,7 +18,6 @@ import json
 import logging
 import os
 import subprocess
-import sys
 from retrying import retry
 
 import test_util
@@ -48,19 +47,15 @@ def deploy_app(image, appdir):
         deployed_version = test_util.generate_version()
 
         # TODO: once sdk driver is published, use it here
-        deploy_command = ['gcloud', 'app', 'deploy', '--version',
-                          deployed_version, '--verbosity=debug']
+        deploy_command = ['gcloud', 'app', 'deploy',
+                          '--version', deployed_version, '-q']
 
-        deploy_proc = subprocess.Popen(deploy_command,
-                                       stdout=subprocess.PIPE,
-                                       stdin=subprocess.PIPE)
-
-        output, _ = deploy_proc.communicate()
-        if deploy_proc.returncode != 0:
-            sys.exit('Error encountered when deploying app. ' +
-                     'Full log: \n\n' + (output or ''))
+        subprocess.check_output(deploy_command)
 
         return deployed_version, _retrieve_url(deployed_version)
+    except subprocess.CalledProcessError as cpe:
+        logging.error('Error encountered when deploying application! %s',
+                      cpe.output)
 
     finally:
         _cleanup(appdir)
@@ -69,17 +64,14 @@ def deploy_app(image, appdir):
 
 def stop_app(deployed_version):
     logging.debug('Removing application version %s', deployed_version)
-    delete_command = ['gcloud', 'app', 'services', 'delete', 'default',
-                      '--version', deployed_version]
+    try:
+        delete_command = ['gcloud', 'app', 'services', 'delete', 'default',
+                          '--version', deployed_version, '-q']
 
-    delete_proc = subprocess.Popen(delete_command,
-                                   stdout=subprocess.PIPE,
-                                   stdin=subprocess.PIPE)
-
-    output, _ = delete_proc.communicate()
-    if delete_proc.returncode != 0:
-        sys.exit('Error encountered when deleting version! ' +
-                 'Full log: \n\n' + (output or ''))
+        subprocess.check_output(delete_command)
+    except subprocess.CalledProcessError as cpe:
+        logging.error('Error encountered when deleting app version! %s',
+                      cpe.output)
 
 
 @retry(wait_fixed=10000, stop_max_attempt_number=4)
