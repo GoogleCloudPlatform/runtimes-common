@@ -26,6 +26,7 @@ import test_logging_standard
 import test_logging_custom
 import test_monitoring
 import test_root
+import test_util
 
 
 def _main():
@@ -71,7 +72,6 @@ def _main():
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
 
-    deploy_url = ''
     application_url = ''
 
     if args.deploy:
@@ -84,9 +84,9 @@ def _main():
             sys.exit(1)
 
         logging.debug('Deploying app!')
-        version, deploy_url = deploy_app.deploy_app(args.image, args.directory)
+        version = deploy_app.deploy_app(args.image, args.directory)
 
-    application_url = args.url or deploy_url
+    application_url = args.url or test_util.retrieve_url_for_version(version)
 
     code = _test_app(application_url, args)
 

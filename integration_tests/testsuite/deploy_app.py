@@ -14,12 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import logging
 import os
 import subprocess
-from retrying import retry
-
 import test_util
 
 
@@ -52,7 +49,7 @@ def deploy_app(image, appdir):
 
         subprocess.check_output(deploy_command)
 
-        return deployed_version, _retrieve_url(deployed_version)
+        return deployed_version
     except subprocess.CalledProcessError as cpe:
         logging.error('Error encountered when deploying application! %s',
                       cpe.output)
@@ -72,18 +69,3 @@ def stop_app(deployed_version):
     except subprocess.CalledProcessError as cpe:
         logging.error('Error encountered when deleting app version! %s',
                       cpe.output)
-
-
-@retry(wait_fixed=10000, stop_max_attempt_number=4)
-def _retrieve_url(version):
-    try:
-        # retrieve url of deployed app for test driver
-        url_command = ['gcloud', 'app', 'versions', 'describe',
-                       version, '--service',
-                       'default', '--format=json']
-        app_dict = json.loads(subprocess.check_output(url_command))
-        return app_dict.get('versionUrl')
-    except (subprocess.CalledProcessError, ValueError, KeyError):
-        logging.warn('Error encountered when retrieving app URL!')
-        return None
-    raise Exception('Unable to contact deployed application!')
