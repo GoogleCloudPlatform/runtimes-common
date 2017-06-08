@@ -24,6 +24,7 @@ import requests
 from retrying import retry
 import string
 import subprocess
+import sys
 
 requests.packages.urllib3.disable_warnings()
 
@@ -152,7 +153,7 @@ def retrieve_url_for_version(version):
                        'default', '--format=json']
         app_dict = json.loads(subprocess.check_output(url_command))
         return app_dict.get('versionUrl')
-    except (subprocess.CalledProcessError, ValueError, KeyError):
-        logging.warn('Error encountered when retrieving app URL!')
-        return None
+    except (subprocess.CalledProcessError, ValueError, KeyError) as e:
+        logging.warn('Error encountered when retrieving app URL! %s', e)
+        sys.exit(1)
     raise Exception('Unable to contact deployed application!')
