@@ -38,11 +38,6 @@ def _main():
                         'image to build sample app on')
     parser.add_argument('--directory', '-d',
                         help='Root directory of sample app')
-    parser.add_argument('--no-deploy',
-                        action='store_false',
-                        dest='deploy',
-                        help='Flag to skip deployment of app ' +
-                        '(must provide app URL)')
     parser.add_argument('--skip-standard-logging-tests',
                         action='store_false',
                         dest='standard_logging',
@@ -74,7 +69,7 @@ def _main():
 
     application_url = ''
 
-    if args.deploy:
+    if not args.url:
         if args.image is None:
             logging.error('Please specify base image name.')
             sys.exit(1)
@@ -90,7 +85,7 @@ def _main():
 
     code = _test_app(application_url, args)
 
-    if args.deploy:
+    if not args.url:
         deploy_app.stop_app(version)
 
     return code
