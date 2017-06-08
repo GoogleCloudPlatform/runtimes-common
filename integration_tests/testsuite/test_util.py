@@ -15,13 +15,16 @@
 # limitations under the License.
 
 import binascii
+import datetime
 import json
 import logging
 import os
 import random
 import requests
+from retrying import retry
 import string
 import subprocess
+import sys
 
 requests.packages.urllib3.disable_warnings()
 
@@ -44,8 +47,6 @@ METRIC_TIMEOUT = 60  # seconds
 # subset of levels found at
 # https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity
 SEVERITIES = [
-    'DEBUG',
-    'INFO',
     'WARNING',
     'ERROR',
     'CRITICAL'
@@ -138,5 +139,21 @@ def _project_id():
         logging.error(e)
 
 
-def get_default_url():
-    return 'https://{0}.appspot.com'.format(_project_id())
+def generate_version():
+    return 'integration-{0}'.format(
+        datetime.datetime.now().strftime('%Y%m%d%H%m%S'))
+
+
+@retry(wait_fixed=10000, stop_max_attempt_number=4)
+def retrieve_url_for_version(version):
+    try:
+        # retrieve url of deployed app for test driver
+        url_command = ['gcloud', 'app', 'versions', 'describe',
+                       version, '--service',
+                       'default', '--format=json']
+        app_dict = json.loads(subprocess.check_output(url_command))
+        return app_dict.get('versionUrl')
+    except (subprocess.CalledProcessError, ValueError, KeyError) as e:
+        logging.warn('Error encountered when retrieving app URL! %s', e)
+        sys.exit(1)
+    raise Exception('Unable to contact deployed application!')

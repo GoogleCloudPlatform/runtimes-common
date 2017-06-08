@@ -14,18 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import logging
 import os
-from retrying import retry
 import subprocess
-import sys
+import test_util
 
 
 def _cleanup(appdir):
     try:
         os.remove(os.path.join(appdir, 'Dockerfile'))
-    except:
+    except Exception:
         pass
 
 
@@ -43,35 +41,31 @@ def deploy_app(image, appdir):
             fout.close()
         fin.close()
 
+        deployed_version = test_util.generate_version()
+
         # TODO: once sdk driver is published, use it here
         deploy_command = ['gcloud', 'app', 'deploy',
-                          '--stop-previous-version', '--verbosity=debug']
+                          '--version', deployed_version, '-q']
 
-        deploy_proc = subprocess.Popen(deploy_command,
-                                       stdout=subprocess.PIPE,
-                                       stdin=subprocess.PIPE)
+        subprocess.check_output(deploy_command)
 
-        output, error = deploy_proc.communicate()
-        if deploy_proc.returncode != 0:
-            sys.exit('Error encountered when deploying app. ' +
-                     'Full log: \n\n' + (output or ''))
-
-        return _retrieve_url()
+        return deployed_version
+    except subprocess.CalledProcessError as cpe:
+        logging.error('Error encountered when deploying application! %s',
+                      cpe.output)
 
     finally:
         _cleanup(appdir)
         os.chdir(owd)
 
 
-@retry(wait_fixed=10000, stop_max_attempt_number=4)
-def _retrieve_url():
+def stop_app(deployed_version):
+    logging.debug('Removing application version %s', deployed_version)
     try:
-        # retrieve url of deployed app for test driver
-        url_command = ['gcloud', 'app', 'describe', '--format=json']
-        app_dict = json.loads(subprocess.check_output(url_command))
-        hostname = app_dict.get('defaultHostname')
-        return hostname.encode('ascii', 'ignore')
-    except (subprocess.CalledProcessError, ValueError, KeyError):
-        logging.warn('Error encountered when retrieving app URL!')
-        return None
-    raise Exception('Unable to contact deployed application!')
+        delete_command = ['gcloud', 'app', 'services', 'delete', 'default',
+                          '--version', deployed_version, '-q']
+
+        subprocess.check_output(delete_command)
+    except subprocess.CalledProcessError as cpe:
+        logging.error('Error encountered when deleting app version! %s',
+                      cpe.output)
