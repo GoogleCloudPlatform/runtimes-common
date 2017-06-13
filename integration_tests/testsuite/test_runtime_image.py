@@ -15,6 +15,8 @@
 # limitations under the License.
 
 import logging
+import os
+import subprocess
 import sys
 import unittest
 
@@ -53,10 +55,10 @@ def _main(appdir):
         application_url = test_util.retrieve_url_for_version(version)
         output, status_code = test_util.get(application_url)
         if status_code:
-            logging.debug('Error deploying sample application!')
-            sys.exit(1)
+            raise Exception('Error pinging application!')
     except Exception as e:
         logging.debug('{0}'.format(e))
+        sys.exit(1)
 
 
 if __name__ == '__main__':
