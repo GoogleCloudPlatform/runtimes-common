@@ -18,10 +18,10 @@ import logging
 import os
 import subprocess
 import sys
-import unittest
 
 import deploy_app
 import test_util
+
 
 def _deploy_app(appdir):
     try:
