@@ -10,16 +10,28 @@ from requests.auth import HTTPBasicAuth
 
 requests.packages.urllib3.disable_warnings()
 
-API_BASE = 'https://api.github.com'
-RELEASE_BASE = '{api_base}/repos/{owner}/{repo}/releases'
 # OWNER = 'GoogleCloudPlatform'
 OWNER = 'nkubala'
 REPO = 'runtimes-common'
 USER = 'XXX'
 PW = 'XXX'
 
-RELEASE_URL = RELEASE_BASE.format(api_base=API_BASE, owner=OWNER, repo=REPO)
+
+API_BASE = 'https://api.github.com'
+REPO_BASE = '{api_base}/repos/{owner}/{repo}'
+REPO_URL = REPO_BASE.format(api_base=API_BASE, owner=OWNER, repo=REPO)
+
+COMMIT_URL = REPO_URL + '/commits'
+COMMITISH_URL = COMMIT_URL + '/master'
+
+SHA_URL = COMMIT_URL + '/master'
+RELEASE_URL = REPO_URL + '/releases'
 LATEST_RELEASE_URL = RELEASE_URL + '/latest'
+
+COMMITISH_HEADER = {'Accept': 'application/vnd.github.VERSION.sha'}
+
+sess = requests.Session()
+sess.auth = HTTPBasicAuth(USER, PW)
 
 
 def main():
@@ -37,7 +49,7 @@ def main():
     # TODO: combine retrieved info into real release notes 
     full_notes = "here are some notes"
 
-    _create_release(full_notes)
+    # _create_release(full_notes)
 
 
 def _diff_images(old_image, new_image):
@@ -50,6 +62,17 @@ def _diff_images(old_image, new_image):
 
 
 def _retrieve_commit_messages():
+    # TODO: only make this call once and cache somewhere
+    latest_release = sess.get(LATEST_RELEASE_URL).content
+    latest_release = json.loads(latest_release)
+    prev_sha = latest_release.get('target_commitish')
+    logging.info(prev_sha)
+
+    prev_commit = json.loads(sess.get(COMMIT_URL + '/{0}'.format(prev_sha)).content)
+    prev_timestamp = prev_commit.get('commit').get('author').get('date')
+    commits = sess.get(COMMIT_URL, params={'since':prev_timestamp}).content
+    logging.info(json.dumps(json.loads(commits), indent=4))
+
     '''
     1. use releases API to retrieve commit hash from last release
     2. retrieve all commit hashes between then and HEAD
@@ -73,8 +96,7 @@ def _run_package_analysis(old_image, new_image):
 def _create_release(release_notes):
     release_payload = _generate_release_payload(release_notes)
     logging.info('Posting to url {0}'.format(RELEASE_URL))
-    response = requests.post(RELEASE_URL, data=json.dumps(release_payload),
-                             auth=HTTPBasicAuth(USER, PW))
+    response = sess.post(RELEASE_URL, data=json.dumps(release_payload))
     # response = requests.get(RELEASE_URL)
     if response.status_code < 200 or response.status_code > 299:
         logging.error('Error when creating release (code {0})'
@@ -88,20 +110,22 @@ def _create_release(release_notes):
 def _generate_release_payload(release_notes):
     try:
         logging.debug('getting latest release from url: %s', LATEST_RELEASE_URL)
-        latest_release = requests.get(LATEST_RELEASE_URL,
-                                      auth=HTTPBasicAuth(USER, PW)).content
+        latest_release = sess.get(LATEST_RELEASE_URL).content
         latest_release = json.loads(latest_release)
         logging.debug(latest_release)
 
         prev_tag = latest_release['tag_name'].replace('v', '')
         tag = 'v' + semver.bump_minor(prev_tag)
-    except (TypeError | ValueError) as e:
+
+        commitish = sess.get(COMMITISH_URL, headers=COMMITISH_HEADER).content
+    except (TypeError, KeyError, ValueError) as e:
         logging.error('Error encountered when retrieving latest version! %s', e)
         sys.exit(1)
 
+
     return {
         "tag_name": tag,
-        "target_commitish": "master",
+        "target_commitish": commitish,
         "name": tag,
         "body": release_notes,
         "draft": True
