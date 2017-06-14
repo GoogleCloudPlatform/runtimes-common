@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import logging
 import sys
 
@@ -21,18 +22,25 @@ from testsuite import deploy_app
 from testsuite import test_util
 
 
-def _main(appdir):
+def main():
     try:
+        parser = argparse.ArgumentParser()
+        parser.add_argument('appdir', type=str,
+                            help='Directory of app to be run')
+        args = parser.parse_args()
+
         logging.debug('Testing runtime image.')
-        version = deploy_app.deploy_app_without_image(appdir)
+        version = deploy_app.deploy_app_without_image(args.appdir)
         application_url = test_util.retrieve_url_for_version(version)
         output, status_code = test_util.get(application_url)
+
         if status_code:
-            raise Exception('Error pinging application!')
+            logging.error('Error pinging application!')
+            sys.exit(status_code)
     except Exception as e:
         logging.debug('{0}'.format(e))
         sys.exit(1)
 
 
 if __name__ == '__main__':
-    sys.exit(_main(sys.argv[1]))
+    sys.exit(main())
