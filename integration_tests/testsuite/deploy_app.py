@@ -17,6 +17,7 @@
 import logging
 import os
 import subprocess
+import sys
 import test_util
 
 
@@ -27,19 +28,25 @@ def _cleanup(appdir):
         pass
 
 
+def _set_app_image(image):
+    # substitute vars in Dockerfile (equivalent of envsubst)
+    with open('Dockerfile.in', 'r') as fin:
+        with open('Dockerfile', 'w') as fout:
+            for line in fin:
+                fout.write(line.replace('${STAGING_IMAGE}', image))
+        fout.close()
+    fin.close()
+
+
 def deploy_app(image, appdir):
     try:
         # change to app directory (and remember original directory)
         owd = os.getcwd()
         os.chdir(appdir)
 
-        # substitute vars in Dockerfile (equivalent of envsubst)
-        with open('Dockerfile.in', 'r') as fin:
-            with open('Dockerfile', 'w') as fout:
-                for line in fin:
-                    fout.write(line.replace('${STAGING_IMAGE}', image))
-            fout.close()
-        fin.close()
+        # fills in image field in templated Dockerfile if image is specified
+        if image:
+            _set_app_image(image)
 
         deployed_version = test_util.generate_version()
 
@@ -53,10 +60,15 @@ def deploy_app(image, appdir):
     except subprocess.CalledProcessError as cpe:
         logging.error('Error encountered when deploying application! %s',
                       cpe.output)
+        sys.exit(1)
 
     finally:
         _cleanup(appdir)
         os.chdir(owd)
+
+
+def deploy_app_without_image(appdir):
+    return deploy_app(None, appdir)
 
 
 def stop_app(deployed_version):

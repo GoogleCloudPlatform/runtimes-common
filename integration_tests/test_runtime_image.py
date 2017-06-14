@@ -15,43 +15,24 @@
 # limitations under the License.
 
 import logging
-import os
-import subprocess
 import sys
 
-import deploy_app
-import test_util
-
-
-def _deploy_app(appdir):
-    try:
-        # change to app directory (and remember original directory)
-        owd = os.getcwd()
-        os.chdir(appdir)
-
-        deployed_version = test_util.generate_version()
-
-        # TODO: once sdk driver is published, use it here
-        deploy_command = ['gcloud', 'app', 'deploy',
-                          '--version', deployed_version, '-q']
-
-        subprocess.check_output(deploy_command)
-
-        return deployed_version
-    except subprocess.CalledProcessError as cpe:
-        logging.error('Error encountered when deploying application! %s',
-                      cpe.output)
-        sys.exit(1)
-
-    finally:
-        deploy_app._cleanup(appdir)
-        os.chdir(owd)
+from testsuite import deploy_app
+from testsuite import test_util
 
 
 def _main(appdir):
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    
+    ch = logging.StreamHandler(sys.stdout)
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    root.addHandler(ch)
     try:
         logging.debug('Testing runtime image.')
-        version = _deploy_app(appdir)
+        version = deploy_app.deploy_app_without_image(appdir)
         application_url = test_util.retrieve_url_for_version(version)
         output, status_code = test_util.get(application_url)
         if status_code:
