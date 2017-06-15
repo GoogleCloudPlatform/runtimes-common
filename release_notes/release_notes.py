@@ -48,6 +48,7 @@ class ReleaseNotes():
         we could potentially remove the drydock querying in favor of using this
         depending on what kind of language level diffing the differ tools has
         '''
+        # TODO: implement
         return ''
 
     def retrieve_commit_messages(self):
@@ -73,6 +74,7 @@ class ReleaseNotes():
         unclear if we want to do language specific diffing here: this may just
         come from information provided manually by the maintainers
         '''
+        # TODO: implement
         return ''
 
     def create_release(self, release_notes):
@@ -90,6 +92,7 @@ class ReleaseNotes():
 
     def _generate_release_payload(self, release_notes):
         try:
+            # TODO: support non-semver versions and tags
             prev_tag = self.latest_release['tag_name'].replace('v', '')
             tag = 'v' + semver.bump_minor(prev_tag)
 
