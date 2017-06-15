@@ -40,7 +40,8 @@ def main():
     except Exception as e:
         logging.debug('{0}'.format(e))
         sys.exit(1)
-
+    finally:
+        deploy_app.stop_app(version)
 
 if __name__ == '__main__':
     sys.exit(main())
