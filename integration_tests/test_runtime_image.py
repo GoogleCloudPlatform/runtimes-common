@@ -43,5 +43,6 @@ def main():
     finally:
         deploy_app.stop_app(version)
 
+
 if __name__ == '__main__':
     sys.exit(main())
