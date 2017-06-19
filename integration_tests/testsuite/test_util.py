@@ -165,23 +165,17 @@ def retrieve_url_for_version(version):
     raise Exception('Unable to contact deployed application!')
 
 
+def _get_creds():
+    # already verified these are set in test driver.
+    acc_file = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+    return service_account.Credentials.from_service_account_file(acc_file)
+
+
 def get_logging_client():
-    try:
-        acc_file = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
-        creds = service_account.Credentials.from_service_account_file(acc_file)
-        return google.cloud.logging.Client(project=project_id(),
-                                           credentials=creds)
-    except KeyError as ke:
-        logging.error('Error when creating logging client: %s', ke)
-        sys.exit(1)
+    return google.cloud.logging.Client(project=project_id(),
+                                       credentials=_get_creds())
 
 
 def get_monitoring_client():
-    try:
-        acc_file = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
-        creds = service_account.Credentials.from_service_account_file(acc_file)
-        return google.cloud.monitoring.Client(project=project_id(),
-                                              credentials=creds)
-    except KeyError as ke:
-        logging.error('Error when creating monitoring client: %s', ke)
-        sys.exit(1)
+    return google.cloud.monitoring.Client(project=project_id(),
+                                          credentials=_get_creds())
