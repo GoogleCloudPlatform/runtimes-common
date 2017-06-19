@@ -18,8 +18,6 @@ import logging
 import unittest
 from retrying import retry
 
-import google.cloud.logging
-
 import test_util
 
 
@@ -41,7 +39,7 @@ class TestStandardLogging(unittest.TestCase):
 
             logging.info('response from sample app: {0}'.format(log_name))
 
-            client = google.cloud.logging.Client()
+            client = test_util.get_logging_client()
             token = payload.get('token')
             level = payload.get('level')
 
@@ -54,7 +52,7 @@ class TestStandardLogging(unittest.TestCase):
 
     @retry(wait_fixed=4000, stop_max_attempt_number=8)
     def _read_log(self, client, log_name, token, level):
-        project_id = test_util._project_id()
+        project_id = test_util.project_id()
         FILTER = 'logName = projects/{0}/logs/' \
                  '{1}'.format(project_id, log_name)
         for entry in client.list_entries(filter_=FILTER):

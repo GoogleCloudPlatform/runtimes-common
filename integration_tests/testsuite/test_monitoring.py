@@ -19,8 +19,6 @@ from retrying import retry
 import unittest
 import urlparse
 
-import google.cloud.monitoring
-
 import test_util
 
 
@@ -37,7 +35,7 @@ class TestMonitoring(unittest.TestCase):
         self.assertEquals(response_code, 0,
                           'Error encountered inside sample application!')
 
-        client = google.cloud.monitoring.Client()
+        client = test_util.get_monitoring_client()
 
         self.assertTrue(self._read_metric(payload.get('name'),
                                           payload.get('token'), client),

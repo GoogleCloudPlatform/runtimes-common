@@ -26,6 +26,11 @@ import string
 import subprocess
 import sys
 
+import google.auth
+import google.cloud.logging
+import google.cloud.monitoring
+from google.oauth2 import service_account
+
 requests.packages.urllib3.disable_warnings()
 
 LOGNAME_LENGTH = 16
@@ -129,7 +134,8 @@ def _check_response(response, error_message):
     return response.text, 0
 
 
-def _project_id():
+def project_id():
+    # TODO: cache this
     try:
         cmd = ['gcloud', 'config', 'list', '--format=json']
         entries = json.loads(subprocess.check_output(cmd))
@@ -157,3 +163,19 @@ def retrieve_url_for_version(version):
         logging.warn('Error encountered when retrieving app URL! %s', e)
         sys.exit(1)
     raise Exception('Unable to contact deployed application!')
+
+
+def _get_creds():
+    # already verified these are set in test driver.
+    acc_file = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+    return service_account.Credentials.from_service_account_file(acc_file)
+
+
+def get_logging_client():
+    return google.cloud.logging.Client(project=project_id(),
+                                       credentials=_get_creds())
+
+
+def get_monitoring_client():
+    return google.cloud.monitoring.Client(project=project_id(),
+                                          credentials=_get_creds())

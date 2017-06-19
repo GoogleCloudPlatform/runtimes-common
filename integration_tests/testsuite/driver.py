@@ -16,6 +16,7 @@
 
 import argparse
 import logging
+import os
 import sys
 import unittest
 
@@ -68,6 +69,16 @@ def _main():
         logging.getLogger().setLevel(logging.DEBUG)
 
     application_url = ''
+
+    # ADCs must be set for client libraries. Do this check here so
+    # test run never starts, since it is guaranteed to fail.
+    default_creds = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
+    if not default_creds:
+        logging.error('Google Application Default Credentials not set!\n\
+These are necessary for interacting with the Stackdriver APIs via client \
+libraries. Please refer to https://developers.google.com/identity/protocols/\
+application-default-credentials')
+        sys.exit(1)
 
     if not args.url:
         if args.image is None:
