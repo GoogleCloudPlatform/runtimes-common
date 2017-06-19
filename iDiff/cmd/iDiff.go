@@ -1,15 +1,13 @@
 package cmd
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"os"
 	"testing/runtimes-common/iDiff/differs"
 
 	"github.com/spf13/cobra"
 )
-
-var container1, container2, differ string
 
 // iDiff represents the iDiff command
 var iDiffCmd = &cobra.Command{
@@ -19,8 +17,8 @@ var iDiffCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if valid, err := checkArgNum(args); !valid {
 			fmt.Println(err)
-			os.Exit(1)		
-		}		
+			os.Exit(1)
+		}
 		if args[2] == "hist" {
 			diff := differs.History(args[0], args[1])
 			fmt.Println(diff)
@@ -29,7 +27,6 @@ var iDiffCmd = &cobra.Command{
 		}
 	},
 }
-
 
 func checkArgNum(args []string) (bool, error) {
 	var err_message string
@@ -40,10 +37,9 @@ func checkArgNum(args []string) (bool, error) {
 		err_message = "Too many arguments."
 		return false, errors.New(err_message)
 	} else {
-		return true, nil	
+		return true, nil
 	}
 }
-
 
 func init() {
 	RootCmd.AddCommand(iDiffCmd)
