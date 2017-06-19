@@ -129,7 +129,7 @@ def _check_response(response, error_message):
     return response.text, 0
 
 
-def _project_id():
+def project_id():
     try:
         cmd = ['gcloud', 'config', 'list', '--format=json']
         entries = json.loads(subprocess.check_output(cmd))
