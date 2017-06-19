@@ -5,11 +5,11 @@ import (
 )
 
 type testpair struct {
-	values []string
+	values   []string
 	expected bool
 }
 
-var tests = []testpair {
+var tests = []testpair{
 	{[]string{}, false},
 	{[]string{"one"}, false},
 	{[]string{"one", "two"}, true},
@@ -22,10 +22,10 @@ func TestArgNum(t *testing.T) {
 		valid, err := checkArgNum(test.values)
 		if valid != test.expected {
 			if test.expected {
-				t.Errorf("Expected error but got none")			
+				t.Errorf("Expected error but got none")
 			} else {
 				t.Errorf("Got unexpected error: %s", err)
 			}
-		}	
+		}
 	}
 }
