@@ -2,7 +2,6 @@ package differs
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/docker/docker/client"

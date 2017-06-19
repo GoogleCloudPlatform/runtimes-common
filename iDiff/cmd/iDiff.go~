@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"errors"
-	"os"
 	"testing/runtimes-common/iDiff/differs"
 
 	"github.com/spf13/cobra"
@@ -18,8 +17,7 @@ var iDiffCmd = &cobra.Command{
 	Long:  `Compares two images using the specifed differ. `,
 	Run: func(cmd *cobra.Command, args []string) {
 		if valid, err := checkArgNum(args); !valid {
-			fmt.Println(err)
-			os.Exit(1)		
+			panic(err)		
 		}		
 		if args[2] == "hist" {
 			diff := differs.History(args[0], args[1])

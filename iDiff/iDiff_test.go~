@@ -1,0 +1,31 @@
+package main
+
+import (
+	"testing"
+)
+
+type testpair struct {
+	values []string
+	expected bool
+}
+
+var tests = []testpair {
+	{[]string{}, true},
+	{[]string{"one"}, true},
+	{[]string{"one", "two"}, false},
+	{[]string{"one", "two", "three"}, false},
+	{[]string{"one", "two", "three", "four"}, true},
+}
+
+func TestArgNum(t *testing.T) {
+	for _, test := range tests {
+		valid, err := iDiff.checkArgNum(test.values)
+		if valid != test.expected {
+			if test.expected {
+				t.Errorf("Expected error but got none")			
+			} else {
+				t.Errorf("Got unexpected error: %s", err)
+			}
+		}	
+	}
+}
