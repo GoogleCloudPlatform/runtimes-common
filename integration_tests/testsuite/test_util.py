@@ -167,9 +167,10 @@ def retrieve_url_for_version(version):
 
 def get_logging_client():
     try:
-        account_file = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
-        creds = service_account.Credentials.from_service_account_file(account_file)
-        return google.cloud.logging.Client(project=project_id(), credentials=creds)
+        acc_file = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
+        creds = service_account.Credentials.from_service_account_file(acc_file)
+        return google.cloud.logging.Client(project=project_id(),
+                                           credentials=creds)
     except KeyError as ke:
         logging.error('Error when creating logging client: %s', ke)
         sys.exit(1)
@@ -177,9 +178,10 @@ def get_logging_client():
 
 def get_monitoring_client():
     try:
-        account_file = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
-        creds = service_account.Credentials.from_service_account_file(account_file)
-        return google.cloud.monitoring.Client(project=project_id(), credentials=creds)
+        acc_file = os.environ['GOOGLE_APPLICATION_CREDENTIALS']
+        creds = service_account.Credentials.from_service_account_file(acc_file)
+        return google.cloud.monitoring.Client(project=project_id(),
+                                              credentials=creds)
     except KeyError as ke:
         logging.error('Error when creating monitoring client: %s', ke)
         sys.exit(1)

@@ -18,8 +18,6 @@ import logging
 import unittest
 from retrying import retry
 
-import google.cloud.logging
-
 import test_util
 
 
