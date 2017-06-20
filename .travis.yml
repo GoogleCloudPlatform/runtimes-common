@@ -25,6 +25,7 @@ addons:
 
 install:
   - go get -u github.com/bazelbuild/buildifier/buildifier
+  - export GOPATH="/home/travis/gopath/src/"
 
 script:
  - find . -name "*.sh" | grep -v iDiff | xargs shellcheck
