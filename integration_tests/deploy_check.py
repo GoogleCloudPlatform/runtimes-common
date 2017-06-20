@@ -32,7 +32,7 @@ def main():
         args = parser.parse_args()
 
         logging.debug('Testing runtime image.')
-        version = deploy_app.deploy_app_without_image(args.appdir)
+        version = deploy_app.deploy_app_without_image(args.directory)
         application_url = test_util.retrieve_url_for_version(version)
         output, status_code = test_util.get(application_url)
 
