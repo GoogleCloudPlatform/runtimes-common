@@ -15,7 +15,7 @@
 # limitations under the License.
 
 set -e
-files=$(gofmt -l -s .)
+files=$(gofmt -l -s "$(find . -name "*.go" | grep -v iDiff/vendor)")
 if [[ $files ]]; then
     echo "Gofmt errors in files: $files"
     exit 1
