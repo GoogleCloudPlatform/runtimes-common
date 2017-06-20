@@ -25,7 +25,7 @@ from testsuite import test_util
 def main():
     try:
         parser = argparse.ArgumentParser()
-        parser.add_argument('appdir', type=str,
+        parser.add_argument('--directory', '-d', type=str,
                             help='Directory of app to be run')
         args = parser.parse_args()
 
@@ -35,13 +35,17 @@ def main():
         output, status_code = test_util.get(application_url)
 
         if status_code:
-            logging.error('Error pinging application!')
+            logging.error('Application returned non-zero status code: %d',
+                          status_code)
+            logging.error(output)
             sys.exit(status_code)
     except Exception as e:
-        logging.debug('{0}'.format(e))
+        logging.error('Error when contacting application!')
+        logging.error(e)
         sys.exit(1)
     finally:
-        deploy_app.stop_app(version)
+        if version:
+            deploy_app.stop_app(version)
 
 
 if __name__ == '__main__':
