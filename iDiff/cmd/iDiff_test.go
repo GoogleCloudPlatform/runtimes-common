@@ -22,7 +22,7 @@ func TestArgNum(t *testing.T) {
 		valid, err := checkArgNum(test.values)
 		if valid != test.expected {
 			if test.expected {
-				t.Errorf("Got unexpected error: %s", err")
+				t.Errorf("Got unexpected error: %s", err)
 			} else {
 				t.Errorf("Expected error but got none")
 			}
