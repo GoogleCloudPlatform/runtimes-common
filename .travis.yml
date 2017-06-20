@@ -4,6 +4,11 @@ dist: trusty
 language: java
 python:
         - "2.7"
+language: go
+go:
+        - 1.8.1
+go_import_path: testing/runtimes-common
+
 jdk:
   - oraclejdk8
 
@@ -25,9 +30,10 @@ install:
   - go get -u github.com/bazelbuild/buildifier/buildifier
 
 script:
- - find . -name "*.sh" | xargs shellcheck
+ - find . -name "*.sh" | grep -v iDiff | xargs shellcheck
  - flake8 .
  - ./.gofmt.sh
  - ./.buildifier.sh
  - python -m unittest discover -s reconciletags -p 'reconciletags_test.py'
  - bazel clean && bazel build //...
+ - go test `go list ./... | grep iDiff | grep -v iDiff/vendor` 
