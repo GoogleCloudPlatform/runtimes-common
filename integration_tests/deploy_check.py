@@ -23,10 +23,12 @@ from testsuite import test_util
 
 
 def main():
+    version = None
     try:
         parser = argparse.ArgumentParser()
         parser.add_argument('--directory', '-d', type=str,
-                            help='Directory of app to be run')
+                            help='Directory of app to be run',
+                            required=True)
         args = parser.parse_args()
 
         logging.debug('Testing runtime image.')
