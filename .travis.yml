@@ -4,8 +4,11 @@ dist: trusty
 language: java
 python:
         - "2.7"
+language: go
 go:
-        - 1.x
+        - 1.8.1
+go_import_path: testing/runtimes-common
+
 jdk:
   - oraclejdk8
 
@@ -25,7 +28,6 @@ addons:
 
 install:
   - go get -u github.com/bazelbuild/buildifier/buildifier
-  - export GOPATH="/home/travis/gopath/src/"
 
 script:
  - find . -name "*.sh" | grep -v iDiff | xargs shellcheck
