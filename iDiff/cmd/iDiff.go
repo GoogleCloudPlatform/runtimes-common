@@ -22,7 +22,10 @@ var iDiffCmd = &cobra.Command{
 		if args[2] == "hist" {
 			diff := differs.History(args[0], args[1])
 			fmt.Println(diff)
-		} else {
+		}else if args[2] == "dir" {
+			diff := differs.Package(args[0], args[1])
+			fmt.Println(diff)
+		}else {
 			fmt.Println("Unknown differ")
 		}
 	},
