@@ -9,7 +9,7 @@ func GetAdditions(a, b []string) []string {
 	matcher := difflib.NewMatcher(a, b)
 	differences := matcher.GetGroupedOpCodes(0)
 
-	var adds []string
+	adds := []string{}
 	for _, group := range differences {
 		for _, opCode := range group {
 			j1, j2 := opCode.J1, opCode.J2
@@ -27,7 +27,7 @@ func GetDeletions(a, b []string) []string {
 	matcher := difflib.NewMatcher(a, b)
 	differences := matcher.GetGroupedOpCodes(0)
 
-	var dels []string
+	dels := []string{}
 	for _, group := range differences {
 		for _, opCode := range group {
 			i1, i2 := opCode.I1, opCode.I2
@@ -45,9 +45,9 @@ func GetMatches(a, b []string) []string {
 	matcher := difflib.NewMatcher(a, b)
 	matchindexes := matcher.GetMatchingBlocks()
 
-	var matches []string
+	matches := []string{}
 	for i, match := range matchindexes {
-		if i != len(matchindexes) - 1 {
+		if i != len(matchindexes)-1 {
 			start := match.A
 			end := match.A + match.Size
 			for _, line := range a[start:end] {
@@ -57,4 +57,3 @@ func GetMatches(a, b []string) []string {
 	}
 	return matches
 }
-
