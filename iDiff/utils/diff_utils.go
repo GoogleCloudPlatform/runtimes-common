@@ -10,10 +10,10 @@ func GetAdditions(a, b []string) []string {
 	differences := matcher.GetGroupedOpCodes(0)
 
 	var adds []string
-	for _, g := range differences {
-		for _, c := range g {
-			j1, j2 := c.J1, c.J2
-			if c.Tag == 'r' || c.Tag == 'i' {
+	for _, group := range differences {
+		for _, opCode := range group {
+			j1, j2 := opCode.J1, opCode.J2
+			if opCode.Tag == 'r' || opCode.Tag == 'i' {
 				for _, line := range b[j1:j2] {
 					adds = append(adds, line)
 				}
@@ -28,10 +28,10 @@ func GetDeletions(a, b []string) []string {
 	differences := matcher.GetGroupedOpCodes(0)
 
 	var dels []string
-	for _, g := range differences {
-		for _, c := range g {
-			i1, i2 := c.I1, c.I2
-			if c.Tag == 'r' || c.Tag == 'd' {
+	for _, group := range differences {
+		for _, opCode := range group {
+			i1, i2 := opCode.I1, opCode.I2
+			if opCode.Tag == 'r' || opCode.Tag == 'd' {
 				for _, line := range a[i1:i2] {
 					dels = append(dels, line)
 				}
@@ -46,10 +46,10 @@ func GetMatches(a, b []string) []string {
 	matchindexes := matcher.GetMatchingBlocks()
 
 	var matches []string
-	for i, m := range matchindexes {
-		if i != len(matches) - 1 {
-			start := m.A
-			end := m.A + m.Size
+	for i, match := range matchindexes {
+		if i != len(matchindexes) - 1 {
+			start := match.A
+			end := match.A + match.Size
 			for _, line := range a[start:end] {
 				matches = append(matches, line)
 			}
