@@ -2,6 +2,7 @@ package tarUtil
 
 import (
 	"archive/tar"
+	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -9,7 +10,47 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/system"
 )
+
+// copyToFile writes the content of the reader to the specified file
+func copyToFile(outfile string, r io.Reader) error {
+	// We use sequential file access here to avoid depleting the standby list
+	// on Windows. On Linux, this is a call directly to ioutil.TempFile
+	tmpFile, err := system.TempFileSequential(filepath.Dir(outfile), ".docker_temp_")
+	if err != nil {
+		return err
+	}
+
+	tmpPath := tmpFile.Name()
+
+	_, err = io.Copy(tmpFile, r)
+	tmpFile.Close()
+
+	if err != nil {
+		os.Remove(tmpPath)
+		return err
+	}
+
+	if err = os.Rename(tmpPath, outfile); err != nil {
+		os.Remove(tmpPath)
+		return err
+	}
+
+	return nil
+}
+
+// ImageToTar writes an image to a .tar file
+func ImageToTar(cli client.APIClient, image string) error {
+	imgBytes, err := cli.ImageSave(context.Background(), []string{image})
+	if err != nil {
+		return err
+	}
+	defer imgBytes.Close()
+	return copyToFile(image+".tar", imgBytes)
+}
 
 // Dir stores a representaiton of a file directory.
 type Dir struct {
