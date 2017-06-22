@@ -74,6 +74,15 @@ def deploy_app_without_image(appdir):
 def stop_app(deployed_version):
     logging.debug('Removing application version %s', deployed_version)
     try:
+        stop_command = ['gcloud', 'app', 'versions',
+                        'stop', deployed_version, '-q']
+
+        subprocess.check_output(stop_command)
+    except subprocess.CalledProcessError as cpe:
+        logging.error('Error encountered when stopping app version! %s',
+                      cpe.output)
+
+    try:
         delete_command = ['gcloud', 'app', 'services', 'delete', 'default',
                           '--version', deployed_version, '-q']
 
