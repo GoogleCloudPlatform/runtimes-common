@@ -10,7 +10,7 @@ import (
 
 type Directory struct {
 	Root    string
-	Entries []string
+	Content []string
 }
 
 func GetDirectory(dirpath string) (Directory, error) {
@@ -29,8 +29,8 @@ func GetDirectory(dirpath string) (Directory, error) {
 
 // Checks for content differences between files of the same name from different directories
 func getModifiedEntries(d1, d2 Directory) []string {
-	d1files := d1.Entries
-	d2files := d2.Entries
+	d1files := d1.Content
+	d2files := d2.Content
 
 	filematches := GetMatches(d1files, d2files)
 
@@ -59,11 +59,11 @@ func getModifiedEntries(d1, d2 Directory) []string {
 }
 
 func getAddedEntries(d1, d2 Directory) []string {
-	return GetAdditions(d1.Entries, d2.Entries)
+	return GetAdditions(d1.Content, d2.Content)
 }
 
 func getDeletedEntries(d1, d2 Directory) []string {
-	return GetDeletions(d1.Entries, d2.Entries)
+	return GetDeletions(d1.Content, d2.Content)
 }
 
 func compareDirEntries(d1, d2 Directory) ([]string, []string, []string) {
