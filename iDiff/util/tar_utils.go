@@ -2,7 +2,9 @@ package tarUtil
 
 import (
 	"archive/tar"
+	"encoding/json"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -11,9 +13,8 @@ import (
 
 // Dir stores a representaiton of a file directory.
 type Dir struct {
-	Name  string
-	Files []string
-	Dirs  []Dir
+	Root    string
+	Content []string
 }
 
 // UnTar takes in a path to a tar file and writes the untarred version to the provided target.
@@ -97,4 +98,24 @@ func ExtractTar(path string) error {
 	}
 
 	return filepath.Walk(path, untarWalkFn)
+}
+
+// DirToJSON records the directory structure starting at the provided path as in a json file.
+func DirToJSON(path string, target string) error {
+	var directory Dir
+	directory.Root = path
+
+	tarJSONWalkFn := func(currPath string, info os.FileInfo, err error) error {
+		newContent := strings.TrimPrefix(currPath, directory.Root)
+		directory.Content = append(directory.Content, newContent)
+		return nil
+	}
+
+	filepath.Walk(path, tarJSONWalkFn)
+	data, err := json.Marshal(directory)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(target, data, 0777)
 }

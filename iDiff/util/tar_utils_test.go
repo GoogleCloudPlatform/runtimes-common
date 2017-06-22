@@ -2,9 +2,11 @@ package tarUtil
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 )
 
@@ -115,4 +117,27 @@ func dirEquals(actual string, path string) bool {
 		}
 	}
 	return true
+}
+
+func TestDirToJSON(t *testing.T) {
+	path := "testTars/la-croix3-full"
+	target := "testTars/la-croix3-full.json"
+	expected := "testTars/la-croix3-actual.json"
+	err := DirToJSON(path, target)
+	if err != nil {
+		t.Errorf("Error converting struture to JSON")
+	}
+
+	var actualJSON Dir
+	var expectedJSON Dir
+	content1, _ := ioutil.ReadFile(target)
+	content2, _ := ioutil.ReadFile(expected)
+
+	json.Unmarshal(content1, &actualJSON)
+	json.Unmarshal(content2, &expectedJSON)
+
+	if !reflect.DeepEqual(actualJSON, expectedJSON) {
+		t.Errorf("JSON was incorrect")
+	}
+	os.Remove(target)
 }
