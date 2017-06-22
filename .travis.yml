@@ -30,7 +30,7 @@ install:
   - go get -u github.com/bazelbuild/buildifier/buildifier
 
 script:
- - find . -name "*.sh" | grep -v iDiff | xargs shellcheck
+        # - find . -name "*.sh" | grep -v iDiff | xargs shellcheck
  - flake8 .
  - ./.gofmt.sh
  - ./.buildifier.sh
