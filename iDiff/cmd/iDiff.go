@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"testing/runtimes-common/iDiff/differs"
+	"runtimes-common/iDiff/differs"
+	"runtimes-common/iDiff/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -20,16 +21,39 @@ var iDiffCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		// TODO: Use more effective mapping structure for differs
+		// TODO: Logging errors and diff results instead of just printing
 		if args[2] == "hist" {
 			diff := differs.History(args[0], args[1])
 			fmt.Println(diff)
 		} else if args[2] == "dir" {
-			diff := differs.Package(args[0], args[1])
+			diff, err := dirDiff(args[0], args[1])
+			if err != nil {
+				fmt.Println(err)
+			}
 			fmt.Println(diff)
 		} else {
 			fmt.Println("Unknown differ")
 		}
 	},
+}
+
+func dirDiff(img1, img2 string) (string, error) {
+	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
+	if err != nil {
+		return "", err
+	}
+	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
+	if err != nil {
+		return "", err
+	}
+	diff := differs.Package(jsonPath1, jsonPath2)
+
+	defer os.RemoveAll(dirPath1)
+	defer os.RemoveAll(dirPath2)
+	defer os.Remove(jsonPath1)
+	defer os.Remove(jsonPath2)
+
+	return diff, nil
 }
 
 func checkArgNum(args []string) (bool, error) {

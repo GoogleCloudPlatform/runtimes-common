@@ -1,4 +1,4 @@
-package tarUtil
+package utils
 
 import (
 	"bytes"
