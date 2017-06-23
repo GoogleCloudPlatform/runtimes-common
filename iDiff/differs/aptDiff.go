@@ -9,9 +9,39 @@ import (
 )
 
 // AptDiff compares the packages installed by apt-get.
-func AptDiff(img1, img2 string) string {
+func AptDiff(img1, img2 string) (string, error) {
+	pack1, err := getPackages(img1)
+	if err != nil {
+		return "", err
+	}
+	pack2, err := getPackages(img2) 
+	if err != nil {
+		return "", err
+	}
+
+	diff1, diff2 := diffMaps(pack1, pack2)
+	s1 := "Image %s had the following packages which differed: %s\n"
 	return get_history_diff(img1, img2)
 }
+
+
+func diffMaps(map1, map2 map[string]string) ([]string, []string) {
+	diff1 = []string
+	diff2 = []string
+	for key1, value1 := range map1 {
+		value2, ok := map2[key1]
+		if !ok || value2 != value1 {
+			diff1 = append(diff1, key1 + ":" + value1)
+		} else {
+			delete(diff2, key1)
+		}
+	}
+	for key2, value2 := range map2 {
+		diff2 = append(diff2, key2 + ":" + value2)
+	}
+	return diff1, diff2
+}
+
 
 func getPackages(path string) (map[string]string, error) {
 	packages := make(map[string]string)
