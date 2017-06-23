@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/system"
+	"github.com/golang/glog"
 )
 
 // ImageToDir converts an image to an unpacked tar and creates a representation of that directory.
@@ -44,6 +44,7 @@ func ImageToDir(img string) (string, string, error) {
 func copyToFile(outfile string, r io.Reader) error {
 	// We use sequential file access here to avoid depleting the standby list
 	// on Windows. On Linux, this is a call directly to ioutil.TempFile
+	// tmpFile, err := ioutil.TempFile(filepath.Dir(outfile), ".docker_temp_")
 	tmpFile, err := system.TempFileSequential(filepath.Dir(outfile), ".docker_temp_")
 	if err != nil {
 		return err
@@ -78,8 +79,8 @@ func ImageToTar(cli client.APIClient, image string) (string, error) {
 	return newpath, copyToFile(newpath, imgBytes)
 }
 
-// Dir stores a representaiton of a file directory.
-type Dir struct {
+// Directory stores a representaiton of a file directory.
+type Directory struct {
 	Root    string
 	Content []string
 }
@@ -106,7 +107,7 @@ func UnTar(filename string, path string) error {
 			break
 		}
 		if err != nil {
-			log.Fatalln(err)
+			glog.Fatalf(err.Error())
 		}
 
 		target := filepath.Join(path, header.Name)
@@ -169,7 +170,7 @@ func ExtractTar(path string) error {
 
 // DirToJSON records the directory structure starting at the provided path as in a json file.
 func DirToJSON(path string, target string) error {
-	var directory Dir
+	var directory Directory
 	directory.Root = path
 
 	tarJSONWalkFn := func(currPath string, info os.FileInfo, err error) error {

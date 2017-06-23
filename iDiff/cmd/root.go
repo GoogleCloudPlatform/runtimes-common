@@ -2,7 +2,7 @@ package cmd
 
 import (
 	goflag "flag"
-	"fmt"
+	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -13,7 +13,7 @@ var RootCmd = &cobra.Command{
 	Short: "iDiff is an image differ tool.",
 	Long:  `iDiff is an image differ tool.`,
 	Run: func(command *cobra.Command, args []string) {
-		fmt.Println("Root command started")
+		log.Println("Root command started")
 	},
 }
 
