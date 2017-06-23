@@ -25,7 +25,6 @@ func ImageToDir(img string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	//tarPath := filepath.Join(img, ".tar")
 	err = ExtractTar(tarPath)
 	if err != nil {
 		return "", "", err

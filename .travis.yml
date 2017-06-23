@@ -7,7 +7,7 @@ python:
 language: go
 go:
         - 1.8.1
-go_import_path: testing/runtimes-common
+go_import_path: runtimes-common
 
 jdk:
   - oraclejdk8

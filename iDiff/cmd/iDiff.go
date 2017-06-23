@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"testing/runtimes-common/iDiff/differs"
-	"testing/runtimes-common/iDiff/utils"
+	"runtimes-common/iDiff/differs"
+	"runtimes-common/iDiff/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -38,20 +38,20 @@ var iDiffCmd = &cobra.Command{
 }
 
 func dirDiff(img1, img2 string) (string, error) {
-	dir1, path1, err := utils.ImageToDir(img1)
+	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
 	if err != nil {
 		return "", err
 	}
-	dir2, path2, err := utils.ImageToDir(img2)
+	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
 	if err != nil {
 		return "", err
 	}
-	diff := differs.Package(dir1, dir2)
+	diff := differs.Package(jsonPath1, jsonPath2)
 
-	defer os.RemoveAll(path1)
-	defer os.RemoveAll(path2)
-	defer os.Remove(dir1)
-	defer os.Remove(dir2)
+	defer os.RemoveAll(dirPath1)
+	defer os.RemoveAll(dirPath2)
+	defer os.Remove(jsonPath1)
+	defer os.Remove(jsonPath2)
 
 	return diff, nil
 }
