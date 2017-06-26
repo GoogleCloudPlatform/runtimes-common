@@ -21,8 +21,8 @@ func AptDiff(img1, img2 string) (string, error) {
 	}
 
 	diff1, diff2 := diffMaps(pack1, pack2)
-	s1 := fmt.Sprintf("Image %s had the following packages which differed: %s\n", img1, strings.Join(diff1, "\n"))
-	s2 := fmt.Sprintf("\nImage %s had the following packages which differed: %s\n", img2, strings.Join(diff2, "\n"))
+	s1 := fmt.Sprintf("Image %s had the following packages which differed:\n%s\n", img1, strings.Join(diff1, "\n"))
+	s2 := fmt.Sprintf("\nImage %s had the following packages which differed:\n%s", img2, strings.Join(diff2, "\n"))
 	return s1 + s2, nil
 }
 
@@ -53,7 +53,7 @@ func getPackages(path string) (map[string]string, error) {
 		return packages, err
 	}
 	for _, layer := range layers {
-		layerStems = append(layerStems, filepath.Join(path, layer.Name(), "var/lib/dpkg/status"))
+		layerStems = append(layerStems, filepath.Join(path, layer.Name(), "layer/var/lib/dpkg/status"))
 	}
 
 	for _, statusFile := range layerStems {

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"testing/runtimes-common/iDiff/utils"
+	"runtimes-common/iDiff/utils"
 )
 
 //  Diffs two packages to see if they have the same contents
