@@ -19,24 +19,30 @@ func Package(img1, img2 string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	diff := getDiffOutput(dir1, dir2)
+	diff, err := getDiffOutput(dir1, dir2)
 
 	defer os.RemoveAll(path1)
 	defer os.RemoveAll(path2)
 	defer os.Remove(dir1)
 	defer os.Remove(dir2)
 
+	if err != nil {
+		return "", err
+	}
+
 	return diff, nil
 }
 
-func getDiffOutput(d1file, d2file string) string {
+func getDiffOutput(d1file, d2file string) (string, error) {
 	d1, err := utils.GetDirectory(d1file)
 	if err != nil {
 		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
+		return "", err
 	}
 	d2, err := utils.GetDirectory(d2file)
 	if err != nil {
-		glog.Fatalf("Error reading directory structure from file %s: %s\n", d2file, err)
+		glog.Errorf("Error reading directory structure from file %s: %s\n", d2file, err)
+		return "", err
 	}
 
 	d1name := d1.Root
@@ -78,5 +84,5 @@ func getDiffOutput(d1file, d2file string) string {
 		}
 	}
 
-	return buffer.String()
+	return buffer.String(), nil
 }

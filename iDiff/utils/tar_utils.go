@@ -44,7 +44,6 @@ func ImageToDir(img string) (string, string, error) {
 func copyToFile(outfile string, r io.Reader) error {
 	// We use sequential file access here to avoid depleting the standby list
 	// on Windows. On Linux, this is a call directly to ioutil.TempFile
-	// tmpFile, err := ioutil.TempFile(filepath.Dir(outfile), ".docker_temp_")
 	tmpFile, err := system.TempFileSequential(filepath.Dir(outfile), ".docker_temp_")
 	if err != nil {
 		return err

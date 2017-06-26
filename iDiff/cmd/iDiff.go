@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/golang/glog"
 	"github.com/runtimes-common/iDiff/differs"
@@ -15,7 +17,10 @@ var iDiffCmd = &cobra.Command{
 	Short: "Compare two images.",
 	Long:  `Compares two images using the specifed differ. `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if valid, err := checkArgNum(args); !valid {
+		if validArgNum, err := checkArgNum(args); !validArgNum {
+			glog.Fatalf(err.Error())
+		}
+		if validArgType, err := checkArgType(args); !validArgType {
 			glog.Fatalf(err.Error())
 		}
 		if diff, err := differs.Diff(args[0], args[1], args[2]); err == nil {
@@ -27,16 +32,59 @@ var iDiffCmd = &cobra.Command{
 }
 
 func checkArgNum(args []string) (bool, error) {
-	var err_message string
+	var errMessage string
 	if len(args) < 3 {
-		err_message = "Please have two image IDs and one differ as arguments."
-		return false, errors.New(err_message)
+		errMessage = "Too few arguments. Should have three: [IMAGE ID] [IMAGE ID] [DIFFER]."
+		return false, errors.New(errMessage)
 	} else if len(args) > 3 {
-		err_message = "Too many arguments."
-		return false, errors.New(err_message)
+		errMessage = "Too many arguments. Should have three: [IMAGE ID] [IMAGE ID] [DIFFER]."
+		return false, errors.New(errMessage)
 	} else {
 		return true, nil
 	}
+}
+
+func checkArgType(args []string) (bool, error) {
+	var buffer bytes.Buffer
+	valid := true
+	if !checkImageID(args[0]) {
+		valid = false
+		errMessage := fmt.Sprintf("Argument %s is not an image ID\n", args[0])
+		buffer.WriteString(errMessage)
+	}
+	if !checkImageID(args[1]) {
+		valid = false
+		errMessage := fmt.Sprintf("Argument %s is not an image ID\n", args[1])
+		buffer.WriteString(errMessage)
+	}
+	if checkImageID(args[2]) {
+		valid = false
+		errMessage := fmt.Sprintf("Do not provide more than two image IDs\n", args[2])
+		buffer.WriteString(errMessage)
+	} else if !checkDiffer(args[2]) {
+		valid = false
+		buffer.WriteString("Please provide a differ name as the third argument")
+	}
+	if !valid {
+		return false, errors.New(buffer.String())
+	}
+	return true, nil
+}
+
+func checkImageID(arg string) bool {
+	pattern := regexp.MustCompile("[a-z|0-9]{12}")
+	if exp := pattern.FindString(arg); exp != arg {
+		return false
+	}
+	return true
+}
+
+func checkDiffer(arg string) bool {
+	pattern := regexp.MustCompile("[a-z|A-Z]*")
+	if exp := pattern.FindString(arg); exp != arg {
+		return false
+	}
+	return true
 }
 
 func init() {
