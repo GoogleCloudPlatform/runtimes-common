@@ -31,10 +31,39 @@ var iDiffCmd = &cobra.Command{
 				fmt.Println(err)
 			}
 			fmt.Println(diff)
+		} else if args[2] == "apt" {
+			diff, err := aptDiff(args[0], args[1])
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println(diff)
 		} else {
 			fmt.Println("Unknown differ")
 		}
 	},
+}
+
+
+func aptDiff(img1, img2 string) (string, error) {
+	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
+	if err != nil {
+		return "", err
+	}
+	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
+	if err != nil {
+		return "", err
+	}
+	diff, err := differs.AptDiff(dirPath1, dirPath2)
+	if err != nil {
+		return "", err
+	}
+
+	defer os.RemoveAll(dirPath1)
+	defer os.RemoveAll(dirPath2)
+	defer os.Remove(jsonPath1)
+	defer os.Remove(jsonPath2)
+
+	return diff, nil
 }
 
 func dirDiff(img1, img2 string) (string, error) {
@@ -52,14 +81,14 @@ func dirDiff(img1, img2 string) (string, error) {
 	defer os.RemoveAll(dirPath2)
 	defer os.Remove(jsonPath1)
 	defer os.Remove(jsonPath2)
-
+  
 	return diff, nil
 }
 
 func checkArgNum(args []string) (bool, error) {
 	var err_message string
 	if len(args) < 2 {
-		err_message = "Please have at least two container IDs as arguments."
+		err_message = "Please have at least two image IDs as arguments."
 		return false, errors.New(err_message)
 	} else if len(args) > 3 {
 		err_message = "Too many arguments."
