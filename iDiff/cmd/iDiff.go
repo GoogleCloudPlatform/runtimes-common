@@ -43,44 +43,45 @@ var iDiffCmd = &cobra.Command{
 	},
 }
 
+
 func aptDiff(img1, img2 string) (string, error) {
-	dir1, path1, err := utils.ImageToDir(img1)
+	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
 	if err != nil {
 		return "", err
 	}
-	dir2, path2, err := utils.ImageToDir(img2)
+	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
 	if err != nil {
 		return "", err
 	}
-	diff, err := differs.AptDiff(path1, path2)
+	diff, err := differs.AptDiff(dirPath1, dirPath2)
 	if err != nil {
 		return "", err
 	}
 
-	defer os.RemoveAll(path1)
-	defer os.RemoveAll(path2)
-	defer os.Remove(dir1)
-	defer os.Remove(dir2)
+	defer os.RemoveAll(dirPath1)
+	defer os.RemoveAll(dirPath2)
+	defer os.Remove(jsonPath1)
+	defer os.Remove(jsonPath2)
 
 	return diff, nil
 }
 
 func dirDiff(img1, img2 string) (string, error) {
-	dir1, path1, err := utils.ImageToDir(img1)
+	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
 	if err != nil {
 		return "", err
 	}
-	dir2, path2, err := utils.ImageToDir(img2)
+	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
 	if err != nil {
 		return "", err
 	}
-	diff := differs.Package(dir1, dir2)
+	diff := differs.Package(jsonPath1, jsonPath2)
 
-	defer os.RemoveAll(path1)
-	defer os.RemoveAll(path2)
-	defer os.Remove(dir1)
-	defer os.Remove(dir2)
-
+	defer os.RemoveAll(dirPath1)
+	defer os.RemoveAll(dirPath2)
+	defer os.Remove(jsonPath1)
+	defer os.Remove(jsonPath2)
+  
 	return diff, nil
 }
 
