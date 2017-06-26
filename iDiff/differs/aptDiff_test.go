@@ -2,6 +2,7 @@ package differs
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -12,9 +13,13 @@ func TestDiffMaps(t *testing.T) {
 	expected1 := []string{}
 	expected2 := []string{"pac4:4.0", "pac5:5.0"}
 	diff1, diff2 := diffMaps(map1, map2)
+	sort.Strings(expected1)
+	sort.Strings(diff1)
 	if !reflect.DeepEqual(expected1, diff1) {
 		t.Errorf("Expected: %s but got: %s", expected1, diff1)
 	}
+	sort.Strings(expected2)
+	sort.Strings(diff2)
 	if !reflect.DeepEqual(expected2, diff2) {
 		t.Errorf("Expected: %s but got: %s", expected2, diff2)
 	}
