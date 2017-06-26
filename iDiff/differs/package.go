@@ -6,8 +6,7 @@ import (
 	"os"
 
 	"github.com/golang/glog"
-
-	"runtimes-common/iDiff/utils"
+	"github.com/runtimes-common/iDiff/utils"
 )
 
 //  Diffs two packages and compares their contents

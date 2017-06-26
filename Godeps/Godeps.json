@@ -1,18 +1,9 @@
 {
-	"ImportPath": "github.com/GoogleCloudPlatform/runtimes-common",
+	"ImportPath": ".",
 	"GoVersion": "go1.7",
-	"GodepVersion": "v74",
+	"GodepVersion": "v79",
 	"Packages": [
 		"./..."
 	],
-	"Deps": [
-		{
-			"ImportPath": "github.com/ghodss/yaml",
-			"Rev": "73d445a93680fa1a78ae23a5839bad48f32ba1ee"
-		},
-		{
-			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "53feefa2559fb8dfa8d81baad31be332c97d6c77"
-		}
-	]
+	"Deps": []
 }

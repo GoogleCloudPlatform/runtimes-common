@@ -3,9 +3,9 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"runtimes-common/iDiff/differs"
 
 	"github.com/golang/glog"
+	"github.com/runtimes-common/iDiff/differs"
 	"github.com/spf13/cobra"
 )
 

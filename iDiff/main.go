@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"runtimes-common/iDiff/cmd"
+	"github.com/runtimes-common/iDiff/cmd"
 )
 
 func main() {
