@@ -2,6 +2,7 @@ package differs
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,34 +15,33 @@ func AptDiff(img1, img2 string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	pack2, err := getPackages(img2) 
+	pack2, err := getPackages(img2)
 	if err != nil {
 		return "", err
 	}
 
 	diff1, diff2 := diffMaps(pack1, pack2)
-	s1 := "Image %s had the following packages which differed: %s\n"
-	return get_history_diff(img1, img2)
+	s1 := fmt.Sprintf("Image %s had the following packages which differed: %s\n", img1, strings.Join(diff1, "\n"))
+	s2 := fmt.Sprintf("\nImage %s had the following packages which differed: %s\n", img2, strings.Join(diff2, "\n"))
+	return s1 + s2, nil
 }
 
-
 func diffMaps(map1, map2 map[string]string) ([]string, []string) {
-	diff1 = []string
-	diff2 = []string
+	diff1 := []string{}
+	diff2 := []string{}
 	for key1, value1 := range map1 {
 		value2, ok := map2[key1]
 		if !ok || value2 != value1 {
-			diff1 = append(diff1, key1 + ":" + value1)
+			diff1 = append(diff1, key1+":"+value1)
 		} else {
-			delete(diff2, key1)
+			delete(map2, key1)
 		}
 	}
 	for key2, value2 := range map2 {
-		diff2 = append(diff2, key2 + ":" + value2)
+		diff2 = append(diff2, key2+":"+value2)
 	}
 	return diff1, diff2
 }
-
 
 func getPackages(path string) (map[string]string, error) {
 	packages := make(map[string]string)

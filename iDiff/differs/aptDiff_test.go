@@ -5,6 +5,22 @@ import (
 	"testing"
 )
 
+func TestDiffMaps(t *testing.T) {
+	map1 := map[string]string{"pac1": "1.0", "pac2": "2.0", "pac3": "3.0"}
+	map2 := map[string]string{"pac1": "1.0", "pac2": "2.0", "pac3": "3.0",
+		"pac4": "4.0", "pac5": "5.0"}
+	expected1 := []string{}
+	expected2 := []string{"pac4:4.0", "pac5:5.0"}
+	diff1, diff2 := diffMaps(map1, map2)
+	if !reflect.DeepEqual(expected1, diff1) {
+		t.Errorf("Expected: %s but got: %s", expected1, diff1)
+	}
+	if !reflect.DeepEqual(expected2, diff2) {
+		t.Errorf("Expected: %s but got: %s", expected2, diff2)
+	}
+
+}
+
 func TestGetPackages(t *testing.T) {
 	testCases := []struct {
 		descrip  string
