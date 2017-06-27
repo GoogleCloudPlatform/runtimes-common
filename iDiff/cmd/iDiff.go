@@ -17,10 +17,7 @@ var iDiffCmd = &cobra.Command{
 	Short: "Compare two images.",
 	Long:  `Compares two images using the specifed differ. `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if validArgNum, err := checkArgNum(args); !validArgNum {
-			glog.Fatalf(err.Error())
-		}
-		if validArgType, err := checkArgType(args); !validArgType {
+		if validArgs, err := validateArgs(args); !validArgs {
 			glog.Fatalf(err.Error())
 		}
 		if diff, err := differs.Diff(args[0], args[1], args[2]); err == nil {
@@ -29,6 +26,16 @@ var iDiffCmd = &cobra.Command{
 			glog.Fatalf(err.Error())
 		}
 	},
+}
+
+func validateArgs(args []string) (bool, error) {
+	if validArgNum, err := checkArgNum(args); !validArgNum {
+		return false, err
+	}
+	if validArgType, err := checkArgType(args); !validArgType {
+		return false, err
+	}
+	return true, nil
 }
 
 func checkArgNum(args []string) (bool, error) {
@@ -59,8 +66,7 @@ func checkArgType(args []string) (bool, error) {
 	}
 	if checkImageID(args[2]) {
 		valid = false
-		errMessage := fmt.Sprintf("Do not provide more than two image IDs\n", args[2])
-		buffer.WriteString(errMessage)
+		buffer.WriteString("Do not provide more than two image IDs\n")
 	} else if !checkDiffer(args[2]) {
 		valid = false
 		buffer.WriteString("Please provide a differ name as the third argument")
