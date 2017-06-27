@@ -128,8 +128,8 @@ func TestDirToJSON(t *testing.T) {
 		t.Errorf("Error converting struture to JSON")
 	}
 
-	var actualJSON Dir
-	var expectedJSON Dir
+	var actualJSON Directory
+	var expectedJSON Directory
 	content1, _ := ioutil.ReadFile(target)
 	content2, _ := ioutil.ReadFile(expected)
 

@@ -4,20 +4,45 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"runtimes-common/iDiff/utils"
+
+	"github.com/golang/glog"
+	"github.com/runtimes-common/iDiff/utils"
 )
 
-//  Diffs two packages to see if they have the same contents
-func Package(d1file, d2file string) string {
+//  Diffs two packages and compares their contents
+func Package(img1, img2 string) (string, error) {
+	dir1, path1, err := utils.ImageToDir(img1)
+	if err != nil {
+		return "", err
+	}
+	dir2, path2, err := utils.ImageToDir(img2)
+	if err != nil {
+		return "", err
+	}
+	diff, err := getDiffOutput(dir1, dir2)
+
+	defer os.RemoveAll(path1)
+	defer os.RemoveAll(path2)
+	defer os.Remove(dir1)
+	defer os.Remove(dir2)
+
+	if err != nil {
+		return "", err
+	}
+
+	return diff, nil
+}
+
+func getDiffOutput(d1file, d2file string) (string, error) {
 	d1, err := utils.GetDirectory(d1file)
 	if err != nil {
-		fmt.Printf("Error reading directory structure from file %s: %s\n", d1file, err)
-		os.Exit(1)
+		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
+		return "", err
 	}
 	d2, err := utils.GetDirectory(d2file)
 	if err != nil {
-		fmt.Printf("Error reading directory structure from file %s: %s\n", d2file, err)
-		os.Exit(1)
+		glog.Errorf("Error reading directory structure from file %s: %s\n", d2file, err)
+		return "", err
 	}
 
 	d1name := d1.Root
@@ -59,5 +84,5 @@ func Package(d1file, d2file string) string {
 		}
 	}
 
-	return buffer.String()
+	return buffer.String(), nil
 }
