@@ -8,22 +8,21 @@ import (
 
 func TestDiffMaps(t *testing.T) {
 	map1 := map[string]string{"pac1": "1.0", "pac2": "2.0", "pac3": "3.0"}
-	map2 := map[string]string{"pac1": "1.0", "pac2": "2.0", "pac3": "3.0",
+	map2 := map[string]string{"pac1": "1.0", "pac2": "2.0", "pac3": "4.0",
 		"pac4": "4.0", "pac5": "5.0"}
-	expected1 := []string{}
-	expected2 := []string{"pac4:4.0", "pac5:5.0"}
-	diff1, diff2 := diffMaps(map1, map2)
-	sort.Strings(expected1)
-	sort.Strings(diff1)
-	if !reflect.DeepEqual(expected1, diff1) {
-		t.Errorf("Expected: %s but got: %s", expected1, diff1)
+	expected := PackageDiff{
+		Packages1:   []string{},
+		Packages2:   []string{"pac4:4.0", "pac5:5.0"},
+		VersionDiff: []VDiff{VDiff{"pac3", "3.0", "4.0"}},
 	}
-	sort.Strings(expected2)
-	sort.Strings(diff2)
-	if !reflect.DeepEqual(expected2, diff2) {
-		t.Errorf("Expected: %s but got: %s", expected2, diff2)
+	diff := diffMaps(map1, map2)
+	sort.Strings(expected.Packages1)
+	sort.Strings(diff.Packages1)
+	sort.Strings(expected.Packages2)
+	sort.Strings(diff.Packages2)
+	if !reflect.DeepEqual(expected, diff) {
+		t.Errorf("Expected: %s but got: %s", expected, diff)
 	}
-
 }
 
 func TestGetPackages(t *testing.T) {
