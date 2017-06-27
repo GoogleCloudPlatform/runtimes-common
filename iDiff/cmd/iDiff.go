@@ -22,12 +22,6 @@ var iDiffCmd = &cobra.Command{
 		}
 		if diff, err := differs.Diff(args[0], args[1], args[2]); err == nil {
 			fmt.Println(diff)
-		} else if args[2] == "apt" {
-			diff, err := aptDiff(args[0], args[1])
-			if err != nil {
-				fmt.Println(err)
-			}
-			fmt.Println(diff)
 		} else {
 			glog.Fatalf(err.Error())
 		}

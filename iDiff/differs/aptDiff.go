@@ -6,8 +6,9 @@ import (
 	"log"
 	"os"
 	"reflect"
-	"runtimes-common/iDiff/utils"
 	"strings"
+
+	"github.com/runtimes-common/iDiff/utils"
 
 	"github.com/golang/glog"
 )
@@ -55,19 +56,32 @@ Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range 
 }
 
 // AptDiff compares the packages installed by apt-get.
-func AptDiff(img1, img2 string) (string, error) {
-	pack1, err := getPackages(img1)
+func AptDiff(d1file, d2file string) (string, error) {
+	d1, err := utils.GetDirectory(d1file)
+	if err != nil {
+		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
+		return "", err
+	}
+	d2, err := utils.GetDirectory(d2file)
+	if err != nil {
+		glog.Errorf("Error reading directory structure from file %s: %s\n", d2file, err)
+		return "", err
+	}
+
+	dirPath1 := d1.Root
+	dirPath2 := d2.Root
+	pack1, err := getPackages(dirPath1)
 	if err != nil {
 		return "", err
 	}
-	pack2, err := getPackages(img2)
+	pack2, err := getPackages(dirPath2)
 	if err != nil {
 		return "", err
 	}
 
 	diff := diffMaps(pack1, pack2)
-	diff.Image1 = img1
-	diff.Image2 = img2
+	diff.Image1 = dirPath1
+	diff.Image2 = dirPath2
 	output(diff)
 	return "", nil
 }
