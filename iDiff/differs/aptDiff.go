@@ -3,16 +3,16 @@ package differs
 import (
 	"bufio"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
 	"reflect"
+	"runtimes-common/iDiff/utils"
 	"strings"
 
 	"github.com/golang/glog"
 )
 
+// PackageDiff stores the difference information between two images.
 type PackageDiff struct {
 	Image1    string
 	Packages1 []string
@@ -21,12 +21,14 @@ type PackageDiff struct {
 	InfoDiff  []Info
 }
 
+// Info stores the information for one package in two different images.
 type Info struct {
 	Package string
 	Info1   PackageInfo
 	Info2   PackageInfo
 }
 
+// PackageInfo stores the specific metadata about a package.
 type PackageInfo struct {
 	Version string
 	Size    string
@@ -96,32 +98,9 @@ func diffMaps(map1, map2 map[string]PackageInfo) PackageDiff {
 	return diff
 }
 
-// TODO move this to the general differ and modify to only return changed directories
-func getLayers(path string) ([]os.FileInfo, error) {
-	layers, err := ioutil.ReadDir(path)
-	if err != nil {
-		return []os.FileInfo{}, err
-	}
-	return layers, nil
-}
-
-// TODO move to general differ
-func buildLayerTargets(path, target string) ([]string, error) {
-	var layerStems []string
-	layers, err := getLayers(path)
-	if err != nil {
-		return layerStems, err
-	}
-	for _, layer := range layers {
-		layerStems = append(layerStems, filepath.Join(path, layer.Name(), target))
-	}
-	return layerStems, nil
-
-}
-
 func getPackages(path string) (map[string]PackageInfo, error) {
 	packages := make(map[string]PackageInfo)
-	layerStems, err := buildLayerTargets(path, "layer/var/lib/dpkg/status")
+	layerStems, err := utils.BuildLayerTargets(path, "layer/var/lib/dpkg/status")
 	if err != nil {
 		return packages, err
 	}

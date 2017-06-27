@@ -6,8 +6,12 @@ import (
 	"testing"
 )
 
-func TestDiffMaps(t *testing.T) {
+type ByPackage []Info
 
+func (a ByPackage) Len() int           { return len(a) }
+func (a ByPackage) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByPackage) Less(i, j int) bool { return a[i].Package < a[j].Package }
+func TestDiffMaps(t *testing.T) {
 	testCases := []struct {
 		descrip  string
 		map1     map[string]PackageInfo
@@ -67,8 +71,10 @@ func TestDiffMaps(t *testing.T) {
 		sort.Strings(diff.Packages1)
 		sort.Strings(test.expected.Packages2)
 		sort.Strings(diff.Packages2)
+		sort.Sort(ByPackage(test.expected.InfoDiff))
+		sort.Sort(ByPackage(diff.InfoDiff))
 		if !reflect.DeepEqual(test.expected, diff) {
-			t.Errorf("Expected: %s but got: %s", test.expected, diff)
+			t.Errorf("Expected packages only in map1 to be: %s but got: %s", test.expected, diff)
 		}
 	}
 }
