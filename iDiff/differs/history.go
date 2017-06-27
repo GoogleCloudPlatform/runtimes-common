@@ -2,7 +2,6 @@ package differs
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/docker/docker/client"
@@ -11,21 +10,19 @@ import (
 )
 
 // History compares the Docker history for each image.
-func History(img1, img2 string) string {
-	return get_history_diff(img1, img2)
+func History(img1, img2 string) (string, error) {
+	return getHistoryDiff(img1, img2)
 }
 
-func get_history_list(image string) []string {
+func getHistoryList(image string) ([]string, error) {
 	ctx := context.Background()
 	cli, err := client.NewEnvClient()
 	if err != nil {
-		panic(err)
-		os.Exit(1)
+		return []string{}, err
 	}
 	history, err := cli.ImageHistory(ctx, image)
 	if err != nil {
-		panic(err)
-		os.Exit(1)
+		return []string{}, err
 	}
 
 	strhistory := make([]string, len(history))
@@ -33,13 +30,18 @@ func get_history_list(image string) []string {
 		layer_description := strings.TrimSpace(layer.CreatedBy)
 		strhistory[i] = fmt.Sprintf("%s\n", layer_description)
 	}
-	return strhistory
+	return strhistory, nil
 }
 
-func get_history_diff(image1 string, image2 string) string {
-	history1 := get_history_list(image1)
-	history2 := get_history_list(image2)
-
+func getHistoryDiff(image1 string, image2 string) (string, error) {
+	history1, err := getHistoryList(image1)
+	if err != nil {
+		return "", err
+	}
+	history2, err := getHistoryList(image2)
+	if err != nil {
+		return "", err
+	}
 	diff := difflib.ContextDiff{
 		A:        history1,
 		B:        history2,
@@ -48,5 +50,5 @@ func get_history_diff(image1 string, image2 string) string {
 		Eol:      "\n",
 	}
 	result, _ := difflib.GetContextDiffString(diff)
-	return result
+	return result, nil
 }

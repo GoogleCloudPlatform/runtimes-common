@@ -6,12 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-)
 
-type Directory struct {
-	Root    string
-	Content []string
-}
+	"github.com/golang/glog"
+)
 
 func GetDirectory(dirpath string) (Directory, error) {
 	dirfile, err := ioutil.ReadFile(dirpath)
@@ -41,14 +38,14 @@ func getModifiedEntries(d1, d2 Directory) []string {
 
 		f1stat, err := os.Stat(f1path)
 		if err != nil {
-			fmt.Printf("Error checking directory entry %s: %s\n", f, err)
-			os.Exit(1)
+			glog.Errorf("Error checking directory entry %s: %s\n", f, err)
+			continue
 		}
 		if !f1stat.IsDir() {
 			same, err := checkSameFile(f1path, f2path)
 			if err != nil {
-				fmt.Printf("Error diffing contents of %s and %s: %s\n", f1path, f2path, err)
-				os.Exit(1)
+				glog.Errorf("Error diffing contents of %s and %s: %s\n", f1path, f2path, err)
+				continue
 			}
 			if !same {
 				modified = append(modified, f)

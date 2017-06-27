@@ -1,5 +1,5 @@
 {
-	"ImportPath": "runtimes-common/iDiff",
+	"ImportPath": "github.com/runtimes-common/iDiff",
 	"GoVersion": "go1.8",
 	"GodepVersion": "v79",
 	"Deps": [
@@ -10,18 +10,18 @@
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v1.0.0-1-g85b1699",
-			"Rev": "85b1699d505667d13f8ac4478c1debbf85d6c5de"
+			"Comment": "v1.0.0-2-g3d4380f",
+			"Rev": "3d4380f53a34dcdc95f0c1db702615992b38d9a4"
 		},
 		{
 			"ImportPath": "github.com/docker/distribution/digestset",
-			"Comment": "v2.6.0-rc.1-191-g1e2f10eb",
-			"Rev": "1e2f10eb65743fed02f573d31a4587de09afb20e"
+			"Comment": "v2.6.0-rc.1-195-gcaa175c7",
+			"Rev": "caa175c71008fd3cf1fccf6c427f388d946b7750"
 		},
 		{
 			"ImportPath": "github.com/docker/distribution/reference",
-			"Comment": "v2.6.0-rc.1-191-g1e2f10eb",
-			"Rev": "1e2f10eb65743fed02f573d31a4587de09afb20e"
+			"Comment": "v2.6.0-rc.1-195-gcaa175c7",
+			"Rev": "caa175c71008fd3cf1fccf6c427f388d946b7750"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/api",
@@ -130,18 +130,18 @@
 		},
 		{
 			"ImportPath": "github.com/docker/go-connections/nat",
-			"Comment": "v0.2.1-28-ge15c023",
-			"Rev": "e15c02316c12de00874640cd76311849de2aeed5"
+			"Comment": "v0.2.1-30-g3ede32e",
+			"Rev": "3ede32e2033de7505e6500d6c868c2b9ed9f169d"
 		},
 		{
 			"ImportPath": "github.com/docker/go-connections/sockets",
-			"Comment": "v0.2.1-28-ge15c023",
-			"Rev": "e15c02316c12de00874640cd76311849de2aeed5"
+			"Comment": "v0.2.1-30-g3ede32e",
+			"Rev": "3ede32e2033de7505e6500d6c868c2b9ed9f169d"
 		},
 		{
 			"ImportPath": "github.com/docker/go-connections/tlsconfig",
-			"Comment": "v0.2.1-28-ge15c023",
-			"Rev": "e15c02316c12de00874640cd76311849de2aeed5"
+			"Comment": "v0.2.1-30-g3ede32e",
+			"Rev": "3ede32e2033de7505e6500d6c868c2b9ed9f169d"
 		},
 		{
 			"ImportPath": "github.com/docker/go-units",
@@ -151,6 +151,10 @@
 		{
 			"ImportPath": "github.com/docker/libtrust",
 			"Rev": "aabc10ec26b754e797f9028f4589c5b7bd90dc20"
+		},
+		{
+			"ImportPath": "github.com/golang/glog",
+			"Rev": "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/mousetrap",
@@ -163,13 +167,13 @@
 		},
 		{
 			"ImportPath": "github.com/opencontainers/image-spec/specs-go",
-			"Comment": "v1.0.0-rc6-18-gd207df4",
-			"Rev": "d207df434d113728dc3373cb3a905f00b482a858"
+			"Comment": "v1.0.0-rc6-30-gd9ffa2f",
+			"Rev": "d9ffa2f05d4dbe917edfdffcafaf427287a26d1c"
 		},
 		{
 			"ImportPath": "github.com/opencontainers/image-spec/specs-go/v1",
-			"Comment": "v1.0.0-rc6-18-gd207df4",
-			"Rev": "d207df434d113728dc3373cb3a905f00b482a858"
+			"Comment": "v1.0.0-rc6-30-gd9ffa2f",
+			"Rev": "d9ffa2f05d4dbe917edfdffcafaf427287a26d1c"
 		},
 		{
 			"ImportPath": "github.com/pkg/errors",
@@ -191,23 +195,23 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "dfe83d419c9403b40b19d08cdba2afec27b002f7"
+			"Rev": "ddf80d0970594e2e4cccf5a98861cad3d9eaa4cd"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context/ctxhttp",
-			"Rev": "dfe83d419c9403b40b19d08cdba2afec27b002f7"
+			"Rev": "ddf80d0970594e2e4cccf5a98861cad3d9eaa4cd"
 		},
 		{
 			"ImportPath": "golang.org/x/net/proxy",
-			"Rev": "dfe83d419c9403b40b19d08cdba2afec27b002f7"
+			"Rev": "ddf80d0970594e2e4cccf5a98861cad3d9eaa4cd"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a"
+			"Rev": "0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/windows",
-			"Rev": "fb4cac33e3196ff7f507ab9b2d2a44b0142f5b5a"
+			"Rev": "0b25a408a50076fbbcae6b7ac0ea5fbb0b085e79"
 		}
 	]
 }
