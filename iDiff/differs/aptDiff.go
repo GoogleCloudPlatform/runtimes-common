@@ -154,7 +154,8 @@ func parseLine(text string, currPackage string, packages map[string]PackageInfo)
 				glog.Warningln("Multiple versions of same package detected.  Diffing such multi-versioning not yet supported.")
 				return currPackage
 			}
-			tempPackage := PackageInfo{Version: value}
+			modifiedValue := strings.Replace(value, "+", " ", 1)
+			tempPackage := PackageInfo{Version: modifiedValue}
 			packages[currPackage] = tempPackage
 			return currPackage
 

@@ -112,6 +112,14 @@ func TestParseLine(t *testing.T) {
 			expected:    map[string]PackageInfo{"La-Croix": PackageInfo{Version: "Lime"}},
 		},
 		{
+			descrip:     "Version line",
+			line:        "Version: Lime",
+			packages:    map[string]PackageInfo{},
+			currPackage: "La-Croix",
+			expPackage:  "La-Croix",
+			expected:    map[string]PackageInfo{"La-Croix": PackageInfo{Version: "Lime"}},
+                },
+		{
 			descrip:     "Size line",
 			line:        "Installed-Size: 12floz",
 			packages:    map[string]PackageInfo{},
