@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/runtimes-common/iDiff/utils"
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
 func TestParseLine(t *testing.T) {

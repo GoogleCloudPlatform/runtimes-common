@@ -2,12 +2,12 @@ package differs
 
 import (
 	"bufio"
-	"github.com/runtimes-common/iDiff/utils"
 	"html/template"
 	"log"
 	"os"
 	"strings"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 	"github.com/golang/glog"
 )
 

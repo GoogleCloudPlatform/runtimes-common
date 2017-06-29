@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/runtimes-common/iDiff/utils"
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
 var diffs = map[string]func(string, string) (string, error){
