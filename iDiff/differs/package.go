@@ -3,29 +3,14 @@ package differs
 import (
 	"bytes"
 	"fmt"
-	"os"
 
 	"github.com/golang/glog"
 	"github.com/runtimes-common/iDiff/utils"
 )
 
 //  Diffs two packages and compares their contents
-func Package(img1, img2 string) (string, error) {
-	dir1, path1, err := utils.ImageToDir(img1)
-	if err != nil {
-		return "", err
-	}
-	dir2, path2, err := utils.ImageToDir(img2)
-	if err != nil {
-		return "", err
-	}
+func Package(dir1, dir2 string) (string, error) {
 	diff, err := getDiffOutput(dir1, dir2)
-
-	defer os.RemoveAll(path1)
-	defer os.RemoveAll(path2)
-	defer os.Remove(dir1)
-	defer os.Remove(dir2)
-
 	if err != nil {
 		return "", err
 	}
