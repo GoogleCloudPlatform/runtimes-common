@@ -65,7 +65,9 @@ func BuildLayerTargets(path, target string) ([]string, error) {
 		return layerStems, err
 	}
 	for _, layer := range layers {
-		layerStems = append(layerStems, filepath.Join(path, layer.Name(), target))
+		if layer.IsDir() {
+			layerStems = append(layerStems, filepath.Join(path, layer.Name(), target))
+		}
 	}
 	return layerStems, nil
 }

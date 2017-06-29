@@ -87,29 +87,45 @@ func TestDiffMaps(t *testing.T) {
 }
 
 func TestBuildLayerTargets(t *testing.T) {
-	path := "test_files/dir1"
-	target := "123"
-	expected := []string{"test_files/dir1/file1/123", "test_files/dir1/file2/123", "test_files/dir1/file3/123"}
-	layers, err := BuildLayerTargets(path, target)
-	if err != nil {
-		t.Errorf("Unexpected error occured: %s", err)
+	testCases := []struct {
+		descrip  string
+		path     string
+		target   string
+		expected []string
+		err      bool
+	}{
+		{
+			descrip:  "Filter out non directories",
+			path:     "testTars/la-croix1-actual",
+			target:   "123",
+			expected: []string{},
+		},
+		{
+			descrip:  "Error on bad directory path",
+			path:     "test_files/notReal",
+			target:   "123",
+			expected: []string{},
+			err:      true,
+		},
+		{
+			descrip:  "Filter out non-directories and get directories",
+			path:     "testTars/la-croix3-full",
+			target:   "123",
+			expected: []string{"testTars/la-croix3-full/nest/123", "testTars/la-croix3-full/nested-dir/123"},
+		},
 	}
-	sort.Strings(expected)
-	sort.Strings(layers)
-	if !reflect.DeepEqual(expected, layers) {
-		t.Errorf("Expected: %s, but got: %s.", expected, layers)
-	}
-}
-
-func TestBuildLayerTargetsFailure(t *testing.T) {
-	path := "test_files/notReal"
-	target := "123"
-	expected := []string{}
-	layers, err := BuildLayerTargets(path, target)
-	if err == nil {
-		t.Errorf("Expected error but none occurred")
-	}
-	if !reflect.DeepEqual(expected, layers) {
-		t.Errorf("Expected: %s, but got: %s.", expected, layers)
+	for _, test := range testCases {
+		layers, err := BuildLayerTargets(test.path, test.target)
+		if err != nil && !test.err {
+			t.Errorf("Got unexpected error: %s", err)
+		}
+		if err == nil && test.err {
+			t.Errorf("Expected error but got none: %s", err)
+		}
+		sort.Strings(test.expected)
+		sort.Strings(layers)
+		if !reflect.DeepEqual(test.expected, layers) {
+			t.Errorf("Expected: %s, but got: %s.", test.expected, layers)
+		}
 	}
 }
