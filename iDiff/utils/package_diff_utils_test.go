@@ -30,11 +30,11 @@ func TestDiffMaps(t *testing.T) {
 		{
 			descrip: "Missing Packages.",
 			map1: map[string]PackageInfo{
-				"pac1": PackageInfo{"1.0", "40"},
-				"pac3": PackageInfo{"3.0", "60"}},
+				"pac1": {"1.0", "40"},
+				"pac3": {"3.0", "60"}},
 			map2: map[string]PackageInfo{
-				"pac4": PackageInfo{"4.0", "70"},
-				"pac5": PackageInfo{"5.0", "80"}},
+				"pac4": {"4.0", "70"},
+				"pac5": {"5.0", "80"}},
 			expected: PackageDiff{
 				Packages1: []string{"pac1:1.0", "pac3:3.0"},
 				Packages2: []string{"pac4:4.0", "pac5:5.0"},
@@ -43,29 +43,29 @@ func TestDiffMaps(t *testing.T) {
 		{
 			descrip: "Different Versions and Sizes.",
 			map1: map[string]PackageInfo{
-				"pac2": PackageInfo{"2.0", "50"},
-				"pac3": PackageInfo{"3.0", "60"}},
+				"pac2": {"2.0", "50"},
+				"pac3": {"3.0", "60"}},
 			map2: map[string]PackageInfo{
-				"pac2": PackageInfo{"2.0", "45"},
-				"pac3": PackageInfo{"4.0", "60"}},
+				"pac2": {"2.0", "45"},
+				"pac3": {"4.0", "60"}},
 			expected: PackageDiff{
 				Packages1: []string{},
 				Packages2: []string{},
 				InfoDiff: []Info{
-					Info{"pac2", PackageInfo{"2.0", "50"}, PackageInfo{"2.0", "45"}},
-					Info{"pac3", PackageInfo{"3.0", "60"}, PackageInfo{"4.0", "60"}}},
+					{"pac2", PackageInfo{"2.0", "50"}, PackageInfo{"2.0", "45"}},
+					{"pac3", PackageInfo{"3.0", "60"}, PackageInfo{"4.0", "60"}}},
 			},
 		},
 		{
 			descrip: "Identical packages, versions, and sizes",
 			map1: map[string]PackageInfo{
-				"pac1": PackageInfo{"1.0", "40"},
-				"pac2": PackageInfo{"2.0", "50"},
-				"pac3": PackageInfo{"3.0", "60"}},
+				"pac1": {"1.0", "40"},
+				"pac2": {"2.0", "50"},
+				"pac3": {"3.0", "60"}},
 			map2: map[string]PackageInfo{
-				"pac1": PackageInfo{"1.0", "40"},
-				"pac2": PackageInfo{"2.0", "50"},
-				"pac3": PackageInfo{"3.0", "60"}},
+				"pac1": {"1.0", "40"},
+				"pac2": {"2.0", "50"},
+				"pac3": {"3.0", "60"}},
 			expected: PackageDiff{
 				Packages1: []string{},
 				Packages2: []string{},

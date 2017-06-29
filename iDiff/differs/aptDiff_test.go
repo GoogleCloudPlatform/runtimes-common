@@ -37,7 +37,7 @@ func TestParseLine(t *testing.T) {
 			packages:    map[string]utils.PackageInfo{},
 			currPackage: "La-Croix",
 			expPackage:  "La-Croix",
-			expected:    map[string]utils.PackageInfo{"La-Croix": utils.PackageInfo{Version: "Lime"}},
+			expected:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime"}},
 		},
 		{
 			descrip:     "Version line",
@@ -45,7 +45,7 @@ func TestParseLine(t *testing.T) {
 			packages:    map[string]utils.PackageInfo{},
 			currPackage: "La-Croix",
 			expPackage:  "La-Croix",
-			expected:    map[string]utils.PackageInfo{"La-Croix": utils.PackageInfo{Version: "Lime"}},
+			expected:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime"}},
 		},
 		{
 			descrip:     "Size line",
@@ -53,7 +53,7 @@ func TestParseLine(t *testing.T) {
 			packages:    map[string]utils.PackageInfo{},
 			currPackage: "La-Croix",
 			expPackage:  "La-Croix",
-			expected:    map[string]utils.PackageInfo{"La-Croix": utils.PackageInfo{Size: "12floz"}},
+			expected:    map[string]utils.PackageInfo{"La-Croix": {Size: "12floz"}},
 		},
 	}
 
@@ -90,19 +90,19 @@ func TestGetPackages(t *testing.T) {
 			descrip: "all packages in one layer",
 			path:    "testDirs/packageOne",
 			expected: map[string]utils.PackageInfo{
-				"pac1": utils.PackageInfo{Version: "1.0"},
-				"pac2": utils.PackageInfo{Version: "2.0"},
-				"pac3": utils.PackageInfo{Version: "3.0"}},
+				"pac1": {Version: "1.0"},
+				"pac2": {Version: "2.0"},
+				"pac3": {Version: "3.0"}},
 		},
 		{
 			descrip: "many packages in different layers",
 			path:    "testDirs/packageMany",
 			expected: map[string]utils.PackageInfo{
-				"pac1": utils.PackageInfo{Version: "1.0"},
-				"pac2": utils.PackageInfo{Version: "2.0"},
-				"pac3": utils.PackageInfo{Version: "3.0"},
-				"pac4": utils.PackageInfo{Version: "4.0"},
-				"pac5": utils.PackageInfo{Version: "5.0"}},
+				"pac1": {Version: "1.0"},
+				"pac2": {Version: "2.0"},
+				"pac3": {Version: "3.0"},
+				"pac4": {Version: "4.0"},
+				"pac5": {Version: "5.0"}},
 		},
 	}
 	for _, test := range testCases {
