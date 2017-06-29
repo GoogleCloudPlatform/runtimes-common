@@ -38,8 +38,7 @@ func TestDiffMaps(t *testing.T) {
 			expected: PackageDiff{
 				Packages1: []string{"pac1:1.0", "pac3:3.0"},
 				Packages2: []string{"pac4:4.0", "pac5:5.0"},
-				InfoDiff:  []Info{},
-			},
+				InfoDiff:  []Info{}},
 		},
 		{
 			descrip: "Different Versions and Sizes.",
@@ -52,7 +51,8 @@ func TestDiffMaps(t *testing.T) {
 			expected: PackageDiff{
 				Packages1: []string{},
 				Packages2: []string{},
-				InfoDiff: []Info{Info{"pac2", PackageInfo{"2.0", "50"}, PackageInfo{"2.0", "45"}},
+				InfoDiff: []Info{
+					Info{"pac2", PackageInfo{"2.0", "50"}, PackageInfo{"2.0", "45"}},
 					Info{"pac3", PackageInfo{"3.0", "60"}, PackageInfo{"4.0", "60"}}},
 			},
 		},
@@ -69,8 +69,7 @@ func TestDiffMaps(t *testing.T) {
 			expected: PackageDiff{
 				Packages1: []string{},
 				Packages2: []string{},
-				InfoDiff:  []Info{},
-			},
+				InfoDiff:  []Info{}},
 		},
 	}
 	for _, test := range testCases {

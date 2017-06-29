@@ -22,12 +22,15 @@ type Info struct {
 	Info2   PackageInfo
 }
 
-// Package Info stores the specific metadata about a package.
+// PackageInfo stores the specific metadata about a package.
 type PackageInfo struct {
 	Version string
 	Size    string
 }
 
+// DiffMaps determines the differences between maps of package names to PackageInfo structs
+// The return struct includes a list of packages only in the first map, a list of packages only in
+// the second map, and a list of packages which differed only in their PackageInfo (version, size, etc.)
 func DiffMaps(map1, map2 map[string]PackageInfo) PackageDiff {
 	diff1 := []string{}
 	diff2 := []string{}
