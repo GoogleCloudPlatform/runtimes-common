@@ -51,7 +51,7 @@ def deploy_app(image, appdir):
         deployed_version = test_util.generate_version()
 
         # TODO: once sdk driver is published, use it here
-        deploy_command = ['gcloud', 'app', 'deploy',
+        deploy_command = ['gcloud', 'app', 'deploy', '--no-promote'
                           '--version', deployed_version, '-q']
 
         subprocess.check_output(deploy_command)
