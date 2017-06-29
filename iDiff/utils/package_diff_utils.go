@@ -57,7 +57,7 @@ func (pi PackageInfo) string() string {
 	return pi.Version
 }
 
-// BuildLayerTargets creates a string slice of the changed layers with the target path concatenated.
+// BuildLayerTargets creates a string slice of the layers found at path with the target concatenated.
 func BuildLayerTargets(path, target string) ([]string, error) {
 	layerStems := []string{}
 	layers, err := ioutil.ReadDir(path)
