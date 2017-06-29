@@ -73,7 +73,14 @@ func TestGetPackages(t *testing.T) {
 		descrip  string
 		path     string
 		expected map[string]utils.PackageInfo
+		err      bool
 	}{
+		{
+			descrip:  "no directory",
+			path:     "testDirs/notThere",
+			expected: map[string]utils.PackageInfo{},
+			err:      true,
+		},
 		{
 			descrip:  "no packages",
 			path:     "testDirs/noPackages",
@@ -100,8 +107,11 @@ func TestGetPackages(t *testing.T) {
 	}
 	for _, test := range testCases {
 		packages, err := getPackages(test.path)
-		if err != nil {
+		if err != nil && !test.err {
 			t.Errorf("Got unexpected error: %s", err)
+		}
+		if err == nil && test.err {
+			t.Errorf("Expected error: %s", test.err)
 		}
 		if !reflect.DeepEqual(packages, test.expected) {
 			t.Errorf("Expected: %s but got: %s", test.expected, packages)

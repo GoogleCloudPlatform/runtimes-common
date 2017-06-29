@@ -99,5 +99,17 @@ func TestBuildLayerTargets(t *testing.T) {
 	if !reflect.DeepEqual(expected, layers) {
 		t.Errorf("Expected: %s, but got: %s.", expected, layers)
 	}
+}
 
+func TestBuildLayerTargetsFailure(t *testing.T) {
+	path := "test_files/notReal"
+	target := "123"
+	expected := []string{}
+	layers, err := BuildLayerTargets(path, target)
+	if err == nil {
+		t.Errorf("Expected error but none occurred")
+	}
+	if !reflect.DeepEqual(expected, layers) {
+		t.Errorf("Expected: %s, but got: %s.", expected, layers)
+	}
 }

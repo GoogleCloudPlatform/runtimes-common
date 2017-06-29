@@ -59,11 +59,8 @@ func (pi PackageInfo) string() string {
 
 // BuildLayerTargets creates a string slice of the changed layers with the target path concatenated.
 func BuildLayerTargets(path, target string) ([]string, error) {
-	var layerStems []string
+	layerStems := []string{}
 	layers, err := ioutil.ReadDir(path)
-	if err != nil {
-		return layerStems, err
-	}
 	if err != nil {
 		return layerStems, err
 	}
