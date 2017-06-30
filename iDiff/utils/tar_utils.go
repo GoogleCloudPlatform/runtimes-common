@@ -100,18 +100,33 @@ func ExtractTar(path string) error {
 	return filepath.Walk(path, untarWalkFn)
 }
 
-// DirToJSON records the directory structure starting at the provided path as a json file.
-func DirToJSON(path string, target string) error {
+// DirToJSON records the directory structure starting at the provided path as in a json file.
+func DirToJSON(path string, target string, deep bool) error {
 	var directory Directory
 	directory.Root = path
 
-	tarJSONWalkFn := func(currPath string, info os.FileInfo, err error) error {
-		newContent := strings.TrimPrefix(currPath, directory.Root)
-		directory.Content = append(directory.Content, newContent)
-		return nil
+	if deep {
+		tarJSONWalkFn := func(currPath string, info os.FileInfo, err error) error {
+			newContent := strings.TrimPrefix(currPath, directory.Root)
+			if newContent != "" {
+				directory.Content = append(directory.Content, newContent)
+			}
+			return nil
+		}
+
+		filepath.Walk(path, tarJSONWalkFn)
+	} else {
+		contents, err := ioutil.ReadDir(path)
+		if err != nil {
+			return err
+		}
+
+		for _, file := range contents {
+			fileName := "/" + file.Name()
+			directory.Content = append(directory.Content, fileName)
+		}
 	}
 
-	filepath.Walk(path, tarJSONWalkFn)
 	data, err := json.Marshal(directory)
 	if err != nil {
 		return err
