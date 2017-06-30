@@ -159,7 +159,7 @@ def _check_vuln_is_valid(vuln):
     return False
 
 
-def _security_check(image, severity=_MEDIUM, whitelist_file='whitelist.json'):
+def security_check(image, severity=_MEDIUM, whitelist_file='whitelist.json'):
     apt_pkg.init()
 
     try:
@@ -184,7 +184,7 @@ def _main():
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG)
-    return len(_security_check(args.image, args.severity, args.whitelist))
+    return len(security_check(args.image, args.severity, args.whitelist))
 
 
 if __name__ == '__main__':
