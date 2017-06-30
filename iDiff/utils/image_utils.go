@@ -28,7 +28,7 @@ func ImageToDir(img string) (string, string, error) {
 	os.Remove(tarPath)
 	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
 	jsonPath := path + ".json"
-	err = DirToJSON(path, jsonPath)
+	err = DirToJSON(path, jsonPath, false) // TODO: Obtain deep parameter from flag
 	if err != nil {
 		return "", "", err
 	}
