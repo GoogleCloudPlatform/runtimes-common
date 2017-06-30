@@ -34,8 +34,6 @@ def _set_base_image(image):
         with open('Dockerfile', 'w') as fout:
             for line in fin:
                 fout.write(line.replace('${STAGING_IMAGE}', image))
-        fout.close()
-    fin.close()
 
 
 def _set_builder_image(builder):
@@ -43,8 +41,6 @@ def _set_builder_image(builder):
         with open('test.yaml', 'w') as fout:
             for line in fin:
                 fout.write(line.replace('${STAGING_BUILDER_IMAGE}', builder))
-        fout.close()
-    fin.close()
 
 
 def deploy_app(base_image, builder_image, appdir, yaml):
