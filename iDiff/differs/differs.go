@@ -11,7 +11,7 @@ var diffs = map[string]func(string, string) (string, error){
 	"hist": History,
 	"dir":  Package,
 	"apt":  AptDiff,
-	"pip":	PipDiff,
+	"pip":  PipDiff,
 }
 
 func Diff(arg1, arg2, differ string) (string, error) {
