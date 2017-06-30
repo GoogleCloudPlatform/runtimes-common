@@ -77,18 +77,18 @@ func TestGetPackages(t *testing.T) {
 	}{
 		{
 			descrip:  "no directory",
-			path:     "testDirs/notThere",
+			path:     "testDirs/aptTestFiles/notThere",
 			expected: map[string]utils.PackageInfo{},
 			err:      true,
 		},
 		{
 			descrip:  "no packages",
-			path:     "testDirs/noPackages",
+			path:     "testDirs/aptTestFiles/noPackages",
 			expected: map[string]utils.PackageInfo{},
 		},
 		{
 			descrip: "all packages in one layer",
-			path:    "testDirs/packageOne",
+			path:    "testDirs/aptTestFiles/packageOne",
 			expected: map[string]utils.PackageInfo{
 				"pac1": {Version: "1.0"},
 				"pac2": {Version: "2.0"},
@@ -96,7 +96,7 @@ func TestGetPackages(t *testing.T) {
 		},
 		{
 			descrip: "many packages in different layers",
-			path:    "testDirs/packageMany",
+			path:    "testDirs/aptTestFiles/packageMany",
 			expected: map[string]utils.PackageInfo{
 				"pac1": {Version: "1.0"},
 				"pac2": {Version: "2.0"},
@@ -111,7 +111,7 @@ func TestGetPackages(t *testing.T) {
 			t.Errorf("Got unexpected error: %s", err)
 		}
 		if err == nil && test.err {
-			t.Errorf("Expected error: %s", test.err)
+			t.Errorf("Expected error but got none.")
 		}
 		if !reflect.DeepEqual(packages, test.expected) {
 			t.Errorf("Expected: %s but got: %s", test.expected, packages)

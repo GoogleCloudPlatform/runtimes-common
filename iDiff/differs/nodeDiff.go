@@ -2,49 +2,39 @@ package differs
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"os"
-	"path/filepath"
 )
 
 // NodeDiff compares the packages installed by apt-get.
-func NodeDiff(img1, img2 string) (string, error) {
-	pack1, err := getPackages(img1)
-	if err != nil {
-		return "", err
-	}
-	pack2, err := getPackages(img2)
-	if err != nil {
-		return "", err
-	}
+// func NodeDiff(img1, img2 string) (string, error) {
+// 	pack1, err := getPackages(img1)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	pack2, err := getPackages(img2)
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	diff1, diff2 := diffMaps(pack1, pack2)
+// 	diff1, diff2 := diffMaps(pack1, pack2)
 
+// }
+
+func buildNodePaths(path string) []string {
+	"layer/node_modules"
+	"layer/usr/local/lib"
 }
 
 func getPackages(path string) (map[string]utils.PackageInfo, error) {
 	packages := make(map[string]utils.PackageInfo)
 
-	var layerStems []string
-
-	layers, err := ioutil.ReadDir(path)
-	if err != nil {
-		return packages, err
-	}
-	for _, layer := range layers {
-		layerStems = append(layerStems, filepath.Join(path, layer.Namer(), "layer/node_modules"))
-		layerStems = append(layerStems, filepath.Join(path, layer.Name(), "layer/usr/local/node_modules/npm/node_modules"))
-	}
+	layerStems := buildNodePaths(path)
 
 	for _, modulesDir := range layerStems {
-		if _, err := os.Stat(modulesDir); err == nil {
-			if packages, err := ioutilReadDir(modulesDir); err != nil {
-				for _, currPackage := range packages {
-					packageJSON := filepath.Join(modulesDir, currPackage.Name(), "package.json")
-					utils.Package
 
-				}
+		packageJSONs := utils.BuildLayerTargets(modulesDir, "package.json")
+			for _, currPackage := range packageJSONs {
+				packages[packageJSON.Name] := utils.PackageInfo{Version:packageJSON.Version}
 			}
 		}
 
@@ -57,11 +47,15 @@ type nodePackage struct {
 	Version string `json:"version"`
 }
 
-func readPackageJSON(path) utils.PackageInfo {
-	var package nodePackage{}
-	err := json.Unmarshal(jsonBytes, &package)
+func readPackageJSON(path string) (nodePackage, error) {
+	var currPackage nodePackage
+	jsonBytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		fmt.Println("Error parsing JSON: ", err)
+		return currPackage, err
 	}
-	return package
+	err = json.Unmarshal(jsonBytes, &currPackage)
+	if err != nil {
+		return currPackage, err
+	}
+	return currPackage, err
 }
