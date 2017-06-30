@@ -120,24 +120,32 @@ func dirEquals(actual string, path string) bool {
 }
 
 func TestDirToJSON(t *testing.T) {
-	path := "testTars/la-croix3-full"
-	target := "testTars/la-croix3-full.json"
-	expected := "testTars/la-croix3-actual.json"
-	err := DirToJSON(path, target)
-	if err != nil {
-		t.Errorf("Error converting struture to JSON")
+	tests := []struct {
+		path     string
+		target   string
+		expected string
+		deep     bool
+	}{
+		{"testTars/la-croix3-full", "testTars/la-croix3-full.json", "testTars/la-croix3-actual.json", true},
+		{"testTars/la-croix3-full", "testTars/la-croix3-temp.json", "testTars/la-croix3-shallow.json", false},
 	}
+	for _, testCase := range tests {
+		err := DirToJSON(testCase.path, testCase.target, testCase.deep)
+		if err != nil {
+			t.Errorf("Error converting structure to JSON")
+		}
 
-	var actualJSON Directory
-	var expectedJSON Directory
-	content1, _ := ioutil.ReadFile(target)
-	content2, _ := ioutil.ReadFile(expected)
+		var actualJSON Directory
+		var expectedJSON Directory
+		content1, _ := ioutil.ReadFile(testCase.target)
+		content2, _ := ioutil.ReadFile(testCase.expected)
 
-	json.Unmarshal(content1, &actualJSON)
-	json.Unmarshal(content2, &expectedJSON)
+		json.Unmarshal(content1, &actualJSON)
+		json.Unmarshal(content2, &expectedJSON)
 
-	if !reflect.DeepEqual(actualJSON, expectedJSON) {
-		t.Errorf("JSON was incorrect")
+		if !reflect.DeepEqual(actualJSON, expectedJSON) {
+			t.Errorf("JSON was incorrect")
+		}
+		os.Remove(testCase.target)
 	}
-	os.Remove(target)
 }
