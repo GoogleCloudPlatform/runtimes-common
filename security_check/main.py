@@ -159,8 +159,19 @@ def _check_vuln_is_valid(vuln):
     return False
 
 
-def _main():
+def security_check(image, severity=_MEDIUM, whitelist_file='whitelist.json'):
     apt_pkg.init()
+
+    try:
+        whitelist = json.load(open(whitelist_file, 'r'))
+    except IOError:
+        whitelist = []
+    logging.info("whitelist=%s", whitelist)
+
+    return _check_for_vulnz(_sub_image(image), severity, whitelist)
+
+
+def _main():
     parser = argparse.ArgumentParser()
     parser.add_argument('image', help='The image to test')
     parser.add_argument('--severity',
@@ -173,15 +184,7 @@ def _main():
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG)
-
-    try:
-        whitelist = json.load(open(args.whitelist, 'r'))
-    except IOError:
-        whitelist = []
-    logging.info("whitelist=%s", whitelist)
-
-    return len(_check_for_vulnz(_sub_image(args.image),
-                                args.severity, whitelist))
+    return len(security_check(args.image, args.severity, args.whitelist))
 
 
 if __name__ == '__main__':

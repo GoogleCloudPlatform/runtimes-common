@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/differs"
 	"github.com/golang/glog"
-	"github.com/runtimes-common/iDiff/differs"
 	"github.com/spf13/cobra"
 )
 
