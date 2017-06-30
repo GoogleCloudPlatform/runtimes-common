@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 	"github.com/golang/glog"
-	"github.com/runtimes-common/iDiff/utils"
 )
 
 // NodeDiff compares the packages installed by apt-get.
+// TODO: Move this code to a place so that it isn't repeated within each specific differ.
 func NodeDiff(d1file, d2file string) (string, error) {
 	d1, err := utils.GetDirectory(d1file)
 	if err != nil {
@@ -27,10 +29,12 @@ func NodeDiff(d1file, d2file string) (string, error) {
 	dirPath2 := d2.Root
 	pack1, err := getNodePackages(dirPath1)
 	if err != nil {
+		glog.Errorf("Error reading packages from directory %s: %s\n", dirPath1, err)
 		return "", err
 	}
 	pack2, err := getNodePackages(dirPath2)
 	if err != nil {
+		glog.Errorf("Error reading packages from directory %s: %s\n", dirPath2, err)
 		return "", err
 	}
 
@@ -39,34 +43,58 @@ func NodeDiff(d1file, d2file string) (string, error) {
 	diff.Image2 = dirPath2
 	output(diff)
 	return "", nil
-
 }
 
-func buildNodePaths(path string) []string {
-	globalPaths, _ := utils.BuildLayerTargets(path, "layer/node_modules")
-	localPaths, _ := utils.BuildLayerTargets(path, "layer/usr/local/lib/node_modules")
-	return append(globalPaths, localPaths...)
+func buildNodePaths(path string) ([]string, error) {
+	globalPaths, err := utils.BuildLayerTargets(path, "layer/node_modules")
+	if err != nil {
+		return []string{}, err
+	}
+	localPaths, err := utils.BuildLayerTargets(path, "layer/usr/local/lib/node_modules")
+	if err != nil {
+		return []string{}, err
+	}
+	return append(globalPaths, localPaths...), nil
 }
 
-func getPackageSize(path string) int64 {
+func getPackageSize(path string) (int64, error) {
 	packagePath := strings.TrimSuffix(path, "package.json")
-	packageStat, _ := os.Stat(packagePath)
-	return packageStat.Size()
+	packageStat, err := os.Stat(packagePath)
+	if err != nil {
+		return 0, err
+	}
+	return packageStat.Size(), nil
 }
 
 func getNodePackages(path string) (map[string]utils.PackageInfo, error) {
 	packages := make(map[string]utils.PackageInfo)
 
-	layerStems := buildNodePaths(path)
+	layerStems, err := buildNodePaths(path)
+	if err != nil {
+		glog.Warningf("Error building JSON paths at %s: %s\n", path, err)
+		return packages, err
+	}
 
 	for _, modulesDir := range layerStems {
-
 		packageJSONs, _ := utils.BuildLayerTargets(modulesDir, "package.json")
 		for _, currPackage := range packageJSONs {
+			if _, err := os.Stat(currPackage); err != nil {
+				// package.json file does not exist at this target path
+				continue
+			}
 			packageJSON, _ := readPackageJSON(currPackage)
+			if err != nil {
+				glog.Warningf("Error reading package JSON at %s: %s\n", currPackage, err)
+				return packages, err
+			}
 			var currInfo utils.PackageInfo
 			currInfo.Version = packageJSON.Version
-			currInfo.Size = string(getPackageSize(path))
+			size, _ := getPackageSize(currPackage)
+			if err != nil {
+				glog.Warningf("Error getting package size at %s: %s\n", currPackage, err)
+				return packages, err
+			}
+			currInfo.Size = strconv.FormatInt(size, 10)
 			packages[packageJSON.Name] = currInfo
 		}
 	}

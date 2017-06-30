@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 	"github.com/golang/glog"
-	"github.com/runtimes-common/iDiff/utils"
 )
 
 //  Diffs two packages and compares their contents

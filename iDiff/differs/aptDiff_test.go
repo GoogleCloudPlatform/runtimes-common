@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/runtimes-common/iDiff/utils"
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
 func TestParseLine(t *testing.T) {
@@ -77,18 +77,18 @@ func TestGetPackages(t *testing.T) {
 	}{
 		{
 			descrip:  "no directory",
-			path:     "testDirs/aptTestFiles/notThere",
+			path:     "testDirs/notThere",
 			expected: map[string]utils.PackageInfo{},
 			err:      true,
 		},
 		{
 			descrip:  "no packages",
-			path:     "testDirs/aptTestFiles/noPackages",
+			path:     "testDirs/noPackages",
 			expected: map[string]utils.PackageInfo{},
 		},
 		{
 			descrip: "all packages in one layer",
-			path:    "testDirs/aptTestFiles/packageOne",
+			path:    "testDirs/packageOne",
 			expected: map[string]utils.PackageInfo{
 				"pac1": {Version: "1.0"},
 				"pac2": {Version: "2.0"},
@@ -96,7 +96,7 @@ func TestGetPackages(t *testing.T) {
 		},
 		{
 			descrip: "many packages in different layers",
-			path:    "testDirs/aptTestFiles/packageMany",
+			path:    "testDirs/packageMany",
 			expected: map[string]utils.PackageInfo{
 				"pac1": {Version: "1.0"},
 				"pac2": {Version: "2.0"},
