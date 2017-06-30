@@ -26,7 +26,6 @@ func PipDiff(d1file, d2file string) (string, error) {
 	dirPath1 := d1.Root
 	dirPath2 := d2.Root
 	pack1 := getPythonPackages(dirPath1)
-
 	pack2 := getPythonPackages(dirPath2)
 
 	diff := utils.DiffMaps(pack1, pack2)
