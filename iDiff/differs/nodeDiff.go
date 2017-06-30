@@ -3,29 +3,58 @@ package differs
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os"
+	"strings"
+
+	"github.com/golang/glog"
+	"github.com/runtimes-common/iDiff/utils"
 )
 
 // NodeDiff compares the packages installed by apt-get.
-// func NodeDiff(img1, img2 string) (string, error) {
-// 	pack1, err := getPackages(img1)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	pack2, err := getPackages(img2)
-// 	if err != nil {
-// 		return "", err
-// 	}
+func NodeDiff(d1file, d2file string) (string, error) {
+	d1, err := utils.GetDirectory(d1file)
+	if err != nil {
+		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
+		return "", err
+	}
+	d2, err := utils.GetDirectory(d2file)
+	if err != nil {
+		glog.Errorf("Error reading directory structure from file %s: %s\n", d2file, err)
+		return "", err
+	}
 
-// 	diff1, diff2 := diffMaps(pack1, pack2)
+	dirPath1 := d1.Root
+	dirPath2 := d2.Root
+	pack1, err := getNodePackages(dirPath1)
+	if err != nil {
+		return "", err
+	}
+	pack2, err := getNodePackages(dirPath2)
+	if err != nil {
+		return "", err
+	}
 
-// }
+	diff := utils.DiffMaps(pack1, pack2)
+	diff.Image1 = dirPath1
+	diff.Image2 = dirPath2
+	output(diff)
+	return "", nil
 
-func buildNodePaths(path string) []string {
-	"layer/node_modules"
-	"layer/usr/local/lib"
 }
 
-func getPackages(path string) (map[string]utils.PackageInfo, error) {
+func buildNodePaths(path string) []string {
+	globalPaths := utils.BuildLayerTargets(path, "layer/node_modules")
+	localPaths := utils.BuildLayerTargets(path, "layer/usr/local/lib/node_modules")
+	return append(globalPaths, localPaths)
+}
+
+func getPackageSize(path string) int64 {
+	packagePath := strings.TrimSuffix(path, "package.json")
+	packageStat := os.Stat(packagePath)
+	return packageStat.Size()
+}
+
+func getNodePackages(path string) (map[string]utils.PackageInfo, error) {
 	packages := make(map[string]utils.PackageInfo)
 
 	layerStems := buildNodePaths(path)
@@ -33,11 +62,12 @@ func getPackages(path string) (map[string]utils.PackageInfo, error) {
 	for _, modulesDir := range layerStems {
 
 		packageJSONs := utils.BuildLayerTargets(modulesDir, "package.json")
-			for _, currPackage := range packageJSONs {
-				packages[packageJSON.Name] := utils.PackageInfo{Version:packageJSON.Version}
-			}
+		for _, currPackage := range packageJSONs {
+			var currPackage utils.PackageInfo
+			currPackage.Version = packageJSON.Version
+			currPackage.Size = string(getPackageSize(path))
+			packages[packageJSON.Name] = currPackage
 		}
-
 	}
 	return packages, nil
 }
