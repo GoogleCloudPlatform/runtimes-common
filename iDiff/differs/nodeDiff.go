@@ -43,14 +43,14 @@ func NodeDiff(d1file, d2file string) (string, error) {
 }
 
 func buildNodePaths(path string) []string {
-	globalPaths := utils.BuildLayerTargets(path, "layer/node_modules")
-	localPaths := utils.BuildLayerTargets(path, "layer/usr/local/lib/node_modules")
-	return append(globalPaths, localPaths)
+	globalPaths, _ := utils.BuildLayerTargets(path, "layer/node_modules")
+	localPaths, _ := utils.BuildLayerTargets(path, "layer/usr/local/lib/node_modules")
+	return append(globalPaths, localPaths...)
 }
 
 func getPackageSize(path string) int64 {
 	packagePath := strings.TrimSuffix(path, "package.json")
-	packageStat := os.Stat(packagePath)
+	packageStat, _ := os.Stat(packagePath)
 	return packageStat.Size()
 }
 
@@ -61,12 +61,13 @@ func getNodePackages(path string) (map[string]utils.PackageInfo, error) {
 
 	for _, modulesDir := range layerStems {
 
-		packageJSONs := utils.BuildLayerTargets(modulesDir, "package.json")
+		packageJSONs, _ := utils.BuildLayerTargets(modulesDir, "package.json")
 		for _, currPackage := range packageJSONs {
-			var currPackage utils.PackageInfo
-			currPackage.Version = packageJSON.Version
-			currPackage.Size = string(getPackageSize(path))
-			packages[packageJSON.Name] = currPackage
+			packageJSON, _ := readPackageJSON(currPackage)
+			var currInfo utils.PackageInfo
+			currInfo.Version = packageJSON.Version
+			currInfo.Size = string(getPackageSize(path))
+			packages[packageJSON.Name] = currInfo
 		}
 	}
 	return packages, nil
