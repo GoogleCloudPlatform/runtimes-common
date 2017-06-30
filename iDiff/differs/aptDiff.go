@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
-
 	"github.com/golang/glog"
 )
 
