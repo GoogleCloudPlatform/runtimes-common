@@ -1,7 +1,10 @@
 package differs
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
+	"io"
 	"os"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
@@ -13,20 +16,17 @@ var diffs = map[string]func(string, string) (string, error){
 	"apt":  AptDiff,
 }
 
-func Diff(arg1, arg2, differ string) (string, error) {
+func Diff(arg1, arg2, differ, output string) (string, error) {
 	if f, exists := diffs[differ]; exists {
 		if differ == "hist" {
 			return f(arg1, arg2)
-		} else {
-			return specificDiffer(f, arg1, arg2)
 		}
-
-	} else {
-		return "", errors.New("Unknown differ.")
+		return specificDiffer(f, arg1, arg2, output)
 	}
+	return "", errors.New("Unknown differ")
 }
 
-func specificDiffer(f func(string, string) (string, error), img1, img2 string) (string, error) {
+func specificDiffer(f func(string, string) (string, error), img1, img2, output string) (string, error) {
 	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
 	if err != nil {
 		return "", err
@@ -48,7 +48,24 @@ func specificDiffer(f func(string, string) (string, error), img1, img2 string) (
 	if errStr != "" {
 		return diff, errors.New(errStr)
 	}
-	return diff, nil
+
+	var returnVal string
+
+	if output != "" {
+		f, _ := os.Create(output)
+		defer f.Close()
+		w := bufio.NewWriter(f)
+		err = writeDiff(w, diff)
+		if err != nil {
+			return "", err
+		}
+		returnVal = "Image diff successfully written to " + output
+		w.Flush()
+	} else {
+		err = writeDiff(os.Stdout, diff)
+	}
+
+	return returnVal, err
 }
 
 func remove(path string, dir bool, errStr string) string {
@@ -62,4 +79,18 @@ func remove(path string, dir bool, errStr string) string {
 		errStr += "\nUnable to remove " + path
 	}
 	return errStr
+}
+
+func writeDiff(w io.Writer, diff string) error {
+	diffBytes := []byte(diff)
+	var buf bytes.Buffer
+	_, err := buf.Write(diffBytes)
+	if err != nil {
+		return err
+	}
+	_, err = buf.WriteTo(w)
+	if err != nil {
+		return err
+	}
+	return nil
 }

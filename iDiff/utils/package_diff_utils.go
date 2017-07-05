@@ -1,9 +1,6 @@
 package utils
 
 import (
-	"bytes"
-	"encoding/json"
-	"io"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -73,19 +70,4 @@ func BuildLayerTargets(path, target string) ([]string, error) {
 		}
 	}
 	return layerStems, nil
-}
-
-// OutputDiff writes the diff provided as a JSON with the provided writer.
-func (diff PackageDiff) OutputDiff(w io.Writer) error {
-	diffBytes, err := json.MarshalIndent(diff, "", "  ")
-	if err != nil {
-		return err
-	}
-	var buf bytes.Buffer
-	buf.Write(diffBytes)
-	_, err = buf.WriteTo(w)
-	if err != nil {
-		return err
-	}
-	return nil
 }

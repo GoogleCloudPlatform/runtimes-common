@@ -11,6 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var Output string
+
 // iDiff represents the iDiff command
 var iDiffCmd = &cobra.Command{
 	Use:   "iDiff [container1] [container2] [differ]",
@@ -20,7 +22,7 @@ var iDiffCmd = &cobra.Command{
 		if validArgs, err := validateArgs(args); !validArgs {
 			glog.Fatalf(err.Error())
 		}
-		if diff, err := differs.Diff(args[0], args[1], args[2]); err == nil {
+		if diff, err := differs.Diff(args[0], args[1], args[2], Output); err == nil {
 			fmt.Println(diff)
 		} else {
 			glog.Fatalf(err.Error())
@@ -95,4 +97,5 @@ func checkDiffer(arg string) bool {
 
 func init() {
 	RootCmd.AddCommand(iDiffCmd)
+	iDiffCmd.Flags().StringVarP(&Output, "output", "s", "", "Output file to write to")
 }

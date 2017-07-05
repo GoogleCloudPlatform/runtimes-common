@@ -2,6 +2,7 @@ package differs
 
 import (
 	"bufio"
+	"encoding/json"
 	"html/template"
 	"log"
 	"os"
@@ -54,14 +55,14 @@ func AptDiff(d1file, d2file string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	diff := utils.DiffMaps(pack1, pack2)
 	diff.Image1 = dirPath1
 	diff.Image2 = dirPath2
-	f, err := os.Create("/tmp/output.json")
-	w := bufio.NewWriter(f)
-	diff.OutputDiff(w)
-	return "", nil
+	diffBytes, err := json.MarshalIndent(diff, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(diffBytes), nil
 }
 
 func getPackages(path string) (map[string]utils.PackageInfo, error) {
