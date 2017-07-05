@@ -105,13 +105,21 @@ func parseLine(text string, currPackage string, packages map[string]utils.Packag
 				return currPackage
 			}
 			modifiedValue := strings.Replace(value, "+", " ", 1)
-			tempPackage := utils.PackageInfo{Version: modifiedValue}
-			packages[currPackage] = tempPackage
+			currPackageInfo, ok := packages[currPackage]
+			if !ok {
+				currPackageInfo = utils.PackageInfo{}
+			}
+			currPackageInfo.Version = modifiedValue
+			packages[currPackage] = currPackageInfo
 			return currPackage
 
 		case "Installed-Size":
-			tempPackage := utils.PackageInfo{Size: value}
-			packages[currPackage] = tempPackage
+			currPackageInfo, ok := packages[currPackage]
+			if !ok {
+				currPackageInfo = utils.PackageInfo{}
+			}
+			currPackageInfo.Size = value
+			packages[currPackage] = currPackageInfo
 			return currPackage
 		default:
 			return currPackage
