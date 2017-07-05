@@ -58,7 +58,9 @@ func AptDiff(d1file, d2file string) (string, error) {
 	diff := utils.DiffMaps(pack1, pack2)
 	diff.Image1 = dirPath1
 	diff.Image2 = dirPath2
-	diff.OutputDiff(os.Stdout)
+	f, err := os.Create("/tmp/output.json")
+	w := bufio.NewWriter(f)
+	diff.OutputDiff(w)
 	return "", nil
 }
 

@@ -75,7 +75,7 @@ func BuildLayerTargets(path, target string) ([]string, error) {
 	return layerStems, nil
 }
 
-// OutputDiff writes the diff provided to a JSON file at the path provided.
+// OutputDiff writes the diff provided as a JSON with the provided writer.
 func (diff PackageDiff) OutputDiff(w io.Writer) error {
 	diffBytes, err := json.MarshalIndent(diff, "", "  ")
 	if err != nil {
@@ -88,14 +88,4 @@ func (diff PackageDiff) OutputDiff(w io.Writer) error {
 		return err
 	}
 	return nil
-
-	// if path == "" {
-	// 	os.Stdout.Write(b)
-	// 	return nil
-	// }
-	// err = ioutil.WriteFile(path, b, 0666)
-	// if err != nil {
-	// 	return err
-	// }
-	// return nil
 }
