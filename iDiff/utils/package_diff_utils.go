@@ -11,9 +11,9 @@ import (
 // PackageDiff stores the difference information between two images.
 type PackageDiff struct {
 	Image1    string
-	Packages1 []string
+	Packages1 map[string]PackageInfo
 	Image2    string
-	Packages2 []string
+	Packages2 map[string]PackageInfo
 	InfoDiff  []Info
 }
 
@@ -34,13 +34,13 @@ type PackageInfo struct {
 // The return struct includes a list of packages only in the first map, a list of packages only in
 // the second map, and a list of packages which differed only in their PackageInfo (version, size, etc.)
 func DiffMaps(map1, map2 map[string]PackageInfo) PackageDiff {
-	diff1 := []string{}
-	diff2 := []string{}
+	diff1 := map[string]PackageInfo{}
+	diff2 := map[string]PackageInfo{}
 	infoDiff := []Info{}
 	for key1, value1 := range map1 {
 		value2, ok := map2[key1]
 		if !ok {
-			diff1 = append(diff1, key1+":"+value1.string())
+			diff1[key1] = value1
 		} else if !reflect.DeepEqual(value2, value1) {
 			infoDiff = append(infoDiff, Info{key1, value1, value2})
 			delete(map2, key1)
@@ -49,7 +49,7 @@ func DiffMaps(map1, map2 map[string]PackageInfo) PackageDiff {
 		}
 	}
 	for key2, value2 := range map2 {
-		diff2 = append(diff2, key2+":"+value2.string())
+		diff2[key2] = value2
 	}
 	diff := PackageDiff{Packages1: diff1, Packages2: diff2, InfoDiff: infoDiff}
 	return diff
