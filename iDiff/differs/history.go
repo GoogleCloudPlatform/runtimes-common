@@ -10,8 +10,8 @@ import (
 )
 
 // History compares the Docker history for each image.
-func History(img1, img2 string) (string, error) {
-	return getHistoryDiff(img1, img2)
+func History(img1, img2 string, json bool) (string, error) {
+	return getHistoryDiff(img1, img2, json)
 }
 
 func getHistoryList(image string) ([]string, error) {
@@ -33,7 +33,7 @@ func getHistoryList(image string) ([]string, error) {
 	return strhistory, nil
 }
 
-func getHistoryDiff(image1 string, image2 string) (string, error) {
+func getHistoryDiff(image1 string, image2 string, json bool) (string, error) {
 	history1, err := getHistoryList(image1)
 	if err != nil {
 		return "", err
@@ -50,5 +50,13 @@ func getHistoryDiff(image1 string, image2 string) (string, error) {
 		Eol:      "\n",
 	}
 	result, _ := difflib.GetContextDiffString(diff)
+	if json {
+		return jsonDiff(result), nil
+	}
 	return result, nil
+}
+
+func jsonDiff(diff string) string {
+	// TODO write JSON parser
+	return "Hello World"
 }

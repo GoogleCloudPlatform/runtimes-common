@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var Output string
+var json bool
 
 // iDiff represents the iDiff command
 var iDiffCmd = &cobra.Command{
@@ -22,7 +22,7 @@ var iDiffCmd = &cobra.Command{
 		if validArgs, err := validateArgs(args); !validArgs {
 			glog.Fatalf(err.Error())
 		}
-		if diff, err := differs.Diff(args[0], args[1], args[2], Output); err == nil {
+		if diff, err := differs.Diff(args[0], args[1], args[2], json); err == nil {
 			fmt.Println(diff)
 		} else {
 			glog.Fatalf(err.Error())
@@ -97,5 +97,5 @@ func checkDiffer(arg string) bool {
 
 func init() {
 	RootCmd.AddCommand(iDiffCmd)
-	iDiffCmd.Flags().StringVarP(&Output, "output", "s", "", "Output file to write to")
+	iDiffCmd.Flags().BoolVarP(&json, "JSON Output", "j", false, "JSON Output defines if the diff should be returned in a human readable format (false) or a JSON (true).")
 }
