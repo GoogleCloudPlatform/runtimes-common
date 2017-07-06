@@ -579,14 +579,19 @@ These are the filesystem paths used by the container image.
 
 {{.Overview.Description}}
 
+{{- if .NeedsGcloud}}
+
+Pull command (first install [gcloud](https://cloud.google.com/sdk/downloads)):
+{{- else}}
+
 Pull command:
+{{- end}}
 
 ```shell
 {{.Overview.PullCommand}}
 ```
 
 Dockerfile for this image can be found [here]({{.Overview.DockerfileUrl}}).
-
 
 {{- if gt (len .Overview.OtherVersions) 0}}
 
@@ -615,6 +620,9 @@ Dockerfile for this image can be found [here]({{.Overview.DockerfileUrl}}).
 
 # <a name="using-kubernetes"></a>Using Kubernetes
 
+Consult [Launcher container documentation](https://cloud.google.com/launcher/docs/launcher-container)
+for additional information about setting up your Kubernetes environment.
+
 {{- template "taskgroups" .KubernetesTaskGroups}}
 
 {{- end}}{{/* if gt (len .KubernetesTaskGroups) 0 */}}
@@ -622,6 +630,9 @@ Dockerfile for this image can be found [here]({{.Overview.DockerfileUrl}}).
 {{- if gt (len .DockerTaskGroups) 0}}
 
 # <a name="using-docker"></a>Using Docker
+
+Consult [Launcher container documentation](https://cloud.google.com/launcher/docs/launcher-container)
+for additional information about setting up your Docker environment.
 
 {{- template "taskgroups" .DockerTaskGroups}}
 

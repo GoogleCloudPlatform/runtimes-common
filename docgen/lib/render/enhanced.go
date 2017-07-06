@@ -56,6 +56,11 @@ func NewDocument(document *proto.Document) *Document {
 	return result
 }
 
+func (t *Document) NeedsGcloud() bool {
+	gcloudRegex := regexp.MustCompile(`\bgcloud\b`)
+	return gcloudRegex.FindString(t.Overview.PullCommand) != ""
+}
+
 func (t *Document) HasReferences() bool {
 	return t.EnvironmentVariableReference != nil || t.PortReference != nil || t.VolumeReference != nil
 }
