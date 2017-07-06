@@ -64,9 +64,11 @@ func getDeletedEntries(d1, d2 Directory) []string {
 }
 
 type DirDiff struct {
-	Adds []string
-	Dels []string
-	Mods []string
+	Image1 string
+	Image2 string
+	Adds   []string
+	Dels   []string
+	Mods   []string
 }
 
 func compareDirEntries(d1, d2 Directory) DirDiff {
@@ -74,7 +76,7 @@ func compareDirEntries(d1, d2 Directory) DirDiff {
 	dels := getDeletedEntries(d1, d2)
 	mods := getModifiedEntries(d1, d2)
 
-	return DirDiff{adds, dels, mods}
+	return DirDiff{d1.Root, d2.Root, adds, dels, mods}
 }
 
 func checkSameFile(f1name, f2name string) (bool, error) {

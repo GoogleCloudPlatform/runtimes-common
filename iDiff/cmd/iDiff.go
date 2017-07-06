@@ -97,5 +97,5 @@ func checkDiffer(arg string) bool {
 
 func init() {
 	RootCmd.AddCommand(iDiffCmd)
-	iDiffCmd.Flags().BoolVarP(&json, "JSON Output", "j", false, "JSON Output defines if the diff should be returned in a human readable format (false) or a JSON (true).")
+	iDiffCmd.Flags().BoolVarP(&json, "json", "j", false, "JSON Output defines if the diff should be returned in a human readable format (false) or a JSON (true).")
 }
