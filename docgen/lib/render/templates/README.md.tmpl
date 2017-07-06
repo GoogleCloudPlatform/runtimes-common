@@ -281,7 +281,10 @@ spec:
 
 {{- if gt (len .ExposedPorts) 0}}
 
-Run the following to expose the port{{if gt (len .ExposedPorts) 1}}s{{end}}:
+Run the following to expose the port{{if gt (len .ExposedPorts) 1}}s{{end}}.
+Depending on your cluster setup, this might expose your service to the
+Internet with an external IP address. For more information, consult
+[Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/connect-applications-service/).
 
 ```shell
 {{- range .ExposedPorts}}
