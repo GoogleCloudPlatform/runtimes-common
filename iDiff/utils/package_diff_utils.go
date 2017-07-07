@@ -71,28 +71,35 @@ func DiffMaps(map1, map2 interface{}) interface{} {
 		glog.Error(err)
 	}
 
+	map1Value := reflect.ValueOf(map1)
+	map2Value := reflect.ValueOf(map2)
+
 	diff1 := reflect.MakeMap(mapType)
 	diff2 := reflect.MakeMap(mapType)
 	infoDiff := []Info{}
-	// for _, key1 := range map1.MapKeys() {
-	// 	value2, ok := map2[key1]
-	// 	if !ok {
-	// 		diff1[key1] = value1
-	// 	} else if !reflect.DeepEqual(value2, value1) {
-	// 		if multiVersion {
-	// 			multiVersionDiff(infoDiff, key1, value1, value2)
-	// 			// infoDiff = append(infoDiff, Info{key1, value1, value2})
-	// 		} else {
-	// 			infoDiff = append(infoDiff, Info{key1, value1, value2})
-	// 			delete(map2, key1)
-	// 		}
-	// 	} else {
-	// 		delete(map2, key1)
-	// 	}
-	// }
-	// for key2, value2 := range map2 {
-	// 	diff2[key2] = value2
-	// }
+	for _, key1 := range map1Value.MapKeys() {
+		value1 := map1Value.MapIndex(key1)
+		value2 := map2Value.MapIndex(key1)
+		if !value2.IsValid() { //reflect.New(reflect.TypeOf(value2)) {
+			diff1.SetMapIndex(key1, value1)
+		} else if !reflect.DeepEqual(value2, value1) {
+			if multiV {
+				multiVersionDiff(infoDiff, key1.String(),
+					value1.Interface().(map[string]PackageInfo), value2.Interface().(map[string]PackageInfo))
+			} else {
+				infoDiff = append(infoDiff, Info{key1.String(), value1.Interface().(PackageInfo),
+					value2.Interface().(PackageInfo)})
+				map2Value.SetMapIndex(key1, reflect.Value{})
+				// delete(map2, key1)
+			}
+		} else {
+			map2Value.SetMapIndex(key1, reflect.Value{})
+		}
+	}
+	for _, key2 := range map2Value.MapKeys() {
+		value2 := map2Value.MapIndex(key2)
+		diff2.SetMapIndex(key2, value2)
+	}
 	if multiV {
 		return MultiVersionPackageDiff{Packages1: diff1.Interface().(map[string]map[string]PackageInfo),
 			Packages2: diff2.Interface().(map[string]map[string]PackageInfo), InfoDiff: infoDiff}

@@ -23,9 +23,9 @@ func (a ByPackage) Less(i, j int) bool {
 func TestDiffMaps(t *testing.T) {
 	testCases := []struct {
 		descrip  string
-		map1     map[string]PackageInfo
-		map2     map[string]PackageInfo
-		expected PackageDiff
+		map1     interface{}
+		map2     interface{}
+		expected interface{}
 	}{
 		{
 			descrip: "Missing Packages.",
@@ -75,13 +75,29 @@ func TestDiffMaps(t *testing.T) {
 				Packages2: map[string]PackageInfo{},
 				InfoDiff:  []Info{}},
 		},
+		// {
+		// 	descrip: "MultiVersion Packages",
+		// 	map1: map[string]map[string]PackageInfo{
+		// 		"pac1": {"layer1/layer/node_modules/pac1": {"1.0", "40"}},
+		// 		"pac2": {"layer1/layer/usr/local/lib/node_modules/pac2": {"2.0", "50"}},
+		// 		"pac3": {"layer2/layer/usr/local/lib/node_modules/pac2": {"3.0", "50"}}},
+		// 	map2: map[string]map[string]PackageInfo{
+		// 		"pac1": {"layer1/layer/node_modules/pac1": {"2.0", "40"}},
+		// 		"pac2": {"layer1/layer/usr/local/lib/node_modules/pac2": {"4.0", "50"}},
+		// 		"pac3": {"layer2/layer/usr/local/lib/node_modules/pac2": {"3.0", "50"}}},
+		// 	expected: MultiVersionPackageDiff{
+		// 		Packages1: map[string]map[string]PackageInfo{},
+		// 		Packages2: map[string]map[string]PackageInfo{},
+		// 		InfoDiff:  []Info{}},
+		// },
 	}
 	for _, test := range testCases {
 		diff := DiffMaps(test.map1, test.map2)
-		// sort.Sort(ByPackage(test.expected.InfoDiff))
-		// sort.Sort(ByPackage(diff.InfoDiff))
+		switch test.expected
+		sort.Sort(ByPackage(test.expected.InfoDiff))
+		sort.Sort(ByPackage(diff.InfoDiff))
 		if !reflect.DeepEqual(test.expected, diff) {
-			t.Errorf("Expected packages only in map1 to be: %s but got: %s", test.expected, diff)
+			t.Errorf("Expected Diff to be: %s but got: %s", test.expected, diff)
 		}
 	}
 }
