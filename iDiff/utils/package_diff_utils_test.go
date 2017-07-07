@@ -78,14 +78,65 @@ func TestDiffMaps(t *testing.T) {
 	}
 	for _, test := range testCases {
 		diff := DiffMaps(test.map1, test.map2)
-		sort.Sort(ByPackage(test.expected.InfoDiff))
-		sort.Sort(ByPackage(diff.InfoDiff))
+		// sort.Sort(ByPackage(test.expected.InfoDiff))
+		// sort.Sort(ByPackage(diff.InfoDiff))
 		if !reflect.DeepEqual(test.expected, diff) {
 			t.Errorf("Expected packages only in map1 to be: %s but got: %s", test.expected, diff)
 		}
 	}
 }
 
+func TestCheckPackageMapType(t *testing.T) {
+	testCases := []struct {
+		descrip       string
+		map1          interface{}
+		map2          interface{}
+		expectedType  reflect.Type
+		expectedMulti bool
+		err           bool
+	}{
+		{
+			descrip: "Map arguments not maps",
+			map1:    "not a map",
+			map2:    "not a map either",
+			err:     true,
+		},
+		{
+			descrip: "Map arguments not same type",
+			map1:    map[string]int{},
+			map2:    map[int]string{},
+			err:     true,
+		},
+		{
+			descrip:      "Single Version Package Maps",
+			map1:         map[string]PackageInfo{},
+			map2:         map[string]PackageInfo{},
+			expectedType: reflect.TypeOf(map[string]PackageInfo{}),
+		},
+		{
+			descrip:       "MultiVersion Package Maps",
+			map1:          map[string]map[string]PackageInfo{},
+			map2:          map[string]map[string]PackageInfo{},
+			expectedType:  reflect.TypeOf(map[string]map[string]PackageInfo{}),
+			expectedMulti: true,
+		},
+	}
+	for _, test := range testCases {
+		actualType, actualMulti, err := checkPackageMapType(test.map1, test.map2)
+		if err != nil && !test.err {
+			t.Errorf("Got unexpected error: %s", err)
+		}
+		if err == nil && test.err {
+			t.Error("Expected error but got none.")
+		}
+		if actualType != test.expectedType {
+			t.Errorf("Expected type: %s but got: %s", test.expectedType, actualType)
+		}
+		if actualMulti != test.expectedMulti {
+			t.Errorf("Expected multi: %t but got %t", test.expectedMulti, actualMulti)
+		}
+	}
+}
 func TestBuildLayerTargets(t *testing.T) {
 	testCases := []struct {
 		descrip  string

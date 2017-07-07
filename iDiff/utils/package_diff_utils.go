@@ -1,9 +1,12 @@
 package utils
 
 import (
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
+
+	"github.com/golang/glog"
 )
 
 type MultiVersionPackageDiff struct {
@@ -13,7 +16,6 @@ type MultiVersionPackageDiff struct {
 	Packages2 map[string]map[string]PackageInfo
 	InfoDiff  []Info
 }
-
 
 // PackageDiff stores the difference information between two images.
 type PackageDiff struct {
@@ -35,51 +37,68 @@ type Info struct {
 type PackageInfo struct {
 	Version string
 	Size    string
-	Path 	string
+	// Path    string
 }
 
+func multiVersionDiff(infoDiff []Info, key1 string, value1, value2 map[string]PackageInfo) {
+	return
+}
 
-func multiVersionDiff(infoDiff []Info{}, key1 string, value1, value2 map[string]PackageInfo{}) {
-	
+func checkPackageMapType(map1, map2 interface{}) (reflect.Type, bool, error) {
+	// check types and determine multi-version package maps or not
+	map1Kind := reflect.ValueOf(map1)
+	map2Kind := reflect.ValueOf(map2)
+	if map1Kind.Kind() != reflect.Map && map2Kind.Kind() != reflect.Map {
+		return nil, false, fmt.Errorf("Package maps were not maps.  Instead were: %s and %s", map1Kind.Kind(), map2Kind.Kind())
+	}
+	mapType := reflect.TypeOf(map1)
+	if mapType != reflect.TypeOf(map2) {
+		return nil, false, fmt.Errorf("Package maps were of different types")
+	}
+	multiVersion := false
+	if mapType == reflect.TypeOf(map[string]map[string]PackageInfo{}) {
+		multiVersion = true
+	}
+	return mapType, multiVersion, nil
 }
 
 // DiffMaps determines the differences between maps of package names to PackageInfo structs
 // The return struct includes a list of packages only in the first map, a list of packages only in
 // the second map, and a list of packages which differed only in their PackageInfo (version, size, etc.)
 func DiffMaps(map1, map2 interface{}) interface{} {
-	multiVersion := false
-	if map1.(type) == map[string]map[string]PackageInfo{} {
-		multiVersion = true
+	mapType, multiV, err := checkPackageMapType(map1, map2)
+	if err != nil {
+		glog.Error(err)
 	}
 
-	if map1.(type) != map2.(type) {
-		glog.Error("Package maps were of different types.")
-	}
-
-	diff1 := map1.(type){}
-	diff2 := map1.(type){}
+	diff1 := reflect.MakeMap(mapType)
+	diff2 := reflect.MakeMap(mapType)
 	infoDiff := []Info{}
-	for key1, value1 := range map1 {
-		value2, ok := map2[key1]
-		if !ok {
-			diff1[key1] = value1
-		} else if !reflect.DeepEqual(value2, value1) {
-			if multiVersion {
-				multiVersionDiff(infoDiff, key1, value1, value2)
-				// infoDiff = append(infoDiff, Info{key1, value1, value2})
-			} else {
-				infoDiff = append(infoDiff, Info{key1, value1, value2})
-				delete(map2, key1)
-			}
-		} else {
-			delete(map2, key1)
-		}
+	// for _, key1 := range map1.MapKeys() {
+	// 	value2, ok := map2[key1]
+	// 	if !ok {
+	// 		diff1[key1] = value1
+	// 	} else if !reflect.DeepEqual(value2, value1) {
+	// 		if multiVersion {
+	// 			multiVersionDiff(infoDiff, key1, value1, value2)
+	// 			// infoDiff = append(infoDiff, Info{key1, value1, value2})
+	// 		} else {
+	// 			infoDiff = append(infoDiff, Info{key1, value1, value2})
+	// 			delete(map2, key1)
+	// 		}
+	// 	} else {
+	// 		delete(map2, key1)
+	// 	}
+	// }
+	// for key2, value2 := range map2 {
+	// 	diff2[key2] = value2
+	// }
+	if multiV {
+		return MultiVersionPackageDiff{Packages1: diff1.Interface().(map[string]map[string]PackageInfo),
+			Packages2: diff2.Interface().(map[string]map[string]PackageInfo), InfoDiff: infoDiff}
 	}
-	for key2, value2 := range map2 {
-		diff2[key2] = value2
-	}
-	diff := PackageDiff{Packages1: diff1, Packages2: diff2, InfoDiff: infoDiff}
-	return diff
+	return PackageDiff{Packages1: diff1.Interface().(map[string]PackageInfo),
+		Packages2: diff2.Interface().(map[string]PackageInfo), InfoDiff: infoDiff}
 }
 
 func (pi PackageInfo) string() string {
