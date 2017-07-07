@@ -13,7 +13,7 @@ import (
 
 // NodeDiff compares the packages installed by apt-get.
 // TODO: Move this code to a place so that it isn't repeated within each specific differ.
-func NodeDiff(d1file, d2file string) (string, error) {
+func NodeDiff(d1file, d2file string, json bool) (string, error) {
 	d1, err := utils.GetDirectory(d1file)
 	if err != nil {
 		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
@@ -38,10 +38,13 @@ func NodeDiff(d1file, d2file string) (string, error) {
 		return "", err
 	}
 
-	diff := utils.DiffMaps(pack1, pack2)
+	diff := utils.GetMultiVersionMapDiff(pack1, pack2)
 	diff.Image1 = dirPath1
 	diff.Image2 = dirPath2
-	output(diff)
+	if json {
+		return utils.JSONify(diff)
+	}
+	utils.OutputMulti(diff)
 	return "", nil
 }
 
@@ -66,8 +69,8 @@ func getPackageSize(path string) (int64, error) {
 	return packageStat.Size(), nil
 }
 
-func getNodePackages(path string) (map[string]utils.PackageInfo, error) {
-	packages := make(map[string]utils.PackageInfo)
+func getNodePackages(path string) (map[string]map[string]utils.PackageInfo, error) {
+	packages := make(map[string]map[string]utils.PackageInfo)
 
 	layerStems, err := buildNodePaths(path)
 	if err != nil {
@@ -87,6 +90,7 @@ func getNodePackages(path string) (map[string]utils.PackageInfo, error) {
 				glog.Warningf("Error reading package JSON at %s: %s\n", currPackage, err)
 				return packages, err
 			}
+			// Build PackageInfo for this package occurence
 			var currInfo utils.PackageInfo
 			currInfo.Version = packageJSON.Version
 			size, _ := getPackageSize(currPackage)
@@ -95,7 +99,17 @@ func getNodePackages(path string) (map[string]utils.PackageInfo, error) {
 				return packages, err
 			}
 			currInfo.Size = strconv.FormatInt(size, 10)
-			packages[packageJSON.Name] = currInfo
+
+			// Check if other package version already recorded
+			if _, ok := packages[packageJSON.Name]; !ok {
+				// package not yet seen
+				infoMap := make(map[string]utils.PackageInfo)
+				infoMap[currPackage] = currInfo
+				packages[packageJSON.Name] = infoMap
+				continue
+			}
+			packages[packageJSON.Name][currPackage] = currInfo
+
 		}
 	}
 	return packages, nil

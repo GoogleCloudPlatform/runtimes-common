@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"testing"
@@ -18,6 +19,34 @@ func (a ByPackage) Swap(i, j int) {
 
 func (a ByPackage) Less(i, j int) bool {
 	return a[i].Package < a[j].Package
+}
+
+type ByMultiPackage []MultiVersionInfo
+
+func (a ByMultiPackage) Len() int {
+	return len(a)
+}
+
+func (a ByMultiPackage) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+func (a ByMultiPackage) Less(i, j int) bool {
+	return a[i].Package < a[j].Package
+}
+
+type ByPackageInfo []PackageInfo
+
+func (a ByPackageInfo) Len() int {
+	return len(a)
+}
+
+func (a ByPackageInfo) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+func (a ByPackageInfo) Less(i, j int) bool {
+	return a[i].Version < a[j].Version
 }
 
 func TestDiffMaps(t *testing.T) {
@@ -75,30 +104,92 @@ func TestDiffMaps(t *testing.T) {
 				Packages2: map[string]PackageInfo{},
 				InfoDiff:  []Info{}},
 		},
-		// {
-		// 	descrip: "MultiVersion Packages",
-		// 	map1: map[string]map[string]PackageInfo{
-		// 		"pac1": {"layer1/layer/node_modules/pac1": {"1.0", "40"}},
-		// 		"pac2": {"layer1/layer/usr/local/lib/node_modules/pac2": {"2.0", "50"}},
-		// 		"pac3": {"layer2/layer/usr/local/lib/node_modules/pac2": {"3.0", "50"}}},
-		// 	map2: map[string]map[string]PackageInfo{
-		// 		"pac1": {"layer1/layer/node_modules/pac1": {"2.0", "40"}},
-		// 		"pac2": {"layer1/layer/usr/local/lib/node_modules/pac2": {"4.0", "50"}},
-		// 		"pac3": {"layer2/layer/usr/local/lib/node_modules/pac2": {"3.0", "50"}}},
-		// 	expected: MultiVersionPackageDiff{
-		// 		Packages1: map[string]map[string]PackageInfo{},
-		// 		Packages2: map[string]map[string]PackageInfo{},
-		// 		InfoDiff:  []Info{}},
-		// },
+		{
+			descrip: "MultiVersion call with identical Packages in different layers",
+			map1: map[string]map[string]PackageInfo{
+				"pac5": {"place1": {"version", "size"}},
+				"pac4": {"samePlace": {"version", "size"}}},
+			map2: map[string]map[string]PackageInfo{
+				"pac5": {"place2": {"version", "size"}},
+				"pac4": {"samePlace": {"version", "size"}}},
+			expected: MultiVersionPackageDiff{
+				Packages1: map[string]map[string]PackageInfo{},
+				Packages2: map[string]map[string]PackageInfo{},
+				InfoDiff:  []MultiVersionInfo{},
+			},
+		},
+		{
+			descrip: "MultiVersion Packages",
+			map1: map[string]map[string]PackageInfo{
+				"pac5": {"onlyImg1": {"version", "size"}},
+				"pac4": {"samePlace": {"version", "size"}},
+				"pac1": {"layer1/layer/node_modules/pac1": {"1.0", "40"}},
+				"pac2": {"layer1/layer/usr/local/lib/node_modules/pac2": {"2.0", "50"},
+					"layer2/layer/usr/local/lib/node_modules/pac2": {"3.0", "50"}}},
+			map2: map[string]map[string]PackageInfo{
+				"pac4": {"samePlace": {"version", "size"}},
+				"pac1": {"layer1/layer/node_modules/pac1": {"2.0", "40"}},
+				"pac2": {"layer1/layer/usr/local/lib/node_modules/pac2": {"4.0", "50"}},
+				"pac3": {"layer2/layer/usr/local/lib/node_modules/pac2": {"5.0", "100"}}},
+			expected: MultiVersionPackageDiff{
+				Packages1: map[string]map[string]PackageInfo{
+					"pac5": {"onlyImg1": {"version", "size"}},
+				},
+				Packages2: map[string]map[string]PackageInfo{
+					"pac3": {"layer2/layer/usr/local/lib/node_modules/pac2": {"5.0", "100"}},
+				},
+				InfoDiff: []MultiVersionInfo{
+					{
+						Package: "pac1",
+						Info1:   []PackageInfo{{"1.0", "40"}},
+						Info2:   []PackageInfo{{"2.0", "40"}},
+					},
+					{
+						Package: "pac2",
+						Info1:   []PackageInfo{{"2.0", "50"}, {"3.0", "50"}},
+						Info2:   []PackageInfo{{"4.0", "50"}},
+					},
+				},
+			},
+		},
 	}
 	for _, test := range testCases {
-		diff := DiffMaps(test.map1, test.map2)
-		switch test.expected
-		sort.Sort(ByPackage(test.expected.InfoDiff))
-		sort.Sort(ByPackage(diff.InfoDiff))
-		if !reflect.DeepEqual(test.expected, diff) {
-			t.Errorf("Expected Diff to be: %s but got: %s", test.expected, diff)
+		diff := diffMaps(test.map1, test.map2)
+		diffVal := reflect.ValueOf(diff)
+		testExpVal := reflect.ValueOf(test.expected)
+		switch test.expected.(type) {
+		case PackageDiff:
+			expected := testExpVal.Interface().(PackageDiff)
+			actual := diffVal.Interface().(PackageDiff)
+			sort.Sort(ByPackage(expected.InfoDiff))
+			sort.Sort(ByPackage(actual.InfoDiff))
+			if !reflect.DeepEqual(expected, actual) {
+				fmt.Println(test.descrip)
+				t.Errorf("expected Diff to be: %s but got:%s", expected, actual)
+				return
+			}
+		case MultiVersionPackageDiff:
+			expected := testExpVal.Interface().(MultiVersionPackageDiff)
+			actual := diffVal.Interface().(MultiVersionPackageDiff)
+			sort.Sort(ByMultiPackage(expected.InfoDiff))
+			sort.Sort(ByMultiPackage(actual.InfoDiff))
+			for _, pack := range expected.InfoDiff {
+				sort.Sort(ByPackageInfo(pack.Info1))
+				sort.Sort(ByPackageInfo(pack.Info2))
+			}
+			for _, pack2 := range actual.InfoDiff {
+				sort.Sort(ByPackageInfo(pack2.Info1))
+				sort.Sort(ByPackageInfo(pack2.Info2))
+			}
+			if !reflect.DeepEqual(expected, actual) {
+				fmt.Println(test.descrip)
+				t.Errorf("expected Diff to be: %s but got:%s", expected, actual)
+				return
+			}
 		}
+		//		if !reflect.DeepEqual(test.expected, diff) {
+		//			t.Errorf("Expected Diff to be: %s but got: %s", test.expected, diff)
+		//		}
 	}
 }
 
