@@ -40,12 +40,12 @@ func TestParseLine(t *testing.T) {
 			expected:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime"}},
 		},
 		{
-			descrip:     "Version line",
-			line:        "Version: Lime",
+			descrip:     "Version line with deb release info",
+			line:        "Version: Lime+extra_lime",
 			packages:    map[string]utils.PackageInfo{},
 			currPackage: "La-Croix",
 			expPackage:  "La-Croix",
-			expected:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime"}},
+			expected:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime extra_lime"}},
 		},
 		{
 			descrip:     "Size line",
@@ -54,6 +54,14 @@ func TestParseLine(t *testing.T) {
 			currPackage: "La-Croix",
 			expPackage:  "La-Croix",
 			expected:    map[string]utils.PackageInfo{"La-Croix": {Size: "12floz"}},
+		},
+		{
+			descrip:     "Pre-existing PackageInfo struct",
+			line:        "Installed-Size: 12floz",
+			packages:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime"}},
+			currPackage: "La-Croix",
+			expPackage:  "La-Croix",
+			expected:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime", Size: "12floz"}},
 		},
 	}
 
