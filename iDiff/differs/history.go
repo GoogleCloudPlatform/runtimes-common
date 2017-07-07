@@ -2,16 +2,20 @@ package differs
 
 import (
 	"fmt"
+	"html/template"
+	"log"
+	"os"
 	"strings"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
+
 	"github.com/docker/docker/client"
-	"github.com/pmezard/go-difflib/difflib"
 	"golang.org/x/net/context"
 )
 
 // History compares the Docker history for each image.
-func History(img1, img2 string) (string, error) {
-	return getHistoryDiff(img1, img2)
+func History(img1, img2 string, json bool) (string, error) {
+	return getHistoryDiff(img1, img2, json)
 }
 
 func getHistoryList(image string) ([]string, error) {
@@ -33,7 +37,14 @@ func getHistoryList(image string) ([]string, error) {
 	return strhistory, nil
 }
 
-func getHistoryDiff(image1 string, image2 string) (string, error) {
+type HistDiff struct {
+	Image1 string
+	Image2 string
+	Adds   []string
+	Dels   []string
+}
+
+func getHistoryDiff(image1 string, image2 string, json bool) (string, error) {
 	history1, err := getHistoryList(image1)
 	if err != nil {
 		return "", err
@@ -42,13 +53,28 @@ func getHistoryDiff(image1 string, image2 string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	diff := difflib.ContextDiff{
-		A:        history1,
-		B:        history2,
-		FromFile: "IMAGE " + image1,
-		ToFile:   "IMAGE " + image2,
-		Eol:      "\n",
+	adds := utils.GetAdditions(history1, history2)
+	dels := utils.GetDeletions(history1, history2)
+	diff := HistDiff{image1, image2, adds, dels}
+	if json {
+		return utils.JSONify(diff)
 	}
-	result, _ := difflib.GetContextDiffString(diff)
+	result := formatDiff(diff)
 	return result, nil
+}
+
+func formatDiff(diff HistDiff) string {
+	const histTemp = `Docker file lines found only in {{.Image1}}:{{block "list" .Adds}}{{"\n"}}{{range .}}{{print "-" .}}{{end}}{{end}}
+Docker file lines found only in {{.Image2}}:{{block "list2" .Dels}}{{"\n"}}{{range .}}{{print "-" .}}{{end}}{{end}}`
+
+	funcs := template.FuncMap{"join": strings.Join}
+
+	histTemplate, err := template.New("histTemp").Funcs(funcs).Parse(histTemp)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := histTemplate.Execute(os.Stdout, diff); err != nil {
+		log.Fatal(err)
+	}
+	return ""
 }

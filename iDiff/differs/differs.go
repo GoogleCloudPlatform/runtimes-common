@@ -7,27 +7,24 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
-var diffs = map[string]func(string, string) (string, error){
+var diffs = map[string]func(string, string, bool) (string, error){
 	"hist": History,
 	"dir":  Package,
 	"apt":  AptDiff,
 	"node": NodeDiff,
 }
 
-func Diff(arg1, arg2, differ string) (string, error) {
+func Diff(arg1, arg2, differ string, json bool) (string, error) {
 	if f, exists := diffs[differ]; exists {
 		if differ == "hist" {
-			return f(arg1, arg2)
-		} else {
-			return specificDiffer(f, arg1, arg2)
+			return f(arg1, arg2, json)
 		}
-
-	} else {
-		return "", errors.New("Unknown differ.")
+		return specificDiffer(f, arg1, arg2, json)
 	}
+	return "", errors.New("Unknown differ")
 }
 
-func specificDiffer(f func(string, string) (string, error), img1, img2 string) (string, error) {
+func specificDiffer(f func(string, string, bool) (string, error), img1, img2 string, json bool) (string, error) {
 	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
 	if err != nil {
 		return "", err
@@ -36,7 +33,7 @@ func specificDiffer(f func(string, string) (string, error), img1, img2 string) (
 	if err != nil {
 		return "", err
 	}
-	diff, err := f(jsonPath1, jsonPath2)
+	diff, err := f(jsonPath1, jsonPath2, json)
 	if err != nil {
 		return "", err
 	}
@@ -49,7 +46,8 @@ func specificDiffer(f func(string, string) (string, error), img1, img2 string) (
 	if errStr != "" {
 		return diff, errors.New(errStr)
 	}
-	return diff, nil
+
+	return diff, err
 }
 
 func remove(path string, dir bool, errStr string) string {
