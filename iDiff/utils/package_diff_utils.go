@@ -5,10 +5,12 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
+	"strings"
 
 	"github.com/golang/glog"
 )
 
+// MultiVersionPackageDiff stores the difference information between two images which could have multi-version packages.
 type MultiVersionPackageDiff struct {
 	Image1    string
 	Packages1 map[string]map[string]PackageInfo
@@ -17,6 +19,7 @@ type MultiVersionPackageDiff struct {
 	InfoDiff  []MultiVersionInfo
 }
 
+// MultiVersionInfo stores the information for one multi-version package in two different images.
 type MultiVersionInfo struct {
 	Package string
 	Info1   []PackageInfo
@@ -43,33 +46,67 @@ type Info struct {
 type PackageInfo struct {
 	Version string
 	Size    string
-	// Layer   string
 }
 
-func multiVersionDiff(infoDiff []MultiVersionInfo, key1 string, value1,
-	value2 map[string]PackageInfo) []MultiVersionInfo {
-	diff := GetMapDiff(value1, value2)
-	fmt.Println(diff)
-	// diffVal := reflect.ValueOf(diff)
-	// packDiff := diffVal.Interface().(PackageDiff)
-	packageVersions1 := []PackageInfo{}
-	packageVersions2 := []PackageInfo{}
-	for _, val := range diff.Packages1 {
-		packageVersions1 = append(packageVersions1, val)
+func contains(info1 []PackageInfo, keys1 []string, key string, value PackageInfo) (int, bool) {
+	if len(info1) != len(keys1) {
+		return 0, false
 	}
-	for _, val2 := range diff.Packages2 {
-		packageVersions2 = append(packageVersions2, val2)
+	for i, currVal := range info1 {
+		if !reflect.DeepEqual(currVal, value) {
+			continue
+		}
+		// Check if both global or local installations
+		tempPath1 := strings.SplitN(key, "/", 2)
+		tempPath2 := strings.SplitN(keys1[i], "/", 2)
+		if len(tempPath1) != 2 || len(tempPath2) != 2 {
+			continue
+		}
+		if tempPath1[1] == tempPath2[1] {
+			return i, true
+		}
 	}
-	for _, val3 := range diff.InfoDiff {
+	return 0, false
+}
 
-		if !reflect.DeepEqual(val3.Info1, val3.Info2) {
+func multiVersionDiff(infoDiff []MultiVersionInfo, key string, map1,
+	map2 map[string]PackageInfo) []MultiVersionInfo {
+	diff1Possible := []PackageInfo{}
+	diff1PossibleKeys := []string{}
 
-			packageVersions1 = append(packageVersions1, val3.Info1)
-			packageVersions2 = append(packageVersions2, val3.Info2)
+	for key1, value1 := range map1 {
+		_, ok := map2[key1]
+		if !ok {
+			diff1Possible = append(diff1Possible, value1)
+			diff1PossibleKeys = append(diff1PossibleKeys, key1)
+		} else {
+			// if key in both maps, means layer hash is the same therefore packages are the same
+			delete(map2, key1)
 		}
 	}
 
-	infoDiff = append(infoDiff, MultiVersionInfo{key1, packageVersions1, packageVersions2})
+	diff1 := []PackageInfo{}
+	diff2 := []PackageInfo{}
+	for key2, value2 := range map2 {
+		index, ok := contains(diff1Possible, diff1PossibleKeys, key2, value2)
+		if !ok {
+			diff2 = append(diff2, value2)
+		} else {
+			if index == 0 {
+				diff1Possible = append(diff1Possible[1:])
+				diff1PossibleKeys = append(diff1PossibleKeys[1:])
+			}
+			diff1Possible = append(diff1Possible[:index], diff1Possible[index:]...)
+			diff1PossibleKeys = append(diff1PossibleKeys[:index], diff1PossibleKeys[index:]...)
+		}
+	}
+
+	for _, val := range diff1Possible {
+		diff1 = append(diff1, val)
+	}
+	if len(diff1) != 0 || len(diff2) != 0 {
+		infoDiff = append(infoDiff, MultiVersionInfo{key, diff1, diff2})
+	}
 	return infoDiff
 }
 

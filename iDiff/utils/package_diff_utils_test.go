@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"reflect"
 	"sort"
 	"testing"
@@ -9,45 +8,21 @@ import (
 
 type ByPackage []Info
 
-func (a ByPackage) Len() int {
-	return len(a)
-}
-
-func (a ByPackage) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
-}
-
-func (a ByPackage) Less(i, j int) bool {
-	return a[i].Package < a[j].Package
-}
+func (a ByPackage) Len() int           { return len(a) }
+func (a ByPackage) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByPackage) Less(i, j int) bool { return a[i].Package < a[j].Package }
 
 type ByMultiPackage []MultiVersionInfo
 
-func (a ByMultiPackage) Len() int {
-	return len(a)
-}
-
-func (a ByMultiPackage) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
-}
-
-func (a ByMultiPackage) Less(i, j int) bool {
-	return a[i].Package < a[j].Package
-}
+func (a ByMultiPackage) Len() int           { return len(a) }
+func (a ByMultiPackage) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByMultiPackage) Less(i, j int) bool { return a[i].Package < a[j].Package }
 
 type ByPackageInfo []PackageInfo
 
-func (a ByPackageInfo) Len() int {
-	return len(a)
-}
-
-func (a ByPackageInfo) Swap(i, j int) {
-	a[i], a[j] = a[j], a[i]
-}
-
-func (a ByPackageInfo) Less(i, j int) bool {
-	return a[i].Version < a[j].Version
-}
+func (a ByPackageInfo) Len() int           { return len(a) }
+func (a ByPackageInfo) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByPackageInfo) Less(i, j int) bool { return a[i].Version < a[j].Version }
 
 func TestDiffMaps(t *testing.T) {
 	testCases := []struct {
@@ -107,10 +82,12 @@ func TestDiffMaps(t *testing.T) {
 		{
 			descrip: "MultiVersion call with identical Packages in different layers",
 			map1: map[string]map[string]PackageInfo{
-				"pac5": {"place1": {"version", "size"}},
+				"pac5": {"hash1/globalPath": {"version", "size"}},
+				"pac3": {"hash1/notquite/localPath": {"version", "size"}},
 				"pac4": {"samePlace": {"version", "size"}}},
 			map2: map[string]map[string]PackageInfo{
-				"pac5": {"place2": {"version", "size"}},
+				"pac5": {"hash2/globalPath": {"version", "size"}},
+				"pac3": {"hash2/notquite/localPath": {"version", "size"}},
 				"pac4": {"samePlace": {"version", "size"}}},
 			expected: MultiVersionPackageDiff{
 				Packages1: map[string]map[string]PackageInfo{},
@@ -122,14 +99,14 @@ func TestDiffMaps(t *testing.T) {
 			descrip: "MultiVersion Packages",
 			map1: map[string]map[string]PackageInfo{
 				"pac5": {"onlyImg1": {"version", "size"}},
-				"pac4": {"samePlace": {"version", "size"}},
+				"pac4": {"hash1/samePlace": {"version", "size"}},
 				"pac1": {"layer1/layer/node_modules/pac1": {"1.0", "40"}},
 				"pac2": {"layer1/layer/usr/local/lib/node_modules/pac2": {"2.0", "50"},
 					"layer2/layer/usr/local/lib/node_modules/pac2": {"3.0", "50"}}},
 			map2: map[string]map[string]PackageInfo{
-				"pac4": {"samePlace": {"version", "size"}},
-				"pac1": {"layer1/layer/node_modules/pac1": {"2.0", "40"}},
-				"pac2": {"layer1/layer/usr/local/lib/node_modules/pac2": {"4.0", "50"}},
+				"pac4": {"hash2/samePlace": {"version", "size"}},
+				"pac1": {"layer2/layer/node_modules/pac1": {"2.0", "40"}},
+				"pac2": {"layer3/layer/usr/local/lib/node_modules/pac2": {"4.0", "50"}},
 				"pac3": {"layer2/layer/usr/local/lib/node_modules/pac2": {"5.0", "100"}}},
 			expected: MultiVersionPackageDiff{
 				Packages1: map[string]map[string]PackageInfo{
@@ -164,7 +141,6 @@ func TestDiffMaps(t *testing.T) {
 			sort.Sort(ByPackage(expected.InfoDiff))
 			sort.Sort(ByPackage(actual.InfoDiff))
 			if !reflect.DeepEqual(expected, actual) {
-				fmt.Println(test.descrip)
 				t.Errorf("expected Diff to be: %s but got:%s", expected, actual)
 				return
 			}
@@ -182,17 +158,70 @@ func TestDiffMaps(t *testing.T) {
 				sort.Sort(ByPackageInfo(pack2.Info2))
 			}
 			if !reflect.DeepEqual(expected, actual) {
-				fmt.Println(test.descrip)
 				t.Errorf("expected Diff to be: %s but got:%s", expected, actual)
 				return
 			}
 		}
-		//		if !reflect.DeepEqual(test.expected, diff) {
-		//			t.Errorf("Expected Diff to be: %s but got: %s", test.expected, diff)
-		//		}
 	}
 }
 
+func TestContains(t *testing.T) {
+	testCases := []struct {
+		descrip     string
+		VersionList []PackageInfo
+		Layers      []string
+		currLayer   string
+		currVersion PackageInfo
+		index       int
+		ok          bool
+	}{
+		{
+			descrip:     "Does contain",
+			VersionList: []PackageInfo{{Version: "2", Size: "b"}, {Version: "1", Size: "a"}},
+			Layers:      []string{"1/global", "2/local"},
+			currLayer:   "3/local",
+			currVersion: PackageInfo{Version: "1", Size: "a"},
+			index:       1,
+			ok:          true,
+		},
+		{
+			descrip:     "Not contained",
+			VersionList: []PackageInfo{{Version: "1", Size: "a"}, {Version: "2", Size: "b"}},
+			Layers:      []string{"1/global", "2/local"},
+			currLayer:   "3/global",
+			currVersion: PackageInfo{Version: "2", Size: "a"},
+			index:       0,
+			ok:          false,
+		},
+		{
+			descrip:     "Does contain but path doesn't match",
+			VersionList: []PackageInfo{{Version: "1", Size: "a"}, {Version: "2", Size: "b"}},
+			Layers:      []string{"1/local", "2/local"},
+			currLayer:   "3/global",
+			currVersion: PackageInfo{Version: "1", Size: "a"},
+			index:       0,
+			ok:          false,
+		},
+		{
+			descrip:     "Layers and Versions not of same length",
+			VersionList: []PackageInfo{{Version: "1", Size: "a"}, {Version: "2", Size: "b"}},
+			Layers:      []string{"1/local"},
+			currLayer:   "3/global",
+			currVersion: PackageInfo{Version: "1", Size: "a"},
+			index:       0,
+			ok:          false,
+		},
+	}
+	for _, test := range testCases {
+		index, ok := contains(test.VersionList, test.Layers, test.currLayer, test.currVersion)
+		if test.ok != ok {
+			t.Errorf("Expected status: %t, but got: %t", test.ok, ok)
+		}
+		if test.index != index {
+			t.Errorf("Expected index: %d, but got: %d", test.index, index)
+		}
+	}
+}
 func TestCheckPackageMapType(t *testing.T) {
 	testCases := []struct {
 		descrip       string
