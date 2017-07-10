@@ -42,30 +42,19 @@ func saveImageToTar(image string) (string, error) {
 
 // ImageToDir converts an image to an unpacked tar and creates a representation of that directory.
 func ImageToDir(img string) (string, string, error) {
-	var tarPath string
+	var tarName string
 	if !checkImageTar(img) {
 		// If not an image tar already existing in the filesystem, create client to obtain image
 		imageTar, err := saveImageToTar(img)
 		if err != nil {
 			return "", "", err
 		}
-		tarPath = imageTar
+		tarName = imageTar
+		defer os.Remove(tarName)
 	} else {
-		tarPath = img
+		tarName = img
 	}
-
-	err := ExtractTar(tarPath)
-	if err != nil {
-		return "", "", err
-	}
-	os.Remove(tarPath)
-	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
-	jsonPath := path + ".json"
-	err = DirToJSON(path, jsonPath, false) // TODO: Obtain deep parameter from flag
-	if err != nil {
-		return "", "", err
-	}
-	return jsonPath, path, nil
+	return TarToJSON(tarName)
 }
 
 type Event struct {

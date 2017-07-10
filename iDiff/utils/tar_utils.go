@@ -100,6 +100,20 @@ func ExtractTar(path string) error {
 	return filepath.Walk(path, untarWalkFn)
 }
 
+func TarToJSON(tarPath string) (string, string, error) {
+	err := ExtractTar(tarPath)
+	if err != nil {
+		return "", "", err
+	}
+	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
+	jsonPath := path + ".json"
+	err = DirToJSON(path, jsonPath, false) // TODO: Obtain deep parameter from flag
+	if err != nil {
+		return "", "", err
+	}
+	return jsonPath, path, nil
+}
+
 // DirToJSON records the directory structure starting at the provided path as in a json file.
 func DirToJSON(path string, target string, deep bool) error {
 	var directory Directory
