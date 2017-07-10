@@ -5,6 +5,7 @@ import (
 	"errors"
 	goflag "flag"
 	"fmt"
+	"os"
 	"regexp"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/differs"
@@ -22,6 +23,7 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if validArgs, err := validateArgs(args); !validArgs {
 			glog.Error(err.Error())
+			os.Exit(1)
 		}
 		if diff, err := differs.Diff(args[1], args[2], args[0], json); err == nil {
 			fmt.Println(diff)
@@ -44,10 +46,10 @@ func validateArgs(args []string) (bool, error) {
 func checkArgNum(args []string) (bool, error) {
 	var errMessage string
 	if len(args) < 3 {
-		errMessage = "Too few arguments. Should have three: [IMAGE ID] [IMAGE ID] [DIFFER]."
+		errMessage = "Too few arguments. Should have three: [DIFFER] [IMAGE ID] [IMAGE ID]."
 		return false, errors.New(errMessage)
 	} else if len(args) > 3 {
-		errMessage = "Too many arguments. Should have three: [IMAGE ID] [IMAGE ID] [DIFFER]."
+		errMessage = "Too many arguments. Should have three: [DIFFER] [IMAGE ID] [IMAGE ID]."
 		return false, errors.New(errMessage)
 	} else {
 		return true, nil
@@ -57,22 +59,19 @@ func checkArgNum(args []string) (bool, error) {
 func checkArgType(args []string) (bool, error) {
 	var buffer bytes.Buffer
 	valid := true
-	if !checkImageID(args[1]) {
+	if !checkDiffer(args[0]) {
 		valid = false
-		errMessage := fmt.Sprintf("Argument %s is not an image ID\n", args[0])
-		buffer.WriteString(errMessage)
+		buffer.WriteString("Please provide a differ name as the third argument (hist, dir, or apt)\n")
 	}
-	if !checkImageID(args[2]) {
+	if !checkImageID(args[1]) {
 		valid = false
 		errMessage := fmt.Sprintf("Argument %s is not an image ID\n", args[1])
 		buffer.WriteString(errMessage)
 	}
-	if checkImageID(args[0]) {
+	if !checkImageID(args[2]) {
 		valid = false
-		buffer.WriteString("Do not provide more than two image IDs\n")
-	} else if !checkDiffer(args[0]) {
-		valid = false
-		buffer.WriteString("Please provide a differ name as the third argument (hist, dir, or apt)")
+		errMessage := fmt.Sprintf("Argument %s is not an image ID\n", args[2])
+		buffer.WriteString(errMessage)
 	}
 	if !valid {
 		return false, errors.New(buffer.String())
@@ -99,5 +98,4 @@ func checkDiffer(arg string) bool {
 func init() {
 	pflag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 	RootCmd.Flags().BoolVarP(&json, "json", "j", false, "JSON Output defines if the diff should be returned in a human readable format (false) or a JSON (true).")
-
 }
