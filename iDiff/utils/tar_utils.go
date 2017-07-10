@@ -148,3 +148,13 @@ func DirToJSON(path string, target string, deep bool) error {
 
 	return ioutil.WriteFile(target, data, 0777)
 }
+
+func CheckTar(image string) bool {
+	if strings.TrimSuffix(image, ".tar") == image {
+		return false
+	}
+	if _, err := os.Stat(image); err != nil {
+		return false
+	}
+	return true
+}

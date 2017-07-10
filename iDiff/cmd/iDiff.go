@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/differs"
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 )
@@ -32,6 +35,9 @@ func validateArgs(args []string) (bool, error) {
 	if validArgNum, err := checkArgNum(args); !validArgNum {
 		return false, err
 	}
+	if validArgType, err := checkArgType(args); !validArgType {
+		return false, err
+	}
 	return true, nil
 }
 
@@ -46,6 +52,47 @@ func checkArgNum(args []string) (bool, error) {
 	} else {
 		return true, nil
 	}
+}
+
+func checkImage(arg string) bool {
+	if !utils.CheckImageID(arg) && !utils.CheckImageURL(arg) && !utils.CheckTar(arg) {
+		return false
+	}
+	return true
+}
+
+func checkDiffer(arg string) bool {
+	pattern := regexp.MustCompile("[a-z|A-Z]*")
+	if exp := pattern.FindString(arg); exp != arg {
+		return false
+	}
+	return true
+}
+
+func checkArgType(args []string) (bool, error) {
+	var buffer bytes.Buffer
+	valid := true
+	if !checkImage(args[0]) {
+		valid = false
+		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[0])
+		buffer.WriteString(errMessage)
+	}
+	if !checkImage(args[1]) {
+		valid = false
+		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[1])
+		buffer.WriteString(errMessage)
+	}
+	if checkImage(args[2]) {
+		valid = false
+		buffer.WriteString("Do not provide more than two images\n")
+	} else if !checkDiffer(args[2]) {
+		valid = false
+		buffer.WriteString("Please provide a differ name as the third argument")
+	}
+	if !valid {
+		return false, errors.New(buffer.String())
+	}
+	return true, nil
 }
 
 func init() {

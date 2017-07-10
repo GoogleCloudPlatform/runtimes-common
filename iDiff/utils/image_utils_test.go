@@ -15,7 +15,7 @@ func TestCheckImageID(t *testing.T) {
 		{input: "gcr.io/repo/image", expectedOutput: false},
 		{input: "testTars/la-croix1.tar", expectedOutput: false},
 	} {
-		output := checkImageID(test.input)
+		output := CheckImageID(test.input)
 		if output != test.expectedOutput {
 			if test.expectedOutput {
 				t.Errorf("Expected input to be image ID but %s tested false", test.input)
@@ -32,7 +32,7 @@ func TestCheckImageTar(t *testing.T) {
 		{input: "gcr.io/repo/image", expectedOutput: false},
 		{input: "testTars/la-croix1.tar", expectedOutput: true},
 	} {
-		output := checkImageTar(test.input)
+		output := CheckTar(test.input)
 		if output != test.expectedOutput {
 			if test.expectedOutput {
 				t.Errorf("Expected input to be a tar file but %s tested false", test.input)

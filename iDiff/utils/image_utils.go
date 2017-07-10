@@ -24,7 +24,7 @@ func saveImageToTar(image string) (string, error) {
 	fromImage := image
 	toTar := image
 	// If not an already existing image ID, have to pull it from a repo before saving it
-	if !checkImageID(image) {
+	if !CheckImageID(image) {
 		imageID, imageName, err := pullImageFromRepo(cli, image)
 		if err != nil {
 			return "", err
@@ -43,7 +43,7 @@ func saveImageToTar(image string) (string, error) {
 // ImageToDir converts an image to an unpacked tar and creates a representation of that directory.
 func ImageToDir(img string) (string, string, error) {
 	var tarName string
-	if !checkImageTar(img) {
+	if !CheckTar(img) {
 		// If not an image tar already existing in the filesystem, create client to obtain image
 		imageTar, err := saveImageToTar(img)
 		if err != nil {
@@ -158,7 +158,7 @@ func copyToFile(outfile string, r io.Reader) error {
 	return nil
 }
 
-func checkImageID(image string) bool {
+func CheckImageID(image string) bool {
 	pattern := regexp.MustCompile("[a-z|0-9]{12}")
 	if exp := pattern.FindString(image); exp != image {
 		return false
@@ -166,8 +166,9 @@ func checkImageID(image string) bool {
 	return true
 }
 
-func checkImageTar(image string) bool {
-	if _, err := os.Stat(image); err != nil {
+func CheckImageURL(image string) bool {
+	pattern := regexp.MustCompile("^.+/.+(:.+){0,1}$")
+	if exp := pattern.FindString(image); exp != image || CheckTar(image) {
 		return false
 	}
 	return true
