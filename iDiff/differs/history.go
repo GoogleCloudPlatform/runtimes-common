@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
-
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
 )
@@ -18,21 +18,31 @@ func History(img1, img2 string, json bool) (string, error) {
 	return getHistoryDiff(img1, img2, json)
 }
 
-func getHistoryList(image string) ([]string, error) {
-	ctx := context.Background()
-	cli, err := client.NewEnvClient()
+func getHistoryList(img string) ([]string, error) {
+	validDocker, err := validDockerVersion()
 	if err != nil {
 		return []string{}, err
 	}
-	history, err := cli.ImageHistory(ctx, image)
-	if err != nil {
-		return []string{}, err
+	var history []image.HistoryResponseItem
+	if validDocker {
+		ctx := context.Background()
+		cli, err := client.NewEnvClient()
+		if err != nil {
+			return []string{}, err
+		}
+		history, err = cli.ImageHistory(ctx, img)
+		if err != nil {
+			return []string{}, err
+		}
+	} else {
+		// TODO call local docker with exec
+		return []string{}, nil
 	}
 
 	strhistory := make([]string, len(history))
 	for i, layer := range history {
-		layer_description := strings.TrimSpace(layer.CreatedBy)
-		strhistory[i] = fmt.Sprintf("%s\n", layer_description)
+		layerDescription := strings.TrimSpace(layer.CreatedBy)
+		strhistory[i] = fmt.Sprintf("%s\n", layerDescription)
 	}
 	return strhistory, nil
 }
@@ -44,7 +54,7 @@ type HistDiff struct {
 	Dels   []string
 }
 
-func getHistoryDiff(image1 string, image2 string, json bool) (string, error) {
+func getHistoryDiff(image1, image2 string, json bool) (string, error) {
 	history1, err := getHistoryList(image1)
 	if err != nil {
 		return "", err

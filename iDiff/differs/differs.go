@@ -2,9 +2,11 @@ package differs
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
+	"github.com/docker/docker/client"
 )
 
 var diffs = map[string]func(string, string, bool) (string, error){
@@ -15,20 +17,44 @@ var diffs = map[string]func(string, string, bool) (string, error){
 
 func Diff(arg1, arg2, differ string, json bool) (string, error) {
 	if f, exists := diffs[differ]; exists {
+		validDocker, err := validDockerVersion()
+		if err != nil {
+			return "", err
+		}
 		if differ == "hist" {
 			return f(arg1, arg2, json)
 		}
-		return specificDiffer(f, arg1, arg2, json)
+		return specificDiffer(f, arg1, arg2, json, validDocker)
 	}
 	return "", errors.New("Unknown differ")
 }
 
-func specificDiffer(f func(string, string, bool) (string, error), img1, img2 string, json bool) (string, error) {
-	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
+func validDockerVersion() (bool, error) {
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		return false, fmt.Errorf("Docker client error: %s", err)
+	}
+	version := cli.ClientVersion()
+	if version == "1.31" {
+		return true, nil
+	}
+	return false, nil
+}
+
+func prepareDir(image string, validDocker bool) (string, string, error) {
+	if validDocker {
+		return utils.ImageToDir(image)
+	}
+	// TODO add exec calls for local docker client
+	return "", "", nil
+}
+
+func specificDiffer(f func(string, string, bool) (string, error), img1, img2 string, json, validDocker bool) (string, error) {
+	jsonPath1, dirPath1, err := prepareDir(img1, validDocker)
 	if err != nil {
 		return "", err
 	}
-	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
+	jsonPath2, dirPath2, err := prepareDir(img2, validDocker)
 	if err != nil {
 		return "", err
 	}
