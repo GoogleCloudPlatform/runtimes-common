@@ -41,12 +41,24 @@ func validDockerVersion() (bool, error) {
 	return false, nil
 }
 
+func imageToDirCmd(image string) error {
+	cmdName := "docker"
+	cmdArgs := []string{"save", image, ">", image + ".tar"}
+
+	cmd := exec.command(cmdName, cmdArgs...)
+	err := cmd.Start()
+	if err != nil {
+		return err
+	}
+
+}
+
 func prepareDir(image string, validDocker bool) (string, string, error) {
 	if validDocker {
 		return utils.ImageToDir(image)
 	}
-	// TODO add exec calls for local docker client
-	return "", "", nil
+	return "", "", imageToDirCmd(image) // TODO add exec calls for local docker client
+	// return "", "", nil
 }
 
 func specificDiffer(f func(string, string, bool) (string, error), img1, img2 string, json, validDocker bool) (string, error) {
