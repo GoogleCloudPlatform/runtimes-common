@@ -9,7 +9,7 @@ import (
 )
 
 // Package diffs two packages and compares their contents
-func Package(dir1, dir2 string, json bool) (string, error) {
+func FileDiff(dir1, dir2 string, json bool) (string, error) {
 	diff, err := getDiffOutput(dir1, dir2, json)
 	if err != nil {
 		return "", err
