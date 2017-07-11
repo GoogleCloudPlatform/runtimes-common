@@ -17,8 +17,8 @@ func JSONify(diff interface{}) (string, error) {
 }
 
 func Output(diff PackageDiff) error {
-	const master = `Packages found only in {{.Image1}}:{{range $name, $value := .Packages1}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
-Packages found only in {{.Image2}}:{{block "list2" .Packages2}}{{"\n"}}{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{"\n"}}{{end}}{{end}}
+	const master = `Packages found only in {{.Image1}}:{{range $name, $value := .Packages1}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}{{"\n"}}
+Packages found only in {{.Image2}}:{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
 Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range .InfoDiff}}
 	{{.Package}}:	{{.Info1.Version}}	{{.Info2.Version}}
 	{{end}}`
@@ -37,10 +37,10 @@ Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range 
 }
 
 func OutputMulti(diff MultiVersionPackageDiff) error {
-	const master = `Packages found only in {{.Image1}}:{{range $name, $value := .Packages1}}{{"\n"}}{{print "-"}}{{$name}}{{end}}
-Packages found only in {{.Image2}}:{{block "list2" .Packages2}}{{"\n"}}{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{"\n"}}{{end}}{{end}}
+	const master = `Packages found only in {{.Image1}}:{{range $name, $value := .Packages1}}{{"\n"}}{{print "-"}}{{$name}}{{end}}{{"\n"}}
+Packages found only in {{.Image2}}:{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{end}}
 Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range .InfoDiff}}
-	{{.Package}}:	{{range .Info1}}{{.Version}}{{end}}	{{range .Info2}}{{.Version}}{{end}}
+	{{.Package}}:	{{range .Info1}}{{.Version}}{{end}}	{{"\t"}} {{range .Info2}}{{.Version}}{{end}}
 	{{end}}`
 
 	funcs := template.FuncMap{"join": strings.Join}

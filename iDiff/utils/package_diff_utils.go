@@ -56,21 +56,20 @@ func contains(info1 []PackageInfo, keys1 []string, key string, value PackageInfo
 		if !reflect.DeepEqual(currVal, value) {
 			continue
 		}
-		// Check if both global or local installations
-		tempPath1 := strings.SplitN(key, "/", 2)
-		tempPath2 := strings.SplitN(keys1[i], "/", 2)
-		if len(tempPath1) != 2 || len(tempPath2) != 2 {
+		// Check if both global or local installations by trimming img-id and layer hash
+		tempPath1 := strings.SplitN(key, "/", 3)
+		tempPath2 := strings.SplitN(keys1[i], "/", 3)
+		if len(tempPath1) != 3 || len(tempPath2) != 3 {
 			continue
 		}
-		if tempPath1[1] == tempPath2[1] {
+		if tempPath1[2] == tempPath2[2] {
 			return i, true
 		}
 	}
 	return 0, false
 }
 
-func multiVersionDiff(infoDiff []MultiVersionInfo, key string, map1,
-	map2 map[string]PackageInfo) []MultiVersionInfo {
+func multiVersionDiff(infoDiff []MultiVersionInfo, key string, map1, map2 map[string]PackageInfo) []MultiVersionInfo {
 	diff1Possible := []PackageInfo{}
 	diff1PossibleKeys := []string{}
 
@@ -93,8 +92,8 @@ func multiVersionDiff(infoDiff []MultiVersionInfo, key string, map1,
 			diff2 = append(diff2, value2)
 		} else {
 			if index == 0 {
-				diff1Possible = append(diff1Possible[1:])
-				diff1PossibleKeys = append(diff1PossibleKeys[1:])
+				diff1Possible = diff1Possible[1:]
+				diff1PossibleKeys = diff1PossibleKeys[1:]
 			}
 			diff1Possible = append(diff1Possible[:index], diff1Possible[index:]...)
 			diff1PossibleKeys = append(diff1PossibleKeys[:index], diff1PossibleKeys[index:]...)
@@ -104,7 +103,7 @@ func multiVersionDiff(infoDiff []MultiVersionInfo, key string, map1,
 	for _, val := range diff1Possible {
 		diff1 = append(diff1, val)
 	}
-	if len(diff1) != 0 || len(diff2) != 0 {
+	if len(diff1) > 0 || len(diff2) > 0 {
 		infoDiff = append(infoDiff, MultiVersionInfo{key, diff1, diff2})
 	}
 	return infoDiff
