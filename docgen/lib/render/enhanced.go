@@ -330,9 +330,11 @@ func (t *RunInstruction) ExposedPorts() []*RunInstruction_ExposedPort {
 func (t *RunInstruction) MappedExposedPorts() []*RunInstruction_ExposedPort {
 	result := make([]*RunInstruction_ExposedPort, 0, len(t.ExposedPorts()))
 	for _, exposedPort := range t.ExposedPorts() {
-		if exposedPort.Mapped > 0 {
-			result = append(result, exposedPort)
+		port := *exposedPort
+		if exposedPort.Mapped == 0 {
+			port.Mapped = port.Port
 		}
+		result = append(result, &port)
 	}
 	return result
 }
