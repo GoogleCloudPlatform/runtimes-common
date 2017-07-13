@@ -87,8 +87,25 @@ def verify_manifest(manifest):
         deprecation:
           message: "openjdk is deprecated."
     """
+    _verify_manifest_formatting(manifest)
     node_graph = _build_manifest_graph(manifest)
     _verify_manifest_graph(node_graph)
+
+
+def _verify_manifest_formatting(manifest):
+    try:
+        if 'schema_version' not in manifest:
+            logging.error('Manifest does not contain schema_version!')
+            sys.exit(1)
+        for key, val in manifest.get('runtimes').iteritems():
+            file = val.get('target').get('file', '')
+            if file.startswith('gs://'):
+                logging.error('Builder file {0} should NOT be prefixed with '
+                              'GCS bucket prefix or bucket name!'.format(file))
+                sys.exit(1)
+    except KeyError as ke:
+        logging.error('Error encountered when verifying manifest:', ke)
+        sys.exit(1)
 
 
 def _verify_manifest_graph(node_graph):
