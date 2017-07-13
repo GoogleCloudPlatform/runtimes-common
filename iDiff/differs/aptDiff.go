@@ -13,7 +13,7 @@ import (
 
 func output(diff utils.PackageDiff) error {
 	const master = `Packages found only in {{.Image1}}:{{range $name, $value := .Packages1}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
-Packages found only in {{.Image2}}:{{block "list2" .Packages2}}{{"\n"}}{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{"\n"}}{{end}}{{end}}
+Packages found only in {{.Image2}}:{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
 Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range .InfoDiff}}
 	{{.Package}}:	{{.Info1.Version}}	{{.Info2.Version}}
 	{{end}}`
