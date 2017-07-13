@@ -3,18 +3,18 @@ package differs
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
+	"github.com/golang/glog"
 
 	"github.com/docker/docker/client"
 	"golang.org/x/net/context"
 )
 
 // History compares the Docker history for each image.
-func History(img1, img2 string, json bool) (string, error) {
+func HistoryDiff(img1, img2 string, json bool) (string, error) {
 	return getHistoryDiff(img1, img2, json)
 }
 
@@ -71,10 +71,10 @@ Docker file lines found only in {{.Image2}}:{{block "list2" .Dels}}{{"\n"}}{{ran
 
 	histTemplate, err := template.New("histTemp").Funcs(funcs).Parse(histTemp)
 	if err != nil {
-		log.Fatal(err)
+		glog.Error(err)
 	}
 	if err := histTemplate.Execute(os.Stdout, diff); err != nil {
-		log.Fatal(err)
+		glog.Error(err)
 	}
 	return ""
 }

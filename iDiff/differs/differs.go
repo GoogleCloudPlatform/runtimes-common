@@ -8,14 +8,16 @@ import (
 )
 
 var diffs = map[string]func(string, string, bool) (string, error){
-	"hist": History,
-	"dir":  Package,
+	"hist": HistoryDiff,
+	"history": HistoryDiff,
+	"file":  FileDiff,
 	"apt":  AptDiff,
+	"linux": AptDiff,
 }
 
 func Diff(arg1, arg2, differ string, json bool) (string, error) {
 	if f, exists := diffs[differ]; exists {
-		if differ == "hist" {
+		if f == HistoryDiff {
 			return f(arg1, arg2, json)
 		}
 		return specificDiffer(f, arg1, arg2, json)

@@ -3,7 +3,6 @@ package differs
 import (
 	"bufio"
 	"html/template"
-	"log"
 	"os"
 	"strings"
 
@@ -22,11 +21,11 @@ Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range 
 
 	masterTmpl, err := template.New("master").Funcs(funcs).Parse(master)
 	if err != nil {
-		log.Fatal(err)
+		glog.Error(err)
 	}
 
 	if err := masterTmpl.Execute(os.Stdout, diff); err != nil {
-		log.Fatal(err)
+		glog.Error(err)
 	}
 	return nil
 }
