@@ -17,14 +17,10 @@ var diffs = map[string]func(string, string, bool) (string, error){
 
 func Diff(arg1, arg2, differ string, json bool) (string, error) {
 	if f, exists := diffs[differ]; exists {
-		validDocker, err := validDockerVersion()
-		if err != nil {
-			return "", err
-		}
 		if differ == "hist" {
 			return f(arg1, arg2, json)
 		}
-		return specificDiffer(f, arg1, arg2, json, validDocker)
+		return specificDiffer(f, arg1, arg2, json)
 	}
 	return "", errors.New("Unknown differ")
 }
@@ -37,7 +33,7 @@ func specificDiffer(f func(string, string, bool) (string, error), img1, img2 str
 		buffer.WriteString(err.Error())
 		validDiff = false
 	}
-	jsonPath2, dirPath2, err := prepareDir(img2, validDocker)
+	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
 	if err != nil {
 		buffer.WriteString(err.Error())
 		validDiff = false

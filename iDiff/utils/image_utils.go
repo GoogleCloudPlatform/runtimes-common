@@ -10,43 +10,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/system"
 )
-
-func validDockerVersion() (bool, error) {
-	cli, err := client.NewEnvClient()
-	if err != nil {
-		return false, fmt.Errorf("Docker client error: %s", err)
-	}
-	version := cli.ClientVersion()
-	if version == "1.31" {
-		return true, nil
-	}
-	return false, nil
-}
-
-func imageToDirCmd(image string) error {
-	cmdName := "docker"
-	cmdArgs := []string{"save", image, ">", image + ".tar"}
-
-	cmd := exec.command(cmdName, cmdArgs...)
-	err := cmd.Start()
-	if err != nil {
-		return err
-	}
-
-}
-
-func prepareDir(image string, validDocker bool) (string, string, error) {
-	if validDocker {
-		return utils.ImageToDir(image)
-	}
-	return "", "", imageToDirCmd(image) // TODO add exec calls for local docker client
-	// return "", "", nil
-}
 
 func saveImageToTar(image string) (string, error) {
 	cli, err := client.NewEnvClient()
@@ -76,9 +43,20 @@ func saveImageToTar(image string) (string, error) {
 // ImageToDir converts an image to an unpacked tar and creates a representation of that directory.
 func ImageToDir(img string) (string, string, error) {
 	var tarName string
+
 	if !CheckTar(img) {
 		// If not an image tar already existing in the filesystem, create client to obtain image
-		imageTar, err := saveImageToTar(img)
+		// check client compatibility with Docker API
+		valid, err := ValidDockerVersion()
+		if err != nil {
+			return "", "", err
+		}
+		var imageTar string
+		if !valid {
+			imageTar, err = imageToTarCmd(img)
+		} else {
+			imageTar, err = saveImageToTar(img)
+		}
 		if err != nil {
 			return "", "", err
 		}

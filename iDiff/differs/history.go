@@ -19,7 +19,7 @@ func History(img1, img2 string, json bool) (string, error) {
 }
 
 func getHistoryList(img string) ([]string, error) {
-	validDocker, err := validDockerVersion()
+	validDocker, err := utils.ValidDockerVersion()
 	if err != nil {
 		return []string{}, err
 	}
@@ -35,8 +35,10 @@ func getHistoryList(img string) ([]string, error) {
 			return []string{}, err
 		}
 	} else {
-		// TODO call local docker with exec
-		return []string{}, nil
+		history, err := utils.GetImageHistory(image)
+		if err != nil {
+			return []string{}, err
+		}
 	}
 
 	strhistory := make([]string, len(history))
