@@ -21,11 +21,11 @@ var RootCmd = &cobra.Command{
 	Short: "Compare two images.",
 	Long:  `Compares two images using the specifed differ (hist, dir, or apt).`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if validArgs, err := validateArgs(args); !validArgs {
+		if validArgs, err := validateArgs(args[1:]); !validArgs {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		if diff, err := differs.Diff(args[1], args[2], args[0], json); err == nil {
+		if diff, err := differs.Diff(args[2], args[3], args[1], json); err == nil {
 			fmt.Println(diff)
 		} else {
 			glog.Error(err.Error())

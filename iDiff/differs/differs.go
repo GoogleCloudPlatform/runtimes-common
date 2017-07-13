@@ -3,6 +3,7 @@ package differs
 import (
 	"errors"
 	"os"
+	"reflect"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
@@ -17,7 +18,9 @@ var diffs = map[string]func(string, string, bool) (string, error){
 
 func Diff(arg1, arg2, differ string, json bool) (string, error) {
 	if f, exists := diffs[differ]; exists {
-		if f == HistoryDiff {
+		fValue := reflect.ValueOf(f)
+		histValue := reflect.ValueOf(HistoryDiff)
+		if fValue.Pointer() == histValue.Pointer() {
 			return f(arg1, arg2, json)
 		}
 		return specificDiffer(f, arg1, arg2, json)
