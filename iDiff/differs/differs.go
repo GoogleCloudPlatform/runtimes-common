@@ -1,18 +1,18 @@
 package differs
 
 import (
+	"bytes"
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
-	"github.com/docker/docker/client"
 )
 
 var diffs = map[string]func(string, string, bool) (string, error){
 	"hist": History,
 	"dir":  Package,
 	"apt":  AptDiff,
+	"pip":  PipDiff,
 }
 
 func Diff(arg1, arg2, differ string, json bool) (string, error) {
@@ -29,65 +29,48 @@ func Diff(arg1, arg2, differ string, json bool) (string, error) {
 	return "", errors.New("Unknown differ")
 }
 
-func validDockerVersion() (bool, error) {
-	cli, err := client.NewEnvClient()
+func specificDiffer(f func(string, string, bool) (string, error), img1, img2 string, json bool) (string, error) {
+	var buffer bytes.Buffer
+	validDiff := true
+	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
 	if err != nil {
-		return false, fmt.Errorf("Docker client error: %s", err)
-	}
-	version := cli.ClientVersion()
-	if version == "1.31" {
-		return true, nil
-	}
-	return false, nil
-}
-
-func imageToDirCmd(image string) error {
-	cmdName := "docker"
-	cmdArgs := []string{"save", image, ">", image + ".tar"}
-
-	cmd := exec.command(cmdName, cmdArgs...)
-	err := cmd.Start()
-	if err != nil {
-		return err
-	}
-
-}
-
-func prepareDir(image string, validDocker bool) (string, string, error) {
-	if validDocker {
-		return utils.ImageToDir(image)
-	}
-	return "", "", imageToDirCmd(image) // TODO add exec calls for local docker client
-	// return "", "", nil
-}
-
-func specificDiffer(f func(string, string, bool) (string, error), img1, img2 string, json, validDocker bool) (string, error) {
-	jsonPath1, dirPath1, err := prepareDir(img1, validDocker)
-	if err != nil {
-		return "", err
+		buffer.WriteString(err.Error())
+		validDiff = false
 	}
 	jsonPath2, dirPath2, err := prepareDir(img2, validDocker)
 	if err != nil {
-		return "", err
+		buffer.WriteString(err.Error())
+		validDiff = false
 	}
-	diff, err := f(jsonPath1, jsonPath2, json)
-	if err != nil {
-		return "", err
+
+	var diff string
+	if validDiff {
+		output, err := f(jsonPath1, jsonPath2, json)
+		if err != nil {
+			buffer.WriteString(err.Error())
+		}
+		diff = output
 	}
 
 	errStr := remove(dirPath1, true, "")
 	errStr = remove(dirPath2, true, errStr)
 	errStr = remove(jsonPath1, false, errStr)
 	errStr = remove(jsonPath2, false, errStr)
-
 	if errStr != "" {
-		return diff, errors.New(errStr)
+		buffer.WriteString(errStr)
 	}
 
-	return diff, err
+	if buffer.String() != "" {
+		return diff, errors.New(buffer.String())
+	}
+	return diff, nil
 }
 
 func remove(path string, dir bool, errStr string) string {
+	if path == "" {
+		return ""
+	}
+
 	var err error
 	if dir {
 		err = os.RemoveAll(path)

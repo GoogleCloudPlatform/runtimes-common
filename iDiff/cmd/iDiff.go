@@ -7,6 +7,7 @@ import (
 	"regexp"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/differs"
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 )
@@ -43,45 +44,18 @@ func validateArgs(args []string) (bool, error) {
 func checkArgNum(args []string) (bool, error) {
 	var errMessage string
 	if len(args) < 3 {
-		errMessage = "Too few arguments. Should have three: [IMAGE ID] [IMAGE ID] [DIFFER]."
+		errMessage = "Too few arguments. Should have three: [IMAGE] [IMAGE] [DIFFER]."
 		return false, errors.New(errMessage)
 	} else if len(args) > 3 {
-		errMessage = "Too many arguments. Should have three: [IMAGE ID] [IMAGE ID] [DIFFER]."
+		errMessage = "Too many arguments. Should have three: [IMAGE] [IMAGE] [DIFFER]."
 		return false, errors.New(errMessage)
 	} else {
 		return true, nil
 	}
 }
 
-func checkArgType(args []string) (bool, error) {
-	var buffer bytes.Buffer
-	valid := true
-	if !checkImageID(args[0]) {
-		valid = false
-		errMessage := fmt.Sprintf("Argument %s is not an image ID\n", args[0])
-		buffer.WriteString(errMessage)
-	}
-	if !checkImageID(args[1]) {
-		valid = false
-		errMessage := fmt.Sprintf("Argument %s is not an image ID\n", args[1])
-		buffer.WriteString(errMessage)
-	}
-	if checkImageID(args[2]) {
-		valid = false
-		buffer.WriteString("Do not provide more than two image IDs\n")
-	} else if !checkDiffer(args[2]) {
-		valid = false
-		buffer.WriteString("Please provide a differ name as the third argument")
-	}
-	if !valid {
-		return false, errors.New(buffer.String())
-	}
-	return true, nil
-}
-
-func checkImageID(arg string) bool {
-	pattern := regexp.MustCompile("[a-z|0-9]{12}")
-	if exp := pattern.FindString(arg); exp != arg {
+func checkImage(arg string) bool {
+	if !utils.CheckImageID(arg) && !utils.CheckImageURL(arg) && !utils.CheckTar(arg) {
 		return false
 	}
 	return true
@@ -93,6 +67,32 @@ func checkDiffer(arg string) bool {
 		return false
 	}
 	return true
+}
+
+func checkArgType(args []string) (bool, error) {
+	var buffer bytes.Buffer
+	valid := true
+	if !checkImage(args[0]) {
+		valid = false
+		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[0])
+		buffer.WriteString(errMessage)
+	}
+	if !checkImage(args[1]) {
+		valid = false
+		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[1])
+		buffer.WriteString(errMessage)
+	}
+	if checkImage(args[2]) {
+		valid = false
+		buffer.WriteString("Do not provide more than two images\n")
+	} else if !checkDiffer(args[2]) {
+		valid = false
+		buffer.WriteString("Please provide a differ name as the third argument")
+	}
+	if !valid {
+		return false, errors.New(buffer.String())
+	}
+	return true, nil
 }
 
 func init() {
