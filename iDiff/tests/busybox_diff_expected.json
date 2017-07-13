@@ -1,6 +1,6 @@
 {
-  "Image1": "0cb40641836c",
-  "Image2": "e7d168d7db45",
+  "Image1": "busybox1.24",
+  "Image2": "busyboxlatest",
   "Adds": [
     "/768d4f50f65f00831244703e57f64134771289e3de919a576441c9140e037ea2",
     "/96c5134b442cd6446dfae4b1ae1de0aad4b0f408ccd0cf6126566a096da7a209",
