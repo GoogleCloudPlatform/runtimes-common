@@ -62,6 +62,11 @@ def _main():
                         help='URL where deployed app is ' +
                         'exposed (if applicable)')
     parser.add_argument('--verbose', '-v', action='store_true')
+    parser.add_argument('--builder', '-b',
+                        help='builder file to template')
+    parser.add_argument('--yaml', '-y',
+                        help='optional path to app.yaml file',
+                        required=False)
     args = parser.parse_args()
 
     if args.verbose:
@@ -70,8 +75,8 @@ def _main():
     application_url = ''
 
     if not args.url:
-        if args.image is None:
-            logging.error('Please specify base image name.')
+        if args.image is None and args.builder is None:
+            logging.error('Please specify base image or builder image name.')
             sys.exit(1)
 
         if args.directory is None:
@@ -79,7 +84,8 @@ def _main():
             sys.exit(1)
 
         logging.debug('Deploying app!')
-        version = deploy_app.deploy_app(args.image, args.directory)
+        version = deploy_app.deploy_app(args.image, args.builder,
+                                        args.directory, args.yaml)
 
     application_url = args.url or test_util.retrieve_url_for_version(version)
 
