@@ -3,7 +3,6 @@ package differs
 import (
 	"bufio"
 	"html/template"
-	"log"
 	"os"
 	"strings"
 
@@ -12,8 +11,8 @@ import (
 )
 
 func output(diff utils.PackageDiff) error {
-	const master = `Packages found only in {{.Image1}}:{{block "list" .Packages1}}{{"\n"}}{{range .}}{{println "-" .}}{{end}}{{end}}
-Packages found only in {{.Image2}}:{{block "list2" .Packages2}}{{"\n"}}{{range .}}{{println "-" .}}{{end}}{{end}}
+	const master = `Packages found only in {{.Image1}}:{{range $name, $value := .Packages1}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
+Packages found only in {{.Image2}}:{{block "list2" .Packages2}}{{"\n"}}{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{"\n"}}{{end}}{{end}}
 Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range .InfoDiff}}
 	{{.Package}}:	{{.Info1.Version}}	{{.Info2.Version}}
 	{{end}}`
@@ -22,17 +21,17 @@ Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range 
 
 	masterTmpl, err := template.New("master").Funcs(funcs).Parse(master)
 	if err != nil {
-		log.Fatal(err)
+		glog.Error(err)
 	}
 
 	if err := masterTmpl.Execute(os.Stdout, diff); err != nil {
-		log.Fatal(err)
+		glog.Error(err)
 	}
 	return nil
 }
 
 // AptDiff compares the packages installed by apt-get.
-func AptDiff(d1file, d2file string) (string, error) {
+func AptDiff(d1file, d2file string, json bool) (string, error) {
 	d1, err := utils.GetDirectory(d1file)
 	if err != nil {
 		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
@@ -54,10 +53,12 @@ func AptDiff(d1file, d2file string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	diff := utils.DiffMaps(pack1, pack2)
 	diff.Image1 = dirPath1
 	diff.Image2 = dirPath2
+	if json {
+		return utils.JSONify(diff)
+	}
 	output(diff)
 	return "", nil
 }
@@ -105,13 +106,21 @@ func parseLine(text string, currPackage string, packages map[string]utils.Packag
 				return currPackage
 			}
 			modifiedValue := strings.Replace(value, "+", " ", 1)
-			tempPackage := utils.PackageInfo{Version: modifiedValue}
-			packages[currPackage] = tempPackage
+			currPackageInfo, ok := packages[currPackage]
+			if !ok {
+				currPackageInfo = utils.PackageInfo{}
+			}
+			currPackageInfo.Version = modifiedValue
+			packages[currPackage] = currPackageInfo
 			return currPackage
 
 		case "Installed-Size":
-			tempPackage := utils.PackageInfo{Size: value}
-			packages[currPackage] = tempPackage
+			currPackageInfo, ok := packages[currPackage]
+			if !ok {
+				currPackageInfo = utils.PackageInfo{}
+			}
+			currPackageInfo.Size = value
+			packages[currPackage] = currPackageInfo
 			return currPackage
 		default:
 			return currPackage

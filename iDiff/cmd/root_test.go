@@ -18,12 +18,11 @@ var argNumTests = []testpair{
 }
 
 var argTypeTests = []testpair{
-	{[]string{"", "", ""}, false},
-	{[]string{"badID", "badID", "differ"}, false},
-	{[]string{"123456789012", "badID", "differ"}, false},
+	{[]string{"differ", "badID", "badID"}, false},
+	{[]string{"differ", "123456789012", "badID"}, false},
 	{[]string{"123456789012", "123456789012", "123456789012"}, false},
-	{[]string{"123456789012", "123456789012", "?!badDiffer71"}, false},
-	{[]string{"123456789012", "123456789012", "differ"}, true},
+	{[]string{"?!badDiffer71", "123456789012", "123456789012"}, false},
+	{[]string{"differ", "123456789012", "123456789012"}, true},
 }
 
 func TestArgNum(t *testing.T) {
