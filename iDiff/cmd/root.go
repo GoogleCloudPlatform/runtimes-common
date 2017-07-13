@@ -19,7 +19,7 @@ var json bool
 var RootCmd = &cobra.Command{
 	Use:   "iDiff [differ] [container1] [container2]",
 	Short: "Compare two images.",
-	Long:  `Compares two images using the specifed differ (hist, dir, or apt).`,
+	Long:  `Compares two images using the specifed differ (see iDiff documentation for available differs).`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if validArgs, err := validateArgs(args[1:]); !validArgs {
 			glog.Error(err.Error())
@@ -61,7 +61,7 @@ func checkArgType(args []string) (bool, error) {
 	valid := true
 	if !checkDiffer(args[0]) {
 		valid = false
-		buffer.WriteString("Please provide a differ name as the third argument (hist, dir, or apt)\n")
+		buffer.WriteString("Please provide a differ name as the first argument\n")
 	}
 	if !checkImageID(args[1]) {
 		valid = false

@@ -9,11 +9,11 @@ import (
 )
 
 var diffs = map[string]func(string, string, bool) (string, error){
-	"hist": HistoryDiff,
+	"hist":    HistoryDiff,
 	"history": HistoryDiff,
-	"file":  FileDiff,
-	"apt":  AptDiff,
-	"linux": AptDiff,
+	"file":    FileDiff,
+	"apt":     AptDiff,
+	"linux":   AptDiff,
 }
 
 func Diff(arg1, arg2, differ string, json bool) (string, error) {
