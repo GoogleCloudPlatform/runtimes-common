@@ -28,13 +28,13 @@ func PipDiff(d1file, d2file string, json bool) (string, error) {
 	pack1 := getPythonPackages(dirPath1)
 	pack2 := getPythonPackages(dirPath2)
 
-	diff := utils.DiffMaps(pack1, pack2)
+	diff := utils.GetMapDiff(pack1, pack2)
 	diff.Image1 = dirPath1
 	diff.Image2 = dirPath2
 	if json {
 		return utils.JSONify(diff)
 	}
-	output(diff)
+	utils.Output(diff)
 	return "", nil
 }
 

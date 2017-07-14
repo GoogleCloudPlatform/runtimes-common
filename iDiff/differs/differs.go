@@ -12,6 +12,7 @@ var diffs = map[string]func(string, string, bool) (string, error){
 	"hist": History,
 	"dir":  Package,
 	"apt":  AptDiff,
+	"node": NodeDiff,
 	"pip":  PipDiff,
 }
 
