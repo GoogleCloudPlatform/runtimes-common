@@ -19,6 +19,8 @@ func Diff(arg1, arg2, differ string, json bool) (string, error) {
 	if f, exists := diffs[differ]; exists {
 		if differ == "hist" {
 			return f(arg1, arg2, json)
+		} else if differ == "dir" {
+			return f(arg1, arg2, json)
 		}
 		return specificDiffer(f, arg1, arg2, json)
 	}
@@ -28,12 +30,12 @@ func Diff(arg1, arg2, differ string, json bool) (string, error) {
 func specificDiffer(f func(string, string, bool) (string, error), img1, img2 string, json bool) (string, error) {
 	var buffer bytes.Buffer
 	validDiff := true
-	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
+	imgPath1, err := utils.ImageToFS(img1)
 	if err != nil {
 		buffer.WriteString(err.Error())
 		validDiff = false
 	}
-	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
+	imgPath2, err := utils.ImageToFS(img2)
 	if err != nil {
 		buffer.WriteString(err.Error())
 		validDiff = false
@@ -41,17 +43,15 @@ func specificDiffer(f func(string, string, bool) (string, error), img1, img2 str
 
 	var diff string
 	if validDiff {
-		output, err := f(jsonPath1, jsonPath2, json)
+		output, err := f(imgPath1, imgPath2, json)
 		if err != nil {
 			buffer.WriteString(err.Error())
 		}
 		diff = output
 	}
 
-	errStr := remove(dirPath1, true, "")
-	errStr = remove(dirPath2, true, errStr)
-	errStr = remove(jsonPath1, false, errStr)
-	errStr = remove(jsonPath2, false, errStr)
+	errStr := remove(imgPath1, true, "")
+	errStr = remove(imgPath2, true, errStr)
 	if errStr != "" {
 		buffer.WriteString(errStr)
 	}

@@ -66,9 +66,9 @@ func getDeletedEntries(d1, d2 Directory) []string {
 type DirDiff struct {
 	Image1 string
 	Image2 string
-	Adds   []string
-	Dels   []string
-	Mods   []string
+	Adds []string
+	Dels []string
+	Mods []string
 }
 
 func compareDirEntries(d1, d2 Directory) DirDiff {

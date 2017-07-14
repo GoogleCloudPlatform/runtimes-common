@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -13,7 +14,23 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/system"
+	"github.com/golang/glog"
 )
+
+func GetImageLayers(pathToImage string) []string {
+	layers := []string{}
+	contents, err := ioutil.ReadDir(pathToImage)
+	if err != nil {
+		glog.Error(err.Error())
+	}
+
+	for _, file := range contents {
+		if file.IsDir() {
+			layers = append(layers, file.Name())
+		}
+	}
+	return layers
+}
 
 func saveImageToTar(image string) (string, error) {
 	cli, err := client.NewEnvClient()
@@ -40,21 +57,26 @@ func saveImageToTar(image string) (string, error) {
 	return imageTarPath, nil
 }
 
-// ImageToDir converts an image to an unpacked tar and creates a representation of that directory.
-func ImageToDir(img string) (string, string, error) {
+// ImageToFS converts an image to an unpacked tar of the image filesystem.
+func ImageToFS(img string) (string, error) {
 	var tarName string
 	if !CheckTar(img) {
 		// If not an image tar already existing in the filesystem, create client to obtain image
 		imageTar, err := saveImageToTar(img)
 		if err != nil {
-			return "", "", err
+			return "", err
 		}
 		tarName = imageTar
-		defer os.Remove(tarName)
 	} else {
 		tarName = img
 	}
-	return TarToJSON(tarName)
+	err := ExtractTar(tarName)
+	if err != nil {
+		return "", err
+	}
+	path := strings.TrimSuffix(tarName, filepath.Ext(tarName))
+	defer os.Remove(tarName)
+	return path, nil
 }
 
 type Event struct {
