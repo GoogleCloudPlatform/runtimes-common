@@ -15,7 +15,7 @@ import (
 	"github.com/golang/glog"
 )
 
-// ValidDockerVersion determines if there is a Docker client of the correct version locally installed.
+// ValidDockerVersion determines if there is a Docker client of the necessary version locally installed.
 func ValidDockerVersion() (bool, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {

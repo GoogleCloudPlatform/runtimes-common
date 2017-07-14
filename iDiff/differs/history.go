@@ -10,6 +10,7 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 )
 
@@ -35,6 +36,7 @@ func getHistoryList(img string) ([]string, error) {
 			return []string{}, err
 		}
 	} else {
+		glog.Info("Docker verison incompatible with api, shelling out to local Docker client.")
 		history, err = utils.GetImageHistory(img)
 		if err != nil {
 			return []string{}, err
@@ -43,9 +45,7 @@ func getHistoryList(img string) ([]string, error) {
 
 	strhistory := make([]string, len(history))
 	for i, layer := range history {
-		fmt.Println(layer)
 		layerDescription := strings.TrimSpace(layer.CreatedBy)
-		fmt.Println(layerDescription)
 		strhistory[i] = fmt.Sprintf("%s\n", layerDescription)
 	}
 	return strhistory, nil

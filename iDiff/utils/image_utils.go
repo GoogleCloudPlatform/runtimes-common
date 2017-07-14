@@ -13,6 +13,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/system"
+	"github.com/golang/glog"
 )
 
 func saveImageToTar(image string) (string, error) {
@@ -53,6 +54,7 @@ func ImageToDir(img string) (string, string, error) {
 		}
 		var imageTar string
 		if !valid {
+			glog.Info("Docker verison incompatible with api, shelling out to local Docker client.")
 			imageTar, err = imageToTarCmd(img)
 		} else {
 			imageTar, err = saveImageToTar(img)
