@@ -6,12 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-)
 
-type Directory struct {
-	Root    string
-	Content []string
-}
+	"github.com/golang/glog"
+)
 
 func GetDirectory(dirpath string) (Directory, error) {
 	dirfile, err := ioutil.ReadFile(dirpath)
@@ -41,14 +38,14 @@ func getModifiedEntries(d1, d2 Directory) []string {
 
 		f1stat, err := os.Stat(f1path)
 		if err != nil {
-			fmt.Printf("Error checking directory entry %s: %s\n", f, err)
-			os.Exit(1)
+			glog.Errorf("Error checking directory entry %s: %s\n", f, err)
+			continue
 		}
 		if !f1stat.IsDir() {
 			same, err := checkSameFile(f1path, f2path)
 			if err != nil {
-				fmt.Printf("Error diffing contents of %s and %s: %s\n", f1path, f2path, err)
-				os.Exit(1)
+				glog.Errorf("Error diffing contents of %s and %s: %s\n", f1path, f2path, err)
+				continue
 			}
 			if !same {
 				modified = append(modified, f)
@@ -66,12 +63,20 @@ func getDeletedEntries(d1, d2 Directory) []string {
 	return GetDeletions(d1.Content, d2.Content)
 }
 
-func compareDirEntries(d1, d2 Directory) ([]string, []string, []string) {
+type DirDiff struct {
+	Image1 string
+	Image2 string
+	Adds   []string
+	Dels   []string
+	Mods   []string
+}
+
+func compareDirEntries(d1, d2 Directory) DirDiff {
 	adds := getAddedEntries(d1, d2)
 	dels := getDeletedEntries(d1, d2)
 	mods := getModifiedEntries(d1, d2)
 
-	return adds, dels, mods
+	return DirDiff{d1.Root, d2.Root, adds, dels, mods}
 }
 
 func checkSameFile(f1name, f2name string) (bool, error) {
@@ -105,7 +110,6 @@ func checkSameFile(f1name, f2name string) (bool, error) {
 	return true, nil
 }
 
-func DiffDirectory(d1, d2 Directory) ([]string, []string, []string) {
-	adds, dels, mods := compareDirEntries(d1, d2)
-	return adds, dels, mods
+func DiffDirectory(d1, d2 Directory) DirDiff {
+	return compareDirEntries(d1, d2)
 }

@@ -3,51 +3,123 @@ package differs
 import (
 	"reflect"
 	"testing"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
-func TestDiffMaps(t *testing.T) {
-	map1 := map[string]string{"pac1": "1.0", "pac2": "2.0", "pac3": "3.0"}
-	map2 := map[string]string{"pac1": "1.0", "pac2": "2.0", "pac3": "3.0",
-		"pac4": "4.0", "pac5": "5.0"}
-	expected1 := []string{}
-	expected2 := []string{"pac4:4.0", "pac5:5.0"}
-	diff1, diff2 := diffMaps(map1, map2)
-	if !reflect.DeepEqual(expected1, diff1) {
-		t.Errorf("Expected: %s but got: %s", expected1, diff1)
-	}
-	if !reflect.DeepEqual(expected2, diff2) {
-		t.Errorf("Expected: %s but got: %s", expected2, diff2)
+func TestParseLine(t *testing.T) {
+	testCases := []struct {
+		descrip     string
+		line        string
+		packages    map[string]utils.PackageInfo
+		currPackage string
+		expPackage  string
+		expected    map[string]utils.PackageInfo
+	}{
+		{
+			descrip:    "Not applicable line",
+			line:       "Garbage: garbage info",
+			packages:   map[string]utils.PackageInfo{},
+			expPackage: "",
+			expected:   map[string]utils.PackageInfo{},
+		},
+		{
+			descrip:     "Package line",
+			line:        "Package: La-Croix",
+			currPackage: "Tea",
+			expPackage:  "La-Croix",
+			packages:    map[string]utils.PackageInfo{},
+			expected:    map[string]utils.PackageInfo{},
+		},
+		{
+			descrip:     "Version line",
+			line:        "Version: Lime",
+			packages:    map[string]utils.PackageInfo{},
+			currPackage: "La-Croix",
+			expPackage:  "La-Croix",
+			expected:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime"}},
+		},
+		{
+			descrip:     "Version line with deb release info",
+			line:        "Version: Lime+extra_lime",
+			packages:    map[string]utils.PackageInfo{},
+			currPackage: "La-Croix",
+			expPackage:  "La-Croix",
+			expected:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime extra_lime"}},
+		},
+		{
+			descrip:     "Size line",
+			line:        "Installed-Size: 12floz",
+			packages:    map[string]utils.PackageInfo{},
+			currPackage: "La-Croix",
+			expPackage:  "La-Croix",
+			expected:    map[string]utils.PackageInfo{"La-Croix": {Size: "12floz"}},
+		},
+		{
+			descrip:     "Pre-existing PackageInfo struct",
+			line:        "Installed-Size: 12floz",
+			packages:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime"}},
+			currPackage: "La-Croix",
+			expPackage:  "La-Croix",
+			expected:    map[string]utils.PackageInfo{"La-Croix": {Version: "Lime", Size: "12floz"}},
+		},
 	}
 
+	for _, test := range testCases {
+		currPackage := parseLine(test.line, test.currPackage, test.packages)
+		if currPackage != test.expPackage {
+			t.Errorf("Expected current package to be: %s, but got: %s.", test.expPackage, currPackage)
+		}
+		if !reflect.DeepEqual(test.packages, test.expected) {
+			t.Errorf("Expected: %s but got: %s", test.expected, test.packages)
+		}
+	}
 }
 
 func TestGetPackages(t *testing.T) {
 	testCases := []struct {
 		descrip  string
 		path     string
-		expected map[string]string
+		expected map[string]utils.PackageInfo
+		err      bool
 	}{
+		{
+			descrip:  "no directory",
+			path:     "testDirs/notThere",
+			expected: map[string]utils.PackageInfo{},
+			err:      true,
+		},
 		{
 			descrip:  "no packages",
 			path:     "testDirs/noPackages",
-			expected: map[string]string{},
+			expected: map[string]utils.PackageInfo{},
 		},
 		{
-			descrip:  "all packages in one layer",
-			path:     "testDirs/packageOne",
-			expected: map[string]string{"pac1": "1.0", "pac2": "2.0", "pac3": "3.0"},
+			descrip: "all packages in one layer",
+			path:    "testDirs/packageOne",
+			expected: map[string]utils.PackageInfo{
+				"pac1": {Version: "1.0"},
+				"pac2": {Version: "2.0"},
+				"pac3": {Version: "3.0"}},
 		},
 		{
 			descrip: "many packages in different layers",
 			path:    "testDirs/packageMany",
-			expected: map[string]string{"pac1": "1.0", "pac2": "2.0", "pac3": "3.0",
-				"pac4": "4.0", "pac5": "5.0"},
+			expected: map[string]utils.PackageInfo{
+				"pac1": {Version: "1.0"},
+				"pac2": {Version: "2.0"},
+				"pac3": {Version: "3.0"},
+				"pac4": {Version: "4.0"},
+				"pac5": {Version: "5.0"}},
 		},
 	}
 	for _, test := range testCases {
 		packages, err := getPackages(test.path)
-		if err != nil {
+		if err != nil && !test.err {
 			t.Errorf("Got unexpected error: %s", err)
+		}
+		if err == nil && test.err {
+			t.Errorf("Expected error: %s", test.err)
 		}
 		if !reflect.DeepEqual(packages, test.expected) {
 			t.Errorf("Expected: %s but got: %s", test.expected, packages)

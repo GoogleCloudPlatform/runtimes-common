@@ -1,7 +1,7 @@
 Integration Testing Framework
 =============
 
-This code builds an image which serves as a framework to run basic integration tests for a language runtime image. It relies on the existence of a sample application which fulfills a spec (detailed below), that will be built and deployed on top of the newly built runtime image. These tests are intended to be run as part of a post-push verification step in a continuous deployment system. The test driver can be run directly via any build host, or as a build step in a [Google Cloud Container Build](https://cloud.google.com/container-builder/docs/overview)).
+This code builds an image which serves as a framework to run basic integration tests for a language runtime. It relies on the existence of a sample application which fulfills a spec (detailed below), that will be built and deployed on top of either a newly built runtime image, or built on the language runtime through the gcloud builder flow, using a newly built runtime builder image. These tests are intended to be run as part of a post-push verification step in a continuous deployment system. The test driver can be run directly via any build host, or as a build step in a [Google Cloud Container Build](https://cloud.google.com/container-builder/docs/overview)).
 
 To run these tests through a cloudbuild, add the following build step to the **end** of your build config (cloudbuild.yaml or cloudbuild.json):
 
@@ -19,7 +19,21 @@ The sample application directory should contain the application fulfilling the i
 * a templated `Dockerfile.in`, with the first line being
 	` FROM ${STAGING_IMAGE} `
 
+	**OR**
+
+* a templated `test.yaml.in`, containing a step for the runtime builder that looks like:
+
+	- name: ${STAGING_BUILDER_IMAGE} 
+	- args: [] (these are optional)
+
+	**AND**
+
 * an `app.yaml` config
+
+If the tests are being deployed using a staging runtime builder image, the following gcloud config values **must be set, or else the build will fail**:
+
+* `app/use_runtime_builders` set to `True` (tells the gcloud installation to use the runtime builder flow)
+* `app/runtime_builders_root` set to *the location of the runtime manifest* (tells gcloud where to look for your local runtime builder, which in turn contains the staging runtime builder image).
 
 Alternatively, the application can be manually deployed *before* running the tests; in this scenario, the '--no-deploy' flag can be passed to the build step to opt out of deploying, in tandem with the URL at which the deployed application can be accessed:
 

@@ -1,14 +1,18 @@
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
-	"os"
-	"runtimes-common/iDiff/differs"
-	"runtimes-common/iDiff/utils"
+	"regexp"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/differs"
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
+	"github.com/golang/glog"
 	"github.com/spf13/cobra"
 )
+
+var json bool
 
 // iDiff represents the iDiff command
 var iDiffCmd = &cobra.Command{
@@ -16,20 +20,10 @@ var iDiffCmd = &cobra.Command{
 	Short: "Compare two images.",
 	Long:  `Compares two images using the specifed differ. `,
 	Run: func(cmd *cobra.Command, args []string) {
-		if valid, err := checkArgNum(args); !valid {
-			fmt.Println(err)
-			os.Exit(1)
+		if validArgs, err := validateArgs(args); !validArgs {
+			glog.Fatalf(err.Error())
 		}
-		// TODO: Use more effective mapping structure for differs
-		// TODO: Logging errors and diff results instead of just printing
-		if args[2] == "hist" {
-			diff := differs.History(args[0], args[1])
-			fmt.Println(diff)
-		} else if args[2] == "dir" {
-			diff, err := dirDiff(args[0], args[1])
-			if err != nil {
-				fmt.Println(err)
-			}
+		if diff, err := differs.Diff(args[0], args[1], args[2], json); err == nil {
 			fmt.Println(diff)
 		} else if args[2] == "apt" {
 			diff, err := aptDiff(args[0], args[1])
@@ -38,66 +32,76 @@ var iDiffCmd = &cobra.Command{
 			}
 			fmt.Println(diff)
 		} else {
-			fmt.Println("Unknown differ")
+			glog.Fatalf(err.Error())
 		}
 	},
 }
 
-
-func aptDiff(img1, img2 string) (string, error) {
-	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
-	if err != nil {
-		return "", err
+func validateArgs(args []string) (bool, error) {
+	if validArgNum, err := checkArgNum(args); !validArgNum {
+		return false, err
 	}
-	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
-	if err != nil {
-		return "", err
+	if validArgType, err := checkArgType(args); !validArgType {
+		return false, err
 	}
-	diff, err := differs.AptDiff(dirPath1, dirPath2)
-	if err != nil {
-		return "", err
-	}
-
-	defer os.RemoveAll(dirPath1)
-	defer os.RemoveAll(dirPath2)
-	defer os.Remove(jsonPath1)
-	defer os.Remove(jsonPath2)
-
-	return diff, nil
-}
-
-func dirDiff(img1, img2 string) (string, error) {
-	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
-	if err != nil {
-		return "", err
-	}
-	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
-	if err != nil {
-		return "", err
-	}
-	diff := differs.Package(jsonPath1, jsonPath2)
-
-	defer os.RemoveAll(dirPath1)
-	defer os.RemoveAll(dirPath2)
-	defer os.Remove(jsonPath1)
-	defer os.Remove(jsonPath2)
-  
-	return diff, nil
+	return true, nil
 }
 
 func checkArgNum(args []string) (bool, error) {
-	var err_message string
-	if len(args) < 2 {
-		err_message = "Please have at least two image IDs as arguments."
-		return false, errors.New(err_message)
+	var errMessage string
+	if len(args) < 3 {
+		errMessage = "Too few arguments. Should have three: [IMAGE] [IMAGE] [DIFFER]."
+		return false, errors.New(errMessage)
 	} else if len(args) > 3 {
-		err_message = "Too many arguments."
-		return false, errors.New(err_message)
+		errMessage = "Too many arguments. Should have three: [IMAGE] [IMAGE] [DIFFER]."
+		return false, errors.New(errMessage)
 	} else {
 		return true, nil
 	}
 }
 
+func checkImage(arg string) bool {
+	if !utils.CheckImageID(arg) && !utils.CheckImageURL(arg) && !utils.CheckTar(arg) {
+		return false
+	}
+	return true
+}
+
+func checkDiffer(arg string) bool {
+	pattern := regexp.MustCompile("[a-z|A-Z]*")
+	if exp := pattern.FindString(arg); exp != arg {
+		return false
+	}
+	return true
+}
+
+func checkArgType(args []string) (bool, error) {
+	var buffer bytes.Buffer
+	valid := true
+	if !checkImage(args[0]) {
+		valid = false
+		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[0])
+		buffer.WriteString(errMessage)
+	}
+	if !checkImage(args[1]) {
+		valid = false
+		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[1])
+		buffer.WriteString(errMessage)
+	}
+	if checkImage(args[2]) {
+		valid = false
+		buffer.WriteString("Do not provide more than two images\n")
+	} else if !checkDiffer(args[2]) {
+		valid = false
+		buffer.WriteString("Please provide a differ name as the third argument")
+	}
+	if !valid {
+		return false, errors.New(buffer.String())
+	}
+	return true, nil
+}
+
 func init() {
 	RootCmd.AddCommand(iDiffCmd)
+	iDiffCmd.Flags().BoolVarP(&json, "json", "j", false, "JSON Output defines if the diff should be returned in a human readable format (false) or a JSON (true).")
 }

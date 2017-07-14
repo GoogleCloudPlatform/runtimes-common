@@ -2,30 +2,31 @@ package differs
 
 import (
 	"fmt"
+	"html/template"
+	"log"
 	"os"
 	"strings"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
+
 	"github.com/docker/docker/client"
-	"github.com/pmezard/go-difflib/difflib"
 	"golang.org/x/net/context"
 )
 
 // History compares the Docker history for each image.
-func History(img1, img2 string) string {
-	return get_history_diff(img1, img2)
+func History(img1, img2 string, json bool) (string, error) {
+	return getHistoryDiff(img1, img2, json)
 }
 
-func get_history_list(image string) []string {
+func getHistoryList(image string) ([]string, error) {
 	ctx := context.Background()
 	cli, err := client.NewEnvClient()
 	if err != nil {
-		panic(err)
-		os.Exit(1)
+		return []string{}, err
 	}
 	history, err := cli.ImageHistory(ctx, image)
 	if err != nil {
-		panic(err)
-		os.Exit(1)
+		return []string{}, err
 	}
 
 	strhistory := make([]string, len(history))
@@ -33,20 +34,47 @@ func get_history_list(image string) []string {
 		layer_description := strings.TrimSpace(layer.CreatedBy)
 		strhistory[i] = fmt.Sprintf("%s\n", layer_description)
 	}
-	return strhistory
+	return strhistory, nil
 }
 
-func get_history_diff(image1 string, image2 string) string {
-	history1 := get_history_list(image1)
-	history2 := get_history_list(image2)
+type HistDiff struct {
+	Image1 string
+	Image2 string
+	Adds   []string
+	Dels   []string
+}
 
-	diff := difflib.ContextDiff{
-		A:        history1,
-		B:        history2,
-		FromFile: "IMAGE " + image1,
-		ToFile:   "IMAGE " + image2,
-		Eol:      "\n",
+func getHistoryDiff(image1 string, image2 string, json bool) (string, error) {
+	history1, err := getHistoryList(image1)
+	if err != nil {
+		return "", err
 	}
-	result, _ := difflib.GetContextDiffString(diff)
-	return result
+	history2, err := getHistoryList(image2)
+	if err != nil {
+		return "", err
+	}
+	adds := utils.GetAdditions(history1, history2)
+	dels := utils.GetDeletions(history1, history2)
+	diff := HistDiff{image1, image2, adds, dels}
+	if json {
+		return utils.JSONify(diff)
+	}
+	result := formatDiff(diff)
+	return result, nil
+}
+
+func formatDiff(diff HistDiff) string {
+	const histTemp = `Docker file lines found only in {{.Image1}}:{{block "list" .Adds}}{{"\n"}}{{range .}}{{print "-" .}}{{end}}{{end}}
+Docker file lines found only in {{.Image2}}:{{block "list2" .Dels}}{{"\n"}}{{range .}}{{print "-" .}}{{end}}{{end}}`
+
+	funcs := template.FuncMap{"join": strings.Join}
+
+	histTemplate, err := template.New("histTemp").Funcs(funcs).Parse(histTemp)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := histTemplate.Execute(os.Stdout, diff); err != nil {
+		log.Fatal(err)
+	}
+	return ""
 }

@@ -2,93 +2,130 @@ package differs
 
 import (
 	"bufio"
-	"fmt"
-	"io/ioutil"
+	"html/template"
+	"log"
 	"os"
-	"path/filepath"
 	"strings"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
+	"github.com/golang/glog"
 )
 
+func output(diff utils.PackageDiff) error {
+	const master = `Packages found only in {{.Image1}}:{{range $name, $value := .Packages1}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
+Packages found only in {{.Image2}}:{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
+Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range .InfoDiff}}
+	{{.Package}}:	{{.Info1.Version}}	{{.Info2.Version}}
+	{{end}}`
+
+	funcs := template.FuncMap{"join": strings.Join}
+
+	masterTmpl, err := template.New("master").Funcs(funcs).Parse(master)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := masterTmpl.Execute(os.Stdout, diff); err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
 // AptDiff compares the packages installed by apt-get.
-func AptDiff(img1, img2 string) (string, error) {
-	pack1, err := getPackages(img1)
+func AptDiff(d1file, d2file string, json bool) (string, error) {
+	d1, err := utils.GetDirectory(d1file)
+	if err != nil {
+		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
+		return "", err
+	}
+	d2, err := utils.GetDirectory(d2file)
+	if err != nil {
+		glog.Errorf("Error reading directory structure from file %s: %s\n", d2file, err)
+		return "", err
+	}
+
+	dirPath1 := d1.Root
+	dirPath2 := d2.Root
+	pack1, err := getPackages(dirPath1)
 	if err != nil {
 		return "", err
 	}
-	pack2, err := getPackages(img2)
+	pack2, err := getPackages(dirPath2)
 	if err != nil {
 		return "", err
 	}
-
-	diff1, diff2 := diffMaps(pack1, pack2)
-	s1 := fmt.Sprintf("Image %s had the following packages which differed:\n%s\n", img1, strings.Join(diff1, "\n"))
-	s2 := fmt.Sprintf("\nImage %s had the following packages which differed:\n%s", img2, strings.Join(diff2, "\n"))
-	return s1 + s2, nil
+	diff := utils.DiffMaps(pack1, pack2)
+	diff.Image1 = dirPath1
+	diff.Image2 = dirPath2
+	if json {
+		return utils.JSONify(diff)
+	}
+	output(diff)
+	return "", nil
 }
 
-func diffMaps(map1, map2 map[string]string) ([]string, []string) {
-	diff1 := []string{}
-	diff2 := []string{}
-	for key1, value1 := range map1 {
-		value2, ok := map2[key1]
-		if !ok || value2 != value1 {
-			diff1 = append(diff1, key1+":"+value1)
-		} else {
-			delete(map2, key1)
-		}
-	}
-	for key2, value2 := range map2 {
-		diff2 = append(diff2, key2+":"+value2)
-	}
-	return diff1, diff2
-}
-
-func getPackages(path string) (map[string]string, error) {
-	packages := make(map[string]string)
-
-	var layerStems []string
-
-	layers, err := ioutil.ReadDir(path)
+func getPackages(path string) (map[string]utils.PackageInfo, error) {
+	packages := make(map[string]utils.PackageInfo)
+	layerStems, err := utils.BuildLayerTargets(path, "layer/var/lib/dpkg/status")
 	if err != nil {
 		return packages, err
 	}
-	for _, layer := range layers {
-		layerStems = append(layerStems, filepath.Join(path, layer.Name(), "layer/var/lib/dpkg/status"))
-	}
-
 	for _, statusFile := range layerStems {
-		if _, err := os.Stat(statusFile); err == nil {
-
-			if file, err := os.Open(statusFile); err == nil {
-				// make sure it gets closed
-				defer file.Close()
-
-				var currPackage string
-				// create a new scanner and read the file line by line
-				scanner := bufio.NewScanner(file)
-				for scanner.Scan() {
-					line := strings.Split(scanner.Text(), ": ")
-					if len(line) == 2 {
-						key := line[0]
-						value := line[1]
-						if key == "Package" {
-							currPackage = value
-						}
-						if key == "Version" {
-							packages[currPackage] = value
-						}
-					}
-
-				}
-
-			} else {
-				return packages, err
-			}
-		} else {
+		if _, err := os.Stat(statusFile); err != nil {
 			// status file does not exist in this layer
 			continue
 		}
+		if file, err := os.Open(statusFile); err == nil {
+			// make sure it gets closed
+			defer file.Close()
 
+			// create a new scanner and read the file line by line
+			scanner := bufio.NewScanner(file)
+			var currPackage string
+			for scanner.Scan() {
+				currPackage = parseLine(scanner.Text(), currPackage, packages)
+			}
+		} else {
+			return packages, err
+		}
 	}
 	return packages, nil
+}
+
+func parseLine(text string, currPackage string, packages map[string]utils.PackageInfo) string {
+	line := strings.Split(text, ": ")
+	if len(line) == 2 {
+		key := line[0]
+		value := line[1]
+
+		switch key {
+		case "Package":
+			return value
+		case "Version":
+			if packages[currPackage].Version != "" {
+				glog.Warningln("Multiple versions of same package detected.  Diffing such multi-versioning not yet supported.")
+				return currPackage
+			}
+			modifiedValue := strings.Replace(value, "+", " ", 1)
+			currPackageInfo, ok := packages[currPackage]
+			if !ok {
+				currPackageInfo = utils.PackageInfo{}
+			}
+			currPackageInfo.Version = modifiedValue
+			packages[currPackage] = currPackageInfo
+			return currPackage
+
+		case "Installed-Size":
+			currPackageInfo, ok := packages[currPackage]
+			if !ok {
+				currPackageInfo = utils.PackageInfo{}
+			}
+			currPackageInfo.Size = value
+			packages[currPackage] = currPackageInfo
+			return currPackage
+		default:
+			return currPackage
+		}
+	}
+	return currPackage
 }
