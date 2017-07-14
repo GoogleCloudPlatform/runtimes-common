@@ -10,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/docker/docker/api/types/image"
+	img "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/golang/glog"
 )
@@ -28,12 +28,12 @@ func ValidDockerVersion() (bool, error) {
 	return false, nil
 }
 
-func GetImageHistory(img string) ([]image.HistoryResponseItem, error) {
-	imageID := img
+func GetImageHistory(image string) ([]img.HistoryResponseItem, error) {
+	imageID := image
 	var err error
-	var history []image.HistoryResponseItem
-	if !CheckImageID(img) {
-		imageID, _, err = pullImageCmd(img)
+	var history []img.HistoryResponseItem
+	if !CheckImageID(image) {
+		imageID, _, err = pullImageCmd(image)
 		if err != nil {
 			return history, err
 		}
@@ -45,6 +45,7 @@ func GetImageHistory(img string) ([]image.HistoryResponseItem, error) {
 	if err := dockerHistCmd.Run(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
+				glog.Error("Docker History Command Exit Status: ", status.ExitStatus())
 			}
 		} else {
 			return history, err
@@ -58,14 +59,14 @@ func GetImageHistory(img string) ([]image.HistoryResponseItem, error) {
 
 }
 
-func processHistOutput(response bytes.Buffer) ([]image.HistoryResponseItem, error) {
+func processHistOutput(response bytes.Buffer) ([]img.HistoryResponseItem, error) {
 	respReader := bytes.NewReader(response.Bytes())
 	reader := bufio.NewReader(respReader)
-	var history []image.HistoryResponseItem
+	var history []img.HistoryResponseItem
 	var CreatedByIndex int
 	var SizeIndex int
 	for {
-		var event image.HistoryResponseItem
+		var event img.HistoryResponseItem
 		text, _, err := reader.ReadLine()
 		if err != nil {
 			if err == io.EOF {
@@ -126,6 +127,7 @@ func pullImageCmd(image string) (string, string, error) {
 	if err := dockerPullCmd.Run(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
+				glog.Error("Docker Pull Command Exit Status: ", status.ExitStatus())
 			}
 		} else {
 			return "", "", err

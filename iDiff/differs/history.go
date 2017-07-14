@@ -35,7 +35,7 @@ func getHistoryList(img string) ([]string, error) {
 			return []string{}, err
 		}
 	} else {
-		history, err := utils.GetImageHistory(image)
+		history, err = utils.GetImageHistory(img)
 		if err != nil {
 			return []string{}, err
 		}
@@ -43,7 +43,9 @@ func getHistoryList(img string) ([]string, error) {
 
 	strhistory := make([]string, len(history))
 	for i, layer := range history {
+		fmt.Println(layer)
 		layerDescription := strings.TrimSpace(layer.CreatedBy)
+		fmt.Println(layerDescription)
 		strhistory[i] = fmt.Sprintf("%s\n", layerDescription)
 	}
 	return strhistory, nil
