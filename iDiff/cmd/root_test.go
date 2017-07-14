@@ -18,7 +18,6 @@ var argNumTests = []testpair{
 }
 
 var argTypeTests = []testpair{
-	{[]string{"", "", ""}, false},
 	{[]string{"differ", "badID", "badID"}, false},
 	{[]string{"differ", "123456789012", "badID"}, false},
 	{[]string{"123456789012", "123456789012", "123456789012"}, false},

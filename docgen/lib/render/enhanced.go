@@ -56,6 +56,11 @@ func NewDocument(document *proto.Document) *Document {
 	return result
 }
 
+func (t *Document) NeedsGcloud() bool {
+	gcloudRegex := regexp.MustCompile(`\bgcloud\b`)
+	return gcloudRegex.FindString(t.Overview.PullCommand) != ""
+}
+
 func (t *Document) HasReferences() bool {
 	return t.EnvironmentVariableReference != nil || t.PortReference != nil || t.VolumeReference != nil
 }
@@ -330,9 +335,11 @@ func (t *RunInstruction) ExposedPorts() []*RunInstruction_ExposedPort {
 func (t *RunInstruction) MappedExposedPorts() []*RunInstruction_ExposedPort {
 	result := make([]*RunInstruction_ExposedPort, 0, len(t.ExposedPorts()))
 	for _, exposedPort := range t.ExposedPorts() {
-		if exposedPort.Mapped > 0 {
-			result = append(result, exposedPort)
+		port := *exposedPort
+		if exposedPort.Mapped == 0 {
+			port.Mapped = port.Port
 		}
+		result = append(result, &port)
 	}
 	return result
 }

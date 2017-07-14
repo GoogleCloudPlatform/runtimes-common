@@ -28,31 +28,45 @@ def _cleanup(appdir):
         pass
 
 
-def _set_app_image(image):
+def _set_base_image(image):
     # substitute vars in Dockerfile (equivalent of envsubst)
     with open('Dockerfile.in', 'r') as fin:
         with open('Dockerfile', 'w') as fout:
             for line in fin:
                 fout.write(line.replace('${STAGING_IMAGE}', image))
-        fout.close()
-    fin.close()
 
 
-def deploy_app(image, appdir):
+def _set_builder_image(builder):
+    with open('test.yaml.in', 'r') as fin:
+        with open('test.yaml', 'w') as fout:
+            for line in fin:
+                fout.write(line.replace('${STAGING_BUILDER_IMAGE}', builder))
+
+
+def deploy_app(base_image, builder_image, appdir, yaml):
     try:
+        if yaml:
+            # convert yaml to absolute path before changing directory
+            yaml = os.path.abspath(yaml)
+
         # change to app directory (and remember original directory)
         owd = os.getcwd()
         os.chdir(appdir)
 
-        # fills in image field in templated Dockerfile if image is specified
-        if image:
-            _set_app_image(image)
+        # fills in image field in templated Dockerfile and/or builder yaml
+        if base_image:
+            _set_base_image(base_image)
+        if builder_image:
+            _set_builder_image(builder_image)
 
         deployed_version = test_util.generate_version()
 
         # TODO: once sdk driver is published, use it here
         deploy_command = ['gcloud', 'app', 'deploy', '--no-promote',
                           '--version', deployed_version, '-q']
+        if yaml:
+            logging.info(yaml)
+            deploy_command.append(yaml)
 
         subprocess.check_output(deploy_command)
 
@@ -68,7 +82,7 @@ def deploy_app(image, appdir):
 
 
 def deploy_app_without_image(appdir):
-    return deploy_app(None, appdir)
+    return deploy_app(None, None, appdir, None)
 
 
 def stop_app(deployed_version):
