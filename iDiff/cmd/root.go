@@ -34,11 +34,17 @@ var RootCmd = &cobra.Command{
 }
 
 func validateArgs(args []string) (bool, error) {
-	if validArgNum, err := checkArgNum(args); !validArgNum {
+	validArgNum, err := checkArgNum(args)
+	if err != nil {
 		return false, err
+	} else if !validArgNum {
+		return false, nil
 	}
-	if validArgType, err := checkArgType(args); !validArgType {
+	validArgType, err := checkArgType(args)
+	if err != nil {
 		return false, err
+	} else if !validArgType {
+		return false, nil
 	}
 	return true, nil
 }
