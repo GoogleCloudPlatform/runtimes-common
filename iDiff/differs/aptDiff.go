@@ -2,34 +2,12 @@ package differs
 
 import (
 	"bufio"
-	"html/template"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 	"github.com/golang/glog"
 )
-
-func output(diff utils.PackageDiff) error {
-	const master = `Packages found only in {{.Image1}}:{{range $name, $value := .Packages1}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
-Packages found only in {{.Image2}}:{{block "list2" .Packages2}}{{"\n"}}{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{"\n"}}{{end}}{{end}}
-Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range .InfoDiff}}
-	{{.Package}}:	{{.Info1.Version}}	{{.Info2.Version}}
-	{{end}}`
-
-	funcs := template.FuncMap{"join": strings.Join}
-
-	masterTmpl, err := template.New("master").Funcs(funcs).Parse(master)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := masterTmpl.Execute(os.Stdout, diff); err != nil {
-		log.Fatal(err)
-	}
-	return nil
-}
 
 // AptDiff compares the packages installed by apt-get.
 func AptDiff(d1file, d2file string, json bool, eng bool) (string, error) {
@@ -54,13 +32,13 @@ func AptDiff(d1file, d2file string, json bool, eng bool) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	diff := utils.DiffMaps(pack1, pack2)
+	diff := utils.GetMapDiff(pack1, pack2)
 	diff.Image1 = dirPath1
 	diff.Image2 = dirPath2
 	if json {
 		return utils.JSONify(diff)
 	}
-	output(diff)
+	utils.Output(diff)
 	return "", nil
 }
 
