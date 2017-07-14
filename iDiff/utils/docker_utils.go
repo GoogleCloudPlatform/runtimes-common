@@ -3,12 +3,16 @@ package utils
 import (
 	"bufio"
 	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os/exec"
+	"regexp"
 	"strings"
 	"syscall"
 
+	"github.com/docker/docker/api/types"
 	img "github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
 	"github.com/golang/glog"
@@ -25,7 +29,74 @@ func ValidDockerVersion(eng bool) (bool, error) {
 	}
 	return false, nil
 }
+func getImagePullResponse(image string, response []Event) (string, error) {
+	var imageDigest string
+	for _, event := range response {
+		if event.Error != "" {
+			err := fmt.Errorf("Error pulling image %s: %s", image, event.Error)
+			return "", err
+		}
+		digestPattern := regexp.MustCompile("^Digest: (sha256:[a-z|0-9]{64})$")
+		digestMatch := digestPattern.FindStringSubmatch(event.Status)
+		if len(digestMatch) != 0 {
+			imageDigest = digestMatch[1]
+			return imageDigest, nil
+		}
+	}
+	err := fmt.Errorf("Could not pull image %s", image)
+	return "", err
+}
 
+func processImagePullEvents(image string, events []Event) (string, string, error) {
+	imageDigest, err := getImagePullResponse(image, events)
+	if err != nil {
+		return "", "", err
+	}
+
+	URLPattern := regexp.MustCompile("^.+/(.+(:.+){0,1})$")
+	URLMatch := URLPattern.FindStringSubmatch(image)
+	imageName := strings.Replace(URLMatch[1], ":", "", -1)
+	imageURL := strings.TrimSuffix(image, URLMatch[2])
+	imageID := imageURL + "@" + imageDigest
+
+	return imageID, imageName, nil
+}
+
+type Event struct {
+	Status         string `json:"status"`
+	Error          string `json:"error"`
+	Progress       string `json:"progress"`
+	ProgressDetail struct {
+		Current int `json:"current"`
+		Total   int `json:"total"`
+	} `json:"progressDetail"`
+}
+
+func pullImageFromRepo(cli client.APIClient, image string) (string, string, error) {
+	response, err := cli.ImagePull(context.Background(), image, types.ImagePullOptions{})
+	if err != nil {
+		return "", "", err
+	}
+	defer response.Close()
+
+	d := json.NewDecoder(response)
+
+	var events []Event
+	for {
+		var event Event
+		if err := d.Decode(&event); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return "", "", err
+		}
+		events = append(events, event)
+	}
+	return processImagePullEvents(image, events)
+}
+
+// GetImageHistory shells out the docker history command and returns a list of history response items.
+// The history response items contain only the Created By information for each event.
 func GetImageHistory(image string) ([]img.HistoryResponseItem, error) {
 	imageID := image
 	var err error
