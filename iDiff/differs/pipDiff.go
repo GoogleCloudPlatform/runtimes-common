@@ -11,7 +11,7 @@ import (
 )
 
 // layers of two different images.
-func PipDiff(d1file, d2file string, json bool) (string, error) {
+func PipDiff(d1file, d2file string, json bool, eng bool) (string, error) {
 	d1, err := utils.GetDirectory(d1file)
 	if err != nil {
 		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)

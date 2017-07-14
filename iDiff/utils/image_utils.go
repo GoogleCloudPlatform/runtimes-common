@@ -42,19 +42,19 @@ func saveImageToTar(image string) (string, error) {
 }
 
 // ImageToDir converts an image to an unpacked tar and creates a representation of that directory.
-func ImageToDir(img string) (string, string, error) {
+func ImageToDir(img string, eng bool) (string, string, error) {
 	var tarName string
 
 	if !CheckTar(img) {
 		// If not an image tar already existing in the filesystem, create client to obtain image
 		// check client compatibility with Docker API
-		valid, err := ValidDockerVersion()
+		valid, err := ValidDockerVersion(eng)
 		if err != nil {
 			return "", "", err
 		}
 		var imageTar string
 		if !valid {
-			glog.Info("Docker verison incompatible with api, shelling out to local Docker client.")
+			glog.Info("Docker version incompatible with api, shelling out to local Docker client.")
 			imageTar, err = imageToTarCmd(img)
 		} else {
 			imageTar, err = saveImageToTar(img)
@@ -98,6 +98,21 @@ func getImagePullResponse(image string, response []Event) (string, error) {
 	return "", err
 }
 
+func processImagePullEvents(image string, events []Event) (string, string, error) {
+	imageDigest, err := getImagePullResponse(image, events)
+	if err != nil {
+		return "", "", err
+	}
+
+	URLPattern := regexp.MustCompile("^.+/(.+(:.+){0,1})$")
+	URLMatch := URLPattern.FindStringSubmatch(image)
+	imageName := strings.Replace(URLMatch[1], ":", "", -1)
+	imageURL := strings.TrimSuffix(image, URLMatch[2])
+	imageID := imageURL + "@" + imageDigest
+
+	return imageID, imageName, nil
+}
+
 func pullImageFromRepo(cli client.APIClient, image string) (string, string, error) {
 	response, err := cli.ImagePull(context.Background(), image, types.ImagePullOptions{})
 	if err != nil {
@@ -118,19 +133,7 @@ func pullImageFromRepo(cli client.APIClient, image string) (string, string, erro
 		}
 		events = append(events, event)
 	}
-
-	imageDigest, err := getImagePullResponse(image, events)
-	if err != nil {
-		return "", "", err
-	}
-
-	URLPattern := regexp.MustCompile("^.+/(.+(:.+){0,1})$")
-	URLMatch := URLPattern.FindStringSubmatch(image)
-	imageName := strings.Replace(URLMatch[1], ":", "", -1)
-	imageURL := strings.TrimSuffix(image, URLMatch[2])
-	imageID := imageURL + "@" + imageDigest
-
-	return imageID, imageName, nil
+	return processImagePullEvents(image, events)
 }
 
 // ImageToTar writes an image to a .tar file

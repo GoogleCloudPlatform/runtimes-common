@@ -15,12 +15,12 @@ import (
 )
 
 // History compares the Docker history for each image.
-func History(img1, img2 string, json bool) (string, error) {
-	return getHistoryDiff(img1, img2, json)
+func History(img1, img2 string, json bool, eng bool) (string, error) {
+	return getHistoryDiff(img1, img2, json, eng)
 }
 
-func getHistoryList(img string) ([]string, error) {
-	validDocker, err := utils.ValidDockerVersion()
+func getHistoryList(img string, eng bool) ([]string, error) {
+	validDocker, err := utils.ValidDockerVersion(eng)
 	if err != nil {
 		return []string{}, err
 	}
@@ -36,7 +36,7 @@ func getHistoryList(img string) ([]string, error) {
 			return []string{}, err
 		}
 	} else {
-		glog.Info("Docker verison incompatible with api, shelling out to local Docker client.")
+		glog.Info("Docker version incompatible with api, shelling out to local Docker client.")
 		history, err = utils.GetImageHistory(img)
 		if err != nil {
 			return []string{}, err
@@ -58,12 +58,12 @@ type HistDiff struct {
 	Dels   []string
 }
 
-func getHistoryDiff(image1, image2 string, json bool) (string, error) {
-	history1, err := getHistoryList(image1)
+func getHistoryDiff(image1, image2 string, json bool, eng bool) (string, error) {
+	history1, err := getHistoryList(image1, eng)
 	if err != nil {
 		return "", err
 	}
-	history2, err := getHistoryList(image2)
+	history2, err := getHistoryList(image2, eng)
 	if err != nil {
 		return "", err
 	}

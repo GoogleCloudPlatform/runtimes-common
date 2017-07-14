@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"regexp"
 	"strings"
 	"syscall"
 
@@ -16,13 +15,12 @@ import (
 )
 
 // ValidDockerVersion determines if there is a Docker client of the necessary version locally installed.
-func ValidDockerVersion() (bool, error) {
-	cli, err := client.NewEnvClient()
+func ValidDockerVersion(eng bool) (bool, error) {
+	_, err := client.NewEnvClient()
 	if err != nil {
 		return false, fmt.Errorf("Docker client error: %s", err)
 	}
-	version := cli.ClientVersion()
-	if version == "1.31" {
+	if eng {
 		return true, nil
 	}
 	return false, nil
@@ -104,19 +102,7 @@ func processPullCmdOutput(image string, response bytes.Buffer) (string, string, 
 		event.Status = string(text)
 		events = append(events, event)
 	}
-
-	imageDigest, err := getImagePullResponse(image, events)
-	if err != nil {
-		return "", "", err
-	}
-
-	URLPattern := regexp.MustCompile("^.+/(.+(:.+){0,1})$")
-	URLMatch := URLPattern.FindStringSubmatch(image)
-	imageName := strings.Split(URLMatch[1], ":")[0]
-	imageURL := strings.TrimSuffix(image, URLMatch[2])
-	imageID := imageURL + "@" + imageDigest
-
-	return imageID, imageName, nil
+	return processImagePullEvents(image, events)
 }
 
 func pullImageCmd(image string) (string, string, error) {
