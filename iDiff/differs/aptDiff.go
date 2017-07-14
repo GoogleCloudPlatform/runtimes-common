@@ -10,7 +10,7 @@ import (
 )
 
 // AptDiff compares the packages installed by apt-get.
-func AptDiff(d1file, d2file string, json bool) (string, error) {
+func AptDiff(d1file, d2file string, json bool, eng bool) (string, error) {
 	d1, err := utils.GetDirectory(d1file)
 	if err != nil {
 		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)

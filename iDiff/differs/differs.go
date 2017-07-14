@@ -8,7 +8,7 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
-var diffs = map[string]func(string, string, bool) (string, error){
+var diffs = map[string]func(string, string, bool, bool) (string, error){
 	"hist": History,
 	"dir":  Package,
 	"apt":  AptDiff,
@@ -16,25 +16,25 @@ var diffs = map[string]func(string, string, bool) (string, error){
 	"pip":  PipDiff,
 }
 
-func Diff(arg1, arg2, differ string, json bool) (string, error) {
+func Diff(arg1, arg2, differ string, json bool, eng bool) (string, error) {
 	if f, exists := diffs[differ]; exists {
 		if differ == "hist" {
-			return f(arg1, arg2, json)
+			return f(arg1, arg2, json, eng)
 		}
-		return specificDiffer(f, arg1, arg2, json)
+		return specificDiffer(f, arg1, arg2, json, eng)
 	}
 	return "", errors.New("Unknown differ")
 }
 
-func specificDiffer(f func(string, string, bool) (string, error), img1, img2 string, json bool) (string, error) {
+func specificDiffer(f func(string, string, bool, bool) (string, error), img1, img2 string, json bool, eng bool) (string, error) {
 	var buffer bytes.Buffer
 	validDiff := true
-	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
+	jsonPath1, dirPath1, err := utils.ImageToDir(img1, eng)
 	if err != nil {
 		buffer.WriteString(err.Error())
 		validDiff = false
 	}
-	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
+	jsonPath2, dirPath2, err := utils.ImageToDir(img2, eng)
 	if err != nil {
 		buffer.WriteString(err.Error())
 		validDiff = false
@@ -42,7 +42,7 @@ func specificDiffer(f func(string, string, bool) (string, error), img1, img2 str
 
 	var diff string
 	if validDiff {
-		output, err := f(jsonPath1, jsonPath2, json)
+		output, err := f(jsonPath1, jsonPath2, json, eng)
 		if err != nil {
 			buffer.WriteString(err.Error())
 		}
