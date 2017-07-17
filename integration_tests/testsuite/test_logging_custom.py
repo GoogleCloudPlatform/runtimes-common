@@ -55,7 +55,9 @@ class TestCustomLogging(unittest.TestCase):
     def _read_log(self, client, log_name, token, level):
         project_id = test_util.project_id()
         FILTER = 'logName = projects/{0}/logs/' \
-                 '{1}'.format(project_id, log_name)
+                 '{1} AND textPayload:{2}'.format(project_id,
+                                                  log_name,
+                                                  test_util.LOGGING_PREFIX)
         for entry in client.list_entries(filter_=FILTER):
             logging.debug(entry.payload)
             if token in entry.payload:
