@@ -11,8 +11,6 @@ iDiff is an image differ command line tool.  iDiff can diff two images along sev
 - Image file system
 - apt-get installed packages
 - pip installed packages
-
-Additional differs in development:
 - npm installed packages
 
 This tool can help you as a developer better understand what is changing within your images and better understand what your images contain.
@@ -30,6 +28,7 @@ go run main.go iDiff history <img1> <img2>
 go run main.go iDiff file <img1> <img2>
 go run main.go iDiff apt <img1> <img2>
 go run main.go iDiff pip <img1> <img2>
+go run main.go iDiff node <img1> <img2>
 ```
 
 ## Piping output
@@ -40,7 +39,7 @@ To get a JSON version of the iDiff output add a `-j` or `-json` flag.
 
 ## Known issues
 
-To run iDiff on image IDs or URLs, Docker Engine on the client and server side must have compatible versions. Version compatiblity can require the user to modify their Docker API version used at runtime to match that of the server.  Currently in development is a way to run iDiff that bypasses Docker client/server model dependencies. 
+To run iDiff on image IDs or URLs, docker must be installed.
 
 ## Make your own differ
 
