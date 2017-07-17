@@ -6,7 +6,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 diff=$(diff iDiff/tests/busybox_diff_expected.json iDiff/tests/busybox_diff_actual.json)
-if [[ "$diff" ]]; then
+if [[ -z "$diff" ]]; then
   echo $diff
   echo "iDiff output is not as expected"
   exit 1

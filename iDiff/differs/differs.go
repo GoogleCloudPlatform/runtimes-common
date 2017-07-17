@@ -50,8 +50,8 @@ func specificDiffer(f func(string, string, bool) (string, error), img1, img2 str
 		diff = output
 	}
 
-	errStr := remove(imgPath1, true, "")
-	errStr = remove(imgPath2, true, errStr)
+	errStr := remove(imgPath1, true)
+	errStr += remove(imgPath2, true)
 	if errStr != "" {
 		buffer.WriteString(errStr)
 	}
@@ -62,7 +62,8 @@ func specificDiffer(f func(string, string, bool) (string, error), img1, img2 str
 	return diff, nil
 }
 
-func remove(path string, dir bool, errStr string) string {
+func remove(path string, dir bool) string {
+	var errStr string
 	if path == "" {
 		return ""
 	}
@@ -74,7 +75,7 @@ func remove(path string, dir bool, errStr string) string {
 		err = os.Remove(path)
 	}
 	if err != nil {
-		errStr += "\nUnable to remove " + path
+		errStr = "\nUnable to remove " + path
 	}
 	return errStr
 }
