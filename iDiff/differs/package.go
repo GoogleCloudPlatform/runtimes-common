@@ -10,8 +10,8 @@ import (
 )
 
 // Package diffs two packages and compares their contents
-func Package(img1, img2 string, json bool) (string, error) {
-	diff, err := diffImageFiles(img1, img2)
+func Package(img1, img2 string, json bool, eng bool) (string, error) {
+	diff, err := diffImageFiles(img1, img2, eng)
 	if err != nil {
 		return "", err
 	}
@@ -65,13 +65,13 @@ func getDiffOutput(dirDiff utils.DirDiff, json bool) (string, error) {
 	return buffer.String(), nil
 }
 
-func diffImageFiles(img1, img2 string) (utils.DirDiff, error) {
+func diffImageFiles(img1, img2 string, eng bool) (utils.DirDiff, error) {
 	var diff utils.DirDiff
-	img1FS, err := utils.ImageToFS(img1)
+	img1FS, err := utils.ImageToFS(img1, eng)
 	if err != nil {
 		return diff, fmt.Errorf("Error retrieving image %s file system: %s", img1, err)
 	}
-	img2FS, err := utils.ImageToFS(img2)
+	img2FS, err := utils.ImageToFS(img2, eng)
 	if err != nil {
 		return diff, fmt.Errorf("Error retrieving image %s file system: %s", img2, err)
 	}

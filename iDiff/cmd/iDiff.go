@@ -13,6 +13,7 @@ import (
 )
 
 var json bool
+var eng bool
 
 // iDiff represents the iDiff command
 var iDiffCmd = &cobra.Command{
@@ -23,7 +24,7 @@ var iDiffCmd = &cobra.Command{
 		if validArgs, err := validateArgs(args); !validArgs {
 			glog.Fatalf(err.Error())
 		}
-		if diff, err := differs.Diff(args[0], args[1], args[2], json); err == nil {
+		if diff, err := differs.Diff(args[0], args[1], args[2], json, eng); err == nil {
 			fmt.Println(diff)
 		} else {
 			glog.Fatalf(err.Error())
@@ -98,4 +99,5 @@ func checkArgType(args []string) (bool, error) {
 func init() {
 	RootCmd.AddCommand(iDiffCmd)
 	iDiffCmd.Flags().BoolVarP(&json, "json", "j", false, "JSON Output defines if the diff should be returned in a human readable format (false) or a JSON (true).")
+	iDiffCmd.Flags().BoolVarP(&eng, "eng", "e", false, "By default the docker calls are shelled out locally, set this flag to use the Docker Engine Client (version compatibility required).")
 }
