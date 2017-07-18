@@ -10,9 +10,10 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
-// Package diffs two packages and compares their contents
-func Package(img1, img2 string, json bool, eng bool) (string, error) {
+// FileDiff diffs two packages and compares their contents
+func FileDiff(img1, img2 string, json bool, eng bool) (string, error) {
 	diff, err := diffImageFiles(img1, img2, eng)
+
 	if err != nil {
 		return "", err
 	}

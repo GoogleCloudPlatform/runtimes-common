@@ -4,21 +4,27 @@ import (
 	"bytes"
 	"errors"
 	"os"
+	"reflect"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
 var diffs = map[string]func(string, string, bool, bool) (string, error){
-	"hist": History,
-	"dir":  Package,
-	"apt":  AptDiff,
-	"node": NodeDiff,
-	"pip":  PipDiff,
+	"hist":    HistoryDiff,
+	"history": HistoryDiff,
+	"file":    FileDiff,
+	"apt":     AptDiff,
+	"linux":   AptDiff,
+	"pip":     PipDiff,
+	"node":    NodeDiff,
 }
 
 func Diff(arg1, arg2, differ string, json bool, eng bool) (string, error) {
 	if f, exists := diffs[differ]; exists {
-		if differ == "hist" || differ == "dir" {
+		fValue := reflect.ValueOf(f)
+		histValue := reflect.ValueOf(HistoryDiff)
+		fileValue := reflect.ValueOf(FileDiff)
+		if fValue.Pointer() == histValue.Pointer() || fValue.Pointer() == fileValue.Pointer() {
 			return f(arg1, arg2, json, eng)
 		}
 		return specificDiffer(f, arg1, arg2, json, eng)
