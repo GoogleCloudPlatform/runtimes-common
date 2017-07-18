@@ -3,45 +3,35 @@ package differs
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
-	"github.com/golang/glog"
 )
 
 // Package diffs two packages and compares their contents
-func Package(dir1, dir2 string, json bool, eng bool) (string, error) {
-	diff, err := getDiffOutput(dir1, dir2, json)
+func Package(img1, img2 string, json bool, eng bool) (string, error) {
+	diff, err := diffImageFiles(img1, img2, eng)
 	if err != nil {
 		return "", err
 	}
 
-	return diff, nil
+	output, err := getDiffOutput(diff, json)
+	if err != nil {
+		return "", err
+	}
+	return output, nil
 }
 
-func getDiffOutput(d1file, d2file string, json bool) (string, error) {
-	d1, err := utils.GetDirectory(d1file)
-	if err != nil {
-		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
-		return "", err
-	}
-	d2, err := utils.GetDirectory(d2file)
-	if err != nil {
-		glog.Errorf("Error reading directory structure from file %s: %s\n", d2file, err)
-		return "", err
-	}
-
-	d1name := d1.Root
-	d2name := d2.Root
-
-	dirDiff := utils.DiffDirectory(d1, d2)
-
+func getDiffOutput(dirDiff utils.DirDiff, json bool) (string, error) {
 	if json {
 		return utils.JSONify(dirDiff)
 	}
 
 	var buffer bytes.Buffer
 
-	s := fmt.Sprintf("These entries have been added to %s\n", d1name)
+	s := fmt.Sprintf("These entries have been added to %s\n", dirDiff.Image1)
 	buffer.WriteString(s)
 	if len(dirDiff.Adds) == 0 {
 		buffer.WriteString("\tNo files have been added\n")
@@ -52,7 +42,7 @@ func getDiffOutput(d1file, d2file string, json bool) (string, error) {
 		}
 	}
 
-	s = fmt.Sprintf("These entries have been deleted from %s\n", d1name)
+	s = fmt.Sprintf("These entries have been deleted from %s\n", dirDiff.Image1)
 	buffer.WriteString(s)
 	if len(dirDiff.Dels) == 0 {
 		buffer.WriteString("\tNo files have been deleted\n")
@@ -62,16 +52,109 @@ func getDiffOutput(d1file, d2file string, json bool) (string, error) {
 			buffer.WriteString(s)
 		}
 	}
-	s = fmt.Sprintf("These entries have been changed between %s and %s\n", d1name, d2name)
-	buffer.WriteString(s)
-	if len(dirDiff.Mods) == 0 {
-		buffer.WriteString("\tNo files have been modified\n")
-	} else {
-		for _, f := range dirDiff.Mods {
-			s = fmt.Sprintf("\t%s\n", f)
-			buffer.WriteString(s)
+
+	return buffer.String(), nil
+}
+
+func diffImageFiles(img1, img2 string, eng bool) (utils.DirDiff, error) {
+	var diff utils.DirDiff
+	img1FS, err := utils.ImageToFS(img1, eng)
+	if err != nil {
+		return diff, fmt.Errorf("Error retrieving image %s file system: %s", img1, err)
+	}
+	img2FS, err := utils.ImageToFS(img2, eng)
+	if err != nil {
+		return diff, fmt.Errorf("Error retrieving image %s file system: %s", img2, err)
+	}
+
+	img1Contents, err := getImageContents(img1FS)
+	if err != nil {
+		return diff, fmt.Errorf("Error parsing image %s contents: %s", img1, err)
+	}
+	img2Contents, err := getImageContents(img2FS)
+	if err != nil {
+		return diff, fmt.Errorf("Error parsing image %s contents: %s", img2, err)
+	}
+	defer os.RemoveAll(img1FS)
+	defer os.RemoveAll(img2FS)
+
+	for layer1, contents1 := range img1Contents {
+		sameLayer := false
+		for layer2, contents2 := range img2Contents {
+			if checkSameLayer(contents1, contents2) {
+				delete(img2Contents, layer2)
+				sameLayer = true
+				break
+			}
+		}
+		if sameLayer {
+			delete(img1Contents, layer1)
 		}
 	}
 
-	return buffer.String(), nil
+	img1Dir := utils.Directory{
+		Root:    img1,
+		Content: getContentList(img1Contents),
+	}
+	img2Dir := utils.Directory{
+		Root:    img2,
+		Content: getContentList(img2Contents),
+	}
+
+	adds := utils.GetAddedEntries(img1Dir, img2Dir)
+	sort.Strings(adds)
+	dels := utils.GetDeletedEntries(img1Dir, img2Dir)
+	sort.Strings(dels)
+
+	diff = utils.DirDiff{
+		Image1: img1,
+		Image2: img2,
+		Adds:   adds,
+		Dels:   dels,
+	}
+	return diff, nil
+}
+
+func getContentList(imgMap map[string]utils.Directory) []string {
+	contents := []string{}
+	for layer, dir := range imgMap {
+		for _, file := range dir.Content {
+			contents = append(contents, filepath.Join(layer, file))
+		}
+	}
+	return contents
+}
+
+func checkSameLayer(layer1, layer2 utils.Directory) bool {
+	layerDiff := utils.DiffDirectory(layer1, layer2)
+	same := true
+	if len(layerDiff.Adds) != 0 || len(layerDiff.Dels) != 0 {
+		same = false
+	}
+	if len(layerDiff.Mods) != 0 {
+		if len(layerDiff.Mods) == 1 && layerDiff.Mods[0] != "/json" {
+			same = false
+		}
+	}
+	return same
+}
+
+func getImageContents(pathToImage string) (map[string]utils.Directory, error) {
+	contents := map[string]utils.Directory{}
+	for _, layer := range utils.GetImageLayers(pathToImage) {
+		pathToLayer := filepath.Join(pathToImage, layer)
+		pathToJSON := layer + ".json"
+		err := utils.DirToJSON(pathToLayer, pathToJSON, true)
+		if err != nil {
+			return contents, fmt.Errorf("Could not convert layer %s in image %s contents to JSON: %s", layer, pathToImage, err)
+		}
+
+		layerDir, err := utils.GetDirectory(pathToJSON)
+		defer os.Remove(pathToJSON)
+		if err != nil {
+			return contents, fmt.Errorf("Could not get Directory struct for layer %s in image %s: %s", layer, pathToImage, err)
+		}
+		contents[layer] = layerDir
+	}
+	return contents, nil
 }

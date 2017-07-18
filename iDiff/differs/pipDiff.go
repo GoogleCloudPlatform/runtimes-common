@@ -7,30 +7,17 @@ import (
 	"strconv"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
-	"github.com/golang/glog"
 )
 
-// layers of two different images.
-func PipDiff(d1file, d2file string, json bool, eng bool) (string, error) {
-	d1, err := utils.GetDirectory(d1file)
-	if err != nil {
-		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
-		return "", err
-	}
-	d2, err := utils.GetDirectory(d2file)
-	if err != nil {
-		glog.Errorf("Error reading directory structure from file %s: %s\n", d2file, err)
-		return "", err
-	}
-
-	dirPath1 := d1.Root
-	dirPath2 := d2.Root
-	pack1 := getPythonPackages(dirPath1)
-	pack2 := getPythonPackages(dirPath2)
+// PipDiff compares pip-installed Python packages between layers of two different images.
+func PipDiff(img1, img2 string, json bool, eng bool) (string, error) {
+	pack1 := getPythonPackages(img1)
+	pack2 := getPythonPackages(img2)
 
 	diff := utils.GetMapDiff(pack1, pack2)
-	diff.Image1 = dirPath1
-	diff.Image2 = dirPath2
+	diff.Image1 = img1
+	diff.Image2 = img2
+
 	if json {
 		return utils.JSONify(diff)
 	}
@@ -55,27 +42,12 @@ func getPythonVersion(pathToLayer string) (string, bool) {
 	return "", false
 }
 
-// TODO: Eventually, this would make use of the shallow JSON and be diffed
-// with that of another image to get only the layers that have changed.
-func getImageLayers(pathToImage string) []string {
-	layers := []string{}
-	contents, err := ioutil.ReadDir(pathToImage)
-	if err != nil {
-		glog.Error(err.Error())
-	}
-
-	for _, file := range contents {
-		if file.IsDir() {
-			layers = append(layers, file.Name())
-		}
-	}
-	return layers
-}
-
 func getPythonPackages(path string) map[string]utils.PackageInfo {
 	packages := make(map[string]utils.PackageInfo)
 
-	layers := getImageLayers(path)
+	// TODO: Eventually, this would make use of the shallow JSON and be diffed
+	// with that of another image to get only the layers that have changed.
+	layers := utils.GetImageLayers(path)
 	for _, layer := range layers {
 		pathToLayer := filepath.Join(path, layer)
 		pythonVersion, exists := getPythonVersion(pathToLayer)

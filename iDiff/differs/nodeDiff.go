@@ -13,34 +13,22 @@ import (
 
 // NodeDiff compares the packages installed by apt-get.
 // TODO: Move this code to a place so that it isn't repeated within each specific differ.
-func NodeDiff(d1file, d2file string, json bool, eng bool) (string, error) {
-	d1, err := utils.GetDirectory(d1file)
+func NodeDiff(img1, img2 string, json bool, eng bool) (string, error) {
+	pack1, err := getNodePackages(img1)
 	if err != nil {
-		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
+		glog.Errorf("Error reading packages from directory %s: %s\n", img1, err)
 		return "", err
 	}
-	d2, err := utils.GetDirectory(d2file)
+	pack2, err := getNodePackages(img2)
 	if err != nil {
-		glog.Errorf("Error reading directory structure from file %s: %s\n", d2file, err)
-		return "", err
-	}
-
-	dirPath1 := d1.Root
-	dirPath2 := d2.Root
-	pack1, err := getNodePackages(dirPath1)
-	if err != nil {
-		glog.Errorf("Error reading packages from directory %s: %s\n", dirPath1, err)
-		return "", err
-	}
-	pack2, err := getNodePackages(dirPath2)
-	if err != nil {
-		glog.Errorf("Error reading packages from directory %s: %s\n", dirPath2, err)
+		glog.Errorf("Error reading packages from directory %s: %s\n", img2, err)
 		return "", err
 	}
 
 	diff := utils.GetMultiVersionMapDiff(pack1, pack2)
-	diff.Image1 = dirPath1
-	diff.Image2 = dirPath2
+	diff.Image1 = img1
+	diff.Image2 = img2
+
 	if json {
 		return utils.JSONify(diff)
 	}
