@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
@@ -47,16 +48,6 @@ func getDiffOutput(dirDiff utils.DirDiff, json bool) (string, error) {
 		buffer.WriteString("\tNo files have been deleted\n")
 	} else {
 		for _, f := range dirDiff.Dels {
-			s = fmt.Sprintf("\t%s\n", f)
-			buffer.WriteString(s)
-		}
-	}
-	s = fmt.Sprintf("These entries have been changed between %s and %s\n", dirDiff.Image1, dirDiff.Image2)
-	buffer.WriteString(s)
-	if len(dirDiff.Mods) == 0 {
-		buffer.WriteString("\tNo files have been modified\n")
-	} else {
-		for _, f := range dirDiff.Mods {
 			s = fmt.Sprintf("\t%s\n", f)
 			buffer.WriteString(s)
 		}
@@ -109,7 +100,18 @@ func diffImageFiles(img1, img2 string, eng bool) (utils.DirDiff, error) {
 		Root:    img2,
 		Content: getContentList(img2Contents),
 	}
-	diff = utils.DiffDirectory(img1Dir, img2Dir)
+
+	adds := utils.GetAddedEntries(img1Dir, img2Dir)
+	sort.Strings(adds)
+	dels := utils.GetDeletedEntries(img1Dir, img2Dir)
+	sort.Strings(dels)
+
+	diff = utils.DirDiff{
+		Image1: img1,
+		Image2: img2,
+		Adds:   adds,
+		Dels:   dels,
+	}
 	return diff, nil
 }
 

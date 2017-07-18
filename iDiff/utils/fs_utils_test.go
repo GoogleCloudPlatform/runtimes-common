@@ -23,7 +23,7 @@ func TestGetAddedEntries(t *testing.T) {
 	}
 
 	for _, test := range additiontests {
-		output := getAddedEntries(test.input[0], test.input[1])
+		output := GetAddedEntries(test.input[0], test.input[1])
 		if !reflect.DeepEqual(output, test.expected_output) {
 			t.Errorf("\nExpected: %s\nGot: %s\n", test.expected_output, output)
 		}
@@ -39,7 +39,7 @@ func TestGetDeletedEntries(t *testing.T) {
 	}
 
 	for _, test := range deletiontests {
-		output := getDeletedEntries(test.input[0], test.input[1])
+		output := GetDeletedEntries(test.input[0], test.input[1])
 		if !reflect.DeepEqual(output, test.expected_output) {
 			t.Errorf("\nExpected: %s\nGot: %s\n", test.expected_output, output)
 		}
@@ -60,7 +60,7 @@ func TestGetModifiedEntries(t *testing.T) {
 	}
 
 	for _, test := range modifiedtests {
-		output := getModifiedEntries(test.input[0], test.input[1])
+		output := GetModifiedEntries(test.input[0], test.input[1])
 		if !reflect.DeepEqual(output, test.expected_output) {
 			t.Errorf("\nExpected: %s\nGot: %s\n", test.expected_output, output)
 		}
