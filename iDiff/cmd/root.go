@@ -16,6 +16,7 @@ import (
 )
 
 var json bool
+var eng bool
 
 var RootCmd = &cobra.Command{
 	Use:   "[differ] [container1] [container2]",
@@ -26,10 +27,11 @@ var RootCmd = &cobra.Command{
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		if diff, err := differs.Diff(args[2], args[3], args[1], json); err == nil {
+		if diff, err := differs.Diff(args[2], args[3], args[1], json, eng); err == nil {
 			fmt.Println(diff)
 		} else {
 			glog.Error(err.Error())
+			os.Exit(1)
 		}
 	},
 }
@@ -104,4 +106,5 @@ func checkArgType(args []string) (bool, error) {
 func init() {
 	pflag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 	RootCmd.Flags().BoolVarP(&json, "json", "j", false, "JSON Output defines if the diff should be returned in a human readable format (false) or a JSON (true).")
+	RootCmd.Flags().BoolVarP(&eng, "eng", "e", false, "By default the docker calls are shelled out locally, set this flag to use the Docker Engine Client (version compatibility required).")
 }

@@ -25,7 +25,7 @@ func GetDirectory(dirpath string) (Directory, error) {
 }
 
 // Checks for content differences between files of the same name from different directories
-func getModifiedEntries(d1, d2 Directory) []string {
+func GetModifiedEntries(d1, d2 Directory) []string {
 	d1files := d1.Content
 	d2files := d2.Content
 
@@ -55,11 +55,11 @@ func getModifiedEntries(d1, d2 Directory) []string {
 	return modified
 }
 
-func getAddedEntries(d1, d2 Directory) []string {
+func GetAddedEntries(d1, d2 Directory) []string {
 	return GetAdditions(d1.Content, d2.Content)
 }
 
-func getDeletedEntries(d1, d2 Directory) []string {
+func GetDeletedEntries(d1, d2 Directory) []string {
 	return GetDeletions(d1.Content, d2.Content)
 }
 
@@ -72,9 +72,9 @@ type DirDiff struct {
 }
 
 func compareDirEntries(d1, d2 Directory) DirDiff {
-	adds := getAddedEntries(d1, d2)
-	dels := getDeletedEntries(d1, d2)
-	mods := getModifiedEntries(d1, d2)
+	adds := GetAddedEntries(d1, d2)
+	dels := GetDeletedEntries(d1, d2)
+	mods := GetModifiedEntries(d1, d2)
 
 	return DirDiff{d1.Root, d2.Root, adds, dels, mods}
 }

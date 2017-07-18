@@ -9,36 +9,38 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
-var diffs = map[string]func(string, string, bool) (string, error){
+var diffs = map[string]func(string, string, bool, bool) (string, error){
 	"hist":    HistoryDiff,
 	"history": HistoryDiff,
 	"file":    FileDiff,
 	"apt":     AptDiff,
 	"linux":   AptDiff,
 	"pip":     PipDiff,
+	"node":    NodeDiff,
 }
 
-func Diff(arg1, arg2, differ string, json bool) (string, error) {
+func Diff(arg1, arg2, differ string, json bool, eng bool) (string, error) {
 	if f, exists := diffs[differ]; exists {
 		fValue := reflect.ValueOf(f)
 		histValue := reflect.ValueOf(HistoryDiff)
-		if fValue.Pointer() == histValue.Pointer() {
-			return f(arg1, arg2, json)
+		fileValue := reflect.ValueOf(FileDiff)
+		if fValue.Pointer() == histValue.Pointer() || fValue.Pointer() == fileValue.Pointer() {
+			return f(arg1, arg2, json, eng)
 		}
-		return specificDiffer(f, arg1, arg2, json)
+		return specificDiffer(f, arg1, arg2, json, eng)
 	}
 	return "", errors.New("Unknown differ")
 }
 
-func specificDiffer(f func(string, string, bool) (string, error), img1, img2 string, json bool) (string, error) {
+func specificDiffer(f func(string, string, bool, bool) (string, error), img1, img2 string, json bool, eng bool) (string, error) {
 	var buffer bytes.Buffer
 	validDiff := true
-	jsonPath1, dirPath1, err := utils.ImageToDir(img1)
+	imgPath1, err := utils.ImageToFS(img1, eng)
 	if err != nil {
 		buffer.WriteString(err.Error())
 		validDiff = false
 	}
-	jsonPath2, dirPath2, err := utils.ImageToDir(img2)
+	imgPath2, err := utils.ImageToFS(img2, eng)
 	if err != nil {
 		buffer.WriteString(err.Error())
 		validDiff = false
@@ -46,17 +48,15 @@ func specificDiffer(f func(string, string, bool) (string, error), img1, img2 str
 
 	var diff string
 	if validDiff {
-		output, err := f(jsonPath1, jsonPath2, json)
+		output, err := f(imgPath1, imgPath2, json, eng)
 		if err != nil {
 			buffer.WriteString(err.Error())
 		}
 		diff = output
 	}
 
-	errStr := remove(dirPath1, true, "")
-	errStr = remove(dirPath2, true, errStr)
-	errStr = remove(jsonPath1, false, errStr)
-	errStr = remove(jsonPath2, false, errStr)
+	errStr := remove(imgPath1, true)
+	errStr += remove(imgPath2, true)
 	if errStr != "" {
 		buffer.WriteString(errStr)
 	}
@@ -67,7 +67,8 @@ func specificDiffer(f func(string, string, bool) (string, error), img1, img2 str
 	return diff, nil
 }
 
-func remove(path string, dir bool, errStr string) string {
+func remove(path string, dir bool) string {
+	var errStr string
 	if path == "" {
 		return ""
 	}
@@ -79,7 +80,7 @@ func remove(path string, dir bool, errStr string) string {
 		err = os.Remove(path)
 	}
 	if err != nil {
-		errStr += "\nUnable to remove " + path
+		errStr = "\nUnable to remove " + path
 	}
 	return errStr
 }

@@ -2,18 +2,32 @@ package utils
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/system"
+	"github.com/golang/glog"
 )
+
+func GetImageLayers(pathToImage string) []string {
+	layers := []string{}
+	contents, err := ioutil.ReadDir(pathToImage)
+	if err != nil {
+		glog.Error(err.Error())
+	}
+
+	for _, file := range contents {
+		if file.IsDir() {
+			layers = append(layers, file.Name())
+		}
+	}
+	return layers
+}
 
 func saveImageToTar(image string) (string, error) {
 	cli, err := client.NewEnvClient()
@@ -40,84 +54,37 @@ func saveImageToTar(image string) (string, error) {
 	return imageTarPath, nil
 }
 
-// ImageToDir converts an image to an unpacked tar and creates a representation of that directory.
-func ImageToDir(img string) (string, string, error) {
+// ImageToFS converts an image to an unpacked tar of the image filesystem.
+func ImageToFS(img string, eng bool) (string, error) {
 	var tarName string
 	if !CheckTar(img) {
 		// If not an image tar already existing in the filesystem, create client to obtain image
-		imageTar, err := saveImageToTar(img)
+		// check client compatibility with Docker API
+		valid, err := ValidDockerVersion(eng)
 		if err != nil {
-			return "", "", err
+			return "", err
+		}
+		var imageTar string
+		if !valid {
+			glog.Info("Docker version incompatible with api, shelling out to local Docker client.")
+			imageTar, err = imageToTarCmd(img)
+		} else {
+			imageTar, err = saveImageToTar(img)
+		}
+		if err != nil {
+			return "", err
 		}
 		tarName = imageTar
-		defer os.Remove(tarName)
 	} else {
 		tarName = img
 	}
-	return TarToJSON(tarName)
-}
-
-type Event struct {
-	Status         string `json:"status"`
-	Error          string `json:"error"`
-	Progress       string `json:"progress"`
-	ProgressDetail struct {
-		Current int `json:"current"`
-		Total   int `json:"total"`
-	} `json:"progressDetail"`
-}
-
-func getImagePullResponse(image string, response []Event) (string, error) {
-	var imageDigest string
-	for _, event := range response {
-		if event.Error != "" {
-			err := fmt.Errorf("Error pulling image %s: %s", image, event.Error)
-			return "", err
-		}
-		digestPattern := regexp.MustCompile("^Digest: (sha256:[a-z|0-9]{64})$")
-		digestMatch := digestPattern.FindStringSubmatch(event.Status)
-		if len(digestMatch) != 0 {
-			imageDigest = digestMatch[1]
-			return imageDigest, nil
-		}
-	}
-	err := fmt.Errorf("Could not pull image %s", image)
-	return "", err
-}
-
-func pullImageFromRepo(cli client.APIClient, image string) (string, string, error) {
-	response, err := cli.ImagePull(context.Background(), image, types.ImagePullOptions{})
+	err := ExtractTar(tarName)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
-	defer response.Close()
-
-	d := json.NewDecoder(response)
-
-	var events []Event
-	for {
-		var event Event
-		if err := d.Decode(&event); err != nil {
-			if err == io.EOF {
-				break
-			}
-			return "", "", err
-		}
-		events = append(events, event)
-	}
-
-	imageDigest, err := getImagePullResponse(image, events)
-	if err != nil {
-		return "", "", err
-	}
-
-	URLPattern := regexp.MustCompile("^.+/(.+(:.+){0,1})$")
-	URLMatch := URLPattern.FindStringSubmatch(image)
-	imageName := strings.Replace(URLMatch[1], ":", "", -1)
-	imageURL := strings.TrimSuffix(image, URLMatch[2])
-	imageID := imageURL + "@" + imageDigest
-
-	return imageID, imageName, nil
+	path := strings.TrimSuffix(tarName, filepath.Ext(tarName))
+	defer os.Remove(tarName)
+	return path, nil
 }
 
 // ImageToTar writes an image to a .tar file
@@ -129,6 +96,22 @@ func ImageToTar(cli client.APIClient, image, tarName string) (string, error) {
 	defer imgBytes.Close()
 	newpath := tarName + ".tar"
 	return newpath, copyToFile(newpath, imgBytes)
+}
+
+func CheckImageID(image string) bool {
+	pattern := regexp.MustCompile("[a-z|0-9]{12}")
+	if exp := pattern.FindString(image); exp != image {
+		return false
+	}
+	return true
+}
+
+func CheckImageURL(image string) bool {
+	pattern := regexp.MustCompile("^.+/.+(:.+){0,1}$")
+	if exp := pattern.FindString(image); exp != image || CheckTar(image) {
+		return false
+	}
+	return true
 }
 
 // copyToFile writes the content of the reader to the specified file
@@ -156,20 +139,4 @@ func copyToFile(outfile string, r io.Reader) error {
 	}
 
 	return nil
-}
-
-func CheckImageID(image string) bool {
-	pattern := regexp.MustCompile("[a-z|0-9]{12}")
-	if exp := pattern.FindString(image); exp != image {
-		return false
-	}
-	return true
-}
-
-func CheckImageURL(image string) bool {
-	pattern := regexp.MustCompile("^.+/.+(:.+){0,1}$")
-	if exp := pattern.FindString(image); exp != image || CheckTar(image) {
-		return false
-	}
-	return true
 }

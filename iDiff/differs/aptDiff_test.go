@@ -119,7 +119,7 @@ func TestGetPackages(t *testing.T) {
 			t.Errorf("Got unexpected error: %s", err)
 		}
 		if err == nil && test.err {
-			t.Errorf("Expected error: %s", test.err)
+			t.Errorf("Expected error but got none.")
 		}
 		if !reflect.DeepEqual(packages, test.expected) {
 			t.Errorf("Expected: %s but got: %s", test.expected, packages)
