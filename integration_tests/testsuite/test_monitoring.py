@@ -43,7 +43,7 @@ class TestMonitoring(unittest.TestCase):
                                           payload.get('token'), client),
                         'Token not found in Stackdriver monitoring!')
 
-    @retry(wait_fixed=6000, stop_max_attempt_number=10)
+    @retry(wait_fixed=8000, stop_max_attempt_number=10)
     def _read_metric(self, name, target, client):
         query = client.query(name, minutes=2)
         if self._query_is_empty(query):
