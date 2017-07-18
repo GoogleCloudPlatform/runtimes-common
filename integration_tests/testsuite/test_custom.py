@@ -36,19 +36,22 @@ class TestCustom(unittest.TestCase):
                           'Cannot connect to sample application!')
 
         test_num = 0
-        for test_info in json.loads(output):
-            test_num += 1
-            name = test_info.get('name', 'test_{0}'.format(test_num))
-            path = test_info.get('path')
-            if path is None:
-                logging.warn('Test \'{0}\' has no path specified! '
-                             'Skipping...'.format(name))
-                continue
+        if not output:
+            logging.debug('No custom tests specified.')
+        else:
+            for test_info in json.loads(output):
+                test_num += 1
+                name = test_info.get('name', 'test_{0}'.format(test_num))
+                path = test_info.get('path')
+                if path is None:
+                    logging.warn('Test \'%s\' has no path specified! '
+                                 'Skipping...', name)
+                    continue
 
-            timeout = test_info.get('timeout', 500)
+                timeout = test_info.get('timeout', 500)
 
-            test_endpoint = urlparse.urljoin(self._base_url, path)
-            logging.info('Running custom test: {0}'.format(name))
-            response, code = test_util.get(test_endpoint, timeout=timeout)
+                test_endpoint = urlparse.urljoin(self._base_url, path)
+                logging.info('Running custom test: %s', name)
+                response, _ = test_util.get(test_endpoint, timeout=timeout)
 
-            logging.debug(response)
+                logging.debug(response)
