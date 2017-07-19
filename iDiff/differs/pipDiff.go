@@ -9,8 +9,11 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
+type PipDiffer struct {
+}
+
 // PipDiff compares pip-installed Python packages between layers of two different images.
-func PipDiff(img1, img2 string, json bool, eng bool) (string, error) {
+func (d *PipDiffer) Diff(img1, img2 string, json, eng bool) (string, error) {
 	pack1 := getPythonPackages(img1)
 	pack2 := getPythonPackages(img2)
 

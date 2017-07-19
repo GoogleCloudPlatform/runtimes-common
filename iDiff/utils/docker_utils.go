@@ -72,7 +72,8 @@ type Event struct {
 	} `json:"progressDetail"`
 }
 
-func pullImageFromRepo(cli client.APIClient, image string) (string, string, error) {
+func pullImageFromRepo(image string) (string, string, error) {
+	cli, err := client.NewEnvClient()
 	response, err := cli.ImagePull(context.Background(), image, types.ImagePullOptions{})
 	if err != nil {
 		return "", "", err
@@ -193,19 +194,7 @@ func pullImageCmd(image string) (string, string, error) {
 	return processPullCmdOutput(image, response)
 }
 
-func imageToTarCmd(image string) (string, error) {
-	imageName := image
-	imageID := image
-	var err error
-	// If not an already existing image ID, assuming URL, have to pull it from a repo before saving it
-	if !CheckImageID(image) {
-		imageID, imageName, err = pullImageCmd(image)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	// Convert the image into a tar
+func imageToTarCmd(imageName, imageID string) (string, error) {
 	cmdArgs := []string{"save", imageID}
 	dockerSaveCmd := exec.Command("docker", cmdArgs...)
 	var out bytes.Buffer
@@ -221,7 +210,7 @@ func imageToTarCmd(image string) (string, error) {
 	}
 	imageTarPath := imageName + ".tar"
 	reader := bytes.NewReader(out.Bytes())
-	err = copyToFile(imageTarPath, reader)
+	err := copyToFile(imageTarPath, reader)
 	if err != nil {
 		return "", err
 	}

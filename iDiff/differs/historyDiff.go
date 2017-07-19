@@ -13,9 +13,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-// History compares the Docker history for each image.
+type HistoryDiffer struct {
+}
 
-func HistoryDiff(img1, img2 string, json bool, eng bool) (string, error) {
+func (d *HistoryDiffer) Diff(image1, image2 Image, json, eng bool) DiffResult {
 	return getHistoryDiff(img1, img2, json, eng)
 }
 

@@ -9,27 +9,42 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
-var diffs = map[string]func(string, string, bool, bool) (string, error){
-	"hist":    HistoryDiff,
-	"history": HistoryDiff,
-	"file":    FileDiff,
-	"apt":     AptDiff,
-	"linux":   AptDiff,
-	"pip":     PipDiff,
-	"node":    NodeDiff,
+type ImageDiff struct {
+	Image1 Image
+	Image2 Image
+	DiffType Differ
+	UseDocker bool
 }
 
-func Diff(arg1, arg2, differ string, json bool, eng bool) (string, error) {
-	if f, exists := diffs[differ]; exists {
-		fValue := reflect.ValueOf(f)
-		histValue := reflect.ValueOf(HistoryDiff)
-		fileValue := reflect.ValueOf(FileDiff)
-		if fValue.Pointer() == histValue.Pointer() || fValue.Pointer() == fileValue.Pointer() {
-			return f(arg1, arg2, json, eng)
-		}
-		return specificDiffer(f, arg1, arg2, json, eng)
+type Differ interface {
+	Diff(diff ImageDiff) (string, error)
+}
+
+var diffs = map[string]Differ{
+	"hist":    HistoryDiffer,
+	"history": HistoryDiffer,
+	"file":    FileDiffer,
+	"apt":     AptDiffer,
+	"linux":   AptDiffer,
+	"pip":     PipDiffer,
+	"node":    NodeDiffer,
+}
+
+func (diff ImageDiff) GetDiff() (string, error) {
+	img1 := diff.Image1
+	img2 := diff.Image2
+	differ := diff.DiffType
+	eng := diff.UseDocker
+	return differ.Diff(image1, image2, true, eng) //TODO: eliminate JSON param and eventually bool
+}
+
+func getDiffer(differ string) (differ Differ, err error) {
+	if d, exists := diffs[differ]; exists {
+		differ = d
+	} else {
+		errors.New("Unknown differ")
 	}
-	return "", errors.New("Unknown differ")
+	return
 }
 
 func specificDiffer(f func(string, string, bool, bool) (string, error), img1, img2 string, json bool, eng bool) (string, error) {

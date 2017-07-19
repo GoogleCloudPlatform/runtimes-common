@@ -9,8 +9,11 @@ import (
 	"github.com/golang/glog"
 )
 
+type AptDiffer struct {
+}
+
 // AptDiff compares the packages installed by apt-get.
-func AptDiff(img1, img2 string, json bool, eng bool) (string, error) {
+func (d *AptDiffer) Diff(img1, img2 string, json, eng bool) (string, error) {
 	pack1, err := getPackages(img1)
 	if err != nil {
 		return "", err

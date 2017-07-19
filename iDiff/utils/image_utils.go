@@ -35,25 +35,13 @@ func saveImageToTar(image string) (string, error) {
 		return "", err
 	}
 
-	fromImage := image
-	toTar := image
-	// If not an already existing image ID, have to pull it from a repo before saving it
-	if !CheckImageID(image) {
-		imageID, imageName, err := pullImageFromRepo(cli, image)
-		if err != nil {
-			return "", err
-		}
-		fromImage = imageID
-		toTar = imageName
-	}
-	// Convert the image into a tar
 	imageTarPath, err := ImageToTar(cli, fromImage, toTar)
 	if err != nil {
 		return "", err
 	}
 	return imageTarPath, nil
 }
-
+/*
 // ImageToFS converts an image to an unpacked tar of the image filesystem.
 func ImageToFS(img string, eng bool) (string, error) {
 	var tarName string
@@ -85,7 +73,7 @@ func ImageToFS(img string, eng bool) (string, error) {
 	path := strings.TrimSuffix(tarName, filepath.Ext(tarName))
 	defer os.Remove(tarName)
 	return path, nil
-}
+}*/
 
 // ImageToTar writes an image to a .tar file
 func ImageToTar(cli client.APIClient, image, tarName string) (string, error) {

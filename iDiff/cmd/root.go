@@ -19,7 +19,7 @@ var json bool
 var eng bool
 
 var RootCmd = &cobra.Command{
-	Use:   "[differ] [container1] [container2]",
+	Use:   "[differ] [image1] [image2]",
 	Short: "Compare two images.",
 	Long:  `Compares two images using the specifed differ (see iDiff documentation for available differs).`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -27,7 +27,11 @@ var RootCmd = &cobra.Command{
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		if diff, err := differs.Diff(args[2], args[3], args[1], json, eng); err == nil {
+		image1 := ImagePrepper{args[2], eng}.GetImage()
+		image2 := ImagePrepper{args[3], eng}.GetImage()
+		differ := differs.getDiffer(args[1])
+		diff := differs.ImageDiff{image1, image2, differ, eng}
+		if diff, err := diff.GetDiff(); err == nil {
 			fmt.Println(diff)
 		} else {
 			glog.Error(err.Error())
