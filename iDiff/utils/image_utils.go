@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
+//	"strings"
 
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/system"
@@ -29,13 +29,13 @@ func GetImageLayers(pathToImage string) []string {
 	return layers
 }
 
-func saveImageToTar(image string) (string, error) {
+func saveImageToTar(image, dest string) (string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		return "", err
 	}
 
-	imageTarPath, err := ImageToTar(cli, fromImage, toTar)
+	imageTarPath, err := ImageToTar(cli, image, dest)
 	if err != nil {
 		return "", err
 	}

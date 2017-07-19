@@ -13,7 +13,10 @@ type AptDiffer struct {
 }
 
 // AptDiff compares the packages installed by apt-get.
-func (d *AptDiffer) Diff(img1, img2 string, json, eng bool) (string, error) {
+func (d AptDiffer) Diff(image1, image2 utils.Image, json, eng bool) (string, error) {
+	img1 := image1.FSPath
+	img2 := image2.FSPath
+
 	pack1, err := getPackages(img1)
 	if err != nil {
 		return "", err

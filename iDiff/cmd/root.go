@@ -27,12 +27,30 @@ var RootCmd = &cobra.Command{
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		image1 := ImagePrepper{args[2], eng}.GetImage()
-		image2 := ImagePrepper{args[3], eng}.GetImage()
-		differ := differs.getDiffer(args[1])
+		image1, err := utils.ImagePrepper{args[2], eng}.GetImage()
+		if err != nil {
+			glog.Error(err.Error())
+			os.Exit(1)
+		}
+		image2, err := utils.ImagePrepper{args[3], eng}.GetImage()
+		if err != nil {
+			glog.Error(err.Error())
+			os.Exit(1)
+		}
+		differ, err := differs.GetDiffer(args[1])
+		if err != nil {
+			glog.Error(err.Error())
+			os.Exit(1)
+		}
+
 		diff := differs.ImageDiff{image1, image2, differ, eng}
 		if diff, err := diff.GetDiff(); err == nil {
 			fmt.Println(diff)
+			errMsg := remove(image1.FSPath, true)
+			errMsg += remove(image2.FSPath, true)
+			if errMsg != "" {
+				glog.Error(errMsg)
+			}
 		} else {
 			glog.Error(err.Error())
 			os.Exit(1)
@@ -105,6 +123,24 @@ func checkArgType(args []string) (bool, error) {
 		return false, errors.New(buffer.String())
 	}
 	return true, nil
+}
+
+func remove(path string, dir bool) string {
+	var errStr string
+	if path == "" {
+		return ""
+	}
+
+	var err error
+	if dir {
+		err = os.RemoveAll(path)
+	} else {
+		err = os.Remove(path)
+	}
+	if err != nil {
+		errStr = "\nUnable to remove " + path
+	}
+	return errStr
 }
 
 func init() {

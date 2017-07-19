@@ -1,33 +1,30 @@
 package differs
 
 import (
-	"bytes"
 	"errors"
-	"os"
-	"reflect"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
 type ImageDiff struct {
-	Image1 Image
-	Image2 Image
+	Image1 utils.Image
+	Image2 utils.Image
 	DiffType Differ
 	UseDocker bool
 }
 
 type Differ interface {
-	Diff(diff ImageDiff) (string, error)
+	Diff(image1, image2 utils.Image, json, eng bool) (string, error)
 }
 
 var diffs = map[string]Differ{
-	"hist":    HistoryDiffer,
-	"history": HistoryDiffer,
-	"file":    FileDiffer,
-	"apt":     AptDiffer,
-	"linux":   AptDiffer,
-	"pip":     PipDiffer,
-	"node":    NodeDiffer,
+	"hist":    HistoryDiffer{},
+	"history": HistoryDiffer{},
+	"file":    FileDiffer{},
+	"apt":     AptDiffer{},
+	"linux":   AptDiffer{},
+	"pip":     PipDiffer{},
+	"node":    NodeDiffer{},
 }
 
 func (diff ImageDiff) GetDiff() (string, error) {
@@ -35,11 +32,11 @@ func (diff ImageDiff) GetDiff() (string, error) {
 	img2 := diff.Image2
 	differ := diff.DiffType
 	eng := diff.UseDocker
-	return differ.Diff(image1, image2, true, eng) //TODO: eliminate JSON param and eventually bool
+	return differ.Diff(img1, img2, true, eng) //TODO: eliminate JSON param and eventually bool
 }
 
-func getDiffer(differ string) (differ Differ, err error) {
-	if d, exists := diffs[differ]; exists {
+func GetDiffer(diffName string) (differ Differ, err error) {
+	if d, exists := diffs[diffName]; exists {
 		differ = d
 	} else {
 		errors.New("Unknown differ")
@@ -47,7 +44,7 @@ func getDiffer(differ string) (differ Differ, err error) {
 	return
 }
 
-func specificDiffer(f func(string, string, bool, bool) (string, error), img1, img2 string, json bool, eng bool) (string, error) {
+/*func specificDiffer(f func(string, string, bool, bool) (string, error), img1, img2 string, json bool, eng bool) (string, error) {
 	var buffer bytes.Buffer
 	validDiff := true
 	imgPath1, err := utils.ImageToFS(img1, eng)
@@ -80,22 +77,6 @@ func specificDiffer(f func(string, string, bool, bool) (string, error), img1, im
 		return diff, errors.New(buffer.String())
 	}
 	return diff, nil
-}
+}*/
 
-func remove(path string, dir bool) string {
-	var errStr string
-	if path == "" {
-		return ""
-	}
 
-	var err error
-	if dir {
-		err = os.RemoveAll(path)
-	} else {
-		err = os.Remove(path)
-	}
-	if err != nil {
-		errStr = "\nUnable to remove " + path
-	}
-	return errStr
-}

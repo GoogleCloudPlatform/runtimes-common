@@ -1,26 +1,22 @@
 package differs
 
 import (
-	"fmt"
 	"html/template"
 	"os"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/client"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 )
 
 type HistoryDiffer struct {
 }
 
-func (d *HistoryDiffer) Diff(image1, image2 Image, json, eng bool) DiffResult {
-	return getHistoryDiff(img1, img2, json, eng)
+func (d HistoryDiffer) Diff(image1, image2 utils.Image, json, eng bool) (string, error) {
+	return getHistoryDiff(image1, image2, json, eng)
 }
 
-func getHistoryList(img string, eng bool) ([]string, error) {
+/*func getHistoryList(img string, eng bool) ([]string, error) {
 	validDocker, err := utils.ValidDockerVersion(eng)
 	if err != nil {
 		return []string{}, err
@@ -50,7 +46,7 @@ func getHistoryList(img string, eng bool) ([]string, error) {
 		strhistory[i] = fmt.Sprintf("%s\n", layerDescription)
 	}
 	return strhistory, nil
-}
+}*/
 
 type HistDiff struct {
 	Image1 string
@@ -59,18 +55,13 @@ type HistDiff struct {
 	Dels   []string
 }
 
-func getHistoryDiff(image1, image2 string, json bool, eng bool) (string, error) {
-	history1, err := getHistoryList(image1, eng)
-	if err != nil {
-		return "", err
-	}
-	history2, err := getHistoryList(image2, eng)
-	if err != nil {
-		return "", err
-	}
+func getHistoryDiff(image1, image2 utils.Image, json bool, eng bool) (string, error) {
+	history1 := image1.History
+	history2 := image2.History
+
 	adds := utils.GetAdditions(history1, history2)
 	dels := utils.GetDeletions(history1, history2)
-	diff := HistDiff{image1, image2, adds, dels}
+	diff := HistDiff{image1.FSPath, image2.FSPath, adds, dels} //TODO: Add name to Image struct
 	if json {
 		return utils.JSONify(diff)
 	}

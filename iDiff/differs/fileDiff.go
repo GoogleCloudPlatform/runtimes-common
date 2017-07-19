@@ -14,7 +14,10 @@ type FileDiffer struct {
 }
 
 // FileDiff diffs two packages and compares their contents
-func (d* FileDiffer) Diff(img1, img2 string, json, eng bool) (string, error) {
+func (d FileDiffer) Diff(image1, image2 utils.Image, json, eng bool) (string, error) {
+	img1 := image1.FSPath
+	img2 := image2.FSPath
+
 	diff, err := diffImageFiles(img1, img2, eng)
 
 	if err != nil {
@@ -62,25 +65,15 @@ func getDiffOutput(dirDiff utils.DirDiff, json bool) (string, error) {
 
 func diffImageFiles(img1, img2 string, eng bool) (utils.DirDiff, error) {
 	var diff utils.DirDiff
-	img1FS, err := utils.ImageToFS(img1, eng)
-	if err != nil {
-		return diff, fmt.Errorf("Error retrieving image %s file system: %s", img1, err)
-	}
-	img2FS, err := utils.ImageToFS(img2, eng)
-	if err != nil {
-		return diff, fmt.Errorf("Error retrieving image %s file system: %s", img2, err)
-	}
 
-	img1Contents, err := getImageContents(img1FS)
+	img1Contents, err := getImageContents(img1)
 	if err != nil {
 		return diff, fmt.Errorf("Error parsing image %s contents: %s", img1, err)
 	}
-	img2Contents, err := getImageContents(img2FS)
+	img2Contents, err := getImageContents(img2)
 	if err != nil {
 		return diff, fmt.Errorf("Error parsing image %s contents: %s", img2, err)
 	}
-	defer os.RemoveAll(img1FS)
-	defer os.RemoveAll(img2FS)
 
 	for layer1, contents1 := range img1Contents {
 		sameLayer := false
