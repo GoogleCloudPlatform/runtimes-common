@@ -14,8 +14,12 @@ type MultiVersionPackageDiffResult struct {
 	Diff MultiVersionPackageDiff
 }
 
-func (m *MultiVersionPackageDiffResult) Output(json bool) error {
-	return WriteOutput(m.Diff, json)
+func (m *MultiVersionPackageDiffResult) OutputJSON() error {
+	return JSONify(m.Diff)
+}
+
+func (m *MultiVersionPackageDiffResult) OutputText() error {
+	return TemplateOutput(m.Diff)
 }
 
 // MultiVersionPackageDiff stores the difference information between two images which could have multi-version packages.
@@ -38,8 +42,12 @@ type PackageDiffResult struct {
 	Diff PackageDiff
 }
 
-func (m *PackageDiffResult) Output(json bool) error {
-	return WriteOutput(m.Diff, json)
+func (m *PackageDiffResult) OutputJSON() error {
+	return JSONify(m.Diff)
+}
+
+func (m *PackageDiffResult) OutputText() error {
+	return TemplateOutput(m.Diff)
 }
 
 // PackageDiff stores the difference information between two images.

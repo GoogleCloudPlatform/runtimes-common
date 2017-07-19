@@ -14,7 +14,8 @@ type ImageDiff struct {
 }
 
 type DiffResult interface {
-	Output(json bool) error
+	OutputJSON() error
+	OutputText() error
 }
 
 type Differ interface {

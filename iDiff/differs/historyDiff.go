@@ -23,8 +23,12 @@ type HistDiffResult struct {
 	Diff HistDiff
 }
 
-func (m *HistDiffResult) Output(json bool) error {
-	return utils.WriteOutput(m.Diff, json)
+func (m *HistDiffResult) OutputJSON() error {
+	return utils.JSONify(m.Diff)
+}
+
+func (m *HistDiffResult) OutputText() error {
+	return utils.TemplateOutput(m.Diff)
 }
 
 func getHistoryDiff(image1, image2 utils.Image, eng bool) (HistDiff, error) {

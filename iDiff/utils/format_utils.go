@@ -12,13 +12,13 @@ import (
 )
 
 // WriteOutput writes either the json or human readable format to Stdout
-func WriteOutput(diff interface{}, json bool) error {
-	if json {
-		err := jsonify(diff)
-		return err
-	}
-	return templateOutput(diff)
-}
+// func WriteOutput(diff interface{}, json bool) error {
+// 	if json {
+// 		err := jsonify(diff)
+// 		return err
+// 	}
+// 	return templateOutput(diff)
+// }
 
 var templates = map[string]string{
 	"utils.PackageDiff":             "utils/output_templates/singleVersionOutput.txt",
@@ -27,7 +27,7 @@ var templates = map[string]string{
 	"utils.DirDiff":                 "utils/output_templates/fsOutput.txt",
 }
 
-func jsonify(diff interface{}) error {
+func JSONify(diff interface{}) error {
 	diffBytes, err := json.MarshalIndent(diff, "", "  ")
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func getTemplatePath(diff interface{}) (string, error) {
 	return "", fmt.Errorf("No available template")
 }
 
-func templateOutput(diff interface{}) error {
+func TemplateOutput(diff interface{}) error {
 	tempPath, err := getTemplatePath(diff)
 	if err != nil {
 		glog.Error(err)

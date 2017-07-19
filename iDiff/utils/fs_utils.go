@@ -75,8 +75,12 @@ type DirDiffResult struct {
 	Diff DirDiff
 }
 
-func (m *DirDiffResult) Output(json bool) error {
-	return WriteOutput(m.Diff, json)
+func (m *DirDiffResult) OutputJSON() error {
+	return JSONify(m.Diff)
+}
+
+func (m *DirDiffResult) OutputText() error {
+	return TemplateOutput(m.Diff)
 }
 
 func compareDirEntries(d1, d2 Directory) DirDiff {
