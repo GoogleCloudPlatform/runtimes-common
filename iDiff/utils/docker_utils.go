@@ -102,12 +102,6 @@ func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
 	imageID := image
 	var err error
 	var history []img.HistoryResponseItem
-	if !CheckImageID(image) {
-		imageID, _, err = pullImageCmd(image)
-		if err != nil {
-			return history, err
-		}
-	}
 	histArgs := []string{"history", "--no-trunc", imageID}
 	dockerHistCmd := exec.Command("docker", histArgs...)
 	var response bytes.Buffer

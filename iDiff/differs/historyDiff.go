@@ -33,6 +33,6 @@ func getHistoryDiff(image1, image2 utils.Image, eng bool) (HistDiff, error) {
 
 	adds := utils.GetAdditions(history1, history2)
 	dels := utils.GetDeletions(history1, history2)
-	diff := HistDiff{image1.FSPath, image2.FSPath, adds, dels} //TODO: Add name to Image struct
+	diff := HistDiff{image1.Source, image2.Source, adds, dels}
 	return diff, nil
 }
