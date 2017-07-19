@@ -1,6 +1,6 @@
 {
-  "Image1": "gcr.io/google_containers/busybox:1.24",
-  "Image2": "gcr.io/google_containers/busybox:latest",
+  "Image1": "busybox1.24",
+  "Image2": "busyboxlatest",
   "Adds": [
     "96c5134b442cd6446dfae4b1ae1de0aad4b0f408ccd0cf6126566a096da7a209/VERSION",
     "96c5134b442cd6446dfae4b1ae1de0aad4b0f408ccd0cf6126566a096da7a209/json",
