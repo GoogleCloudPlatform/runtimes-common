@@ -1,0 +1,24 @@
+{
+  "Image1": "python-base",
+  "Packages1": {},
+  "Image2": "python-modified",
+  "Packages2": {
+    "mock": {
+      "Version": "2.0.0",
+      "Size": "4096"
+    },
+    "pbr": {
+      "Version": "3.1.1",
+      "Size": "4096"
+    },
+    "six": {
+      "Version": "1.10.0",
+      "Size": "4096"
+    },
+    "six.py": {
+      "Version": "",
+      "Size": ""
+    }
+  },
+  "InfoDiff": []
+}

@@ -21,7 +21,7 @@ func Output(diff PackageDiff) error {
 Packages found only in {{.Image2}}:{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
 Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range .InfoDiff}}
 	{{.Package}}:	{{.Info1.Version}}	{{.Info2.Version}}
-	{{end}}`
+	{{end}}{{"\n"}}`
 
 	funcs := template.FuncMap{"join": strings.Join}
 
@@ -41,7 +41,7 @@ func OutputMulti(diff MultiVersionPackageDiff) error {
 Packages found only in {{.Image2}}:{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{end}}
 Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range .InfoDiff}}
 	{{.Package}}:	{{range .Info1}}{{.Version}}{{end}}	{{"\t"}} {{range .Info2}}{{.Version}}{{end}}
-	{{end}}`
+	{{end}}{{"\n"}}`
 
 	funcs := template.FuncMap{"join": strings.Join}
 
