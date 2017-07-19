@@ -1,7 +1,6 @@
 package differs
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,53 +13,12 @@ type FileDiffer struct {
 }
 
 // FileDiff diffs two packages and compares their contents
-func (d FileDiffer) Diff(image1, image2 utils.Image, json, eng bool) (string, error) {
+func (d FileDiffer) Diff(image1, image2 utils.Image, eng bool) (DiffResult, error) {
 	img1 := image1.FSPath
 	img2 := image2.FSPath
 
 	diff, err := diffImageFiles(img1, img2, eng)
-
-	if err != nil {
-		return "", err
-	}
-
-	output, err := getDiffOutput(diff, json)
-	if err != nil {
-		return "", err
-	}
-	return output, nil
-}
-
-func getDiffOutput(dirDiff utils.DirDiff, json bool) (string, error) {
-	if json {
-		return utils.JSONify(dirDiff)
-	}
-
-	var buffer bytes.Buffer
-
-	s := fmt.Sprintf("These entries have been added to %s\n", dirDiff.Image1)
-	buffer.WriteString(s)
-	if len(dirDiff.Adds) == 0 {
-		buffer.WriteString("\tNo files have been added\n")
-	} else {
-		for _, f := range dirDiff.Adds {
-			s = fmt.Sprintf("\t%s\n", f)
-			buffer.WriteString(s)
-		}
-	}
-
-	s = fmt.Sprintf("These entries have been deleted from %s\n", dirDiff.Image1)
-	buffer.WriteString(s)
-	if len(dirDiff.Dels) == 0 {
-		buffer.WriteString("\tNo files have been deleted\n")
-	} else {
-		for _, f := range dirDiff.Dels {
-			s = fmt.Sprintf("\t%s\n", f)
-			buffer.WriteString(s)
-		}
-	}
-
-	return buffer.String(), nil
+	return &utils.DirDiffResult{Diff: diff}, err
 }
 
 func diffImageFiles(img1, img2 string, eng bool) (utils.DirDiff, error) {

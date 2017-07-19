@@ -7,14 +7,18 @@ import (
 )
 
 type ImageDiff struct {
-	Image1 utils.Image
-	Image2 utils.Image
-	DiffType Differ
+	Image1    utils.Image
+	Image2    utils.Image
+	DiffType  Differ
 	UseDocker bool
 }
 
+type DiffResult interface {
+	Output(json bool) error
+}
+
 type Differ interface {
-	Diff(image1, image2 utils.Image, json, eng bool) (string, error)
+	Diff(image1, image2 utils.Image, eng bool) (DiffResult, error)
 }
 
 var diffs = map[string]Differ{
@@ -27,12 +31,12 @@ var diffs = map[string]Differ{
 	"node":    NodeDiffer{},
 }
 
-func (diff ImageDiff) GetDiff() (string, error) {
+func (diff ImageDiff) GetDiff() (DiffResult, error) {
 	img1 := diff.Image1
 	img2 := diff.Image2
 	differ := diff.DiffType
 	eng := diff.UseDocker
-	return differ.Diff(img1, img2, true, eng) //TODO: eliminate JSON param and eventually bool
+	return differ.Diff(img1, img2, eng)
 }
 
 func GetDiffer(diffName string) (differ Differ, err error) {
@@ -43,40 +47,3 @@ func GetDiffer(diffName string) (differ Differ, err error) {
 	}
 	return
 }
-
-/*func specificDiffer(f func(string, string, bool, bool) (string, error), img1, img2 string, json bool, eng bool) (string, error) {
-	var buffer bytes.Buffer
-	validDiff := true
-	imgPath1, err := utils.ImageToFS(img1, eng)
-	if err != nil {
-		buffer.WriteString(err.Error())
-		validDiff = false
-	}
-	imgPath2, err := utils.ImageToFS(img2, eng)
-	if err != nil {
-		buffer.WriteString(err.Error())
-		validDiff = false
-	}
-
-	var diff string
-	if validDiff {
-		output, err := f(imgPath1, imgPath2, json, eng)
-		if err != nil {
-			buffer.WriteString(err.Error())
-		}
-		diff = output
-	}
-
-	errStr := remove(imgPath1, true)
-	errStr += remove(imgPath2, true)
-	if errStr != "" {
-		buffer.WriteString(errStr)
-	}
-
-	if buffer.String() != "" {
-		return diff, errors.New(buffer.String())
-	}
-	return diff, nil
-}*/
-
-

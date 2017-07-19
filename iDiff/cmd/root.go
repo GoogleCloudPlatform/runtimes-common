@@ -45,7 +45,7 @@ var RootCmd = &cobra.Command{
 
 		diff := differs.ImageDiff{image1, image2, differ, eng}
 		if diff, err := diff.GetDiff(); err == nil {
-			fmt.Println(diff)
+			diff.Output(json)
 			errMsg := remove(image1.FSPath, true)
 			errMsg += remove(image2.FSPath, true)
 			if errMsg != "" {

@@ -71,6 +71,14 @@ type DirDiff struct {
 	Mods   []string
 }
 
+type DirDiffResult struct {
+	Diff DirDiff
+}
+
+func (m *DirDiffResult) Output(json bool) error {
+	return WriteOutput(m.Diff, json)
+}
+
 func compareDirEntries(d1, d2 Directory) DirDiff {
 	adds := GetAddedEntries(d1, d2)
 	dels := GetDeletedEntries(d1, d2)

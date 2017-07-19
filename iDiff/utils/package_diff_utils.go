@@ -10,6 +10,14 @@ import (
 	"github.com/golang/glog"
 )
 
+type MultiVersionPackageDiffResult struct {
+	Diff MultiVersionPackageDiff
+}
+
+func (m *MultiVersionPackageDiffResult) Output(json bool) error {
+	return WriteOutput(m.Diff, json)
+}
+
 // MultiVersionPackageDiff stores the difference information between two images which could have multi-version packages.
 type MultiVersionPackageDiff struct {
 	Image1    string
@@ -24,6 +32,14 @@ type MultiVersionInfo struct {
 	Package string
 	Info1   []PackageInfo
 	Info2   []PackageInfo
+}
+
+type PackageDiffResult struct {
+	Diff PackageDiff
+}
+
+func (m *PackageDiffResult) Output(json bool) error {
+	return WriteOutput(m.Diff, json)
 }
 
 // PackageDiff stores the difference information between two images.
@@ -129,20 +145,24 @@ func checkPackageMapType(map1, map2 interface{}) (reflect.Type, bool, error) {
 
 // GetMapDiff determines the differences between maps of package names to PackageInfo structs
 // This getter supports only single version packages.
-func GetMapDiff(map1, map2 map[string]PackageInfo) PackageDiff {
+func GetMapDiff(map1, map2 map[string]PackageInfo, img1, img2 string) PackageDiffResult {
 	diff := diffMaps(map1, map2)
 	diffVal := reflect.ValueOf(diff)
 	packDiff := diffVal.Interface().(PackageDiff)
-	return packDiff
+	packDiff.Image1 = img1
+	packDiff.Image2 = img2
+	return PackageDiffResult{packDiff}
 }
 
 // GetMultiVersionMapDiff determines the differences between two image package maps with multi-version packages
 // This getter supports multi version packages.
-func GetMultiVersionMapDiff(map1, map2 map[string]map[string]PackageInfo) MultiVersionPackageDiff {
+func GetMultiVersionMapDiff(map1, map2 map[string]map[string]PackageInfo, img1, img2 string) MultiVersionPackageDiffResult {
 	diff := diffMaps(map1, map2)
 	diffVal := reflect.ValueOf(diff)
 	packDiff := diffVal.Interface().(MultiVersionPackageDiff)
-	return packDiff
+	packDiff.Image1 = img1
+	packDiff.Image2 = img2
+	return MultiVersionPackageDiffResult{packDiff}
 }
 
 // DiffMaps determines the differences between maps of package names to PackageInfo structs
