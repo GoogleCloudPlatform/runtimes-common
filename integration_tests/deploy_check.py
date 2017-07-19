@@ -29,10 +29,19 @@ def main():
         parser.add_argument('--directory', '-d', type=str,
                             help='Directory of app to be run',
                             required=True)
+        parser.add_argument('--record_latency', '-r', default=False,
+                            help='Whether record latency data or not',
+                            required=False)
+        parser.add_argument('--language', '-l', type=str,
+                            help='Language of the app deployed',
+                            required=False)
         args = parser.parse_args()
 
         logging.debug('Testing runtime image.')
-        version = deploy_app.deploy_app_without_image(args.directory)
+        version = deploy_app.deploy_app_without_image(
+            args.directory,
+            args.record_latency,
+            args.language)
         application_url = test_util.retrieve_url_for_version(version)
         output, status_code = test_util.get(application_url)
 
@@ -52,3 +61,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
+
