@@ -6,7 +6,7 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
-type ImageDiff struct {
+type DiffRequest struct {
 	Image1    utils.Image
 	Image2    utils.Image
 	DiffType  Differ
@@ -32,7 +32,7 @@ var diffs = map[string]Differ{
 	"node":    NodeDiffer{},
 }
 
-func (diff ImageDiff) GetDiff() (DiffResult, error) {
+func (diff DiffRequest) GetDiff() (DiffResult, error) {
 	img1 := diff.Image1
 	img2 := diff.Image2
 	differ := diff.DiffType

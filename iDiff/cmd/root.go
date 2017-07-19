@@ -43,7 +43,7 @@ var RootCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		diff := differs.ImageDiff{image1, image2, differ, eng}
+		diff := differs.DiffRequest{image1, image2, differ, eng}
 		if diff, err := diff.GetDiff(); err == nil {
 			if json {
 				err = diff.OutputJSON()

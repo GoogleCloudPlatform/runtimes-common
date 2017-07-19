@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	//	"strings"
 
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/system"

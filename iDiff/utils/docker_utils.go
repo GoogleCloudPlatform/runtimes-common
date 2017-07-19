@@ -237,8 +237,7 @@ func getHistoryList(image string, eng bool) ([]string, error) {
 
 	strhistory := make([]string, len(history))
 	for i, layer := range history {
-		layerDescription := strings.TrimSpace(layer.CreatedBy)
-		strhistory[i] = fmt.Sprintf("%s\n", layerDescription)
+		strhistory[i] = fmt.Sprintf("%s\n", strings.TrimSpace(layer.CreatedBy))
 	}
 	return strhistory, nil
 }

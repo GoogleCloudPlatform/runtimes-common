@@ -11,15 +11,6 @@ import (
 	"github.com/golang/glog"
 )
 
-// WriteOutput writes either the json or human readable format to Stdout
-// func WriteOutput(diff interface{}, json bool) error {
-// 	if json {
-// 		err := jsonify(diff)
-// 		return err
-// 	}
-// 	return templateOutput(diff)
-// }
-
 var templates = map[string]string{
 	"utils.PackageDiff":             "utils/output_templates/singleVersionOutput.txt",
 	"utils.MultiVersionPackageDiff": "utils/output_templates/multiVersionOutput.txt",
