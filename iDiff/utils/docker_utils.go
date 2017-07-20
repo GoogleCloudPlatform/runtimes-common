@@ -18,8 +18,14 @@ import (
 	"github.com/golang/glog"
 )
 
+var eng bool
+
+func SetDockerEngine(useDocker bool) {
+	eng = useDocker
+}
+
 // ValidDockerVersion determines if there is a Docker client of the necessary version locally installed.
-func ValidDockerVersion(eng bool) (bool, error) {
+func ValidDockerVersion() (bool, error) {
 	_, err := client.NewEnvClient()
 	if err != nil {
 		return false, fmt.Errorf("Docker client error: %s", err)
@@ -211,8 +217,8 @@ func imageToTarCmd(imageID, imageName string) (string, error) {
 	return imageTarPath, nil
 }
 
-func getHistoryList(image string, eng bool) ([]string, error) {
-	validDocker, err := ValidDockerVersion(eng)
+func getHistoryList(image string) ([]string, error) {
+	validDocker, err := ValidDockerVersion()
 	if err != nil {
 		return []string{}, err
 	}

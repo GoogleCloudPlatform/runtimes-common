@@ -7,10 +7,9 @@ import (
 )
 
 type DiffRequest struct {
-	Image1    utils.Image
-	Image2    utils.Image
-	DiffType  Differ
-	UseDocker bool
+	Image1   utils.Image
+	Image2   utils.Image
+	DiffType Differ
 }
 
 type DiffResult interface {
@@ -19,7 +18,7 @@ type DiffResult interface {
 }
 
 type Differ interface {
-	Diff(image1, image2 utils.Image, eng bool) (DiffResult, error)
+	Diff(image1, image2 utils.Image) (DiffResult, error)
 }
 
 var diffs = map[string]Differ{
@@ -36,8 +35,7 @@ func (diff DiffRequest) GetDiff() (DiffResult, error) {
 	img1 := diff.Image1
 	img2 := diff.Image2
 	differ := diff.DiffType
-	eng := diff.UseDocker
-	return differ.Diff(img1, img2, eng)
+	return differ.Diff(img1, img2)
 }
 
 func GetDiffer(diffName string) (differ Differ, err error) {

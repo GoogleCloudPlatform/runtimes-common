@@ -6,7 +6,6 @@ import (
 	goflag "flag"
 	"fmt"
 	"os"
-	"reflect"
 	"regexp"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/differs"
@@ -19,54 +18,40 @@ import (
 var json bool
 var eng bool
 
-var outputterMap = map[string]string {
-	"json":	"OutputJSON",
-}
-
-var outputMap = map[string]*bool {
-	"json": &json,
-}
-
 var RootCmd = &cobra.Command{
 	Use:   "[differ] [image1] [image2]",
 	Short: "Compare two images.",
 	Long:  `Compares two images using the specifed differ (see iDiff documentation for available differs).`,
-	Run: func(cmd *cobra.Command, args []string) {		
-		if validArgs, err := validateArgs(args[1:]); !validArgs {
+	Run: func(cmd *cobra.Command, args []string) {
+		if validArgs, err := validateArgs(args); !validArgs {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		image1, err := utils.ImagePrepper{args[2], eng}.GetImage()
+		utils.SetDockerEngine(eng)
+		image1, err := utils.ImagePrepper{args[1]}.GetImage()
 		if err != nil {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		image2, err := utils.ImagePrepper{args[3], eng}.GetImage()
+		image2, err := utils.ImagePrepper{args[2]}.GetImage()
 		if err != nil {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		differ, err := differs.GetDiffer(args[1])
+		differ, err := differs.GetDiffer(args[0])
 		if err != nil {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
 
-		diff := differs.DiffRequest{image1, image2, differ, eng}
+		diff := differs.DiffRequest{image1, image2, differ}
 		if diff, err := diff.GetDiff(); err == nil {
-			specificOutput := false
-			for outputType, outputter := range outputterMap {
-				if *outputMap[outputType] {
-					errVal := reflect.ValueOf(diff).MethodByName(outputter).Call(nil)[0]
-					var nilerror = error(nil)
-					if errVal != reflect.ValueOf(&nilerror).Elem() {
-						glog.Error(errVal)
-					}
-					specificOutput = true
-					break
-				}		
-			}
-			if !specificOutput {
+			if json {
+				err = diff.OutputJSON()
+				if err != nil {
+					glog.Error(err)
+				}
+			} else {
 				err = diff.OutputText()
 				if err != nil {
 					glog.Error(err)

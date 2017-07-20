@@ -15,7 +15,7 @@ type NodeDiffer struct {
 }
 
 // NodeDiff compares the packages installed by apt-get.
-func (d NodeDiffer) Diff(image1, image2 utils.Image, eng bool) (DiffResult, error) {
+func (d NodeDiffer) Diff(image1, image2 utils.Image) (DiffResult, error) {
 	img1 := image1.FSPath
 	img2 := image2.FSPath
 

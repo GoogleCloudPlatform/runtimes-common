@@ -10,16 +10,16 @@ import (
 	"github.com/golang/glog"
 )
 
-var sourceToPrepMap = map[string]Prepper {
-	"ID":	IDPrepper{},
-	"URL": 	CloudPrepper{},
-	"tar": 	TarPrepper{},
+var sourceToPrepMap = map[string]Prepper{
+	"ID":  IDPrepper{},
+	"URL": CloudPrepper{},
+	"tar": TarPrepper{},
 }
 
-var sourceCheckMap = map[string]func(string) bool {
-	"ID":	CheckImageID,
-	"URL":	CheckImageURL,
-	"tar":	CheckTar, 
+var sourceCheckMap = map[string]func(string) bool{
+	"ID":  CheckImageID,
+	"URL": CheckImageURL,
+	"tar": CheckTar,
 }
 
 type Image struct {
@@ -30,8 +30,7 @@ type Image struct {
 }
 
 type ImagePrepper struct {
-	Source    string
-	UseDocker bool
+	Source string
 }
 
 type Prepper interface {
@@ -59,7 +58,7 @@ func (p ImagePrepper) GetImage() (Image, error) {
 		return Image{}, err
 	}
 
-	history, err := getHistoryList(p.Source, p.UseDocker)
+	history, err := getHistoryList(p.Source)
 	if err != nil {
 		return Image{}, err
 	}
@@ -87,7 +86,7 @@ type CloudPrepper struct {
 
 func (p CloudPrepper) ImageToFS() (string, error) {
 	// check client compatibility with Docker API
-	valid, err := ValidDockerVersion(p.UseDocker)
+	valid, err := ValidDockerVersion()
 	if err != nil {
 		return "", err
 	}
@@ -120,7 +119,7 @@ type IDPrepper struct {
 
 func (p IDPrepper) ImageToFS() (string, error) {
 	// check client compatibility with Docker API
-	valid, err := ValidDockerVersion(p.UseDocker)
+	valid, err := ValidDockerVersion()
 	if err != nil {
 		return "", err
 	}

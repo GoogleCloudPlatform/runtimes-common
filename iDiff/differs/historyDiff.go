@@ -7,8 +7,8 @@ import (
 type HistoryDiffer struct {
 }
 
-func (d HistoryDiffer) Diff(image1, image2 utils.Image, eng bool) (DiffResult, error) {
-	diff, err := getHistoryDiff(image1, image2, eng)
+func (d HistoryDiffer) Diff(image1, image2 utils.Image) (DiffResult, error) {
+	diff, err := getHistoryDiff(image1, image2)
 	return &HistDiffResult{Diff: diff}, err
 }
 
@@ -31,7 +31,7 @@ func (m *HistDiffResult) OutputText() error {
 	return utils.TemplateOutput(m.Diff)
 }
 
-func getHistoryDiff(image1, image2 utils.Image, eng bool) (HistDiff, error) {
+func getHistoryDiff(image1, image2 utils.Image) (HistDiff, error) {
 	history1 := image1.History
 	history2 := image2.History
 
