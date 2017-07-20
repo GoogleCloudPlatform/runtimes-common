@@ -1,13 +1,13 @@
 {
-  "Image1": "gcr.io/colette-sandbox/diff-base",
-  "Image2": "gcr.io/colette-sandbox/diff-modified",
-  "Adds": [
+  "Image1": "gcr.io/gcp-runtimes/diff-base",
+  "Image2": "gcr.io/gcp-runtimes/diff-modified",
+  "Adds": [],
+  "Dels": [
     "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/VERSION",
     "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/json",
     "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/layer",
     "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/layer/home",
     "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/layer/home/test"
   ],
-  "Dels": [],
   "Mods": null
 }

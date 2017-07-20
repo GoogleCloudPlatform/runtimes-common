@@ -1,5 +1,5 @@
 {
-  "Image1": "linux-base",
+  "Image1": "apt-base",
   "Packages1": {
     "dh-python": {
       "Version": "2.20170125",
@@ -38,7 +38,7 @@
       "Size": "9411"
     }
   },
-  "Image2": "linux-modified",
+  "Image2": "apt-modified",
   "Packages2": {
     "libffi6": {
       "Version": "3.2.1-6",

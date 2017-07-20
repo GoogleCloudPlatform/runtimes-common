@@ -1,7 +1,7 @@
 {
-  "Image1": "python-base",
+  "Image1": "pip-base",
   "Packages1": {},
-  "Image2": "python-modified",
+  "Image2": "pip-modified",
   "Packages2": {
     "mock": {
       "Version": "2.0.0",
