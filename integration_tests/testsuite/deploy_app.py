@@ -60,17 +60,11 @@ def _record_latency_to_bigquery(deploy_latency, language):
     dataset = client.dataset(DATASET_NAME)
     table = bigquery.Table(name=TABLE_NAME, dataset=dataset)
     table.reload()
-    error = table.insert_data(row)
-    return error
+    return table.insert_data(row)
 
 
-def deploy_app(
-        base_image,
-        builder_image,
-        appdir,
-        yaml,
-        record_latency,
-        language):
+def deploy_app(base_image, builder_image, appdir,
+               yaml, record_latency, language):
     try:
         if yaml:
             # convert yaml to absolute path before changing directory
@@ -98,7 +92,7 @@ def deploy_app(
         start_time = time.time()
         subprocess.check_output(deploy_command)
 
-        # Latency is in seocnds round up to 2 decimals
+        # Latency is in seconds round up to 2 decimals
         deploy_latency = round(time.time() - start_time, 2)
 
         # Store the deploy latency data to bigquery
