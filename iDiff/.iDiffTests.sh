@@ -2,7 +2,7 @@
 while read -r differ image1 image2 file; do
   go run iDiff/main.go iDiff $differ $image1 $image2 -j > $file
   if [[ $? -ne 0 ]]; then
-    echo "iDiff" $differ "differ failed"
+    echo "iDiff" "$differ" "differ failed"
     exit 1
   fi
 done < iDiff/tests/differ_runs.txt
@@ -20,9 +20,9 @@ fi
 
 while read -r differ actual expected; do
   success=0
-  diff=$(diff $actual $expected)
+  diff=$(diff "$actual" "$expected")
   if [[ -n "$diff" ]]; then
-    echo "iDiff" $differ "diff output is not as expected"
+    echo "iDiff" "$differ" "diff output is not as expected"
     echo $diff
     success=1
   fi
