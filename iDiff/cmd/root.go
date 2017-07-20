@@ -6,6 +6,7 @@ import (
 	goflag "flag"
 	"fmt"
 	"os"
+	"reflect"
 	"regexp"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/differs"
@@ -18,11 +19,19 @@ import (
 var json bool
 var eng bool
 
+var outputterMap = map[string]string {
+	"json":	"OutputJSON",
+}
+
+var outputMap = map[string]*bool {
+	"json": &json,
+}
+
 var RootCmd = &cobra.Command{
 	Use:   "[differ] [image1] [image2]",
 	Short: "Compare two images.",
 	Long:  `Compares two images using the specifed differ (see iDiff documentation for available differs).`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(cmd *cobra.Command, args []string) {		
 		if validArgs, err := validateArgs(args[1:]); !validArgs {
 			glog.Error(err.Error())
 			os.Exit(1)
@@ -45,12 +54,19 @@ var RootCmd = &cobra.Command{
 
 		diff := differs.DiffRequest{image1, image2, differ, eng}
 		if diff, err := diff.GetDiff(); err == nil {
-			if json {
-				err = diff.OutputJSON()
-				if err != nil {
-					glog.Error(err)
-				}
-			} else {
+			specificOutput := false
+			for outputType, outputter := range outputterMap {
+				if *outputMap[outputType] {
+					errVal := reflect.ValueOf(diff).MethodByName(outputter).Call(nil)[0]
+					var nilerror = error(nil)
+					if errVal != reflect.ValueOf(&nilerror).Elem() {
+						glog.Error(errVal)
+					}
+					specificOutput = true
+					break
+				}		
+			}
+			if !specificOutput {
 				err = diff.OutputText()
 				if err != nil {
 					glog.Error(err)

@@ -4,10 +4,23 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/golang/glog"
 )
+
+var sourceToPrepMap = map[string]Prepper {
+	"ID":	IDPrepper{},
+	"URL": 	CloudPrepper{},
+	"tar": 	TarPrepper{},
+}
+
+var sourceCheckMap = map[string]func(string) bool {
+	"ID":	CheckImageID,
+	"URL":	CheckImageURL,
+	"tar":	CheckTar, 
+}
 
 type Image struct {
 	Source  string
@@ -29,13 +42,15 @@ func (p ImagePrepper) GetImage() (Image, error) {
 	img := p.Source
 
 	var prepper Prepper
-	if CheckImageID(img) {
-		prepper = IDPrepper{p}
-	} else if CheckImageURL(img) {
-		prepper = CloudPrepper{p}
-	} else if CheckTar(img) {
-		prepper = TarPrepper{p}
-	} else {
+	for source, check := range sourceCheckMap {
+		if check(img) {
+			typePrepper := reflect.TypeOf(sourceToPrepMap[source])
+			prepper = reflect.New(typePrepper).Interface().(Prepper)
+			reflect.ValueOf(prepper).Elem().Field(0).Set(reflect.ValueOf(p))
+			break
+		}
+	}
+	if prepper == nil {
 		return Image{}, errors.New("Could not retrieve image from source")
 	}
 
