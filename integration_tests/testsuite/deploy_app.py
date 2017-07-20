@@ -130,4 +130,3 @@ def stop_app(deployed_version):
     except subprocess.CalledProcessError as cpe:
         logging.error('Error encountered when deleting app version! %s',
                       cpe.output)
-
