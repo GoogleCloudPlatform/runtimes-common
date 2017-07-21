@@ -64,7 +64,7 @@ def _record_latency_to_bigquery(deploy_latency, language):
 
 
 def deploy_app(base_image, builder_image, appdir,
-               yaml, record_latency = False, language = None):
+               yaml, record_latency=False, language=None):
     try:
         if yaml:
             # convert yaml to absolute path before changing directory
