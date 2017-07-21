@@ -27,35 +27,44 @@ var RootCmd = &cobra.Command{
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
+
 		utils.SetDockerEngine(eng)
-		image1, err := utils.ImagePrepper{args[1]}.GetImage()
+
+		img1Arg := args[len(args)-2]
+		img2Arg := args[len(args)-1]
+		diffArgs := args[:len(args)-2]
+
+		image1, err := utils.ImagePrepper{img1Arg}.GetImage()
 		if err != nil {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		image2, err := utils.ImagePrepper{args[2]}.GetImage()
+		image2, err := utils.ImagePrepper{img2Arg}.GetImage()
 		if err != nil {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		differ, err := differs.GetDiffer(args[0])
+		diffTypes, err := differs.GetDiffers(diffArgs)
 		if err != nil {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
 
-		diff := differs.DiffRequest{image1, image2, differ}
-		if diff, err := diff.GetDiff(); err == nil {
-			if json {
-				err = diff.OutputJSON()
-				if err != nil {
-					glog.Error(err)
+		req := differs.DiffRequest{image1, image2, diffTypes}
+		if diffs, err := req.GetDiff(); err == nil {
+			for _, diff := range diffs {
+				if json {
+					err = diff.OutputJSON()
+					if err != nil {
+						glog.Error(err)
+					}
+				} else {
+					err = diff.OutputText()
+					if err != nil {
+						glog.Error(err)
+					}
 				}
-			} else {
-				err = diff.OutputText()
-				if err != nil {
-					glog.Error(err)
-				}
+				fmt.Println()
 			}
 
 			errMsg := remove(image1.FSPath, true)
@@ -91,9 +100,6 @@ func checkArgNum(args []string) (bool, error) {
 	if len(args) < 3 {
 		errMessage = "Too few arguments. Should have three: [DIFFER] [IMAGE] [IMAGE]."
 		return false, errors.New(errMessage)
-	} else if len(args) > 3 {
-		errMessage = "Too many arguments. Should have three: [DIFFER] [IMAGE] [IMAGE]."
-		return false, errors.New(errMessage)
 	} else {
 		return true, nil
 	}
@@ -121,12 +127,12 @@ func checkArgType(args []string) (bool, error) {
 		valid = false
 		buffer.WriteString("Please provide a differ name as the first argument")
 	}
-	if !checkImage(args[1]) {
+	if !checkImage(args[len(args)-2]) {
 		valid = false
 		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[1])
 		buffer.WriteString(errMessage)
 	}
-	if !checkImage(args[2]) {
+	if !checkImage(args[len(args)-1]) {
 		valid = false
 		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[2])
 		buffer.WriteString(errMessage)
