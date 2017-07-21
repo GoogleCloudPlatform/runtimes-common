@@ -1,6 +1,6 @@
 {
-  "Image1": "gcr.io/gcp-runtimes/diff-base",
-  "Image2": "gcr.io/gcp-runtimes/diff-modified",
+  "Image1": "diff-base",
+  "Image2": "diff-modified",
   "Adds": [],
   "Dels": [
     "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/VERSION",
