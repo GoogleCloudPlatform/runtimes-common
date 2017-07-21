@@ -19,16 +19,50 @@ var json bool
 var eng bool
 
 var RootCmd = &cobra.Command{
-	Use:   "[differ] [container1] [container2]",
+	Use:   "[differ] [image1] [image2]",
 	Short: "Compare two images.",
 	Long:  `Compares two images using the specifed differ (see iDiff documentation for available differs).`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if validArgs, err := validateArgs(args[1:]); !validArgs {
+		if validArgs, err := validateArgs(args); !validArgs {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		if diff, err := differs.Diff(args[2], args[3], args[1], json, eng); err == nil {
-			fmt.Println(diff)
+		utils.SetDockerEngine(eng)
+		image1, err := utils.ImagePrepper{args[1]}.GetImage()
+		if err != nil {
+			glog.Error(err.Error())
+			os.Exit(1)
+		}
+		image2, err := utils.ImagePrepper{args[2]}.GetImage()
+		if err != nil {
+			glog.Error(err.Error())
+			os.Exit(1)
+		}
+		differ, err := differs.GetDiffer(args[0])
+		if err != nil {
+			glog.Error(err.Error())
+			os.Exit(1)
+		}
+
+		diff := differs.DiffRequest{image1, image2, differ}
+		if diff, err := diff.GetDiff(); err == nil {
+			if json {
+				err = diff.OutputJSON()
+				if err != nil {
+					glog.Error(err)
+				}
+			} else {
+				err = diff.OutputText()
+				if err != nil {
+					glog.Error(err)
+				}
+			}
+
+			errMsg := remove(image1.FSPath, true)
+			errMsg += remove(image2.FSPath, true)
+			if errMsg != "" {
+				glog.Error(errMsg)
+			}
 		} else {
 			glog.Error(err.Error())
 			os.Exit(1)
@@ -101,6 +135,24 @@ func checkArgType(args []string) (bool, error) {
 		return false, errors.New(buffer.String())
 	}
 	return true, nil
+}
+
+func remove(path string, dir bool) string {
+	var errStr string
+	if path == "" {
+		return ""
+	}
+
+	var err error
+	if dir {
+		err = os.RemoveAll(path)
+	} else {
+		err = os.Remove(path)
+	}
+	if err != nil {
+		errStr = "\nUnable to remove " + path
+	}
+	return errStr
 }
 
 func init() {

@@ -1,0 +1,20 @@
+These entries have been added to {{.Image1}}
+{{ if not .Adds }}
+	No files have been added
+{{ else }}
+	{{range .Adds}}{{"\t"}}{{print .}}
+	{{end}}{{ end }}
+
+These entries have been deleted from {{.Image1}}
+{{ if not .Dels }}
+	No files have been deleted
+{{ else }}
+	{{range .Dels}}{{"\t"}}{{print .}}
+	{{end}}{{ end }}
+
+These entries have been changed between {{.Image1}} and {{.Image2}}
+{{ if not .Mods }}
+	No files have been modified
+{{ else }}
+	{{range .Mods}}{{"\t"}}{{print .}}
+	{{end}}{{ end }}

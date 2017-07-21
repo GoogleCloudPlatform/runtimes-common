@@ -18,8 +18,14 @@ import (
 	"github.com/golang/glog"
 )
 
+var eng bool
+
+func SetDockerEngine(useDocker bool) {
+	eng = useDocker
+}
+
 // ValidDockerVersion determines if there is a Docker client of the necessary version locally installed.
-func ValidDockerVersion(eng bool) (bool, error) {
+func ValidDockerVersion() (bool, error) {
 	_, err := client.NewEnvClient()
 	if err != nil {
 		return false, fmt.Errorf("Docker client error: %s", err)
@@ -72,7 +78,8 @@ type Event struct {
 	} `json:"progressDetail"`
 }
 
-func pullImageFromRepo(cli client.APIClient, image string) (string, string, error) {
+func pullImageFromRepo(image string) (string, string, error) {
+	cli, err := client.NewEnvClient()
 	response, err := cli.ImagePull(context.Background(), image, types.ImagePullOptions{})
 	if err != nil {
 		return "", "", err
@@ -95,18 +102,12 @@ func pullImageFromRepo(cli client.APIClient, image string) (string, string, erro
 	return processImagePullEvents(image, events)
 }
 
-// GetImageHistory shells out the docker history command and returns a list of history response items.
+// getImageHistory shells out the docker history command and returns a list of history response items.
 // The history response items contain only the Created By information for each event.
-func GetImageHistory(image string) ([]img.HistoryResponseItem, error) {
+func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
 	imageID := image
 	var err error
 	var history []img.HistoryResponseItem
-	if !CheckImageID(image) {
-		imageID, _, err = pullImageCmd(image)
-		if err != nil {
-			return history, err
-		}
-	}
 	histArgs := []string{"history", "--no-trunc", imageID}
 	dockerHistCmd := exec.Command("docker", histArgs...)
 	var response bytes.Buffer
@@ -193,19 +194,7 @@ func pullImageCmd(image string) (string, string, error) {
 	return processPullCmdOutput(image, response)
 }
 
-func imageToTarCmd(image string) (string, error) {
-	imageName := image
-	imageID := image
-	var err error
-	// If not an already existing image ID, assuming URL, have to pull it from a repo before saving it
-	if !CheckImageID(image) {
-		imageID, imageName, err = pullImageCmd(image)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	// Convert the image into a tar
+func imageToTarCmd(imageID, imageName string) (string, error) {
 	cmdArgs := []string{"save", imageID}
 	dockerSaveCmd := exec.Command("docker", cmdArgs...)
 	var out bytes.Buffer
@@ -221,9 +210,40 @@ func imageToTarCmd(image string) (string, error) {
 	}
 	imageTarPath := imageName + ".tar"
 	reader := bytes.NewReader(out.Bytes())
-	err = copyToFile(imageTarPath, reader)
+	err := copyToFile(imageTarPath, reader)
 	if err != nil {
 		return "", err
 	}
 	return imageTarPath, nil
+}
+
+func getHistoryList(image string) ([]string, error) {
+	validDocker, err := ValidDockerVersion()
+	if err != nil {
+		return []string{}, err
+	}
+	var history []img.HistoryResponseItem
+	if validDocker {
+		ctx := context.Background()
+		cli, err := client.NewEnvClient()
+		if err != nil {
+			return []string{}, err
+		}
+		history, err = cli.ImageHistory(ctx, image)
+		if err != nil {
+			return []string{}, err
+		}
+	} else {
+		glog.Info("Docker version incompatible with api, shelling out to local Docker client.")
+		history, err = getImageHistory(image)
+		if err != nil {
+			return []string{}, err
+		}
+	}
+
+	strhistory := make([]string, len(history))
+	for i, layer := range history {
+		strhistory[i] = fmt.Sprintf("%s\n", strings.TrimSpace(layer.CreatedBy))
+	}
+	return strhistory, nil
 }
