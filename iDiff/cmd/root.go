@@ -84,12 +84,12 @@ var RootCmd = &cobra.Command{
 			for _, diffType := range diffTypes {
 				diff := diffs[diffType]
 				if json {
-					err = diff.OutputJSON()
+					err = diff.OutputJSON(diffType)
 					if err != nil {
 						glog.Error(err)
 					}
 				} else {
-					err = diff.OutputText()
+					err = diff.OutputText(diffType)
 					if err != nil {
 						glog.Error(err)
 					}

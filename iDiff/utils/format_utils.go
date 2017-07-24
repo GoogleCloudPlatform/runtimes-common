@@ -12,10 +12,10 @@ import (
 )
 
 var templates = map[string]string{
-	"utils.PackageDiff":             "utils/output_templates/singleVersionOutput.txt",
-	"utils.MultiVersionPackageDiff": "utils/output_templates/multiVersionOutput.txt",
-	"differs.HistDiff":              "utils/output_templates/historyOutput.txt",
-	"utils.DirDiff":                 "utils/output_templates/fsOutput.txt",
+	"utils.PackageDiffResult":             "utils/output_templates/singleVersionOutput.txt",
+	"utils.MultiVersionPackageDiffResult": "utils/output_templates/multiVersionOutput.txt",
+	"utils.HistDiffResult":                "utils/output_templates/historyOutput.txt",
+	"utils.DirDiffResult":                 "utils/output_templates/fsOutput.txt",
 }
 
 func JSONify(diff interface{}) error {
@@ -31,7 +31,6 @@ func JSONify(diff interface{}) error {
 
 func getTemplatePath(diff interface{}) (string, error) {
 	diffType := reflect.TypeOf(diff).String()
-	fmt.Println(diffType)
 	if path, ok := templates[diffType]; ok {
 		return path, nil
 	}

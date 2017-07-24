@@ -7,36 +7,17 @@ import (
 type HistoryDiffer struct {
 }
 
-func (d HistoryDiffer) Diff(image1, image2 utils.Image) (DiffResult, error) {
+func (d HistoryDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 	diff, err := getHistoryDiff(image1, image2)
-	return &HistDiffResult{Diff: diff}, err
+	return &utils.HistDiffResult{DiffType: "History Diff", Diff: diff}, err
 }
 
-type HistDiff struct {
-	Image1 string
-	Image2 string
-	Adds   []string
-	Dels   []string
-}
-
-type HistDiffResult struct {
-	Diff HistDiff
-}
-
-func (m *HistDiffResult) OutputJSON() error {
-	return utils.JSONify(m.Diff)
-}
-
-func (m *HistDiffResult) OutputText() error {
-	return utils.TemplateOutput(m.Diff)
-}
-
-func getHistoryDiff(image1, image2 utils.Image) (HistDiff, error) {
+func getHistoryDiff(image1, image2 utils.Image) (utils.HistDiff, error) {
 	history1 := image1.History
 	history2 := image2.History
 
 	adds := utils.GetAdditions(history1, history2)
 	dels := utils.GetDeletions(history1, history2)
-	diff := HistDiff{image1.Source, image2.Source, adds, dels}
+	diff := utils.HistDiff{image1.Source, image2.Source, adds, dels}
 	return diff, nil
 }

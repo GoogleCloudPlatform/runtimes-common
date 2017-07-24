@@ -13,7 +13,7 @@ type PipDiffer struct {
 }
 
 // PipDiff compares pip-installed Python packages between layers of two different images.
-func (d PipDiffer) Diff(image1, image2 utils.Image) (DiffResult, error) {
+func (d PipDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 	img1 := image1.FSPath
 	img2 := image2.FSPath
 
@@ -21,6 +21,7 @@ func (d PipDiffer) Diff(image1, image2 utils.Image) (DiffResult, error) {
 	pack2 := getPythonPackages(img2)
 
 	diff := utils.GetMapDiff(pack1, pack2, img1, img2)
+	diff.DiffType = "Pip Diff"
 	return &diff, nil
 }
 

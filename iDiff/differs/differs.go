@@ -15,13 +15,8 @@ type DiffRequest struct {
 	DiffTypes []Differ
 }
 
-type DiffResult interface {
-	OutputJSON() error
-	OutputText() error
-}
-
 type Differ interface {
-	Diff(image1, image2 utils.Image) (DiffResult, error)
+	Diff(image1, image2 utils.Image) (utils.DiffResult, error)
 }
 
 var diffs = map[string]Differ{
@@ -34,12 +29,12 @@ var diffs = map[string]Differ{
 	"node":    NodeDiffer{},
 }
 
-func (diff DiffRequest) GetDiff() (map[string]DiffResult, error) {
+func (diff DiffRequest) GetDiff() (map[string]utils.DiffResult, error) {
 	img1 := diff.Image1
 	img2 := diff.Image2
 	diffs := diff.DiffTypes
 
-	results := map[string]DiffResult{}
+	results := map[string]utils.DiffResult{}
 	for _, differ := range diffs {
 		differName := reflect.TypeOf(differ).Name()
 		if diff, err := differ.Diff(img1, img2); err == nil {

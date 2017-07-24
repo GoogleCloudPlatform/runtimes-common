@@ -102,6 +102,13 @@ func pullImageFromRepo(image string) (string, string, error) {
 	return processImagePullEvents(image, events)
 }
 
+type HistDiff struct {
+	Image1 string
+	Image2 string
+	Adds   []string
+	Dels   []string
+}
+
 // getImageHistory shells out the docker history command and returns a list of history response items.
 // The history response items contain only the Created By information for each event.
 func getImageHistory(image string) ([]img.HistoryResponseItem, error) {

@@ -7,8 +7,9 @@ def _process_test_diff(file_path):
     with open(file_path) as f:
         diff = json.load(f)
 
-    diff["Adds"] = _trim_file_names(diff["Adds"])
-    diff["Dels"] = _trim_file_names(diff["Dels"])
+    diff_result = diff["Diff"]
+    diff_result["Adds"] = _trim_file_names(diff_result["Adds"])
+    diff_result["Dels"] = _trim_file_names(diff_result["Dels"])
 
     with open(file_path, 'w') as f:
         json.dump(diff, f, indent=4)
