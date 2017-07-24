@@ -3,36 +3,50 @@ package differs
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
-
+	"github.com/docker/docker/api/types/image"
 	"github.com/docker/docker/client"
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 )
 
 // History compares the Docker history for each image.
-func History(img1, img2 string, json bool) (string, error) {
-	return getHistoryDiff(img1, img2, json)
+
+func HistoryDiff(img1, img2 string, json bool, eng bool) (string, error) {
+	return getHistoryDiff(img1, img2, json, eng)
 }
 
-func getHistoryList(image string) ([]string, error) {
-	ctx := context.Background()
-	cli, err := client.NewEnvClient()
+func getHistoryList(img string, eng bool) ([]string, error) {
+	validDocker, err := utils.ValidDockerVersion(eng)
 	if err != nil {
 		return []string{}, err
 	}
-	history, err := cli.ImageHistory(ctx, image)
-	if err != nil {
-		return []string{}, err
+	var history []image.HistoryResponseItem
+	if validDocker {
+		ctx := context.Background()
+		cli, err := client.NewEnvClient()
+		if err != nil {
+			return []string{}, err
+		}
+		history, err = cli.ImageHistory(ctx, img)
+		if err != nil {
+			return []string{}, err
+		}
+	} else {
+		glog.Info("Docker version incompatible with api, shelling out to local Docker client.")
+		history, err = utils.GetImageHistory(img)
+		if err != nil {
+			return []string{}, err
+		}
 	}
 
 	strhistory := make([]string, len(history))
 	for i, layer := range history {
-		layer_description := strings.TrimSpace(layer.CreatedBy)
-		strhistory[i] = fmt.Sprintf("%s\n", layer_description)
+		layerDescription := strings.TrimSpace(layer.CreatedBy)
+		strhistory[i] = fmt.Sprintf("%s\n", layerDescription)
 	}
 	return strhistory, nil
 }
@@ -44,12 +58,12 @@ type HistDiff struct {
 	Dels   []string
 }
 
-func getHistoryDiff(image1 string, image2 string, json bool) (string, error) {
-	history1, err := getHistoryList(image1)
+func getHistoryDiff(image1, image2 string, json bool, eng bool) (string, error) {
+	history1, err := getHistoryList(image1, eng)
 	if err != nil {
 		return "", err
 	}
-	history2, err := getHistoryList(image2)
+	history2, err := getHistoryList(image2, eng)
 	if err != nil {
 		return "", err
 	}
@@ -71,10 +85,10 @@ Docker file lines found only in {{.Image2}}:{{block "list2" .Dels}}{{"\n"}}{{ran
 
 	histTemplate, err := template.New("histTemp").Funcs(funcs).Parse(histTemp)
 	if err != nil {
-		log.Fatal(err)
+		glog.Error(err)
 	}
 	if err := histTemplate.Execute(os.Stdout, diff); err != nil {
-		log.Fatal(err)
+		glog.Error(err)
 	}
 	return ""
 }

@@ -2,8 +2,6 @@ package differs
 
 import (
 	"bufio"
-	"html/template"
-	"log"
 	"os"
 	"strings"
 
@@ -11,56 +9,25 @@ import (
 	"github.com/golang/glog"
 )
 
-func output(diff utils.PackageDiff) error {
-	const master = `Packages found only in {{.Image1}}:{{range $name, $value := .Packages1}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
-Packages found only in {{.Image2}}:{{range $name, $value := .Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{"\t"}}{{$value}}{{end}}
-Version differences:{{"\n"}}	(Package:	{{.Image1}}{{"\t\t"}}{{.Image2}}){{range .InfoDiff}}
-	{{.Package}}:	{{.Info1.Version}}	{{.Info2.Version}}
-	{{end}}`
-
-	funcs := template.FuncMap{"join": strings.Join}
-
-	masterTmpl, err := template.New("master").Funcs(funcs).Parse(master)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := masterTmpl.Execute(os.Stdout, diff); err != nil {
-		log.Fatal(err)
-	}
-	return nil
-}
-
 // AptDiff compares the packages installed by apt-get.
-func AptDiff(d1file, d2file string, json bool) (string, error) {
-	d1, err := utils.GetDirectory(d1file)
+func AptDiff(img1, img2 string, json bool, eng bool) (string, error) {
+	pack1, err := getPackages(img1)
 	if err != nil {
-		glog.Errorf("Error reading directory structure from file %s: %s\n", d1file, err)
 		return "", err
 	}
-	d2, err := utils.GetDirectory(d2file)
+	pack2, err := getPackages(img2)
 	if err != nil {
-		glog.Errorf("Error reading directory structure from file %s: %s\n", d2file, err)
 		return "", err
 	}
 
-	dirPath1 := d1.Root
-	dirPath2 := d2.Root
-	pack1, err := getPackages(dirPath1)
-	if err != nil {
-		return "", err
-	}
-	pack2, err := getPackages(dirPath2)
-	if err != nil {
-		return "", err
-	}
-	diff := utils.DiffMaps(pack1, pack2)
-	diff.Image1 = dirPath1
-	diff.Image2 = dirPath2
+	diff := utils.GetMapDiff(pack1, pack2)
+	diff.Image1 = img1
+	diff.Image2 = img2
+
 	if json {
 		return utils.JSONify(diff)
 	}
-	output(diff)
+	utils.Output(diff)
 	return "", nil
 }
 

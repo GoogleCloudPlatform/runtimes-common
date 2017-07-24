@@ -30,6 +30,8 @@ requests.packages.urllib3.disable_warnings()
 
 LOGNAME_LENGTH = 16
 
+LOGGING_PREFIX = 'GCP_INTEGRATION_TEST_'
+
 DEFAULT_TIMEOUT = 30  # seconds
 
 ROOT_ENDPOINT = '/'
@@ -72,7 +74,7 @@ def generate_logging_payloads():
     for s in SEVERITIES:
         payloads.append({
             'log_name': _generate_name(),
-            'token': _generate_hex_token(),
+            'token': LOGGING_PREFIX + _generate_hex_token(),
             'level': s
             })
     return payloads
