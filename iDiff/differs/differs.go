@@ -45,7 +45,7 @@ func (diff DiffRequest) GetDiff() (map[string]DiffResult, error) {
 		if diff, err := differ.Diff(img1, img2); err == nil {
 			results[differName] = diff
 		} else {
-			glog.Errorf("Error getting diff with %s", differName)
+			glog.Errorf("Error getting diff with %s: %s", differName, err)
 		}
 	}
 
