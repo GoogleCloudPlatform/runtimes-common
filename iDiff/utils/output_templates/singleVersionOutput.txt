@@ -2,7 +2,7 @@
 
 Packages found only in {{.Diff.Image1}}:{{ if not .Diff.Packages1 }} No unique packages in Image1{{ else }}{{range $name, $value := .Diff.Packages1}}{{"\n"}}{{print "-"}}{{$name}}	{{$value.Version}}	{{$value.Size}}{{end}}{{ end }}
 
-Packages found only in {{.Diff.Image2}}:{{ if not .Diff.Packages1 }} No unique packages in Image2{{ else }}{{range $name, $value := .Diff.Packages2}}{{"\n"}}{{print "-"}}{{$name}}	{{$value.Version}}	{{$value.Size}}{{end}}{{ end }}
+Packages found only in {{.Diff.Image2}}:{{ if not .Diff.Packages2 }} No unique packages in Image2{{ else }}{{range $name, $value := .Diff.Packages2}}{{"\n"}}{{print "-"}}{{$name}}	{{$value.Version}}	{{$value.Size}}{{end}}{{ end }}
 
 Version differences:{{ if not .Diff.InfoDiff }} No version differences{{ else }}
 	(Package:	{{.Diff.Image1}}	{{.Diff.Image2}}){{range .Diff.InfoDiff}}
