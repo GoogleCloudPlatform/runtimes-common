@@ -11,29 +11,28 @@ import (
 	"github.com/golang/glog"
 )
 
+type NodeDiffer struct {
+}
+
 // NodeDiff compares the packages installed by apt-get.
-// TODO: Move this code to a place so that it isn't repeated within each specific differ.
-func NodeDiff(img1, img2 string, json bool, eng bool) (string, error) {
+func (d NodeDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
+	img1 := image1.FSPath
+	img2 := image2.FSPath
+
 	pack1, err := getNodePackages(img1)
 	if err != nil {
 		glog.Errorf("Error reading packages from directory %s: %s\n", img1, err)
-		return "", err
+		return &utils.MultiVersionPackageDiffResult{}, err
 	}
 	pack2, err := getNodePackages(img2)
 	if err != nil {
 		glog.Errorf("Error reading packages from directory %s: %s\n", img2, err)
-		return "", err
+		return &utils.MultiVersionPackageDiffResult{}, err
 	}
 
-	diff := utils.GetMultiVersionMapDiff(pack1, pack2)
-	diff.Image1 = img1
-	diff.Image2 = img2
-
-	if json {
-		return utils.JSONify(diff)
-	}
-	utils.OutputMulti(diff)
-	return "", nil
+	diff := utils.GetMultiVersionMapDiff(pack1, pack2, img1, img2)
+	diff.DiffType = "Node Diff"
+	return &diff, nil
 }
 
 func buildNodePaths(path string) ([]string, error) {

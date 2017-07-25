@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/system"
@@ -29,62 +28,17 @@ func GetImageLayers(pathToImage string) []string {
 	return layers
 }
 
-func saveImageToTar(image string) (string, error) {
+func saveImageToTar(image, dest string) (string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		return "", err
 	}
 
-	fromImage := image
-	toTar := image
-	// If not an already existing image ID, have to pull it from a repo before saving it
-	if !CheckImageID(image) {
-		imageID, imageName, err := pullImageFromRepo(cli, image)
-		if err != nil {
-			return "", err
-		}
-		fromImage = imageID
-		toTar = imageName
-	}
-	// Convert the image into a tar
-	imageTarPath, err := ImageToTar(cli, fromImage, toTar)
+	imageTarPath, err := ImageToTar(cli, image, dest)
 	if err != nil {
 		return "", err
 	}
 	return imageTarPath, nil
-}
-
-// ImageToFS converts an image to an unpacked tar of the image filesystem.
-func ImageToFS(img string, eng bool) (string, error) {
-	var tarName string
-	if !CheckTar(img) {
-		// If not an image tar already existing in the filesystem, create client to obtain image
-		// check client compatibility with Docker API
-		valid, err := ValidDockerVersion(eng)
-		if err != nil {
-			return "", err
-		}
-		var imageTar string
-		if !valid {
-			glog.Info("Docker version incompatible with api, shelling out to local Docker client.")
-			imageTar, err = imageToTarCmd(img)
-		} else {
-			imageTar, err = saveImageToTar(img)
-		}
-		if err != nil {
-			return "", err
-		}
-		tarName = imageTar
-	} else {
-		tarName = img
-	}
-	err := ExtractTar(tarName)
-	if err != nil {
-		return "", err
-	}
-	path := strings.TrimSuffix(tarName, filepath.Ext(tarName))
-	defer os.Remove(tarName)
-	return path, nil
 }
 
 // ImageToTar writes an image to a .tar file

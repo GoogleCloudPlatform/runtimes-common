@@ -42,3 +42,20 @@ func TestCheckImageTar(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckImageURL(t *testing.T) {
+	for _, test := range []imageTestPair{
+		{input: "123456789012", expectedOutput: false},
+		{input: "gcr.io/repo/image", expectedOutput: true},
+		{input: "testTars/la-croix1.tar", expectedOutput: false},
+	} {
+		output := CheckImageURL(test.input)
+		if output != test.expectedOutput {
+			if test.expectedOutput {
+				t.Errorf("Expected input to be a tar file but %s tested false", test.input)
+			} else {
+				t.Errorf("Didn't expect input to be a tar file but %s tested true", test.input)
+			}
+		}
+	}
+}

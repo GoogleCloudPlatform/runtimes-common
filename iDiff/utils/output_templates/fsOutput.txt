@@ -1,0 +1,20 @@
+These entries have been added to {{.Diff.Image1}}
+{{ if not .Diff.Adds }}
+	No files have been added
+{{ else }}
+	{{range .Diff.Adds}}{{print .}}
+	{{end}}{{ end }}
+
+These entries have been deleted from {{.Diff.Image1}}
+{{ if not .Diff.Dels }}
+	No files have been deleted
+{{ else }}
+	{{range .Diff.Dels}}{{print .}}
+	{{end}}{{ end }}
+
+These entries have been changed between {{.Diff.Image1}} and {{.Diff.Image2}}
+{{ if not .Diff.Mods }}
+	No files have been modified
+{{ else }}
+	{{range .Diff.Mods}}{{print .}}
+	{{end}}{{ end }}

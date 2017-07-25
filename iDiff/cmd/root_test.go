@@ -12,17 +12,16 @@ type testpair struct {
 var argNumTests = []testpair{
 	{[]string{}, false},
 	{[]string{"one"}, false},
-	{[]string{"one", "two"}, false},
-	{[]string{"one", "two", "three"}, true},
-	{[]string{"one", "two", "three", "four"}, false},
+	{[]string{"one", "two"}, true},
+	{[]string{"one", "two", "three"}, false},
 }
 
 var argTypeTests = []testpair{
-	{[]string{"differ", "badID", "badID"}, false},
-	{[]string{"differ", "123456789012", "badID"}, false},
-	{[]string{"123456789012", "123456789012", "123456789012"}, false},
-	{[]string{"?!badDiffer71", "123456789012", "123456789012"}, false},
-	{[]string{"differ", "123456789012", "123456789012"}, true},
+	{[]string{"badID", "badID"}, false},
+	{[]string{"123456789012", "badID"}, false},
+	{[]string{"123456789012", "123456789012"}, true},
+	{[]string{"?!badDiffer71", "123456789012"}, false},
+	{[]string{"123456789012", "gcr.io/repo/image"}, true},
 }
 
 func TestArgNum(t *testing.T) {

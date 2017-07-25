@@ -6,7 +6,7 @@ import (
 	goflag "flag"
 	"fmt"
 	"os"
-	"regexp"
+	"sort"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/differs"
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
@@ -18,22 +18,103 @@ import (
 var json bool
 var eng bool
 
+var apt bool
+var node bool
+var file bool
+var history bool
+var pip bool
+
+var diffFlagMap = map[string]*bool{
+	"apt":     &apt,
+	"node":    &node,
+	"file":    &file,
+	"history": &history,
+	"pip":     &pip,
+}
+
 var RootCmd = &cobra.Command{
-	Use:   "[differ] [container1] [container2]",
+	Use:   "[image1] [image2]",
 	Short: "Compare two images.",
-	Long:  `Compares two images using the specifed differ (see iDiff documentation for available differs).`,
+	Long:  `Compares two images using the specifed differs as indicated via flags (see iDiff documentation for available differs).`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if validArgs, err := validateArgs(args[1:]); !validArgs {
+		if validArgs, err := validateArgs(args); !validArgs {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
-		if diff, err := differs.Diff(args[2], args[3], args[1], json, eng); err == nil {
-			fmt.Println(diff)
+
+		utils.SetDockerEngine(eng)
+
+		img1Arg := args[0]
+		img2Arg := args[1]
+		diffArgs := []string{}
+		allDiffers := getAllDiffers()
+		for _, name := range allDiffers {
+			if *diffFlagMap[name] == true {
+				diffArgs = append(diffArgs, name)
+			}
+		}
+		// If no differs are specified, perform all diffs as the default
+		if len(diffArgs) == 0 {
+			diffArgs = allDiffers
+		}
+
+		image1, err := utils.ImagePrepper{img1Arg}.GetImage()
+		if err != nil {
+			glog.Error(err.Error())
+			os.Exit(1)
+		}
+		image2, err := utils.ImagePrepper{img2Arg}.GetImage()
+		if err != nil {
+			glog.Error(err.Error())
+			os.Exit(1)
+		}
+		diffTypes, err := differs.GetDiffers(diffArgs)
+		if err != nil {
+			glog.Error(err.Error())
+			os.Exit(1)
+		}
+
+		req := differs.DiffRequest{image1, image2, diffTypes}
+		if diffs, err := req.GetDiff(); err == nil {
+			diffTypes := []string{}
+			for name := range diffs {
+				diffTypes = append(diffTypes, name)
+			}
+			sort.Strings(diffTypes)
+			for _, diffType := range diffTypes {
+				diff := diffs[diffType]
+				if json {
+					err = diff.OutputJSON(diffType)
+					if err != nil {
+						glog.Error(err)
+					}
+				} else {
+					err = diff.OutputText(diffType)
+					if err != nil {
+						glog.Error(err)
+					}
+				}
+				fmt.Println()
+			}
+
+			errMsg := remove(image1.FSPath, true)
+			errMsg += remove(image2.FSPath, true)
+			if errMsg != "" {
+				glog.Error(errMsg)
+			}
 		} else {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
 	},
+}
+
+func getAllDiffers() []string {
+	allDiffers := []string{}
+	for name := range diffFlagMap {
+		allDiffers = append(allDiffers, name)
+	}
+	return allDiffers
 }
 
 func validateArgs(args []string) (bool, error) {
@@ -54,11 +135,11 @@ func validateArgs(args []string) (bool, error) {
 
 func checkArgNum(args []string) (bool, error) {
 	var errMessage string
-	if len(args) < 3 {
-		errMessage = "Too few arguments. Should have three: [DIFFER] [IMAGE] [IMAGE]."
+	if len(args) < 2 {
+		errMessage = "Too few arguments. Should have two images as arguments: [IMAGE1] [IMAGE2]."
 		return false, errors.New(errMessage)
-	} else if len(args) > 3 {
-		errMessage = "Too many arguments. Should have three: [DIFFER] [IMAGE] [IMAGE]."
+	} else if len(args) > 2 {
+		errMessage = "Too many arguments. Should have two images as arguments: [IMAGE1] [IMAGE2]."
 		return false, errors.New(errMessage)
 	} else {
 		return true, nil
@@ -72,29 +153,17 @@ func checkImage(arg string) bool {
 	return true
 }
 
-func checkDiffer(arg string) bool {
-	pattern := regexp.MustCompile("[a-z|A-Z]*")
-	if exp := pattern.FindString(arg); exp != arg {
-		return false
-	}
-	return true
-}
-
 func checkArgType(args []string) (bool, error) {
 	var buffer bytes.Buffer
 	valid := true
-	if !checkDiffer(args[0]) {
+	if !checkImage(args[0]) {
 		valid = false
-		buffer.WriteString("Please provide a differ name as the first argument")
+		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[0])
+		buffer.WriteString(errMessage)
 	}
 	if !checkImage(args[1]) {
 		valid = false
 		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[1])
-		buffer.WriteString(errMessage)
-	}
-	if !checkImage(args[2]) {
-		valid = false
-		errMessage := fmt.Sprintf("Argument %s is not an image ID, URL, or tar\n", args[2])
 		buffer.WriteString(errMessage)
 	}
 	if !valid {
@@ -103,8 +172,31 @@ func checkArgType(args []string) (bool, error) {
 	return true, nil
 }
 
+func remove(path string, dir bool) string {
+	var errStr string
+	if path == "" {
+		return ""
+	}
+
+	var err error
+	if dir {
+		err = os.RemoveAll(path)
+	} else {
+		err = os.Remove(path)
+	}
+	if err != nil {
+		errStr = "\nUnable to remove " + path
+	}
+	return errStr
+}
+
 func init() {
 	pflag.CommandLine.AddGoFlagSet(goflag.CommandLine)
 	RootCmd.Flags().BoolVarP(&json, "json", "j", false, "JSON Output defines if the diff should be returned in a human readable format (false) or a JSON (true).")
 	RootCmd.Flags().BoolVarP(&eng, "eng", "e", false, "By default the docker calls are shelled out locally, set this flag to use the Docker Engine Client (version compatibility required).")
+	RootCmd.Flags().BoolVarP(&pip, "pip", "p", false, "Set this flag to use the pip differ.")
+	RootCmd.Flags().BoolVarP(&node, "node", "n", false, "Set this flag to use the node differ.")
+	RootCmd.Flags().BoolVarP(&apt, "apt", "a", false, "Set this flag to use the apt differ.")
+	RootCmd.Flags().BoolVarP(&file, "file", "f", false, "Set this flag to use the file differ.")
+	RootCmd.Flags().BoolVarP(&history, "history", "d", false, "Set this flag to use the dockerfile history differ.")
 }

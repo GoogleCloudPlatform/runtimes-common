@@ -1,7 +1,6 @@
 package differs
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,74 +9,29 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
 )
 
+type FileDiffer struct {
+}
+
 // FileDiff diffs two packages and compares their contents
-func FileDiff(img1, img2 string, json bool, eng bool) (string, error) {
-	diff, err := diffImageFiles(img1, img2, eng)
+func (d FileDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
+	img1 := image1.FSPath
+	img2 := image2.FSPath
 
-	if err != nil {
-		return "", err
-	}
-
-	output, err := getDiffOutput(diff, json)
-	if err != nil {
-		return "", err
-	}
-	return output, nil
+	diff, err := diffImageFiles(img1, img2)
+	return &utils.DirDiffResult{DiffType: "File Diff", Diff: diff}, err
 }
 
-func getDiffOutput(dirDiff utils.DirDiff, json bool) (string, error) {
-	if json {
-		return utils.JSONify(dirDiff)
-	}
-
-	var buffer bytes.Buffer
-
-	s := fmt.Sprintf("These entries have been added to %s\n", dirDiff.Image1)
-	buffer.WriteString(s)
-	if len(dirDiff.Adds) == 0 {
-		buffer.WriteString("\tNo files have been added\n")
-	} else {
-		for _, f := range dirDiff.Adds {
-			s = fmt.Sprintf("\t%s\n", f)
-			buffer.WriteString(s)
-		}
-	}
-
-	s = fmt.Sprintf("These entries have been deleted from %s\n", dirDiff.Image1)
-	buffer.WriteString(s)
-	if len(dirDiff.Dels) == 0 {
-		buffer.WriteString("\tNo files have been deleted\n")
-	} else {
-		for _, f := range dirDiff.Dels {
-			s = fmt.Sprintf("\t%s\n", f)
-			buffer.WriteString(s)
-		}
-	}
-
-	return buffer.String(), nil
-}
-
-func diffImageFiles(img1, img2 string, eng bool) (utils.DirDiff, error) {
+func diffImageFiles(img1, img2 string) (utils.DirDiff, error) {
 	var diff utils.DirDiff
-	img1FS, err := utils.ImageToFS(img1, eng)
-	if err != nil {
-		return diff, fmt.Errorf("Error retrieving image %s file system: %s", img1, err)
-	}
-	img2FS, err := utils.ImageToFS(img2, eng)
-	if err != nil {
-		return diff, fmt.Errorf("Error retrieving image %s file system: %s", img2, err)
-	}
 
-	img1Contents, err := getImageContents(img1FS)
+	img1Contents, err := getImageContents(img1)
 	if err != nil {
 		return diff, fmt.Errorf("Error parsing image %s contents: %s", img1, err)
 	}
-	img2Contents, err := getImageContents(img2FS)
+	img2Contents, err := getImageContents(img2)
 	if err != nil {
 		return diff, fmt.Errorf("Error parsing image %s contents: %s", img2, err)
 	}
-	defer os.RemoveAll(img1FS)
-	defer os.RemoveAll(img2FS)
 
 	for layer1, contents1 := range img1Contents {
 		sameLayer := false

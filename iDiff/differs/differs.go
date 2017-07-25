@@ -1,86 +1,69 @@
 package differs
 
 import (
-	"bytes"
 	"errors"
-	"os"
+	"fmt"
 	"reflect"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
+	"github.com/golang/glog"
 )
 
-var diffs = map[string]func(string, string, bool, bool) (string, error){
-	"hist":    HistoryDiff,
-	"history": HistoryDiff,
-	"file":    FileDiff,
-	"apt":     AptDiff,
-	"linux":   AptDiff,
-	"pip":     PipDiff,
-	"node":    NodeDiff,
+type DiffRequest struct {
+	Image1    utils.Image
+	Image2    utils.Image
+	DiffTypes []Differ
 }
 
-func Diff(arg1, arg2, differ string, json bool, eng bool) (string, error) {
-	if f, exists := diffs[differ]; exists {
-		fValue := reflect.ValueOf(f)
-		histValue := reflect.ValueOf(HistoryDiff)
-		fileValue := reflect.ValueOf(FileDiff)
-		if fValue.Pointer() == histValue.Pointer() || fValue.Pointer() == fileValue.Pointer() {
-			return f(arg1, arg2, json, eng)
+type Differ interface {
+	Diff(image1, image2 utils.Image) (utils.DiffResult, error)
+}
+
+var diffs = map[string]Differ{
+	"hist":    HistoryDiffer{},
+	"history": HistoryDiffer{},
+	"file":    FileDiffer{},
+	"apt":     AptDiffer{},
+	"linux":   AptDiffer{},
+	"pip":     PipDiffer{},
+	"node":    NodeDiffer{},
+}
+
+func (diff DiffRequest) GetDiff() (map[string]utils.DiffResult, error) {
+	img1 := diff.Image1
+	img2 := diff.Image2
+	diffs := diff.DiffTypes
+
+	results := map[string]utils.DiffResult{}
+	for _, differ := range diffs {
+		differName := reflect.TypeOf(differ).Name()
+		if diff, err := differ.Diff(img1, img2); err == nil {
+			results[differName] = diff
+		} else {
+			glog.Errorf("Error getting diff with %s: %s", differName, err)
 		}
-		return specificDiffer(f, arg1, arg2, json, eng)
-	}
-	return "", errors.New("Unknown differ")
-}
-
-func specificDiffer(f func(string, string, bool, bool) (string, error), img1, img2 string, json bool, eng bool) (string, error) {
-	var buffer bytes.Buffer
-	validDiff := true
-	imgPath1, err := utils.ImageToFS(img1, eng)
-	if err != nil {
-		buffer.WriteString(err.Error())
-		validDiff = false
-	}
-	imgPath2, err := utils.ImageToFS(img2, eng)
-	if err != nil {
-		buffer.WriteString(err.Error())
-		validDiff = false
-	}
-
-	var diff string
-	if validDiff {
-		output, err := f(imgPath1, imgPath2, json, eng)
-		if err != nil {
-			buffer.WriteString(err.Error())
-		}
-		diff = output
-	}
-
-	errStr := remove(imgPath1, true)
-	errStr += remove(imgPath2, true)
-	if errStr != "" {
-		buffer.WriteString(errStr)
-	}
-
-	if buffer.String() != "" {
-		return diff, errors.New(buffer.String())
-	}
-	return diff, nil
-}
-
-func remove(path string, dir bool) string {
-	var errStr string
-	if path == "" {
-		return ""
 	}
 
 	var err error
-	if dir {
-		err = os.RemoveAll(path)
+	if len(results) == 0 {
+		err = fmt.Errorf("Could not perform diff on %s and %s", img1, img2)
 	} else {
-		err = os.Remove(path)
+		err = nil
 	}
-	if err != nil {
-		errStr = "\nUnable to remove " + path
+
+	return results, err
+}
+
+func GetDiffers(diffNames []string) (diffFuncs []Differ, err error) {
+	for _, diffName := range diffNames {
+		if d, exists := diffs[diffName]; exists {
+			diffFuncs = append(diffFuncs, d)
+		} else {
+			glog.Errorf("Unknown differ specified", diffName)
+		}
 	}
-	return errStr
+	if len(diffFuncs) == 0 {
+		err = errors.New("No known differs specified")
+	}
+	return
 }
