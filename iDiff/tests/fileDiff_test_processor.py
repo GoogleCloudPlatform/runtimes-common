@@ -1,4 +1,3 @@
-import ast
 import json
 import re
 import sys
@@ -6,23 +5,20 @@ import sys
 
 def _process_test_diff(file_path):
     with open(file_path) as f:
-        diffs = json.load(f)
+        diff = json.load(f)
 
-    for diff in diffs:
-        if diff["DiffType"] == "File Diff":
-            diff_result = diff["Diff"]
-            diff_result["Adds"] = _trim_file_names(diff_result["Adds"])
-            diff_result["Dels"] = _trim_file_names(diff_result["Dels"])
-            diff["Diff"] = diff_result
+    diff_result = diff["Diff"]
+    diff_result["Adds"] = _trim_file_names(diff_result["Adds"])
+    diff_result["Dels"] = _trim_file_names(diff_result["Dels"])
 
     with open(file_path, 'w') as f:
-        json.dump(diffs, f, indent=4)
+        json.dump(diff, f, indent=4)
 
 
 def _trim_file_names(files):
     trimmed_files = []
-    for f in files:
-        trimmed_file = _trim_layer_hash(f)
+    for file in files:
+        trimmed_file = _trim_layer_hash(file)
         trimmed_files.append(trimmed_file)
     return sorted(trimmed_files)
 
