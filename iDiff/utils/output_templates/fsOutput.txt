@@ -1,3 +1,5 @@
+-----{{.DiffType}}-----
+
 These entries have been added to {{.Diff.Image1}}
 {{ if not .Diff.Adds }}
 	No files have been added
