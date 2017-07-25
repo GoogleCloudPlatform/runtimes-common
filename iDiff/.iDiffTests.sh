@@ -1,6 +1,6 @@
 #!/bin/bash
 while IFS=$' \n\r' read -r differ image1 image2 file; do
-  go run iDiff/main.go $differ $image1 $image2 -j > $file
+  go run iDiff/main.go $image1 $image2 --$differ -j > $file
   if [[ $? -ne 0 ]]; then
     echo "iDiff" "$differ" "differ failed"
     exit 1

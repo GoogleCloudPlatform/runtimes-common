@@ -10,18 +10,6 @@ import (
 	"github.com/golang/glog"
 )
 
-type MultiVersionPackageDiffResult struct {
-	Diff MultiVersionPackageDiff
-}
-
-func (m *MultiVersionPackageDiffResult) OutputJSON() error {
-	return JSONify(m.Diff)
-}
-
-func (m *MultiVersionPackageDiffResult) OutputText() error {
-	return TemplateOutput(m.Diff)
-}
-
 // MultiVersionPackageDiff stores the difference information between two images which could have multi-version packages.
 type MultiVersionPackageDiff struct {
 	Image1    string
@@ -36,18 +24,6 @@ type MultiVersionInfo struct {
 	Package string
 	Info1   []PackageInfo
 	Info2   []PackageInfo
-}
-
-type PackageDiffResult struct {
-	Diff PackageDiff
-}
-
-func (m *PackageDiffResult) OutputJSON() error {
-	return JSONify(m.Diff)
-}
-
-func (m *PackageDiffResult) OutputText() error {
-	return TemplateOutput(m.Diff)
 }
 
 // PackageDiff stores the difference information between two images.
@@ -159,7 +135,7 @@ func GetMapDiff(map1, map2 map[string]PackageInfo, img1, img2 string) PackageDif
 	packDiff := diffVal.Interface().(PackageDiff)
 	packDiff.Image1 = img1
 	packDiff.Image2 = img2
-	return PackageDiffResult{packDiff}
+	return PackageDiffResult{Diff: packDiff}
 }
 
 // GetMultiVersionMapDiff determines the differences between two image package maps with multi-version packages
@@ -170,7 +146,7 @@ func GetMultiVersionMapDiff(map1, map2 map[string]map[string]PackageInfo, img1, 
 	packDiff := diffVal.Interface().(MultiVersionPackageDiff)
 	packDiff.Image1 = img1
 	packDiff.Image2 = img2
-	return MultiVersionPackageDiffResult{packDiff}
+	return MultiVersionPackageDiffResult{Diff: packDiff}
 }
 
 // DiffMaps determines the differences between maps of package names to PackageInfo structs

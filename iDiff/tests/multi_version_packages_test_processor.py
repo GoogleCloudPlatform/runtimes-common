@@ -7,8 +7,11 @@ def _process_test_diff(file_path):
     with open(file_path) as f:
         diff = json.load(f)
 
-    diff["Packages1"] = _trim_layer_paths(json.dumps(diff["Packages1"]))
-    diff["Packages2"] = _trim_layer_paths(json.dumps(diff["Packages2"]))
+    diff_result = diff["Diff"]
+    package1_dict = json.dumps(diff_result["Packages1"])
+    package2_dict = json.dumps(diff_result["Packages2"])
+    diff_result["Packages1"] = _trim_layer_paths(package1_dict)
+    diff_result["Packages2"] = _trim_layer_paths(package2_dict)
 
     with open(file_path, 'w') as f:
         json.dump(diff, f, indent=4)
