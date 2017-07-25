@@ -17,7 +17,7 @@ This tool can help you as a developer better understand what is changing within 
 
 ## Installation
 
-Not sure how to install this...
+TODO: add how to install
 
 ## Quickstart
 
@@ -32,11 +32,17 @@ iDiff <img1> <img2> -a  [Apt]
 iDiff <img1> <img2> -n  [Node]
 ```
 
-## Piping output
 
-To get a JSON version of the iDiff output add a `-j` or `-json` flag.
+## Flags
+
+To get a JSON version of the iDiff output add a `-j` or `--json` flag.
 
 ```iDiff <img1> <img2> -j```
+
+To use the docker client instead of shelling out to your local docker daemon, add a `-e` or `--eng` flag.
+
+```iDiff <img1> <img2> -e```
+
 
 ## Output Format
 
@@ -123,6 +129,9 @@ type MultiVersionInfo struct {
 To run iDiff on image IDs or URLs, docker must be installed.
 
 ## Example Run
+
+TODO: add example run
+
  
 
 ## Make your own differ
