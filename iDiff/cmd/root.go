@@ -76,13 +76,13 @@ var RootCmd = &cobra.Command{
 
 		req := differs.DiffRequest{image1, image2, diffTypes}
 		if diffs, err := req.GetDiff(); err == nil {
-			// Outputs diff results in alphabetical order by differ name			
+			// Outputs diff results in alphabetical order by differ name
 			diffTypes := []string{}
 			for name := range diffs {
 				diffTypes = append(diffTypes, name)
 			}
 			sort.Strings(diffTypes)
-			
+
 			diffResults := []utils.DiffResult{}
 			for _, diffType := range diffTypes {
 				diff := diffs[diffType]
