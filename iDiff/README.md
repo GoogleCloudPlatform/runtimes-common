@@ -129,6 +129,30 @@ To run iDiff on image IDs or URLs, docker must be installed.
 
 Feel free to develop your own differ leveraging the utils currently available.  PRs are welcome.
 
+### Custom Differ Quickstart
+
+In order to quickly make your own differ, follow these steps:
+
+1. Add your diff identifier to the flags in [root.go](https://github.com/abbytiz/runtimes-common/blob/ReadMe/iDiff/cmd/root.go)
+2. Determine if you can use existing differ tools.  If you can make use of existing tools, you then need to construct the structs to feed to the diff tools by getting all of the packages for each image or the analogous quality to be diffed.  To determine if you can leverage existing tools, think through these questions:
+- Are you trying to diff packages?
+    - Yes: Does the relevant package manager support different versions of the same package on one image?
+        - Yes: Use `GetMultiVerisonMapDiff` to diff `map[string]map[string]utils.PackageInfo` objects.  See [nodeDiff.go](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/iDiff/differs/nodeDiff.go#L33) for an example.
+        -  No: Use `GetMapDiff` to diff `map[string]utils.PackageInfo` objects.  See [aptDiff.go](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/iDiff/differs/aptDiff.go#L29) or [pipDiff.go](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/iDiff/differs/pipDiff.go#L23) for examples. 
+    - No: Look to [History](https://github.com/abbytiz/runtimes-common/blob/ReadMe/iDiff/differs/historyDiff.go) and [File System](https://github.com/abbytiz/runtimes-common/blob/ReadMe/iDiff/differs/fileDiff.go) differs as models for diffing.
+
+3. Write your Diff driver such that you have a struct for your differ type and a method for that differ called Diff:
+
+```
+type YourDiffer struct {}
+
+func (d YourDiffer) Diff(image1, image2 utils.Image) (DiffResult, error) {...}
+```
+The arguments passed to your differ contain the path to the unpacked tar representation of the image.  That path can be accessed as such: `image1.FSPath`.  Given that path you should create the appropriate struct (determined in step 2) and then call the appropriate get-diff function (also determined in step2).
+
+4. Create a DiffResult for your differ if you're not using existing utils or want to wrap the output.  This is where you define how your differ should output for a human readable format and as a json.  See [format_utils.go](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/iDiff/utils/format_utils.go).
+
+
 
 
 
