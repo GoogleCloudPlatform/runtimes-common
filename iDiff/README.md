@@ -38,13 +38,14 @@ You can similarly run many differs at once:
 iDiff <img1> <img2> -d -a -n [History, Apt, and Node]
 ```
 All of the differ flags with their long versions can be seen below:
-| Differ        | Short flag           | Long Flag  |
-| ------------- |:-------------:| -----:|
-| File System diff          | -f | --file |
-| History                   | -d | --history |
-| npm installed packages    | -n | --node |
-| pip installed packages    | -p | --pip |
-| apt-get installed packages| -a | --apt |
+
+| Differ                    | Short flag | Long Flag  |
+| ------------------------- |:----------:| ----------:|
+| File System diff          | -f         | --file     |
+| History                   | -d 	 | --history  |
+| npm installed packages    | -n 	 | --node     |
+| pip installed packages    | -p 	 | --pip      |
+| apt-get installed packages| -a 	 | --apt      |
 
 
 
