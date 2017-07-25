@@ -76,27 +76,32 @@ var RootCmd = &cobra.Command{
 
 		req := differs.DiffRequest{image1, image2, diffTypes}
 		if diffs, err := req.GetDiff(); err == nil {
+			// Outputs diff results in alphabetical order by differ name			
 			diffTypes := []string{}
 			for name := range diffs {
 				diffTypes = append(diffTypes, name)
 			}
 			sort.Strings(diffTypes)
+			
+			diffResults := []utils.DiffResult{}
 			for _, diffType := range diffTypes {
 				diff := diffs[diffType]
 				if json {
-					err = diff.OutputJSON(diffType)
-					if err != nil {
-						glog.Error(err)
-					}
+					diffResults = append(diffResults, diff.GetStruct())
 				} else {
 					err = diff.OutputText(diffType)
 					if err != nil {
 						glog.Error(err)
 					}
 				}
-				fmt.Println()
 			}
-
+			if json {
+				err = utils.JSONify(diffResults)
+				if err != nil {
+					glog.Error(err)
+				}
+			}
+			fmt.Println()
 			errMsg := remove(image1.FSPath, true)
 			errMsg += remove(image2.FSPath, true)
 			if errMsg != "" {
