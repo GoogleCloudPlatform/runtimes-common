@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -58,7 +60,7 @@ func (p ImagePrepper) GetImage() (Image, error) {
 		return Image{}, err
 	}
 
-	history, err := getHistoryList(p.Source)
+	history, err := getHistory(imgPath)
 	if err != nil {
 		return Image{}, err
 	}
@@ -68,6 +70,39 @@ func (p ImagePrepper) GetImage() (Image, error) {
 		FSPath:  imgPath,
 		History: history,
 	}, nil
+}
+
+type histJSON struct {
+	History []histLayer `json:"history"`
+}
+
+type histLayer struct {
+	Created    string `json:"created"`
+	CreatedBy  string `json:"created_by"`
+	EmptyLayer bool   `json:"empty_layer"`
+}
+
+func getHistory(imgPath string) ([]string, error) {
+	contents, err := BuildLayerTargets(imgPath, "")
+	if err != nil {
+		return []string{}, err
+	}
+	for _, item := range contents {
+		if filepath.Ext(item) == ".json" {
+			file, err := ioutil.ReadFile(item)
+			if err != nil {
+				return []string{}, err
+			}
+			var histJ histJSON
+			json.Unmarshal(file, &histJ)
+			historyList := []string{}
+			for _, layer := range histJ.History {
+				historyList = append(historyList, layer.CreatedBy)
+			}
+			return historyList, nil
+		}
+	}
+	return []string{}, nil
 }
 
 func getImageFromTar(tarPath string) (string, error) {
