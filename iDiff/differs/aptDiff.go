@@ -26,7 +26,7 @@ func (d AptDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 		return &utils.PackageDiffResult{}, err
 	}
 
-	diff := utils.GetMapDiff(pack1, pack2, img1, img2)
+	diff := utils.GetMapDiff(pack1, pack2, image1.Source, image2.Source)
 	diff.DiffType = "Apt Diff"
 	return &diff, nil
 }

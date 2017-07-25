@@ -20,7 +20,7 @@ func (d PipDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 	pack1 := getPythonPackages(img1)
 	pack2 := getPythonPackages(img2)
 
-	diff := utils.GetMapDiff(pack1, pack2, img1, img2)
+	diff := utils.GetMapDiff(pack1, pack2, image1.Source, image2.Source)
 	diff.DiffType = "Pip Diff"
 	return &diff, nil
 }

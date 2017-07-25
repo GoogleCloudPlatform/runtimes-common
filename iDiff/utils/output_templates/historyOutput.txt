@@ -1,4 +1,5 @@
 -----{{.DiffType}}-----
 
-Docker history lines found only in {{.Diff.Image1}}:{{block "list" .Diff.Adds}}{{"\n"}}{{range .}}{{print "-" .}}{{end}}{{end}}
-Docker history lines found only in {{.Diff.Image2}}:{{block "list2" .Diff.Dels}}{{"\n"}}{{range .}}{{print "-" .}}{{end}}{{end}}
+Docker history lines found only in {{.Diff.Image1}}:{{ if not .Diff.Adds }} None{{ else }}{{block "list" .Diff.Adds}}{{"\n"}}{{range .}}{{print "-" .}}{{end}}{{end}}{{ end }}
+
+Docker history lines found only in {{.Diff.Image2}}:{{ if not .Diff.Dels }} None{{ else }}{{block "list2" .Diff.Dels}}{{"\n"}}{{range .}}{{print "-" .}}{{end}}{{end}}{{ end }}
