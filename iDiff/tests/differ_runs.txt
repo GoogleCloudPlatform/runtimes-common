@@ -2,6 +2,7 @@
 -p pip gcr.io/gcp-runtimes/pip-base gcr.io/gcp-runtimes/pip-modified iDiff/tests/pip_diff_actual.json
 -a apt gcr.io/gcp-runtimes/apt-base gcr.io/gcp-runtimes/apt-modified iDiff/tests/apt_diff_actual.json
 -n node gcr.io/gcp-runtimes/node-base gcr.io/gcp-runtimes/node-modified iDiff/tests/node_diff_actual.json
+-n order gcr.io/gcp-runtimes/node-modified:2.0 gcr.io/gcp-runtimes/node-modified iDiff/tests/node_diff_order_actual.json
 -npa multi gcr.io/gcp-runtimes/multi-base gcr.io/gcp-runtimes/multi-modified iDiff/tests/multi_diff_actual.json
 -d history gcr.io/gcp-runtimes/diff-base gcr.io/gcp-runtimes/diff-modified iDiff/tests/hist_diff_actual.json
 -pd multihist gcr.io/gcp-runtimes/pip-base gcr.io/gcp-runtimes/pip-modified iDiff/tests/multi_hist_diff_actual.json
