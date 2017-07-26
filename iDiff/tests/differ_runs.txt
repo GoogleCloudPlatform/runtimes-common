@@ -2,3 +2,4 @@ file gcr.io/gcp-runtimes/diff-base gcr.io/gcp-runtimes/diff-modified iDiff/tests
 pip gcr.io/gcp-runtimes/pip-base gcr.io/gcp-runtimes/pip-modified iDiff/tests/pip_diff_actual.json
 apt gcr.io/gcp-runtimes/apt-base gcr.io/gcp-runtimes/apt-modified iDiff/tests/apt_diff_actual.json
 node gcr.io/gcp-runtimes/node-base gcr.io/gcp-runtimes/node-modified iDiff/tests/node_diff_actual.json
+node gcr.io/gcp-runtimes/node-modified:2.0 gcr.io/gcp-runtimes/node-modified iDiff/tests/node_diff_order_actual.json
