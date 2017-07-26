@@ -17,7 +17,19 @@ This tool can help you as a developer better understand what is changing within 
 
 ## Installation
 
-TODO: add how to install
+### macOS
+```shell
+brew cask install iDiff
+```
+
+### Linux
+```shell
+curl -Lo iDiff https://storage.googleapis.com/iDiff/releases/latest/iDiff-linux-amd64 && chmod +x iDiff && sudo mv iDiff /usr/local/bin/
+```
+
+### Windows
+Download the [iDiff-windows-amd64.exe](https://storage.googleapis.com/iDiff/releases/latest/minikube-windows-amd64.exe) file, rename it to `iDiff.exe` and add it to your path
+
 
 ## Quickstart
 
