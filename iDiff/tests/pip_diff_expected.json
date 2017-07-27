@@ -1,27 +1,29 @@
-{
-  "DiffType": "Pip Diff",
-  "Diff": {
-    "Image1": "pip-base",
-    "Packages1": {},
-    "Image2": "pip-modified",
-    "Packages2": {
-      "mock": {
-        "Version": "2.0.0",
-        "Size": "4096"
+[
+  {
+    "DiffType": "Pip Diff",
+    "Diff": {
+      "Image1": "gcr.io/gcp-runtimes/pip-base",
+      "Packages1": {},
+      "Image2": "gcr.io/gcp-runtimes/pip-modified",
+      "Packages2": {
+        "mock": {
+          "Version": "2.0.0",
+          "Size": "4096"
+        },
+        "pbr": {
+          "Version": "3.1.1",
+          "Size": "4096"
+        },
+        "six": {
+          "Version": "1.10.0",
+          "Size": "4096"
+        },
+        "six.py": {
+          "Version": "",
+          "Size": ""
+        }
       },
-      "pbr": {
-        "Version": "3.1.1",
-        "Size": "4096"
-      },
-      "six": {
-        "Version": "1.10.0",
-        "Size": "4096"
-      },
-      "six.py": {
-        "Version": "",
-        "Size": ""
-      }
-    },
-    "InfoDiff": []
+      "InfoDiff": []
+    }
   }
-}
+]
