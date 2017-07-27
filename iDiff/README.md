@@ -229,9 +229,13 @@ type YourDiffer struct {}
 
 func (d YourDiffer) Diff(image1, image2 utils.Image) (DiffResult, error) {...}
 ```
-The arguments passed to your differ contain the path to the unpacked tar representation of the image.  That path can be accessed as such: `image1.FSPath`.  Given that path you should create the appropriate struct (determined in step 2) and then call the appropriate get-diff function (also determined in step2).
+The arguments passed to your differ contain the path to the unpacked tar representation of the image.  That path can be accessed as such: `image1.FSPath`.  
 
-4. Create a DiffResult for your differ if you're not using existing utils or want to wrap the output.  This is where you define how your differ should output for a human readable format and as a json.  See [output_utils.go](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/iDiff/utils/output_utils.go).
+If using existing package differ tools, you should create the appropriate structs to diff (determined in step 2 - either `map[string]map[string]utils.PackageInfo` or `map[string]utils.PackageInfo`) and then call the appropriate get diff function (also determined in step2 - either `GetMultiVerisonMapDiff` or `GetMapDiff`).
+
+Otherwise, create your own differ which should yield information to fill a DiffResult in the next step.
+
+4. Create a DiffResult for your differ if you're not using existing utils or want to wrap the output.  This is where you define how your differ should output for a human readable format and as a struct which can then be written to a `.json` file.  See [output_utils.go](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/iDiff/utils/output_utils.go).
 
 5. Add your differ to the diffs map in [differs.go](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/iDiff/differs/differs.go#L22) with the corresponding Differ struct as the value.
 
