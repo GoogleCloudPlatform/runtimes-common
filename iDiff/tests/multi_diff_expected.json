@@ -2,9 +2,9 @@
   {
     "DiffType": "Apt Diff",
     "Diff": {
-      "Image1": "multi-base",
+      "Image1": "gcr.io/gcp-runtimes/multi-base",
       "Packages1": {},
-      "Image2": "multi-modified",
+      "Image2": "gcr.io/gcp-runtimes/multi-modified",
       "Packages2": {
         "dh-python": {
           "Version": "1.20141111-2",
@@ -49,9 +49,9 @@
   {
     "DiffType": "Node Diff",
     "Diff": {
-      "Image1": "multi-base",
+      "Image1": "gcr.io/gcp-runtimes/multi-base",
       "Packages1": {},
-      "Image2": "multi-modified",
+      "Image2": "gcr.io/gcp-runtimes/multi-modified",
       "Packages2": {
         "pax": {
           "multi-modified/cec75d97ca4c987a5dfa4347691af008cabf7a764084fba578c3c59dcbf446c7/layer/node_modules/pax/package.json": {
@@ -82,7 +82,7 @@
   {
     "DiffType": "Pip Diff",
     "Diff": {
-      "Image1": "multi-base",
+      "Image1": "gcr.io/gcp-runtimes/multi-base",
       "Packages1": {
         "mock": {
           "Version": "2.0.0",
@@ -101,7 +101,7 @@
           "Size": ""
         }
       },
-      "Image2": "multi-modified",
+      "Image2": "gcr.io/gcp-runtimes/multi-modified",
       "Packages2": {},
       "InfoDiff": []
     }
