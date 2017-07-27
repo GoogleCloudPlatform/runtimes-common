@@ -4,17 +4,19 @@ import sys
 
 def _process_test_diff(file_path):
     with open(file_path) as f:
-        diff = json.load(f)
+        diffs = json.load(f)
 
-    diff_result = diff["Diff"]
-    package1_dict = diff_result["Packages1"]
-    package2_dict = diff_result["Packages2"]
-    diff_result["Packages1"] = _trim_layer_paths(package1_dict)
-    diff_result["Packages2"] = _trim_layer_paths(package2_dict)
-    diff["Diff"] = diff_result
+    for diff in diffs:
+        if diff["DiffType"] == "Node Diff":
+            diff_result = diff["Diff"]
+            package1_dict = diff_result["Packages1"]
+            package2_dict = diff_result["Packages2"]
+            diff_result["Packages1"] = _trim_layer_paths(package1_dict)
+            diff_result["Packages2"] = _trim_layer_paths(package2_dict)
+            diff["Diff"] = diff_result
 
     with open(file_path, 'w') as f:
-        json.dump(diff, f, indent=4)
+        json.dump(diffs, f, indent=4)
 
 
 def _trim_layer_paths(packages):

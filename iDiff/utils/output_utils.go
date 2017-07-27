@@ -1,7 +1,7 @@
 package utils
 
 type DiffResult interface {
-	OutputJSON(diffType string) error
+	GetStruct() DiffResult
 	OutputText(diffType string) error
 }
 
@@ -10,12 +10,12 @@ type MultiVersionPackageDiffResult struct {
 	Diff     MultiVersionPackageDiff
 }
 
-func (m *MultiVersionPackageDiffResult) OutputJSON(diffType string) error {
-	return JSONify(*m)
+func (m MultiVersionPackageDiffResult) GetStruct() DiffResult {
+	return m
 }
 
-func (m *MultiVersionPackageDiffResult) OutputText(diffType string) error {
-	return TemplateOutput(*m)
+func (m MultiVersionPackageDiffResult) OutputText(diffType string) error {
+	return TemplateOutput(m)
 }
 
 type PackageDiffResult struct {
@@ -23,12 +23,12 @@ type PackageDiffResult struct {
 	Diff     PackageDiff
 }
 
-func (m *PackageDiffResult) OutputJSON(diffType string) error {
-	return JSONify(*m)
+func (m PackageDiffResult) GetStruct() DiffResult {
+	return m
 }
 
-func (m *PackageDiffResult) OutputText(diffType string) error {
-	return TemplateOutput(*m)
+func (m PackageDiffResult) OutputText(diffType string) error {
+	return TemplateOutput(m)
 }
 
 type HistDiffResult struct {
@@ -36,12 +36,12 @@ type HistDiffResult struct {
 	Diff     HistDiff
 }
 
-func (m *HistDiffResult) OutputJSON(diffType string) error {
-	return JSONify(*m)
+func (m HistDiffResult) GetStruct() DiffResult {
+	return m
 }
 
-func (m *HistDiffResult) OutputText(diffType string) error {
-	return TemplateOutput(*m)
+func (m HistDiffResult) OutputText(diffType string) error {
+	return TemplateOutput(m)
 }
 
 type DirDiffResult struct {
@@ -49,10 +49,10 @@ type DirDiffResult struct {
 	Diff     DirDiff
 }
 
-func (m *DirDiffResult) OutputJSON(diffType string) error {
-	return JSONify(*m)
+func (m DirDiffResult) GetStruct() DiffResult {
+	return m
 }
 
-func (m *DirDiffResult) OutputText(diffType string) error {
-	return TemplateOutput(*m)
+func (m DirDiffResult) OutputText(diffType string) error {
+	return TemplateOutput(m)
 }
