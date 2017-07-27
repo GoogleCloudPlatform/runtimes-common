@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"os"
 	"reflect"
+	"text/tabwriter"
 
 	"github.com/golang/glog"
 )
@@ -48,10 +49,12 @@ func TemplateOutput(diff interface{}) error {
 		glog.Error(err)
 		return err
 	}
-	err = tmpl.Execute(os.Stdout, diff)
+	w := tabwriter.NewWriter(os.Stdout, 8, 8, 8, ' ', 0)
+	err = tmpl.Execute(w, diff)
 	if err != nil {
 		glog.Error(err)
 		return err
 	}
+	w.Flush()
 	return nil
 }

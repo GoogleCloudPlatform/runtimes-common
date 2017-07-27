@@ -1,16 +1,16 @@
 {
-  "DiffType": "File Diff",
-  "Diff": {
-    "Image1": "diff-base",
-    "Image2": "diff-modified",
-    "Adds": [],
-    "Dels": [
-      "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/VERSION",
-      "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/json",
-      "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/layer",
-      "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/layer/home",
-      "77091e3ffde8ab33a5cbeda2ab2846634d79c5dc68087912c01c9233bfce6509/layer/home/test"
-    ],
-    "Mods": null
-  }
+    "Diff": {
+        "Image2": "gcr.io/gcp-runtimes/diff-modified", 
+        "Image1": "gcr.io/gcp-runtimes/diff-base", 
+        "Mods": null, 
+        "Adds": [], 
+        "Dels": [
+            "/VERSION", 
+            "/json", 
+            "/layer", 
+            "/layer/home", 
+            "/layer/home/test"
+        ]
+    }, 
+    "DiffType": "File Diff"
 }

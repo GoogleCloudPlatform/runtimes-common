@@ -30,7 +30,7 @@ func (d NodeDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 		return &utils.MultiVersionPackageDiffResult{}, err
 	}
 
-	diff := utils.GetMultiVersionMapDiff(pack1, pack2, img1, img2)
+	diff := utils.GetMultiVersionMapDiff(pack1, pack2, image1.Source, image2.Source)
 	diff.DiffType = "Node Diff"
 	return &diff, nil
 }

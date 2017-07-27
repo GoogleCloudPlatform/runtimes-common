@@ -1,4 +1,3 @@
-import ast
 import json
 import sys
 
@@ -8,17 +7,17 @@ def _process_test_diff(file_path):
         diff = json.load(f)
 
     diff_result = diff["Diff"]
-    package1_dict = json.dumps(diff_result["Packages1"])
-    package2_dict = json.dumps(diff_result["Packages2"])
+    package1_dict = diff_result["Packages1"]
+    package2_dict = diff_result["Packages2"]
     diff_result["Packages1"] = _trim_layer_paths(package1_dict)
     diff_result["Packages2"] = _trim_layer_paths(package2_dict)
+    diff["Diff"] = diff_result
 
     with open(file_path, 'w') as f:
         json.dump(diff, f, indent=4)
 
 
 def _trim_layer_paths(packages):
-    packages = ast.literal_eval(packages)
     new_packages = {}
     for package, versions in packages.items():
         versions_to_size = {}
