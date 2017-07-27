@@ -2,7 +2,6 @@
 
 [![Build
 Status](https://travis-ci.org/GoogleCloudPlatform/runtimes-common.svg?branch=master)](https://travis-ci.org/GoogleCloudPlatform/runtimes-common)
-[![codecov](https://codecov.io/gh/GoogleCloudPlatform/runtimes-common/branch/master/graph/badge.svg)](https://codecov.io/gh/GoogleCloudPlatform/runtimes-common)
 
 ## What is iDiff?
 
@@ -28,7 +27,7 @@ curl -Lo iDiff https://storage.googleapis.com/iDiff/releases/latest/iDiff-linux-
 ```
 
 ### Windows
-Download the [iDiff-windows-amd64.exe](https://storage.googleapis.com/iDiff/releases/latest/minikube-windows-amd64.exe) file, rename it to `iDiff.exe` and add it to your path
+Download the [iDiff-windows-amd64.exe](https://storage.googleapis.com/iDiff/releases/latest/iDiff-windows-amd64.exe) file, rename it to `iDiff.exe` and add it to your path
 
 
 ## Quickstart
