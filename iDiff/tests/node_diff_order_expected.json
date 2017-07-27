@@ -12,22 +12,6 @@
         }
       }
     },
-    "InfoDiff": [
-      {
-        "Package": "sax",
-        "Info1": [
-          {
-            "Version": "1.2.4",
-            "Size": "4096"
-          }
-        ],
-        "Info2": [
-          {
-            "Version": "0.1.1",
-            "Size": "4096"
-          }
-        ]
-      }
-    ]
+    "InfoDiff": []
   }
 }
