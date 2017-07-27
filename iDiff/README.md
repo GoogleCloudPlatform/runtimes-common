@@ -18,16 +18,16 @@ This tool can help you as a developer better understand what is changing within 
 
 ### macOS
 ```shell
-brew cask install iDiff
+curl -LO iDiff https://storage.googleapis.com/idiff/v0.1.0/iDiff-darwin-amd64
 ```
 
 ### Linux
 ```shell
-curl -Lo iDiff https://storage.googleapis.com/iDiff/releases/latest/iDiff-linux-amd64 && chmod +x iDiff && sudo mv iDiff /usr/local/bin/
+curl -LO https://storage.googleapis.com/idiff/v0.1.0/iDiff-linux-amd64 && chmod +x iDiff-linux-amd64 && sudo mv iDiff-linux-amd64 /usr/local/bin/
 ```
 
 ### Windows
-Download the [iDiff-windows-amd64.exe](https://storage.googleapis.com/iDiff/releases/latest/iDiff-windows-amd64.exe) file, rename it to `iDiff.exe` and add it to your path
+Download the [iDiff-windows-amd64.exe](https://storage.googleapis.com/idiff/v0.1.0/iDiff-windows-amd64.exe) file, rename it to `iDiff.exe` and add it to your path
 
 
 ## Quickstart
@@ -158,49 +158,40 @@ To run iDiff on image IDs or URLs, docker must be installed.
 
 ## Example Run
 
-// TODO: update when output format finalized
-
-
 ```
-$ iDiff  gcr.io/google-appengine/python:latest gcr.io/google-appengine/python:2017-07-25-110644 -p -d -a -n
-Packages found only in pythonlatest:
+$ iDiff gcr.io/google-appengine/python:latest gcr.io/google-appengine/python:2017-07-25-110644 -p -a -n
 
-Packages found only in python2017-07-25-110644:
+-----Apt Diff-----
 
-Version differences:
-	(Package:	pythonlatest		python2017-07-25-110644)
-	perl-modules:	{5.20.2-3 deb8u7 15108}	{5.20.2-3 deb8u8 15108}
+Packages found only in gcr.io/google-appengine/python:latest: None
 
-	libgnutls-deb0-28:	{3.3.8-6 deb8u6 1808}	{3.3.8-6 deb8u7 1808}
-
-	perl:	{5.20.2-3 deb8u7 17584}	{5.20.2-3 deb8u8 17584}
-
-	perl-base:	{5.20.2-3 deb8u7 5098}	{5.20.2-3 deb8u8 5098}
-
-
-Docker history lines found only in gcr.io/google-appengine/python:latest:
--/bin/sh -c #(nop) ADD file:ddbbbee34af5bc54fda5da491a14d8367a072190f63f1f44c62f1712ca14b2fc in /
--/bin/sh -c #(nop) ADD dir:b64d4dbd411116b57f00622e8e35785469c45241d96139b2c2c282b76997c4ff in /scripts
--/bin/sh -c #(nop) ADD dir:a61d73142ff699ef209e79d5ff0331ee0c1026d1a254789be57dfcb47424b9b9 in /resources
-
-Docker history lines found only in gcr.io/google-appengine/python:2017-07-25-110644:
--/bin/sh -c #(nop) ADD file:9b537477c1fe03a9a3af141199b8848b9718bbc259e9d040e52dd78d9b1472a0 in /
--/bin/sh -c #(nop) ADD dir:b209be879a64da94090efa46c7647cf4a972d9233219a86718dea815b8b6ea62 in /scripts
--/bin/sh -c #(nop) ADD dir:de273ffbfc6ea318de85b56ed05cd1d002b5b0bfa5c721a42b7aa8d44ff60c42 in /resources
-
-Packages found only in pythonlatest:
-
-Packages found only in python2017-07-25-110644:
+Packages found only in gcr.io/google-appengine/python:2017-07-25-110644: None
 
 Version differences:
-	(Package:	pythonlatest		python2017-07-25-110644)
+        (Package:        gcr.io/google-appengine/python:latest        gcr.io/google-appengine/python:2017-07-25-110644)
+        perl:            {5.20.2-3 deb8u7 17584}                      {5.20.2-3 deb8u8 17584}
+        
+        libgnutls-deb0-28:        {3.3.8-6 deb8u6 1808}        {3.3.8-6 deb8u7 1808}
+        
+        perl-base:        {5.20.2-3 deb8u7 5098}        {5.20.2-3 deb8u8 5098}
+        
+        perl-modules:        {5.20.2-3 deb8u7 15108}        {5.20.2-3 deb8u8 15108}
+        
+-----Node Diff-----
 
-Packages found only in pythonlatest:
+Packages found only in gcr.io/google-appengine/python:latest: None
 
-Packages found only in python2017-07-25-110644:
+Packages found only in gcr.io/google-appengine/python:2017-07-25-110644: None
 
-Version differences:
-	(Package:	pythonlatest		python2017-07-25-110644)
+Version differences: None
+
+-----Pip Diff-----
+
+Packages found only in gcr.io/google-appengine/python:latest: None
+
+Packages found only in gcr.io/google-appengine/python:2017-07-25-110644: None
+
+Version differences: None
 
 ```
 
