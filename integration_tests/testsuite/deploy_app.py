@@ -51,20 +51,41 @@ def _set_builder_image(builder):
                 fout.write(line.replace('${STAGING_BUILDER_IMAGE}', builder))
 
 
-def _record_latency_to_bigquery(deploy_latency, language):
+def _record_latency_to_bigquery(deploy_latency, language, is_xrt):
     current_date = datetime.datetime.now()
-    row = [(language, current_date, deploy_latency)]
+    row = [(language, current_date, deploy_latency, is_xrt)]
 
     project = os.environ.get(DEPLOY_LATENCY_PROJECT_ENV)
+    if not project:
+        logging.warn('No project specified to record deployment latency!')
+        logging.warn('If you wish to record deployment latency, \
+                     please set %s env var and try again.',
+                     DEPLOY_LATENCY_PROJECT_ENV)
+        return 0
+    logging.debug('Fetching bigquery client for project %s', project)
     client = bigquery.Client(project=project)
     dataset = client.dataset(DATASET_NAME)
+    logging.debug('Writing bigquery data to table %s in dataset %s',
+                  TABLE_NAME, dataset)
     table = bigquery.Table(name=TABLE_NAME, dataset=dataset)
     table.reload()
     return table.insert_data(row)
 
 
-def deploy_app(base_image, builder_image, appdir,
-               yaml, record_latency=False, language=None):
+def deploy_app_and_record_latency(appdir, language, is_xrt):
+    start_time = time.time()
+
+    version = deploy_app(None, None, appdir, None)
+
+    # Latency is in seconds round up to 2 decimals
+    deploy_latency = round(time.time() - start_time, 2)
+
+    # Store the deploy latency data to bigquery
+    _record_latency_to_bigquery(deploy_latency, language, is_xrt)
+    return version
+
+
+def deploy_app(base_image, builder_image, appdir, yaml):
     try:
         if yaml:
             # convert yaml to absolute path before changing directory
@@ -89,15 +110,7 @@ def deploy_app(base_image, builder_image, appdir,
             logging.info(yaml)
             deploy_command.append(yaml)
 
-        start_time = time.time()
         subprocess.check_output(deploy_command)
-
-        # Latency is in seconds round up to 2 decimals
-        deploy_latency = round(time.time() - start_time, 2)
-
-        # Store the deploy latency data to bigquery
-        if record_latency:
-            _record_latency_to_bigquery(deploy_latency, language)
 
         return deployed_version
     except subprocess.CalledProcessError as cpe:
@@ -108,10 +121,6 @@ def deploy_app(base_image, builder_image, appdir,
     finally:
         _cleanup(appdir)
         os.chdir(owd)
-
-
-def deploy_app_without_image(appdir, record_latency=False, language='unknown'):
-    return deploy_app(None, None, appdir, None, record_latency, language)
 
 
 def stop_app(deployed_version):
