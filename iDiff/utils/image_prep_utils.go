@@ -83,26 +83,30 @@ type histLayer struct {
 }
 
 func getHistory(imgPath string) ([]string, error) {
-	contents, err := BuildLayerTargets(imgPath, "")
+	histList := []string{}
+	contents, err := ioutil.ReadDir(imgPath)
 	if err != nil {
-		return []string{}, err
+		return histList, err
 	}
+
 	for _, item := range contents {
-		if filepath.Ext(item) == ".json" {
-			file, err := ioutil.ReadFile(item)
+		if filepath.Ext(item.Name()) == ".json" && item.Name() != "manifest.json" {
+			file, err := ioutil.ReadFile(filepath.Join(imgPath, item.Name()))
 			if err != nil {
-				return []string{}, err
+				return histList, err
 			}
 			var histJ histJSON
 			json.Unmarshal(file, &histJ)
-			historyList := []string{}
-			for _, layer := range histJ.History {
-				historyList = append(historyList, layer.CreatedBy)
+			if len(histList) != 0 {
+				glog.Error("Multiple history sources detected for image at " + imgPath + ", history diff may be incorrect.")
+				break
 			}
-			return historyList, nil
+			for _, layer := range histJ.History {
+				histList = append(histList, layer.CreatedBy)
+			}
 		}
 	}
-	return []string{}, nil
+	return histList, nil
 }
 
 func getImageFromTar(tarPath string) (string, error) {
