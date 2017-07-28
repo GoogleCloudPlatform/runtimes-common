@@ -1,6 +1,6 @@
 [
   {
-    "DiffType": "Apt Diff",
+    "DiffType": "AptDiffer",
     "Diff": {
       "Image1": "gcr.io/gcp-runtimes/apt-base",
       "Packages1": {

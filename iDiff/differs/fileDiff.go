@@ -15,7 +15,7 @@ type FileDiffer struct {
 // FileDiff diffs two packages and compares their contents
 func (d FileDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 	diff, err := diffImageFiles(image1, image2)
-	return &utils.DirDiffResult{DiffType: "File Diff", Diff: diff}, err
+	return &utils.DirDiffResult{DiffType: "FileDiffer", Diff: diff}, err
 }
 
 func diffImageFiles(image1, image2 utils.Image) (utils.DirDiff, error) {
