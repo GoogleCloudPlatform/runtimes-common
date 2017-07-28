@@ -8,7 +8,7 @@ def _process_test_diff(file_path):
         diffs = json.load(f)
 
     for diff in diffs:
-        if diff["DiffType"] == "File Diff":
+        if diff["DiffType"] == "FileDiffer":
             diff_result = diff["Diff"]
             diff_result["Adds"] = _trim_file_names(diff_result["Adds"])
             diff_result["Dels"] = _trim_file_names(diff_result["Dels"])

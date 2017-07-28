@@ -7,7 +7,7 @@ def _process_test_diff(file_path):
         diffs = json.load(f)
 
     for diff in diffs:
-        if diff["DiffType"] == "Node Diff":
+        if diff["DiffType"] == "NodeDiffer":
             diff_result = diff["Diff"]
             package1_dict = diff_result["Packages1"]
             package2_dict = diff_result["Packages2"]
