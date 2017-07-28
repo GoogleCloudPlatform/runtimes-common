@@ -40,6 +40,7 @@ type Prepper interface {
 }
 
 func (p ImagePrepper) GetImage() (Image, error) {
+	glog.Infof("Starting prep for image %s", p.Source)
 	img := p.Source
 
 	var prepper Prepper
@@ -65,6 +66,7 @@ func (p ImagePrepper) GetImage() (Image, error) {
 		return Image{}, err
 	}
 
+	glog.Infof("Finished prepping image %s", p.Source)
 	return Image{
 		Source:  img,
 		FSPath:  imgPath,
@@ -83,6 +85,7 @@ type histLayer struct {
 }
 
 func getHistory(imgPath string) ([]string, error) {
+	glog.Info("Obtaining image history")
 	histList := []string{}
 	contents, err := ioutil.ReadDir(imgPath)
 	if err != nil {
@@ -110,6 +113,7 @@ func getHistory(imgPath string) ([]string, error) {
 }
 
 func getImageFromTar(tarPath string) (string, error) {
+	glog.Info("Extracting image tar to obtain image file system")
 	err := ExtractTar(tarPath)
 	if err != nil {
 		return "", err

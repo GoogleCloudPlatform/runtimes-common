@@ -43,6 +43,7 @@ func saveImageToTar(image, dest string) (string, error) {
 
 // ImageToTar writes an image to a .tar file
 func ImageToTar(cli client.APIClient, image, tarName string) (string, error) {
+	glog.Info("Saving image")
 	imgBytes, err := cli.ImageSave(context.Background(), []string{image})
 	if err != nil {
 		return "", err
