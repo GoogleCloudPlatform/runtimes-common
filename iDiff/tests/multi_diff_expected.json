@@ -1,6 +1,6 @@
 [
   {
-    "DiffType": "Apt Diff",
+    "DiffType": "AptDiffer",
     "Diff": {
       "Image1": "gcr.io/gcp-runtimes/multi-base",
       "Packages1": {},
@@ -47,7 +47,7 @@
     }
   },
   {
-    "DiffType": "Node Diff",
+    "DiffType": "NodeDiffer",
     "Diff": {
       "Image1": "gcr.io/gcp-runtimes/multi-base",
       "Packages1": {},
@@ -80,7 +80,7 @@
     }
   },
   {
-    "DiffType": "Pip Diff",
+    "DiffType": "PipDiffer",
     "Diff": {
       "Image1": "gcr.io/gcp-runtimes/multi-base",
       "Packages1": {

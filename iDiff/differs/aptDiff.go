@@ -14,24 +14,11 @@ type AptDiffer struct {
 
 // AptDiff compares the packages installed by apt-get.
 func (d AptDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
-	img1 := image1.FSPath
-	img2 := image2.FSPath
-
-	pack1, err := getPackages(img1)
-	if err != nil {
-		return &utils.PackageDiffResult{}, err
-	}
-	pack2, err := getPackages(img2)
-	if err != nil {
-		return &utils.PackageDiffResult{}, err
-	}
-
-	diff := utils.GetMapDiff(pack1, pack2, image1.Source, image2.Source)
-	diff.DiffType = "Apt Diff"
-	return &diff, nil
+	diff, err := singleVersionDiff(image1, image2, d)
+	return diff, err
 }
 
-func getPackages(path string) (map[string]utils.PackageInfo, error) {
+func (d AptDiffer) getPackages(path string) (map[string]utils.PackageInfo, error) {
 	packages := make(map[string]utils.PackageInfo)
 	layerStems, err := utils.BuildLayerTargets(path, "layer/var/lib/dpkg/status")
 	if err != nil {

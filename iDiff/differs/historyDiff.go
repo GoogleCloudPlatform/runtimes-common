@@ -9,7 +9,7 @@ type HistoryDiffer struct {
 
 func (d HistoryDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 	diff, err := getHistoryDiff(image1, image2)
-	return &utils.HistDiffResult{DiffType: "History Diff", Diff: diff}, err
+	return &utils.HistDiffResult{DiffType: "HistoryDiffer", Diff: diff}, err
 }
 
 func getHistoryDiff(image1, image2 utils.Image) (utils.HistDiff, error) {

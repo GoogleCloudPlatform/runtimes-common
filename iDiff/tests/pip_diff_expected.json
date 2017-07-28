@@ -1,6 +1,6 @@
 [
   {
-    "DiffType": "Pip Diff",
+    "DiffType": "PipDiffer",
     "Diff": {
       "Image1": "gcr.io/gcp-runtimes/pip-base",
       "Packages1": {},
