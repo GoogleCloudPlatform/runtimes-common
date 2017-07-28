@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/cmd"
+	"github.com/golang/glog"
 )
 
 func main() {
@@ -14,4 +15,5 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	glog.Flush()
 }

@@ -79,6 +79,7 @@ type Event struct {
 }
 
 func pullImageFromRepo(image string) (string, string, error) {
+	glog.Info("Pulling image")
 	cli, err := client.NewEnvClient()
 	response, err := cli.ImagePull(context.Background(), image, types.ImagePullOptions{})
 	if err != nil {
@@ -158,6 +159,7 @@ func processPullCmdOutput(image string, response bytes.Buffer) (string, string, 
 }
 
 func pullImageCmd(image string) (string, string, error) {
+	glog.Info("Pulling image")
 	pullArgs := []string{"pull", image}
 	dockerPullCmd := exec.Command("docker", pullArgs...)
 	var response bytes.Buffer
@@ -175,6 +177,7 @@ func pullImageCmd(image string) (string, string, error) {
 }
 
 func imageToTarCmd(imageID, imageName string) (string, error) {
+	glog.Info("Saving image")
 	cmdArgs := []string{"save", imageID}
 	dockerSaveCmd := exec.Command("docker", cmdArgs...)
 	var out bytes.Buffer
