@@ -4,4 +4,4 @@ apt iDiff/tests/apt_diff_actual.json iDiff/tests/apt_diff_expected.json
 node iDiff/tests/node_diff_actual.json iDiff/tests/node_diff_expected.json
 npa iDiff/tests/multi_diff_actual.json iDiff/tests/multi_diff_expected.json
 history iDiff/tests/hist_diff_actual.json iDiff/tests/hist_diff_expected.json
-npad iDiff/tests/multi_hist_diff_actual.json iDiff/tests/multi_hist_diff_expected.json
+pd iDiff/tests/multi_hist_diff_actual.json iDiff/tests/multi_hist_diff_expected.json

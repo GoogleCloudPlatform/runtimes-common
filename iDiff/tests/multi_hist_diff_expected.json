@@ -1,15 +1,5 @@
 [
   {
-    "DiffType": "AptDiffer",
-    "Diff": {
-      "Image1": "gcr.io/gcp-runtimes/pip-base",
-      "Packages1": {},
-      "Image2": "gcr.io/gcp-runtimes/pip-modified",
-      "Packages2": {},
-      "InfoDiff": []
-    }
-  },
-  {
     "DiffType": "HistoryDiffer",
     "Diff": {
       "Image1": "gcr.io/gcp-runtimes/pip-base",
@@ -18,16 +8,6 @@
         "/bin/bash"
       ],
       "Dels": []
-    }
-  },
-  {
-    "DiffType": "NodeDiffer",
-    "Diff": {
-      "Image1": "gcr.io/gcp-runtimes/pip-base",
-      "Packages1": {},
-      "Image2": "gcr.io/gcp-runtimes/pip-modified",
-      "Packages2": {},
-      "InfoDiff": []
     }
   },
   {
