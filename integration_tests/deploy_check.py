@@ -48,9 +48,6 @@ def main():
     if 'app' in output:
         prev_builder_value = output.get('app').get('use_runtime_builders')
 
-    logging.info(prev_builder_value)
-    sys.exit(1)
-
     # disable app/use_runtime_builders to hit the XRT flow
     _set_runtime_builder_flag(False)
     _deploy_and_test(args.directory, args.language, True)
