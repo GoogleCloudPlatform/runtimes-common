@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -71,11 +72,12 @@ func (p ImagePrepper) GetImage() (Image, error) {
 }
 
 func getImageFromTar(tarPath string) (string, error) {
-	err := ExtractTar(tarPath)
-	if err != nil {
+	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
+	args := []string{"undocker.py", "--tar", tarPath, "-o", path}
+	if err := exec.Command("python", args...).Run(); err != nil {
+		glog.Error(err)
 		return "", err
 	}
-	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
 	return path, nil
 }
 
