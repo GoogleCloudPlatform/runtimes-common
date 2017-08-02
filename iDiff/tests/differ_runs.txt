@@ -6,4 +6,3 @@
 -npa multi gcr.io/gcp-runtimes/multi-base gcr.io/gcp-runtimes/multi-modified iDiff/tests/multi_diff_actual.json
 -d history gcr.io/gcp-runtimes/diff-base gcr.io/gcp-runtimes/diff-modified iDiff/tests/hist_diff_actual.json
 -pd multihist gcr.io/gcp-runtimes/pip-base gcr.io/gcp-runtimes/pip-modified iDiff/tests/multi_hist_diff_actual.json
-

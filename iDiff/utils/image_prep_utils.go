@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 
 	"github.com/golang/glog"
 )
@@ -118,6 +119,7 @@ func getImageFromTar(tarPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
 	return path, nil
 }
 
