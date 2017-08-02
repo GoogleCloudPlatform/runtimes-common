@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import tarfile
+import shutil
 
 from contextlib import closing
 
@@ -54,46 +55,54 @@ def parse_args():
 def main():
     args = parse_args()
     logging.basicConfig(level=args.loglevel)
-    fd = tarfile.open(args.tar)
+    # open tar file
+    img = tarfile.open(args.tar)
+    print args.tar
+    # extract manifest file from tar to read layers
+    repos = img.extractfile('manifest.json')
+    repos = json.load(repos)
+    layers = repos[0]["Layers"]
 
-    with fd as img:
-        repos = img.extractfile('manifest.json')
-        repos = json.load(repos)
-        layers = repos[0]["Layers"]
+    # if args.layers:
+    #     sys.exit(0)
 
-        if args.layers:
-            sys.exit(0)
+    if not os.path.isdir(args.output):
+        os.mkdir(args.output)
+    
+    removelist = []
+    # for each layer, extract into location specified
+    for id in layers:
+        if args.layer and id not in args.layer:
+            continue
 
-        if not os.path.isdir(args.output):
-            os.mkdir(args.output)
-
-        for id in layers:
-            if args.layer and id not in args.layer:
-                continue
-
-            LOG.info('extracting layer %s', id)
-            with tarfile.TarFile(
-                    fileobj=img.extractfile(id),
-                    errorlevel=(0 if args.ignore_errors else 1)) as layer:
-                layer.extractall(path=args.output)
-                if not args.no_whiteouts:
-                    LOG.info('processing whiteouts')
-                    for member in layer.getmembers():
-                        path = member.path
-                        if path.startswith('.wh.') or '/.wh.' in path:
-                            if path.startswith('.wh.'):
-                                newpath = path[4:]
-                            else:
-                                newpath = path.replace('/.wh.', '/')
-                            try:
-                                LOG.info('removing path %s', newpath)
-                                # os.unlink(path)
-                                # os.unlink(newpath)
-                                os.removedirs(path)
-                                os.removedirs(newpath)
-                            except OSError as err:
-                                if err.errno != errno.ENOENT:
-                                    raise
+        LOG.info('extracting layer %s', id)
+        with tarfile.TarFile(
+                fileobj=img.extractfile(id),
+                errorlevel=(0 if args.ignore_errors else 1)) as layer:
+            layer.extractall(path=args.output)
+            if not args.no_whiteouts:
+                LOG.info('processing whiteouts')
+                for member in layer.getmembers():
+                    path = member.path
+                    if path.startswith('.wh.') or '/.wh.' in path:
+                        if path.startswith('.wh.'):
+                            newpath = path[4:]
+                        else:
+                            newpath = path.replace('/.wh.', '/')
+                        try:
+                            LOG.info('removing path %s', newpath)
+                            # os.unlink(path)
+                            # os.unlink(newpath)
+                            os.remove(args.output + "/" + path)
+                            shutil.rmtree(args.output + "/" + newpath)
+                            # removelist.append(newpath)
+                            # removelist.append(path)
+                        except OSError as err:
+                            if err.errno != errno.ENOENT:
+                                raise
+    img.close()
+    # for path in removelist:
+    #     shutil.rmtree(args.output + "/" + path)
 
 
 if __name__ == '__main__':
