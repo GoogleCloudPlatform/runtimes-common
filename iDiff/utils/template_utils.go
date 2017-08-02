@@ -33,10 +33,10 @@ const MultiVersionOutput = `
 -----{{.DiffType}}-----
 
 Packages found only in {{.Diff.Image1}}:{{if not .Diff.Packages1}} None{{else}}
-NAME	VERSION	SIZE{{range $name, $value := .Diff.Packages1}}{{"\n"}}{{print "-"}}{{$name}}	{{$value.Version}}	{{$value.Size}}B{{end}}{{end}}
+NAME	VERSION	SIZE{{range $name, $value := .Diff.Packages1}}{{"\n"}}{{print "-"}}{{$name}}	{{range $key, $info := $value}}{{$info.Version}}	{{$info.Size}}B{{end}}{{end}}{{end}}
 
 Packages found only in {{.Diff.Image2}}:{{if not .Diff.Packages2}} None{{else}}
-NAME	VERSION	SIZE{{range $name, $value := .Diff.Packages2}}{{"\n"}}{{print "-"}}{{$name}}	{{$value.Version}}	{{$value.Size}}B{{end}}{{end}}
+NAME	VERSION	SIZE{{range $name, $value := .Diff.Packages2}}{{"\n"}}{{print "-"}}{{$name}}	{{range $key, $info := $value}}{{$info.Version}}	{{$info.Size}}B{{end}}{{end}}{{end}}
 
 Version differences:{{if not .Diff.InfoDiff}} None{{else}}
 PACKAGE	IMAGE1 ({{.Diff.Image1}})	IMAGE2 ({{.Diff.Image2}}){{range .Diff.InfoDiff}}{{"\n"}}{{print "-"}}{{.Package}}	{{range .Info1}}{{.Version}}, {{.Size}}B{{end}}	{{range .Info2}}{{.Version}}, {{.Size}}B{{end}}{{end}}{{end}}
