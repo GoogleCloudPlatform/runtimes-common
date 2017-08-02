@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -21,15 +22,15 @@ func (d NodeDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 }
 
 func buildNodePaths(path string) ([]string, error) {
-	globalPaths, err := utils.BuildLayerTargets(path, "layer/node_modules")
-	if err != nil {
-		return []string{}, err
-	}
-	localPaths, err := utils.BuildLayerTargets(path, "layer/usr/local/lib/node_modules")
-	if err != nil {
-		return []string{}, err
-	}
-	return append(globalPaths, localPaths...), nil
+	globalPaths := filepath.Join(path, "node_modules")
+	// if err != nil {
+	// 	return []string{}, err
+	// }
+	localPath := filepath.Join(path, "usr/local/lib/node_modules")
+	// if err != nil {
+	// 	return []string{}, err
+	// }
+	return []string{globalPaths, localPath}, nil
 }
 
 func (d NodeDiffer) getPackages(path string) (map[string]map[string]utils.PackageInfo, error) {
