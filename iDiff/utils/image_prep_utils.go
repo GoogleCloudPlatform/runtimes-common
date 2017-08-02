@@ -94,16 +94,17 @@ func getHistory(imgPath string) ([]string, error) {
 
 	for _, item := range contents {
 		if filepath.Ext(item.Name()) == ".json" && item.Name() != "manifest.json" {
+			if len(histList) != 0 {
+				// Another <hash>.json file has already been processed and the history determined is uncertain.
+				glog.Error("Multiple history sources detected for image at " + imgPath + ", history diff may be incorrect.")
+				break
+			}
 			file, err := ioutil.ReadFile(filepath.Join(imgPath, item.Name()))
 			if err != nil {
 				return histList, err
 			}
 			var histJ histJSON
 			json.Unmarshal(file, &histJ)
-			if len(histList) != 0 {
-				glog.Error("Multiple history sources detected for image at " + imgPath + ", history diff may be incorrect.")
-				break
-			}
 			for _, layer := range histJ.History {
 				histList = append(histList, layer.CreatedBy)
 			}
