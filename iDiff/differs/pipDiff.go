@@ -20,7 +20,7 @@ func (d PipDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 }
 
 func getPythonVersion(pathToLayer string) (string, bool) {
-	libPath := filepath.Join(pathToLayer, "/layer/usr/local/lib")
+	libPath := filepath.Join(pathToLayer, "usr/local/lib")
 	libContents, err := ioutil.ReadDir(libPath)
 	if err != nil {
 		return "", false
@@ -41,20 +41,20 @@ func (d PipDiffer) getPackages(path string) (map[string]utils.PackageInfo, error
 
 	// TODO: Eventually, this would make use of the shallow JSON and be diffed
 	// with that of another image to get only the layers that have changed.
-	layers := utils.GetImageLayers(path)
-	for _, layer := range layers {
-		pathToLayer := filepath.Join(path, layer)
-		pythonVersion, exists := getPythonVersion(pathToLayer)
-		if !exists {
-			// layer doesn't have a Python folder installed
-			continue
-		}
-		packagesPath := filepath.Join(pathToLayer, "layer/usr/local/lib", pythonVersion, "site-packages")
-		contents, err := ioutil.ReadDir(packagesPath)
-		if err != nil {
-			// layer's Python folder doesn't have a site-packages folder
-			continue
-		}
+	// layers := utils.GetImageLayers(path)
+	// for _, layer := range layers {
+	// 	pathToLayer := filepath.Join(path, layer)
+	pythonVersion, exists := getPythonVersion(path)
+	if !exists {
+		// layer doesn't have a Python folder installed
+		return packages
+	}
+	packagesPath := filepath.Join(path, "usr/local/lib", pythonVersion, "site-packages")
+	contents, err := ioutil.ReadDir(packagesPath)
+	if err != nil {
+		// layer's Python folder doesn't have a site-packages folder
+		return packages
+	}
 
 		for i := 0; i < len(contents); i++ {
 			c := contents[i]
