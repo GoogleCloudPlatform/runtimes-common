@@ -3,6 +3,7 @@ package differs
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
@@ -20,29 +21,29 @@ func (d AptDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 
 func (d AptDiffer) getPackages(path string) (map[string]utils.PackageInfo, error) {
 	packages := make(map[string]utils.PackageInfo)
-	layerStems, err := utils.BuildLayerTargets(path, "layer/var/lib/dpkg/status")
-	if err != nil {
+	statusFile := filepath.Join(path, "var/lib/dpkg/status")
+	// if err != nil {
+	// 	return packages, err
+	// }
+
+	if _, err := os.Stat(statusFile); err != nil {
+		// status file does not exist in this layer
+		return packages, nil
+	}
+	if file, err := os.Open(statusFile); err == nil {
+		// make sure it gets closed
+		defer file.Close()
+
+		// create a new scanner and read the file line by line
+		scanner := bufio.NewScanner(file)
+		var currPackage string
+		for scanner.Scan() {
+			currPackage = parseLine(scanner.Text(), currPackage, packages)
+		}
+	} else {
 		return packages, err
 	}
-	for _, statusFile := range layerStems {
-		if _, err := os.Stat(statusFile); err != nil {
-			// status file does not exist in this layer
-			continue
-		}
-		if file, err := os.Open(statusFile); err == nil {
-			// make sure it gets closed
-			defer file.Close()
 
-			// create a new scanner and read the file line by line
-			scanner := bufio.NewScanner(file)
-			var currPackage string
-			for scanner.Scan() {
-				currPackage = parseLine(scanner.Text(), currPackage, packages)
-			}
-		} else {
-			return packages, err
-		}
-	}
 	return packages, nil
 }
 
