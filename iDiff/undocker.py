@@ -7,7 +7,6 @@ import logging
 import os
 import sys
 import tarfile
-import tempfile
 
 from contextlib import closing
 
@@ -18,9 +17,8 @@ LOG = logging.getLogger(__name__)
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument('--tar', '-t',
-                    default='',
-                    help='The tar path to undocker')
-
+                   default='',
+                   help='The tar path to undocker')
     p.add_argument('--ignore-errors', '-i',
                    action='store_true',
                    help='Ignore OS errors when extracting files')
@@ -61,7 +59,6 @@ def find_layers(img, id):
     for k in ['os', 'architecture', 'author', 'created']:
         if k in info:
             LOG.debug('%s = %s', k, info[k])
-
     yield id
     if 'parent' in info:
         pid = info['parent']
@@ -73,7 +70,7 @@ def main():
     args = parse_args()
     logging.basicConfig(level=args.loglevel)
     fd = tarfile.open(args.tar)
-    
+
     with fd as img:
         repos = img.extractfile('manifest.json')
         repos = json.load(repos)
@@ -103,7 +100,6 @@ def main():
                                 newpath = path[4:]
                             else:
                                 newpath = path.replace('/.wh.', '/')
-
                             try:
                                 LOG.info('removing path %s', newpath)
                                 os.unlink(path)
