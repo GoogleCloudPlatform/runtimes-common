@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"bytes"
 	"errors"
 	"os"
 	"os/exec"
@@ -77,12 +76,13 @@ func getImageFromTar(tarPath string) (string, error) {
 	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
 	args := []string{"undocker.py", "--tar", tarPath, "-o", path, "-v"}
 	undockerCmd := exec.Command("python", args...)
-	var response bytes.Buffer
-	undockerCmd.Stdout = &response
+	// var response bytes.Buffer
+	undockerCmd.Stdout = os.Stdout
+	undockerCmd.Stderr = os.Stdout
 	if err := undockerCmd.Run(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
-				glog.Error("Undocker Command Exit Status: ", status.ExitStatus())
+				glog.Error("Undocker Command Exit Status: ", status.ExitStatus(), "\n for tar: ", tarPath)
 			}
 		} else {
 			return "", err
