@@ -24,7 +24,7 @@ def _trim_file_names(files):
 
 
 def _trim_layer_hash(filename):
-    hash_match = re.match(r'^([a-z|0-9]{64})/', filename)
+    hash_match = re.match(r'^([a-z|0-9])/', filename)
     if hash_match:
         hash = hash_match.group(1)
         return re.sub(hash, "", filename)
