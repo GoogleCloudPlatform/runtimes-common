@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
+	"github.com/golang/glog"
 )
 
 type PipDiffer struct {
@@ -55,7 +56,8 @@ func (d PipDiffer) getPackages(path string) (map[string]utils.PackageInfo, error
 			continue
 		}
 
-		for _, c := range contents {
+		for i := 0; i < len(contents); i++ {
+			c := contents[i]
 			fileName := c.Name()
 
 			// check if package
@@ -64,18 +66,28 @@ func (d PipDiffer) getPackages(path string) (map[string]utils.PackageInfo, error
 			if len(packageMatch) != 0 {
 				packageName := packageMatch[1]
 				version := packageMatch[2][:len(packageMatch[2])-1]
-				size := strconv.FormatInt(c.Size(), 10)
-				packages[packageName] = utils.PackageInfo{version, size}
 
-				continue
-			}
+				// Retrieves size for actual package/script corresponding to each dist-info metadata directory
+				// by taking the file entry alphabetically before it (for a package) or after it (for a script)
+				var size string
+				if contents[i-1].Name() == packageName {
+					packagePath := filepath.Join(packagesPath, packageName)
+					intSize, err := utils.GetDirectorySize(packagePath)
+					if err != nil {
+						glog.Errorf("Could not obtain size for package %s", packagePath)
+						size = ""
+					} else {
+						size = strconv.FormatInt(intSize, 10)
+					}
+				} else if contents[i+1].Name() == packageName+".py" {
+					size = strconv.FormatInt(contents[i+1].Size(), 10)
 
-			// if not package, check if Python file
-			pythonFile := regexp.MustCompile(".+\\.py$")
-			fileMatch := pythonFile.FindString(fileName)
+				} else {
+					glog.Errorf("Could not find Python package %s for corresponding metadata info", packageName)
+					continue
+				}
 
-			if fileMatch != "" {
-				packages[fileName] = utils.PackageInfo{}
+				packages[packageName] = utils.PackageInfo{Version: version, Size: size}
 			}
 		}
 	}
