@@ -1,12 +1,14 @@
 package utils
 
 import (
+	"bytes"
 	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
+	"syscall"
 
 	"github.com/golang/glog"
 )
@@ -73,10 +75,18 @@ func (p ImagePrepper) GetImage() (Image, error) {
 
 func getImageFromTar(tarPath string) (string, error) {
 	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
-	args := []string{"undocker.py", "--tar", tarPath, "-o", path}
-	if err := exec.Command("python", args...).Run(); err != nil {
-		glog.Error(err)
-		return "", err
+	args := []string{"undocker.py", "--tar", tarPath, "-o", path, "-v"}
+	undockerCmd := exec.Command("python", args...)
+	var response bytes.Buffer
+	undockerCmd.Stdout = &response
+	if err := undockerCmd.Run(); err != nil {
+		if exiterr, ok := err.(*exec.ExitError); ok {
+			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
+				glog.Error("Undocker Command Exit Status: ", status.ExitStatus())
+			}
+		} else {
+			return "", err
+		}
 	}
 	return path, nil
 }
