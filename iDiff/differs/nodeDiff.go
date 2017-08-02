@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
@@ -31,7 +30,7 @@ func (d NodeDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 		return &utils.MultiVersionPackageDiffResult{}, err
 	}
 
-	diff := utils.GetMultiVersionMapDiff(pack1, pack2, img1, img2)
+	diff := utils.GetMapDiff(pack1, pack2, img1, img2)
 	diff.DiffType = "Node Diff"
 	return &diff, nil
 }
@@ -57,50 +56,81 @@ func getPackageSize(path string) (int64, error) {
 	return packageStat.Size(), nil
 }
 
-func getNodePackages(path string) (map[string]map[string]utils.PackageInfo, error) {
-	packages := make(map[string]map[string]utils.PackageInfo)
+type packageLock struct {
+	PackageMap map[string]packageObj `json:"dependencies"`
+}
 
-	layerStems, err := buildNodePaths(path)
+type packageObj struct {
+	Version string `json:"version"`
+}
+
+func readPackages(path string) (map[string]utils.PackageInfo, error) {
+	packages := make(map[string]utils.PackageInfo)
+	packageFile, err := os.Open(path)
 	if err != nil {
-		glog.Warningf("Error building JSON paths at %s: %s\n", path, err)
+		return packages, err
+	}
+	jsonParser := json.NewDecoder(packageFile)
+	var packagesStruct packageLock
+	if err = jsonParser.Decode(&packagesStruct); err != nil {
 		return packages, err
 	}
 
-	for _, modulesDir := range layerStems {
-		packageJSONs, _ := utils.BuildLayerTargets(modulesDir, "package.json")
-		for _, currPackage := range packageJSONs {
-			if _, err := os.Stat(currPackage); err != nil {
-				// package.json file does not exist at this target path
-				continue
-			}
-			packageJSON, _ := readPackageJSON(currPackage)
-			if err != nil {
-				glog.Warningf("Error reading package JSON at %s: %s\n", currPackage, err)
-				return packages, err
-			}
-			// Build PackageInfo for this package occurence
-			var currInfo utils.PackageInfo
-			currInfo.Version = packageJSON.Version
-			size, _ := getPackageSize(currPackage)
-			if err != nil {
-				glog.Warningf("Error getting package size at %s: %s\n", currPackage, err)
-				return packages, err
-			}
-			currInfo.Size = strconv.FormatInt(size, 10)
-
-			// Check if other package version already recorded
-			if _, ok := packages[packageJSON.Name]; !ok {
-				// package not yet seen
-				infoMap := make(map[string]utils.PackageInfo)
-				infoMap[currPackage] = currInfo
-				packages[packageJSON.Name] = infoMap
-				continue
-			}
-			packages[packageJSON.Name][currPackage] = currInfo
-
-		}
+	for pack, obj := range packagesStruct.PackageMap {
+		// pack := packagesStruct.PackageMap[key]
+		newPack := utils.PackageInfo{Version: obj.Version}
+		packages[pack] = newPack
 	}
 	return packages, nil
+}
+
+func getNodePackages(path string) (map[string]utils.PackageInfo, error) {
+	// packages := make(map[string]utils.PackageInfo)
+	packageListPath := filepath.Join(path, "package-lock.json")
+	packages, err := readPackages(packageListPath)
+	return packages, err
+
+	// layerStems, err := buildNodePaths(path)
+	// if err != nil {
+	// 	glog.Warningf("Error building JSON paths at %s: %s\n", path, err)
+	// 	return packages, err
+	// }
+
+	// for _, modulesDir := range layerStems {
+	// 	packageJSONs, _ := utils.BuildLayerTargets(modulesDir, "package.json")
+	// 	for _, currPackage := range packageJSONs {
+	// 		if _, err := os.Stat(currPackage); err != nil {
+	// 			// package.json file does not exist at this target path
+	// 			continue
+	// 		}
+	// 		packageJSON, _ := readPackageJSON(currPackage)
+	// 		if err != nil {
+	// 			glog.Warningf("Error reading package JSON at %s: %s\n", currPackage, err)
+	// 			return packages, err
+	// 		}
+	// 		// Build PackageInfo for this package occurence
+	// 		var currInfo utils.PackageInfo
+	// 		currInfo.Version = packageJSON.Version
+	// 		size, _ := getPackageSize(currPackage)
+	// 		if err != nil {
+	// 			glog.Warningf("Error getting package size at %s: %s\n", currPackage, err)
+	// 			return packages, err
+	// 		}
+	// 		currInfo.Size = strconv.FormatInt(size, 10)
+
+	// 		// Check if other package version already recorded
+	// 		if _, ok := packages[packageJSON.Name]; !ok {
+	// 			// package not yet seen
+	// 			infoMap := make(map[string]utils.PackageInfo)
+	// 			infoMap[currPackage] = currInfo
+	// 			packages[packageJSON.Name] = infoMap
+	// 			continue
+	// 		}
+	// 		packages[packageJSON.Name][currPackage] = currInfo
+
+	// 	}
+	// }
+	// return packages, nil
 }
 
 type nodePackage struct {

@@ -51,21 +51,6 @@ def parse_args():
     return p.parse_args()
 
 
-def find_layers(img, id):
-    with closing(img.extractfile('%s/json' % id)) as fd:
-        info = json.load(fd)
-
-    LOG.debug('layer = %s', id)
-    for k in ['os', 'architecture', 'author', 'created']:
-        if k in info:
-            LOG.debug('%s = %s', k, info[k])
-    yield id
-    if 'parent' in info:
-        pid = info['parent']
-        for layer in find_layers(img, pid):
-            yield layer
-
-
 def main():
     args = parse_args()
     logging.basicConfig(level=args.loglevel)
@@ -102,8 +87,10 @@ def main():
                                 newpath = path.replace('/.wh.', '/')
                             try:
                                 LOG.info('removing path %s', newpath)
-                                os.unlink(path)
-                                os.unlink(newpath)
+                                # os.unlink(path)
+                                # os.unlink(newpath)
+                                os.removedirs(path)
+                                os.removedirs(newpath)
                             except OSError as err:
                                 if err.errno != errno.ENOENT:
                                     raise
