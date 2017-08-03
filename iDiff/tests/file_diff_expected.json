@@ -1,12 +1,13 @@
-{
-  "DiffType": "File Diff",
-  "Diff": {
-    "Image1": "diff-base",
-    "Image2": "diff-modified",
-    "Adds": [],
-    "Dels": [
-      "/home/test"
-    ],
-    "Mods": null
+[
+  {
+    "DiffType": "File Diff",
+    "Diff": {
+      "Image1": "diff-base",
+      "Image2": "diff-modified",
+      "Adds": [],
+      "Dels": [
+        "/home/test"
+      ],
+      "Mods": null
   }
-}
+]

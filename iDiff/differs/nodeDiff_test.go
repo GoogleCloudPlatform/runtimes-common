@@ -44,7 +44,8 @@ func TestGetNodePackages(t *testing.T) {
 	}
 
 	for _, test := range testCases {
-		packages, err := getNodePackages(test.path)
+		d := NodeDiffer{}
+		packages, err := d.getPackages(test.path)
 		if err != nil && !test.err {
 			t.Errorf("Got unexpected error: %s", err)
 		}

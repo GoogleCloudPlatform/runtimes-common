@@ -76,7 +76,7 @@ func TestParseLine(t *testing.T) {
 	}
 }
 
-func TestGetPackages(t *testing.T) {
+func TestGetAptPackages(t *testing.T) {
 	testCases := []struct {
 		descrip  string
 		path     string
@@ -104,7 +104,8 @@ func TestGetPackages(t *testing.T) {
 		},
 	}
 	for _, test := range testCases {
-		packages, err := getPackages(test.path)
+		d := AptDiffer{}
+		packages, err := d.getPackages(test.path)
 		if err != nil && !test.err {
 			t.Errorf("Got unexpected error: %s", err)
 		}

@@ -17,23 +17,8 @@ type NodeDiffer struct {
 
 // NodeDiff compares the packages installed by apt-get.
 func (d NodeDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
-	img1 := image1.FSPath
-	img2 := image2.FSPath
-
-	pack1, err := getNodePackages(img1)
-	if err != nil {
-		glog.Errorf("Error reading packages from directory %s: %s\n", img1, err)
-		return &utils.MultiVersionPackageDiffResult{}, err
-	}
-	pack2, err := getNodePackages(img2)
-	if err != nil {
-		glog.Errorf("Error reading packages from directory %s: %s\n", img2, err)
-		return &utils.MultiVersionPackageDiffResult{}, err
-	}
-
-	diff := utils.GetMultiVersionMapDiff(pack1, pack2, img1, img2)
-	diff.DiffType = "Node Diff"
-	return &diff, nil
+	diff, err := multiVersionDiff(image1, image2, d)
+	return diff, err
 }
 
 func buildNodePaths(path string) ([]string, error) {
@@ -51,35 +36,7 @@ func getPackageSize(path string) (int64, error) {
 	return packageStat.Size(), nil
 }
 
-type packageLock struct {
-	PackageMap map[string]packageObj `json:"dependencies"`
-}
-
-type packageObj struct {
-	Version string `json:"version"`
-}
-
-func readPackages(path string) (map[string]utils.PackageInfo, error) {
-	packages := make(map[string]utils.PackageInfo)
-	packageFile, err := os.Open(path)
-	if err != nil {
-		return packages, err
-	}
-	jsonParser := json.NewDecoder(packageFile)
-	var packagesStruct packageLock
-	if err = jsonParser.Decode(&packagesStruct); err != nil {
-		return packages, err
-	}
-
-	for pack, obj := range packagesStruct.PackageMap {
-		// pack := packagesStruct.PackageMap[key]
-		newPack := utils.PackageInfo{Version: obj.Version}
-		packages[pack] = newPack
-	}
-	return packages, nil
-}
-
-func getNodePackages(path string) (map[string]map[string]utils.PackageInfo, error) {
+func (d NodeDiffer) getPackages(path string) (map[string]map[string]utils.PackageInfo, error) {
 	packages := make(map[string]map[string]utils.PackageInfo)
 	if _, err := os.Stat(path); err != nil {
 		// path provided invalid

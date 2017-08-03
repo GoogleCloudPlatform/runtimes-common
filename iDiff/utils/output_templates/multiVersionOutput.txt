@@ -1,6 +1,0 @@
-Packages found only in {{.Diff.Image1}}:{{range $name, $value := .Diff.Packages1}}{{"\n"}}{{print "-"}}{{$name}}{{end}}{{"\n"}}
-Packages found only in {{.Diff.Image2}}:{{range $name, $value := .Diff.Packages2}}{{"\n"}}{{print "-"}}{{$name}}{{end}}
-
-Version differences:{{"\n"}}	(Package:	{{.Diff.Image1}}{{"\t\t"}}{{.Diff.Image2}}){{range .Diff.InfoDiff}}
-	{{.Package}}:	{{range .Info1}}{{.Version}}{{end}}	{{"\t"}} {{range .Info2}}{{.Version}}{{end}}
-	{{end}}

@@ -20,11 +20,9 @@ type Differ interface {
 }
 
 var diffs = map[string]Differ{
-	"hist":    HistoryDiffer{},
 	"history": HistoryDiffer{},
 	"file":    FileDiffer{},
 	"apt":     AptDiffer{},
-	"linux":   AptDiffer{},
 	"pip":     PipDiffer{},
 	"node":    NodeDiffer{},
 }

@@ -7,15 +7,17 @@ import (
 	"html/template"
 	"os"
 	"reflect"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/golang/glog"
 )
 
 var templates = map[string]string{
-	"utils.PackageDiffResult":             "utils/output_templates/singleVersionOutput.txt",
-	"utils.MultiVersionPackageDiffResult": "utils/output_templates/multiVersionOutput.txt",
-	"utils.HistDiffResult":                "utils/output_templates/historyOutput.txt",
-	"utils.DirDiffResult":                 "utils/output_templates/fsOutput.txt",
+	"utils.PackageDiffResult":             SingleVersionOutput,
+	"utils.MultiVersionPackageDiffResult": MultiVersionOutput,
+	"utils.HistDiffResult":                HistoryOutput,
+	"utils.DirDiffResult":                 FSOutput,
 }
 
 func JSONify(diff interface{}) error {
@@ -29,29 +31,32 @@ func JSONify(diff interface{}) error {
 	return nil
 }
 
-func getTemplatePath(diff interface{}) (string, error) {
+func getTemplate(diff interface{}) (string, error) {
 	diffType := reflect.TypeOf(diff).String()
-	if path, ok := templates[diffType]; ok {
-		return path, nil
+	if template, ok := templates[diffType]; ok {
+		return template, nil
 	}
 	return "", fmt.Errorf("No available template")
 }
 
 func TemplateOutput(diff interface{}) error {
-	tempPath, err := getTemplatePath(diff)
+	outputTmpl, err := getTemplate(diff)
 	if err != nil {
 		glog.Error(err)
 
 	}
-	tmpl, err := template.ParseFiles(tempPath)
+	funcs := template.FuncMap{"join": strings.Join}
+	tmpl, err := template.New("tmpl").Funcs(funcs).Parse(outputTmpl)
 	if err != nil {
 		glog.Error(err)
 		return err
 	}
-	err = tmpl.Execute(os.Stdout, diff)
+	w := tabwriter.NewWriter(os.Stdout, 8, 8, 8, ' ', 0)
+	err = tmpl.Execute(w, diff)
 	if err != nil {
 		glog.Error(err)
 		return err
 	}
+	w.Flush()
 	return nil
 }

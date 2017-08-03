@@ -79,6 +79,7 @@ type Event struct {
 }
 
 func pullImageFromRepo(image string) (string, string, error) {
+	glog.Info("Pulling image")
 	cli, err := client.NewEnvClient()
 	response, err := cli.ImagePull(context.Background(), image, types.ImagePullOptions{})
 	if err != nil {
@@ -107,33 +108,6 @@ type HistDiff struct {
 	Image2 string
 	Adds   []string
 	Dels   []string
-}
-
-// getImageHistory shells out the docker history command and returns a list of history response items.
-// The history response items contain only the Created By information for each event.
-func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
-	imageID := image
-	var err error
-	var history []img.HistoryResponseItem
-	histArgs := []string{"history", "--no-trunc", imageID}
-	dockerHistCmd := exec.Command("docker", histArgs...)
-	var response bytes.Buffer
-	dockerHistCmd.Stdout = &response
-	if err := dockerHistCmd.Run(); err != nil {
-		if exiterr, ok := err.(*exec.ExitError); ok {
-			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
-				glog.Error("Docker History Command Exit Status: ", status.ExitStatus())
-			}
-		} else {
-			return history, err
-		}
-	}
-	history, err = processHistOutput(response)
-	if err != nil {
-		return history, err
-	}
-	return history, nil
-
 }
 
 func processHistOutput(response bytes.Buffer) ([]img.HistoryResponseItem, error) {
@@ -185,6 +159,7 @@ func processPullCmdOutput(image string, response bytes.Buffer) (string, string, 
 }
 
 func pullImageCmd(image string) (string, string, error) {
+	glog.Info("Pulling image")
 	pullArgs := []string{"pull", image}
 	dockerPullCmd := exec.Command("docker", pullArgs...)
 	var response bytes.Buffer
@@ -202,6 +177,7 @@ func pullImageCmd(image string) (string, string, error) {
 }
 
 func imageToTarCmd(imageID, imageName string) (string, error) {
+	glog.Info("Saving image")
 	cmdArgs := []string{"save", imageID}
 	dockerSaveCmd := exec.Command("docker", cmdArgs...)
 	var out bytes.Buffer
@@ -222,35 +198,4 @@ func imageToTarCmd(imageID, imageName string) (string, error) {
 		return "", err
 	}
 	return imageTarPath, nil
-}
-
-func getHistoryList(image string) ([]string, error) {
-	validDocker, err := ValidDockerVersion()
-	if err != nil {
-		return []string{}, err
-	}
-	var history []img.HistoryResponseItem
-	if validDocker {
-		ctx := context.Background()
-		cli, err := client.NewEnvClient()
-		if err != nil {
-			return []string{}, err
-		}
-		history, err = cli.ImageHistory(ctx, image)
-		if err != nil {
-			return []string{}, err
-		}
-	} else {
-		glog.Info("Docker version incompatible with api, shelling out to local Docker client.")
-		history, err = getImageHistory(image)
-		if err != nil {
-			return []string{}, err
-		}
-	}
-
-	strhistory := make([]string, len(history))
-	for i, layer := range history {
-		strhistory[i] = fmt.Sprintf("%s\n", strings.TrimSpace(layer.CreatedBy))
-	}
-	return strhistory, nil
 }

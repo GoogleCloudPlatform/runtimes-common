@@ -89,7 +89,8 @@ func TestGetPythonPackages(t *testing.T) {
 		},
 	}
 	for _, test := range testCases {
-		packages := getPythonPackages(test.path)
+		d := PipDiffer{}
+		packages, _ := d.getPackages(test.path)
 		if !reflect.DeepEqual(packages, test.expectedPackages) {
 			t.Errorf("Expected: %s but got: %s", test.expectedPackages, packages)
 		}

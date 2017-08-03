@@ -14,15 +14,8 @@ type PipDiffer struct {
 
 // PipDiff compares pip-installed Python packages between layers of two different images.
 func (d PipDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
-	img1 := image1.FSPath
-	img2 := image2.FSPath
-
-	pack1 := getPythonPackages(img1)
-	pack2 := getPythonPackages(img2)
-
-	diff := utils.GetMultiVersionMapDiff(pack1, pack2, img1, img2)
-	diff.DiffType = "Pip Diff"
-	return &diff, nil
+	diff, err := multiVersionDiff(image1, image2, d)
+	return diff, err
 }
 
 func getPythonVersion(pathToLayer string) ([]string, error) {
@@ -43,7 +36,8 @@ func getPythonVersion(pathToLayer string) ([]string, error) {
 	return matches, nil
 }
 
-func getPythonPackages(path string) map[string]map[string]utils.PackageInfo {
+
+func (d PipDiffer) getPackages(path string) (map[string]map[string]utils.PackageInfo, error) {
 	packages := make(map[string]map[string]utils.PackageInfo)
 
 	pythonVersions, err := getPythonVersion(path)
@@ -82,7 +76,7 @@ func getPythonPackages(path string) map[string]map[string]utils.PackageInfo {
 		}
 	}
 
-	return packages
+	return packages, nil
 }
 
 func addToMap(packages map[string]map[string]utils.PackageInfo, pack string, pyVersion string, packInfo utils.PackageInfo) {
