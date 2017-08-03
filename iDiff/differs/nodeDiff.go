@@ -60,7 +60,10 @@ func readPackages(path string) (map[string]utils.PackageInfo, error) {
 
 func getNodePackages(path string) (map[string]map[string]utils.PackageInfo, error) {
 	packages := make(map[string]map[string]utils.PackageInfo)
-
+	if _, err := os.Stat(path); err != nil {
+		// path provided invalid
+		return packages, err
+	}
 	layerStems, err := buildNodePaths(path)
 	if err != nil {
 		glog.Warningf("Error building JSON paths at %s: %s\n", path, err)

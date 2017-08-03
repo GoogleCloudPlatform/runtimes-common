@@ -95,22 +95,12 @@ func TestGetAptPackages(t *testing.T) {
 			expected: map[string]utils.PackageInfo{},
 		},
 		{
-			descrip: "all packages in one layer",
+			descrip: "packages in expected location",
 			path:    "testDirs/packageOne",
 			expected: map[string]utils.PackageInfo{
 				"pac1": {Version: "1.0"},
 				"pac2": {Version: "2.0"},
 				"pac3": {Version: "3.0"}},
-		},
-		{
-			descrip: "many packages in different layers",
-			path:    "testDirs/packageMany",
-			expected: map[string]utils.PackageInfo{
-				"pac1": {Version: "1.0"},
-				"pac2": {Version: "2.0"},
-				"pac3": {Version: "3.0"},
-				"pac4": {Version: "4.0"},
-				"pac5": {Version: "5.0"}},
 		},
 	}
 	for _, test := range testCases {

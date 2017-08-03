@@ -21,11 +21,12 @@ func (d AptDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 
 func (d AptDiffer) getPackages(path string) (map[string]utils.PackageInfo, error) {
 	packages := make(map[string]utils.PackageInfo)
+	_, err := os.Stat(path)
+	if err != nil {
+		// invalid image directory path
+		return packages, err
+	}
 	statusFile := filepath.Join(path, "var/lib/dpkg/status")
-	// if err != nil {
-	// 	return packages, err
-	// }
-
 	if _, err := os.Stat(statusFile); err != nil {
 		// status file does not exist in this layer
 		return packages, nil
