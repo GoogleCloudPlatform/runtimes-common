@@ -5,11 +5,8 @@ import errno
 import json
 import logging
 import os
-import sys
 import tarfile
 import shutil
-
-from contextlib import closing
 
 
 LOG = logging.getLogger(__name__)
@@ -68,8 +65,8 @@ def main():
 
     if not os.path.isdir(args.output):
         os.mkdir(args.output)
-    
-    removelist = []
+
+    # removelist = []
     # for each layer, extract into location specified
     for id in layers:
         if args.layer and id not in args.layer:
@@ -98,6 +95,7 @@ def main():
                             # removelist.append(newpath)
                             # removelist.append(path)
                         except OSError as err:
+                            LOG.info('error %s', err)
                             if err.errno != errno.ENOENT:
                                 raise
     img.close()
