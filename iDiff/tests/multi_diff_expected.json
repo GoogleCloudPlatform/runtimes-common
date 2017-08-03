@@ -54,7 +54,7 @@
       "Image2": "gcr.io/gcp-runtimes/multi-modified",
       "Packages2": {
         "pax": {
-          "multi-modified/cec75d97ca4c987a5dfa4347691af008cabf7a764084fba578c3c59dcbf446c7/layer/node_modules/pax/package.json": {
+          "multi-modified/node_modules/pax/package.json": {
             "Version": "0.2.1",
             "Size": "11998"
           }
@@ -84,6 +84,12 @@
     "Diff": {
       "Image1": "gcr.io/gcp-runtimes/multi-base",
       "Packages1": {
+        "easy_install.py": {
+          "python3.6": {
+            "Version": "",
+            "Size": ""
+          }
+        },
         "mock": {
           "Version": "2.0.0",
           "Size": "504226"

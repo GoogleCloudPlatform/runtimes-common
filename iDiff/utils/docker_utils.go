@@ -110,6 +110,33 @@ type HistDiff struct {
 	Dels   []string
 }
 
+// getImageHistory shells out the docker history command and returns a list of history response items.
+// The history response items contain only the Created By information for each event.
+func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
+	imageID := image
+	var err error
+	var history []img.HistoryResponseItem
+	histArgs := []string{"history", "--no-trunc", imageID}
+	dockerHistCmd := exec.Command("docker", histArgs...)
+	var response bytes.Buffer
+	dockerHistCmd.Stdout = &response
+	if err := dockerHistCmd.Run(); err != nil {
+		if exiterr, ok := err.(*exec.ExitError); ok {
+			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
+				glog.Error("Docker History Command Exit Status: ", status.ExitStatus())
+			}
+		} else {
+			return history, err
+		}
+	}
+	history, err = processHistOutput(response)
+	if err != nil {
+		return history, err
+	}
+	return history, nil
+
+}
+
 func processHistOutput(response bytes.Buffer) ([]img.HistoryResponseItem, error) {
 	respReader := bytes.NewReader(response.Bytes())
 	reader := bufio.NewReader(respReader)
@@ -198,4 +225,35 @@ func imageToTarCmd(imageID, imageName string) (string, error) {
 		return "", err
 	}
 	return imageTarPath, nil
+}
+
+func getHistoryList(image string) ([]string, error) {
+	validDocker, err := ValidDockerVersion()
+	if err != nil {
+		return []string{}, err
+	}
+	var history []img.HistoryResponseItem
+	if validDocker {
+		ctx := context.Background()
+		cli, err := client.NewEnvClient()
+		if err != nil {
+			return []string{}, err
+		}
+		history, err = cli.ImageHistory(ctx, image)
+		if err != nil {
+			return []string{}, err
+		}
+	} else {
+		glog.Info("Docker version incompatible with api, shelling out to local Docker client.")
+		history, err = getImageHistory(image)
+		if err != nil {
+			return []string{}, err
+		}
+	}
+
+	strhistory := make([]string, len(history))
+	for i, layer := range history {
+		strhistory[i] = fmt.Sprintf("%s\n", strings.TrimSpace(layer.CreatedBy))
+	}
+	return strhistory, nil
 }

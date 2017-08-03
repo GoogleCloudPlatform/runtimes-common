@@ -1,37 +1,37 @@
 [
-{
-  "DiffType": "Pip Diff",
-  "Diff": {
-    "Image1": "pip-base",
-    "Packages1": {},
-    "Image2": "pip-modified",
-    "Packages2": {
-      "mock": {
-        "python3.6": {
-          "Version": "2.0.0",
-          "Size": "4096"
+  {
+    "DiffType": "PipDiffer",
+    "Diff": {
+      "Image1": "gcr.io/gcp-runtimes/pip-base",
+      "Packages1": {},
+      "Image2": "gcr.io/gcp-runtimes/pip-modified",
+      "Packages2": {
+        "mock": {
+          "python3.6": {
+            "Version": "2.0.0",
+            "Size": "4096"
+          }
+        },
+        "pbr": {
+          "python3.6": {
+            "Version": "3.1.1",
+            "Size": "4096"
+          }
+        },
+        "six": {
+          "python3.6": {
+            "Version": "1.10.0",
+            "Size": "4096"
+          }
+        },
+        "six.py": {
+          "python3.6": {
+            "Version": "",
+            "Size": ""
+          }
         }
       },
-      "pbr": {
-        "python3.6": {
-          "Version": "3.1.1",
-          "Size": "4096"
-        }
-      },
-      "six": {
-        "python3.6": {
-          "Version": "1.10.0",
-          "Size": "4096"
-        }
-      },
-      "six.py": {
-        "python3.6": {
-          "Version": "",
-          "Size": ""
-        }
-      }
-    },
-    "InfoDiff": []
+      "InfoDiff": []
+    }
   }
-}
 ]

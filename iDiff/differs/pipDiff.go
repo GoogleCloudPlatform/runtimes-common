@@ -37,12 +37,12 @@ func getPythonVersion(pathToLayer string) ([]string, error) {
 	return matches, nil
 }
 
-func getPythonPackages(path string) map[string]map[string]utils.PackageInfo {
+func (d PipDiffer) getPackages(path string) (map[string]map[string]utils.PackageInfo, error) {
 	packages := make(map[string]map[string]utils.PackageInfo)
 	pythonVersions, err := getPythonVersion(path)
 	if err != nil {
 		// layer doesn't have a Python version installed
-		return packages
+		return packages, nil
 	}
 
 	for _, pyVersion := range pythonVersions {
@@ -50,7 +50,7 @@ func getPythonPackages(path string) map[string]map[string]utils.PackageInfo {
 		contents, err := ioutil.ReadDir(packagesPath)
 		if err != nil {
 			// layer's Python folder doesn't have a site-packages folder
-			return packages
+			return packages, nil
 		}
 
 		for i := 0; i < len(contents); i++ {

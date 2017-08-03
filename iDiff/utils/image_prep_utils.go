@@ -61,7 +61,7 @@ func (p ImagePrepper) GetImage() (Image, error) {
 		return Image{}, err
 	}
 
-	history, err := getHistory(imgPath)
+	history, err := getHistoryList(p.Source)
 	if err != nil {
 		return Image{}, err
 	}
