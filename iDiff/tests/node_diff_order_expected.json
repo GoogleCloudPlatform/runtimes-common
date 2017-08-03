@@ -1,7 +1,7 @@
 {
   "DiffType": "Node Diff",
   "Diff": {
-    "Image1": "node-modified:2.0",
+    "Image1": "node-modified2.0",
     "Packages1": {},
     "Image2": "node-modified",
     "Packages2": {
