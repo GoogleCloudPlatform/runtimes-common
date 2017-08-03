@@ -76,9 +76,6 @@ func getImageFromTar(tarPath string) (string, error) {
 	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
 	args := []string{"iDiff/undocker.py", "--tar", tarPath, "-o", path, "-v"}
 	undockerCmd := exec.Command("python", args...)
-	// var response bytes.Buffer
-	// undockerCmd.Stdout = os.Stdout
-	// undockerCmd.Stderr = os.Stdout
 	if err := undockerCmd.Run(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
