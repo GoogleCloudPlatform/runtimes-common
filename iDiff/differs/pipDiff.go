@@ -70,7 +70,7 @@ func (d PipDiffer) getPackages(path string) (map[string]utils.PackageInfo, error
 				// Retrieves size for actual package/script corresponding to each dist-info metadata directory
 				// by taking the file entry alphabetically before it (for a package) or after it (for a script)
 				var size string
-				if contents[i-1].Name() == packageName {
+				if i-1 >= 0 && contents[i-1].Name() == packageName {
 					packagePath := filepath.Join(packagesPath, packageName)
 					intSize, err := utils.GetDirectorySize(packagePath)
 					if err != nil {
@@ -79,7 +79,7 @@ func (d PipDiffer) getPackages(path string) (map[string]utils.PackageInfo, error
 					} else {
 						size = strconv.FormatInt(intSize, 10)
 					}
-				} else if contents[i+1].Name() == packageName+".py" {
+				} else if i+1 < len(contents) && contents[i+1].Name() == packageName+".py" {
 					size = strconv.FormatInt(contents[i+1].Size(), 10)
 
 				} else {
