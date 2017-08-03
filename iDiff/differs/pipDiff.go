@@ -45,11 +45,6 @@ func getPythonVersion(pathToLayer string) (string, bool) {
 func getPythonPackages(path string) map[string]utils.PackageInfo {
 	packages := make(map[string]utils.PackageInfo)
 
-	// TODO: Eventually, this would make use of the shallow JSON and be diffed
-	// with that of another image to get only the layers that have changed.
-	// layers := utils.GetImageLayers(path)
-	// for _, layer := range layers {
-	// 	pathToLayer := filepath.Join(path, layer)
 	pythonVersion, exists := getPythonVersion(path)
 	if !exists {
 		// layer doesn't have a Python folder installed
@@ -73,8 +68,7 @@ func getPythonPackages(path string) map[string]utils.PackageInfo {
 			version := packageMatch[2][:len(packageMatch[2])-1]
 			size := strconv.FormatInt(c.Size(), 10)
 			packages[packageName] = utils.PackageInfo{version, size}
-
-			return packages
+			continue
 		}
 
 		// if not package, check if Python file

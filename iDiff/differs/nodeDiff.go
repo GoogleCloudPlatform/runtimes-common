@@ -38,13 +38,7 @@ func (d NodeDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 
 func buildNodePaths(path string) ([]string, error) {
 	globalPaths := filepath.Join(path, "node_modules")
-	// if err != nil {
-	// 	return []string{}, err
-	// }
 	localPath := filepath.Join(path, "usr/local/lib/node_modules")
-	// if err != nil {
-	// 	return []string{}, err
-	// }
 	return []string{globalPaths, localPath}, nil
 }
 
@@ -87,7 +81,10 @@ func readPackages(path string) (map[string]utils.PackageInfo, error) {
 
 func getNodePackages(path string) (map[string]map[string]utils.PackageInfo, error) {
 	packages := make(map[string]map[string]utils.PackageInfo)
-
+	if _, err := os.Stat(path); err != nil {
+		// path provided invalid
+		return packages, err
+	}
 	layerStems, err := buildNodePaths(path)
 	if err != nil {
 		glog.Warningf("Error building JSON paths at %s: %s\n", path, err)
