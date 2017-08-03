@@ -20,65 +20,78 @@ func (d PipDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
 	pack1 := getPythonPackages(img1)
 	pack2 := getPythonPackages(img2)
 
-	diff := utils.GetMapDiff(pack1, pack2, img1, img2)
+	diff := utils.GetMultiVersionMapDiff(pack1, pack2, img1, img2)
 	diff.DiffType = "Pip Diff"
 	return &diff, nil
 }
 
-func getPythonVersion(pathToLayer string) (string, bool) {
+func getPythonVersion(pathToLayer string) ([]string, error) {
+	matches := []string{}
 	libPath := filepath.Join(pathToLayer, "usr/local/lib")
 	libContents, err := ioutil.ReadDir(libPath)
 	if err != nil {
-		return "", false
+		return matches, err
 	}
 
 	for _, file := range libContents {
 		pattern := regexp.MustCompile("^python[0-9]+\\.[0-9]+$")
 		match := pattern.FindString(file.Name())
 		if match != "" {
-			return match, true
+			matches = append(matches, match)
 		}
 	}
-	return "", false
+	return matches, nil
 }
 
-func getPythonPackages(path string) map[string]utils.PackageInfo {
-	packages := make(map[string]utils.PackageInfo)
+func getPythonPackages(path string) map[string]map[string]utils.PackageInfo {
+	packages := make(map[string]map[string]utils.PackageInfo)
 
-	pythonVersion, exists := getPythonVersion(path)
-	if !exists {
-		// layer doesn't have a Python folder installed
-		return packages
-	}
-	packagesPath := filepath.Join(path, "usr/local/lib", pythonVersion, "site-packages")
-	contents, err := ioutil.ReadDir(packagesPath)
+	pythonVersions, err := getPythonVersion(path)
 	if err != nil {
-		// layer's Python folder doesn't have a site-packages folder
+		// layer doesn't have a Python version installed
 		return packages
 	}
-
-	for _, c := range contents {
-		fileName := c.Name()
-
-		// check if package
-		packageDir := regexp.MustCompile("^([a-z|A-Z]+)-(([0-9]+?\\.){3})dist-info$")
-		packageMatch := packageDir.FindStringSubmatch(fileName)
-		if len(packageMatch) != 0 {
-			packageName := packageMatch[1]
-			version := packageMatch[2][:len(packageMatch[2])-1]
-			size := strconv.FormatInt(c.Size(), 10)
-			packages[packageName] = utils.PackageInfo{version, size}
-			continue
+	for _, pyVersion := range pythonVersions {
+		packagesPath := filepath.Join(path, "usr/local/lib", pyVersion, "site-packages")
+		contents, err := ioutil.ReadDir(packagesPath)
+		if err != nil {
+			// layer's Python folder doesn't have a site-packages folder
+			return packages
 		}
 
-		// if not package, check if Python file
-		pythonFile := regexp.MustCompile(".+\\.py$")
-		fileMatch := pythonFile.FindString(fileName)
+		for _, c := range contents {
+			fileName := c.Name()
+			// check if package
+			packageDir := regexp.MustCompile("^([a-z|A-Z]+)-(([0-9]+?\\.){3})dist-info$")
+			packageMatch := packageDir.FindStringSubmatch(fileName)
+			if len(packageMatch) != 0 {
+				packageName := packageMatch[1]
+				version := packageMatch[2][:len(packageMatch[2])-1]
+				size := strconv.FormatInt(c.Size(), 10)
+				currPackage := utils.PackageInfo{Version: version, Size: size}
+				addToMap(packages, packageName, pyVersion, currPackage)
+			}
 
-		if fileMatch != "" {
-			packages[fileName] = utils.PackageInfo{}
+			// if not package, check if Python file
+			pythonFile := regexp.MustCompile(".+\\.py$")
+			fileMatch := pythonFile.FindString(fileName)
+			if fileMatch != "" {
+				currPackage := utils.PackageInfo{}
+				addToMap(packages, fileName, pyVersion, currPackage)
+			}
 		}
 	}
 
 	return packages
+}
+
+func addToMap(packages map[string]map[string]utils.PackageInfo, pack string, pyVersion string, packInfo utils.PackageInfo) {
+	if _, ok := packages[pack]; !ok {
+		// package not yet seen
+		infoMap := make(map[string]utils.PackageInfo)
+		infoMap[pyVersion] = packInfo
+		packages[pack] = infoMap
+		return
+	}
+	packages[pack][pyVersion] = packInfo
 }

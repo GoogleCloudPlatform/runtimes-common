@@ -6,20 +6,28 @@
     "Image2": "pip-modified",
     "Packages2": {
       "mock": {
-        "Version": "2.0.0",
-        "Size": "4096"
+        "python3.6": {
+          "Version": "2.0.0",
+          "Size": "4096"
+        }
       },
       "pbr": {
-        "Version": "3.1.1",
-        "Size": "4096"
+        "python3.6": {
+          "Version": "3.1.1",
+          "Size": "4096"
+        }
       },
       "six": {
-        "Version": "1.10.0",
-        "Size": "4096"
+        "python3.6": {
+          "Version": "1.10.0",
+          "Size": "4096"
+        }
       },
       "six.py": {
-        "Version": "",
-        "Size": ""
+        "python3.6": {
+          "Version": "",
+          "Size": ""
+        }
       }
     },
     "InfoDiff": []

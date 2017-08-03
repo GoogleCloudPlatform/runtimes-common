@@ -2,4 +2,4 @@ file iDiff/tests/file_diff_actual.json iDiff/tests/file_diff_expected.json
 pip iDiff/tests/pip_diff_actual.json iDiff/tests/pip_diff_expected.json
 apt iDiff/tests/apt_diff_actual.json iDiff/tests/apt_diff_expected.json
 node iDiff/tests/node_diff_actual.json iDiff/tests/node_diff_expected.json
-nodeOrder iDiff/tests/node_diff_order_actual.json iDiff/tests/node_diff_order_expected.json
+node iDiff/tests/node_diff_order_actual.json iDiff/tests/node_diff_order_expected.json
