@@ -1,7 +1,3 @@
-iDiff/tests/fileDiff_test_processor.py iDiff/tests/file_diff_expected.json
-iDiff/tests/fileDiff_test_processor.py iDiff/tests/file_diff_actual.json
-iDiff/tests/fileDiff_test_processor.py iDiff/tests/multi_diff_expected.json
-iDiff/tests/fileDiff_test_processor.py iDiff/tests/multi_diff_actual.json
 iDiff/tests/multi_version_packages_test_processor.py iDiff/tests/node_diff_expected.json
 iDiff/tests/multi_version_packages_test_processor.py iDiff/tests/node_diff_actual.json
 iDiff/tests/multi_version_packages_test_processor.py iDiff/tests/node_diff_order_expected.json

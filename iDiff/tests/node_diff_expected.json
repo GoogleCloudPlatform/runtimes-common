@@ -7,7 +7,7 @@
       "Image2": "gcr.io/gcp-runtimes/node-modified",
       "Packages2": {
         "pax": {
-          "node-modified/84e01bbe3737ed3e65d203a359f8f5841b1495b3612c0405946f442fa1d1bd44/layer/node_modules/pax/package.json": {
+          "node-modified/node_modules/pax/package.json": {
             "Version": "0.2.1",
             "Size": "4096"
           }

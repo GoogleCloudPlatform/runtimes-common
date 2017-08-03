@@ -1,10 +1,10 @@
 [
   {
-    "DiffType": "Pip Diff",
+    "DiffType": "PipDiffer",
     "Diff": {
-      "Image1": "pip-base",
+      "Image1": "gcr.io/gcp-runtimes/pip-base",
       "Packages1": {},
-      "Image2": "pip-modified",
+      "Image2": "gcr.io/gcp-runtimes/pip-modified",
       "Packages2": {
         "mock": {
           "python3.6": {
@@ -32,5 +32,6 @@
         }
       },
       "InfoDiff": []
+    }
   }
 ]
