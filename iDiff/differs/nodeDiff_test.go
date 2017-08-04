@@ -29,27 +29,27 @@ func TestGetNodePackages(t *testing.T) {
 			descrip: "all packages in one layer",
 			path:    "testDirs/packageOne",
 			expected: map[string]map[string]utils.PackageInfo{
-				"pac1": {"testDirs/packageOne/layer1/layer/node_modules/pac1/package.json": {Version: "1.0", Size: "4096"}},
-				"pac2": {"testDirs/packageOne/layer1/layer/usr/local/lib/node_modules/pac2/package.json": {Version: "2.0", Size: "4096"}},
-				"pac3": {"testDirs/packageOne/layer1/layer/node_modules/pac3/package.json": {Version: "3.0", Size: "4096"}}},
+				"pac1": {"testDirs/packageOne/layer1/layer/node_modules/pac1/package.json": {Version: "1.0", Size: "41"}},
+				"pac2": {"testDirs/packageOne/layer1/layer/usr/local/lib/node_modules/pac2/package.json": {Version: "2.0", Size: "41"}},
+				"pac3": {"testDirs/packageOne/layer1/layer/node_modules/pac3/package.json": {Version: "3.0", Size: "41"}}},
 		},
 		{
 			descrip: "many packages in different layers",
 			path:    "testDirs/packageMany",
 			expected: map[string]map[string]utils.PackageInfo{
-				"pac1": {"testDirs/packageMany/layer1/layer/node_modules/pac1/package.json": {Version: "1.0", Size: "4096"}},
-				"pac2": {"testDirs/packageMany/layer1/layer/usr/local/lib/node_modules/pac2/package.json": {Version: "2.0", Size: "4096"}},
-				"pac3": {"testDirs/packageMany/layer2/layer/node_modules/pac3/package.json": {Version: "3.0", Size: "4096"}},
-				"pac4": {"testDirs/packageMany/layer2/layer/node_modules/pac4/package.json": {Version: "4.0", Size: "4096"}},
-				"pac5": {"testDirs/packageMany/layer2/layer/node_modules/pac5/package.json": {Version: "5.0", Size: "4096"}}},
+				"pac1": {"testDirs/packageMany/layer1/layer/node_modules/pac1/package.json": {Version: "1.0", Size: "41"}},
+				"pac2": {"testDirs/packageMany/layer1/layer/usr/local/lib/node_modules/pac2/package.json": {Version: "2.0", Size: "41"}},
+				"pac3": {"testDirs/packageMany/layer2/layer/node_modules/pac3/package.json": {Version: "3.0", Size: "41"}},
+				"pac4": {"testDirs/packageMany/layer2/layer/node_modules/pac4/package.json": {Version: "4.0", Size: "41"}},
+				"pac5": {"testDirs/packageMany/layer2/layer/node_modules/pac5/package.json": {Version: "5.0", Size: "41"}}},
 		},
 		{
 			descrip: "Multi version packages",
 			path:    "testDirs/packageMulti",
 			expected: map[string]map[string]utils.PackageInfo{
-				"pac1": {"testDirs/packageMulti/layer1/layer/node_modules/pac1/package.json": {Version: "1.0", Size: "4096"}},
-				"pac2": {"testDirs/packageMulti/layer1/layer/usr/local/lib/node_modules/pac2/package.json": {Version: "2.0", Size: "4096"},
-					"testDirs/packageMulti/layer2/layer/usr/local/lib/node_modules/pac2/package.json": {Version: "3.0", Size: "4096"}}},
+				"pac1": {"testDirs/packageMulti/layer1/layer/node_modules/pac1/package.json": {Version: "1.0", Size: "41"}},
+				"pac2": {"testDirs/packageMulti/layer1/layer/usr/local/lib/node_modules/pac2/package.json": {Version: "2.0", Size: "41"},
+					"testDirs/packageMulti/layer2/layer/usr/local/lib/node_modules/pac2/package.json": {Version: "3.0", Size: "41"}}},
 		},
 	}
 

@@ -8,19 +8,15 @@
       "Packages2": {
         "mock": {
           "Version": "2.0.0",
-          "Size": "4096"
+          "Size": "504226"
         },
         "pbr": {
           "Version": "3.1.1",
-          "Size": "4096"
+          "Size": "447110"
         },
         "six": {
           "Version": "1.10.0",
-          "Size": "4096"
-        },
-        "six.py": {
-          "Version": "",
-          "Size": ""
+          "Size": "30098"
         }
       },
       "InfoDiff": []

@@ -60,21 +60,17 @@ func TestGetPythonPackages(t *testing.T) {
 		{
 			path: "testDirs/pipTests/packagesManyLayers",
 			expectedPackages: map[string]utils.PackageInfo{
-				"packageone":   {Version: "3.6.9", Size: "4096"},
-				"packagetwo":   {Version: "4.6.2", Size: "4096"},
-				"packagethree": {Version: "2.4.5", Size: "4096"},
-				"script1.py":   {},
-				"script2.py":   {},
-				"script3.py":   {},
+				"packageone":   {Version: "3.6.9", Size: "0"},
+				"packagetwo":   {Version: "4.6.2", Size: "0"},
+				"packagethree": {Version: "2.4.5", Size: "0"},
+				"packagefour":  {Version: "2.4.6", Size: "0"},
 			},
 		},
 		{
 			path: "testDirs/pipTests/packagesOneLayer",
 			expectedPackages: map[string]utils.PackageInfo{
-				"packageone": {Version: "3.6.9", Size: "4096"},
-				"packagetwo": {Version: "4.6.2", Size: "4096"},
-				"script1.py": {},
-				"script2.py": {},
+				"packageone": {Version: "3.6.9", Size: "0"},
+				"packagetwo": {Version: "4.6.2", Size: "0"},
 			},
 		},
 	}

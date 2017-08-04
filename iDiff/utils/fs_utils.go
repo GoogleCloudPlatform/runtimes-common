@@ -6,9 +6,21 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/golang/glog"
 )
+
+func GetDirectorySize(path string) (int64, error) {
+	var size int64
+	err := filepath.Walk(path, func(_ string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+	return size, err
+}
 
 func GetDirectory(dirpath string) (Directory, error) {
 	dirfile, err := ioutil.ReadFile(dirpath)
