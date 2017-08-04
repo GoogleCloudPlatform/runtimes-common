@@ -79,6 +79,5 @@ func getImageContents(pathToImage string) (map[string]utils.Directory, error) {
 		return contents, fmt.Errorf("Could not get Directory struct for layer %s in image %s: %s", pathToImage, pathToImage, err)
 	}
 	contents[pathToImage] = layerDir
-	// }
 	return contents, nil
 }
