@@ -15,8 +15,8 @@ while IFS=$' \n\r' read -r preprocess json; do
 fi
 done < iDiff/tests/preprocess_files.txt
 
+success=0
 while IFS=$' \n\r' read -r differ actual expected; do
-  success=0
   diff=$(diff "$actual" "$expected")
   if [[ -n "$diff" ]]; then
     echo "iDiff" "$differ" "diff output is not as expected"
