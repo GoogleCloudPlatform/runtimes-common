@@ -54,19 +54,17 @@ def main():
     logging.basicConfig(level=args.loglevel)
     # open tar file
     img = tarfile.open(args.tar)
-    print args.tar
+    if 'manifest.json' not in img.getnames():
+        exit(1)
+
     # extract manifest file from tar to read layers
     repos = img.extractfile('manifest.json')
     repos = json.load(repos)
     layers = repos[0]["Layers"]
 
-    # if args.layers:
-    #     sys.exit(0)
-
     if not os.path.isdir(args.output):
         os.mkdir(args.output)
 
-    # removelist = []
     # for each layer, extract into location specified
     for id in layers:
         if args.layer and id not in args.layer:
@@ -83,24 +81,18 @@ def main():
                     path = member.path
                     if path.startswith('.wh.') or '/.wh.' in path:
                         if path.startswith('.wh.'):
-                            newpath = path[4:]
+                            newpath = path.replace('.wh.', '')
                         else:
                             newpath = path.replace('/.wh.', '/')
                         try:
                             LOG.info('removing path %s', newpath)
-                            # os.unlink(path)
-                            # os.unlink(newpath)
                             os.remove(args.output + "/" + path)
                             shutil.rmtree(args.output + "/" + newpath)
-                            # removelist.append(newpath)
-                            # removelist.append(path)
                         except OSError as err:
                             LOG.info('error %s', err)
                             if err.errno != errno.ENOENT:
                                 raise
     img.close()
-    # for path in removelist:
-    #     shutil.rmtree(args.output + "/" + path)
 
 
 if __name__ == '__main__':
