@@ -6,7 +6,6 @@ import (
 	goflag "flag"
 	"fmt"
 	"os"
-	"runtime"
 	"sort"
 	"sync"
 
@@ -60,7 +59,6 @@ var RootCmd = &cobra.Command{
 			diffArgs = allDiffers
 		}
 
-		runtime.GOMAXPROCS(2)
 		var wg sync.WaitGroup
 		wg.Add(2)
 
