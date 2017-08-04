@@ -56,7 +56,7 @@ func (d NodeDiffer) getPackages(path string) (map[string]map[string]utils.Packag
 			// Build PackageInfo for this package occurence
 			var currInfo utils.PackageInfo
 			currInfo.Version = packageJSON.Version
-			packagePath := strings.TrimSuffix(path, "package.json")
+			packagePath := strings.TrimSuffix(currPackage, "package.json")
 			size, err := utils.GetDirectorySize(packagePath)
 			if err != nil {
 				glog.Warningf("Error getting package size at %s: %s\n", currPackage, err)
