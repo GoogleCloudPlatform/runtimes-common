@@ -23,22 +23,23 @@ func diffImageFiles(image1, image2 utils.Image) (utils.DirDiff, error) {
 
 	var diff utils.DirDiff
 
-	img1Contents, err := getImageContents(img1)
+	target1 := "j1.json"
+	err := utils.DirToJSON(img1, target1, true)
 	if err != nil {
-		return diff, fmt.Errorf("Error parsing image %s contents: %s", img1, err)
+		return diff, err
 	}
-	img2Contents, err := getImageContents(img2)
+	target2 := "j2.json"
+	err = utils.DirToJSON(img2, target2, true)
 	if err != nil {
-		return diff, fmt.Errorf("Error parsing image %s contents: %s", img2, err)
+		return diff, err
 	}
-
-	img1Dir := utils.Directory{
-		Root:    img1,
-		Content: getContentList(img1Contents),
+	img1Dir, err := utils.GetDirectory(target1)
+	if err != nil {
+		return diff, err
 	}
-	img2Dir := utils.Directory{
-		Root:    img2,
-		Content: getContentList(img2Contents),
+	img2Dir, err := utils.GetDirectory(target2)
+	if err != nil {
+		return diff, err
 	}
 
 	adds := utils.GetAddedEntries(img1Dir, img2Dir)
