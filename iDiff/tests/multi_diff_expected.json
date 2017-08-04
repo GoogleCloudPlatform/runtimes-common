@@ -56,7 +56,7 @@
         "pax": {
           "multi-modified/cec75d97ca4c987a5dfa4347691af008cabf7a764084fba578c3c59dcbf446c7/layer/node_modules/pax/package.json": {
             "Version": "0.2.1",
-            "Size": "746311404"
+            "Size": "11998"
           }
         }
       },
@@ -66,13 +66,13 @@
           "Info1": [
             {
               "Version": "1.2.4",
-              "Size": "718400708"
+              "Size": "56382"
             }
           ],
           "Info2": [
             {
               "Version": "0.1.1",
-              "Size": "746311404"
+              "Size": "127107"
             }
           ]
         }
