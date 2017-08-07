@@ -1,14 +1,18 @@
 package utils
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 
+	"github.com/containers/image/docker"
 	"github.com/golang/glog"
 )
 
@@ -115,12 +119,9 @@ func getHistory(imgPath string) ([]string, error) {
 
 func getImageFromTar(tarPath string) (string, error) {
 	glog.Info("Extracting image tar to obtain image file system")
-	err := ExtractTar(tarPath)
-	if err != nil {
-		return "", err
-	}
 	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
-	return path, nil
+	err := UnTar(tarPath, path)
+	return path, err
 }
 
 // CloudPrepper prepares images sourced from a Cloud registry
@@ -129,32 +130,47 @@ type CloudPrepper struct {
 }
 
 func (p CloudPrepper) ImageToFS() (string, error) {
-	// check client compatibility with Docker API
-	valid, err := ValidDockerVersion()
+	URLPattern := regexp.MustCompile("^.+/(.+(:.+){0,1})$")
+	URLMatch := URLPattern.FindStringSubmatch(p.Source)
+	path := strings.Replace(URLMatch[1], ":", "", -1)
+	ref, err := docker.ParseReference("//" + p.Source)
 	if err != nil {
+		panic(err)
+	}
+
+	img, err := ref.NewImage(nil)
+	if err != nil {
+		glog.Error(err)
 		return "", err
 	}
-	var tarPath string
-	if !valid {
-		glog.Info("Docker version incompatible with api, shelling out to local Docker client.")
-		imageID, imageName, err := pullImageCmd(p.Source)
-		if err != nil {
-			return "", err
-		}
-		tarPath, err = imageToTarCmd(imageID, imageName)
-	} else {
-		imageID, imageName, err := pullImageFromRepo(p.Source)
-		if err != nil {
-			return "", err
-		}
-		tarPath, err = saveImageToTar(imageID, imageName)
-	}
+	defer img.Close()
+
+	imgSrc, err := ref.NewImageSource(nil, nil)
 	if err != nil {
+		glog.Error(err)
 		return "", err
 	}
 
-	defer os.Remove(tarPath)
-	return getImageFromTar(tarPath)
+	if _, ok := os.Stat(path); ok != nil {
+		os.MkdirAll(path, 0777)
+	}
+
+	for _, b := range img.LayerInfos() {
+		bi, _, err := imgSrc.GetBlob(b)
+		if err != nil {
+			glog.Error(err)
+		}
+		gzf, err := gzip.NewReader(bi)
+		if err != nil {
+			glog.Error(err)
+		}
+		tr := tar.NewReader(gzf)
+		err = unpackTar(tr, path)
+		if err != nil {
+			glog.Error(err)
+		}
+	}
+	return path, nil
 }
 
 type IDPrepper struct {

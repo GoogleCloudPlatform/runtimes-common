@@ -31,7 +31,6 @@ func unpackTar(tr *tar.Reader, path string) error {
 		}
 
 		if strings.Contains(header.Name, ".wh.") || strings.Contains(header.Name, "/.wh.") {
-			glog.Error(header.Name)
 			rmPath := filepath.Join(path, header.Name)
 			newName := strings.Replace(rmPath, ".wh.", "", 1)
 			err := os.Remove(rmPath)
@@ -95,45 +94,6 @@ func UnTar(filename string, path string) error {
 		return err
 	}
 	return nil
-
-	// for {
-	// 	header, err := tr.Next()
-	// 	if err == io.EOF {
-	// 		// end of tar archive
-	// 		break
-	// 	}
-	// 	if err != nil {
-	// 		glog.Fatalf(err.Error())
-	// 	}
-
-	// 	target := filepath.Join(path, header.Name)
-	// 	mode := header.FileInfo().Mode()
-	// 	switch header.Typeflag {
-
-	// 	// if its a dir and it doesn't exist create it
-	// 	case tar.TypeDir:
-	// 		if _, err := os.Stat(target); err != nil {
-	// 			if err := os.MkdirAll(target, mode); err != nil {
-	// 				return err
-	// 			}
-	// 			continue
-	// 		}
-
-	// 	// if it's a file create it
-	// 	case tar.TypeReg:
-
-	// 		currFile, err := os.OpenFile(target, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, mode)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 		defer currFile.Close()
-	// 		_, err = io.Copy(currFile, tr)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 	}
-	// }
-	// return nil
 }
 
 func isTar(path string) bool {
