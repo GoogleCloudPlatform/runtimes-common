@@ -100,7 +100,7 @@ while test $# -gt 0; do
 			if test $# -eq 0; then
 				usage
 			else
-				if [ ! -d "$1" -o ! -d $(readlink -f "$1") ]; then
+				if [ ! -d "$1" || ! -d $(readlink -f "$1") ]; then
 				        echo "$1 is not a valid directory."
 				        cleanup
 				        exit 1
