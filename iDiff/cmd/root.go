@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"sync"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/differs"
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
@@ -57,22 +58,38 @@ var RootCmd = &cobra.Command{
 		if len(diffArgs) == 0 {
 			diffArgs = allDiffers
 		}
+
+		var wg sync.WaitGroup
+		wg.Add(2)
+
 		glog.Infof("Starting diff on images %s and %s, using differs: %s", img1Arg, img2Arg, diffArgs)
-		image1, err := utils.ImagePrepper{img1Arg}.GetImage()
-		if err != nil {
-			glog.Error(err.Error())
-			os.Exit(1)
-		}
-		image2, err := utils.ImagePrepper{img2Arg}.GetImage()
-		if err != nil {
-			glog.Error(err.Error())
-			os.Exit(1)
-		}
+
+		var image1, image2 utils.Image
+		var err error
+		go func() {
+			defer wg.Done()
+			image1, err = utils.ImagePrepper{img1Arg}.GetImage()
+			if err != nil {
+				glog.Error(err.Error())
+				os.Exit(1)
+			}
+		}()
+
+		go func() {
+			defer wg.Done()
+			image2, err = utils.ImagePrepper{img2Arg}.GetImage()
+			if err != nil {
+				glog.Error(err.Error())
+				os.Exit(1)
+			}
+		}()
+
 		diffTypes, err := differs.GetDiffers(diffArgs)
 		if err != nil {
 			glog.Error(err.Error())
 			os.Exit(1)
 		}
+		wg.Wait()
 
 		req := differs.DiffRequest{image1, image2, diffTypes}
 		if diffs, err := req.GetDiff(); err == nil {

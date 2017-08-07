@@ -70,8 +70,8 @@ func TestGetPythonPackages(t *testing.T) {
 		{
 			path: "testDirs/pipTests/packagesOneLayer",
 			expectedPackages: map[string]map[string]utils.PackageInfo{
-				"packageone": {"python3.6": {Version: "3.6.9", Size: "4096"}},
-				"packagetwo": {"python3.6": {Version: "4.6.2", Size: "4096"}},
+				"packageone": {"python3.6": {Version: "3.6.9", Size: "0"}},
+				"packagetwo": {"python3.6": {Version: "4.6.2", Size: "0"}},
 				"script1.py": {"python3.6": {}},
 				"script2.py": {"python3.6": {}},
 			},
@@ -79,9 +79,9 @@ func TestGetPythonPackages(t *testing.T) {
 		{
 			path: "testDirs/pipTests/packagesMultiVersion",
 			expectedPackages: map[string]map[string]utils.PackageInfo{
-				"packageone": {"python3.6": {Version: "3.6.9", Size: "4096"},
-					"python2.7": {Version: "0.1.1", Size: "4096"}},
-				"packagetwo": {"python3.6": {Version: "4.6.2", Size: "4096"}},
+				"packageone": {"python3.6": {Version: "3.6.9", Size: "0"},
+					"python2.7": {Version: "0.1.1", Size: "0"}},
+				"packagetwo": {"python3.6": {Version: "4.6.2", Size: "0"}},
 				"script1.py": {"python3.6": {}},
 				"script2.py": {"python3.6": {}},
 				"script3.py": {"python2.7": {}},
