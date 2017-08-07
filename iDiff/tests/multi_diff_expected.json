@@ -56,7 +56,7 @@
         "pax": {
           "multi-modified/node_modules/pax/package.json": {
             "Version": "0.2.1",
-            "Size": "4096"
+            "Size": "11998"
           }
         }
       },
@@ -66,13 +66,13 @@
           "Info1": [
             {
               "Version": "1.2.4",
-              "Size": "4096"
+              "Size": "56382"
             }
           ],
           "Info2": [
             {
               "Version": "0.1.1",
-              "Size": "4096"
+              "Size": "127107"
             }
           ]
         }

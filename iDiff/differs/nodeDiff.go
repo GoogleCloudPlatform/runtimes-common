@@ -27,15 +27,6 @@ func buildNodePaths(path string) ([]string, error) {
 	return []string{globalPaths, localPath}, nil
 }
 
-func getPackageSize(path string) (int64, error) {
-	packagePath := strings.TrimSuffix(path, "package.json")
-	packageStat, err := os.Stat(packagePath)
-	if err != nil {
-		return 0, err
-	}
-	return packageStat.Size(), nil
-}
-
 func (d NodeDiffer) getPackages(path string) (map[string]map[string]utils.PackageInfo, error) {
 	packages := make(map[string]map[string]utils.PackageInfo)
 	if _, err := os.Stat(path); err != nil {
@@ -55,7 +46,7 @@ func (d NodeDiffer) getPackages(path string) (map[string]map[string]utils.Packag
 				// package.json file does not exist at this target path
 				continue
 			}
-			packageJSON, _ := readPackageJSON(currPackage)
+			packageJSON, err := readPackageJSON(currPackage)
 			if err != nil {
 				glog.Warningf("Error reading package JSON at %s: %s\n", currPackage, err)
 				return packages, err
@@ -63,7 +54,8 @@ func (d NodeDiffer) getPackages(path string) (map[string]map[string]utils.Packag
 			// Build PackageInfo for this package occurence
 			var currInfo utils.PackageInfo
 			currInfo.Version = packageJSON.Version
-			size, _ := getPackageSize(currPackage)
+			packagePath := strings.TrimSuffix(currPackage, "package.json")
+			size, err := utils.GetDirectorySize(packagePath)
 			if err != nil {
 				glog.Warningf("Error getting package size at %s: %s\n", currPackage, err)
 				return packages, err
