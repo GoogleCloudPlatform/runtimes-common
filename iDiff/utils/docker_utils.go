@@ -121,7 +121,9 @@ func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
 	var response bytes.Buffer
 	dockerHistCmd.Stdout = &response
 	if err := dockerHistCmd.Run(); err != nil {
+		glog.Error(err)
 		if exiterr, ok := err.(*exec.ExitError); ok {
+			glog.Error(exiterr, ok)
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
 				glog.Error("Docker History Command Exit Status: ", status.ExitStatus())
 			}
@@ -210,6 +212,7 @@ func imageToTarCmd(imageID, imageName string) (string, error) {
 	var out bytes.Buffer
 	dockerSaveCmd.Stdout = &out
 	if err := dockerSaveCmd.Run(); err != nil {
+		glog.Error(err)
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
 				glog.Error("Docker Save Command Exit Status: ", status.ExitStatus())

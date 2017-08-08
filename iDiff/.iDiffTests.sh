@@ -20,6 +20,7 @@ while IFS=$' \n\r' read -r differ actual expected; do
   diff=$(jq --argfile a "$actual" --argfile b "$expected" -n 'def walk(f): . as $in | if type == "object" then reduce keys[] as $key ( {}; . + { ($key):  ($in[$key] | walk(f)) } ) | f elif type == "array" then map( walk(f) ) | f else f end; ($a | walk(if type == "array" then sort else . end)) as $a | ($b | walk(if type == "array" then sort else . end)) as $b | $a == $b')
   if ! "$diff" ; then
     echo "iDiff" "$differ" "diff output is not as expected"
+    cat "$actual"
     success=1
   fi
 done < iDiff/tests/diff_comparisons.txt
