@@ -3,9 +3,7 @@ package utils
 import (
 	"archive/tar"
 	"compress/gzip"
-	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -76,45 +74,6 @@ func (p ImagePrepper) GetImage() (Image, error) {
 		FSPath:  imgPath,
 		History: history,
 	}, nil
-}
-
-type histJSON struct {
-	History []histLayer `json:"history"`
-}
-
-type histLayer struct {
-	Created    string `json:"created"`
-	CreatedBy  string `json:"created_by"`
-	EmptyLayer bool   `json:"empty_layer"`
-}
-
-func getHistory(imgPath string) ([]string, error) {
-	glog.Info("Obtaining image history")
-	histList := []string{}
-	contents, err := ioutil.ReadDir(imgPath)
-	if err != nil {
-		return histList, err
-	}
-
-	for _, item := range contents {
-		if filepath.Ext(item.Name()) == ".json" && item.Name() != "manifest.json" {
-			if len(histList) != 0 {
-				// Another <hash>.json file has already been processed and the history determined is uncertain.
-				glog.Error("Multiple history sources detected for image at " + imgPath + ", history diff may be incorrect.")
-				break
-			}
-			file, err := ioutil.ReadFile(filepath.Join(imgPath, item.Name()))
-			if err != nil {
-				return histList, err
-			}
-			var histJ histJSON
-			json.Unmarshal(file, &histJ)
-			for _, layer := range histJ.History {
-				histList = append(histList, layer.CreatedBy)
-			}
-		}
-	}
-	return histList, nil
 }
 
 func getImageFromTar(tarPath string) (string, error) {

@@ -33,16 +33,6 @@ func TestGetNodePackages(t *testing.T) {
 				"pac2": {"testDirs/packageOne/usr/local/lib/node_modules/pac2/package.json": {Version: "2.0", Size: "41"}},
 				"pac3": {"testDirs/packageOne/node_modules/pac3/package.json": {Version: "3.0", Size: "41"}}},
 		},
-		// {
-		// 	descrip: "many packages in different layers",
-		// 	path:    "testDirs/packageMany",
-		// 	expected: map[string]map[string]utils.PackageInfo{
-		// 		"pac1": {"testDirs/packageMany/node_modules/pac1/package.json": {Version: "1.0", Size: "41"}},
-		// 		"pac2": {"testDirs/packageMany/usr/local/lib/node_modules/pac2/package.json": {Version: "2.0", Size: "41"}},
-		// 		"pac3": {"testDirs/packageMany/node_modules/pac3/package.json": {Version: "3.0", Size: "41"}},
-		// 		"pac4": {"testDirs/packageMany/node_modules/pac4/package.json": {Version: "4.0", Size: "41"}},
-		// 		"pac5": {"testDirs/packageMany/node_modules/pac5/package.json": {Version: "5.0", Size: "41"}}},
-		// },
 		{
 			descrip: "Multi version packages",
 			path:    "testDirs/packageMulti",
