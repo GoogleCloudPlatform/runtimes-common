@@ -15,7 +15,7 @@ type PipDiffer struct {
 
 // PipDiff compares pip-installed Python packages between layers of two different images.
 func (d PipDiffer) Diff(image1, image2 utils.Image) (utils.DiffResult, error) {
-	diff, err := singleVersionDiff(image1, image2, d)
+	diff, err := multiVersionDiff(image1, image2, d)
 	return diff, err
 }
 
@@ -39,12 +39,12 @@ func getPythonVersion(pathToLayer string) ([]string, error) {
 
 func (d PipDiffer) getPackages(path string) (map[string]map[string]utils.PackageInfo, error) {
 	packages := make(map[string]map[string]utils.PackageInfo)
+
 	pythonVersions, err := getPythonVersion(path)
 	if err != nil {
 		// layer doesn't have a Python version installed
 		return packages, nil
 	}
-
 	for _, pyVersion := range pythonVersions {
 		packagesPath := filepath.Join(path, "usr/local/lib", pyVersion, "site-packages")
 		contents, err := ioutil.ReadDir(packagesPath)
@@ -56,14 +56,12 @@ func (d PipDiffer) getPackages(path string) (map[string]map[string]utils.Package
 		for i := 0; i < len(contents); i++ {
 			c := contents[i]
 			fileName := c.Name()
-
 			// check if package
 			packageDir := regexp.MustCompile("^([a-z|A-Z]+)-(([0-9]+?\\.){3})dist-info$")
 			packageMatch := packageDir.FindStringSubmatch(fileName)
 			if len(packageMatch) != 0 {
 				packageName := packageMatch[1]
 				version := packageMatch[2][:len(packageMatch[2])-1]
-
 				// Retrieves size for actual package/script corresponding to each dist-info metadata directory
 				// by taking the file entry alphabetically before it (for a package) or after it (for a script)
 				var size string
@@ -83,8 +81,16 @@ func (d PipDiffer) getPackages(path string) (map[string]map[string]utils.Package
 					glog.Errorf("Could not find Python package %s for corresponding metadata info", packageName)
 					continue
 				}
+				currPackage := utils.PackageInfo{Version: version, Size: size}
+				addToMap(packages, packageName, pyVersion, currPackage)
+			}
 
-				packages[packageName] = utils.PackageInfo{Version: version, Size: size}
+			// if not package, check if Python file
+			pythonFile := regexp.MustCompile(".+\\.py$")
+			fileMatch := pythonFile.FindString(fileName)
+			if fileMatch != "" {
+				currPackage := utils.PackageInfo{}
+				addToMap(packages, fileName, pyVersion, currPackage)
 			}
 		}
 	}
