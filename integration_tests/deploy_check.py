@@ -36,6 +36,8 @@ def main():
                         action='store_true', required=False)
     parser.add_argument('--skip-builders', action='store_true',
                         help='Skip runtime builder flow', default=False)
+    parser.add_argument('--skip-xrt', action='store_true',
+                        help='Skip XRT flow', default=False)
     args = parser.parse_args()
 
     if args.verbose:
@@ -48,17 +50,19 @@ def main():
     if 'app' in output:
         prev_builder_value = output.get('app').get('use_runtime_builders')
 
-    # disable app/use_runtime_builders to hit the XRT flow
-    _set_runtime_builder_flag(False)
-    _deploy_and_test(args.directory, args.language, True)
+    if args.skip_xrt:
+        logging.info('Skipping xrt flow.')
+    else:
+        # disable app/use_runtime_builders to hit the XRT flow
+        _set_runtime_builder_flag(False)
+        _deploy_and_test(args.directory, args.language, True)
 
     if args.skip_builders:
         logging.info('Skipping builder flow.')
-        return 0
-
-    # set app/use_runtime_builders to explicitly enter builder flow
-    _set_runtime_builder_flag(True)
-    _deploy_and_test(args.directory, args.language, False)
+    else:
+        # set app/use_runtime_builders to explicitly enter builder flow
+        _set_runtime_builder_flag(True)
+        _deploy_and_test(args.directory, args.language, False)
 
     _set_runtime_builder_flag(prev_builder_value)
 
