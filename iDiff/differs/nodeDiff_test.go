@@ -38,8 +38,8 @@ func TestGetNodePackages(t *testing.T) {
 			path:    "testDirs/packageMulti",
 			expected: map[string]map[string]utils.PackageInfo{
 				"pac1": {"testDirs/packageMulti/node_modules/pac1/package.json": {Version: "1.0", Size: "41"}},
-				"pac2": {"testDirs/packageMulti/node_modules/pac2/package.json": {Version: "2.0", Size: "82"},
-					"testDirs/packageMulti/usr/local/lib/node_modules/pac2/package.json": {Version: "3.0", Size: "82"}}},
+				"pac2": {"testDirs/packageMulti/node_modules/pac2/package.json": {Version: "2.0", Size: "41"},
+					"testDirs/packageMulti/usr/local/lib/node_modules/pac2/package.json": {Version: "3.0", Size: "41"}}},
 		},
 	}
 
