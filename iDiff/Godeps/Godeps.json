@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/runtimes-common/iDiff",
+	"ImportPath": "github.com/GoogleCloudPlatform/runtimes-common/iDiff",
 	"GoVersion": "go1.8",
 	"GodepVersion": "v79",
 	"Deps": [
