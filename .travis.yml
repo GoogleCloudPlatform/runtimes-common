@@ -36,4 +36,5 @@ script:
  - ./.buildifier.sh
  - python -m unittest discover -s reconciletags -p 'reconciletags_test.py'
  - bazel clean && bazel build //...
+ - sudo rm -rf /etc/docker
  - travis_wait ./iDiff/.iDiffTests.sh

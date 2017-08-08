@@ -29,4 +29,3 @@ if [[ "$success" -ne 0 ]]; then
 fi
 
 go test `go list ./... | grep iDiff | grep -v iDiff/vendor`
-
