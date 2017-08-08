@@ -18,16 +18,28 @@
       "Image2": "gcr.io/gcp-runtimes/pip-modified",
       "Packages2": {
         "mock": {
-          "Version": "2.0.0",
-          "Size": "504226"
+          "python3.6": {
+            "Version": "2.0.0",
+            "Size": "504226"
+          }
         },
         "pbr": {
-          "Version": "3.1.1",
-          "Size": "447110"
+          "python3.6": {
+            "Version": "3.1.1",
+            "Size": "447110"
+          }
         },
         "six": {
-          "Version": "1.10.0",
-          "Size": "30098"
+          "python3.6": {
+            "Version": "1.10.0",
+            "Size": "30098"
+          }
+        },
+        "six.py": {
+          "python3.6": {
+            "Version": "",
+            "Size": ""
+          }
         }
       },
       "InfoDiff": []

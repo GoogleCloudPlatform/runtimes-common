@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -121,7 +120,6 @@ func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
 	dockerHistCmd := exec.Command("docker", histArgs...)
 	var response bytes.Buffer
 	dockerHistCmd.Stdout = &response
-	dockerHistCmd.Stderr = os.Stdout
 	if err := dockerHistCmd.Run(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
