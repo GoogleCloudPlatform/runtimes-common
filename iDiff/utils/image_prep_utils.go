@@ -65,7 +65,7 @@ func (p ImagePrepper) GetImage() (Image, error) {
 
 	history, err := getHistoryList(p.Source)
 	if err != nil {
-		return Image{}, err
+		glog.Error("History Error")
 	}
 
 	glog.Infof("Finished prepping image %s", p.Source)
