@@ -120,11 +120,8 @@ func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
 	dockerHistCmd := exec.Command("docker", histArgs...)
 	var response bytes.Buffer
 	dockerHistCmd.Stdout = &response
-	glog.Error(dockerHistCmd)
 	if err := dockerHistCmd.Run(); err != nil {
-		glog.Error(err)
 		if exiterr, ok := err.(*exec.ExitError); ok {
-			glog.Error(exiterr, ok)
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
 				glog.Error("Docker History Command Exit Status: ", status.ExitStatus())
 			}
@@ -259,6 +256,5 @@ func getHistoryList(image string) ([]string, error) {
 	for i, layer := range history {
 		strhistory[i] = fmt.Sprintf("%s\n", strings.TrimSpace(layer.CreatedBy))
 	}
-	glog.Error(strhistory)
 	return strhistory, nil
 }
