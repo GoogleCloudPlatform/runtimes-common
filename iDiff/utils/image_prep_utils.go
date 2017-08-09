@@ -1,12 +1,15 @@
 package utils
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/containers/image/docker"
@@ -78,7 +81,7 @@ func (p ImagePrepper) GetImage() (Image, error) {
 
 	config, err := prepper.getConfig()
 	if err != nil {
-		return Image{}, err
+		glog.Error("Error retrieving History: ", err)
 	}
 
 	glog.Infof("Finished prepping image %s", p.Source)
@@ -91,12 +94,9 @@ func (p ImagePrepper) GetImage() (Image, error) {
 
 func getImageFromTar(tarPath string) (string, error) {
 	glog.Info("Extracting image tar to obtain image file system")
-	err := ExtractTar(tarPath)
-	if err != nil {
-		return "", err
-	}
 	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
-	return path, nil
+	err := UnTar(tarPath, path)
+	return path, err
 }
 
 // CloudPrepper prepares images sourced from a Cloud registry
@@ -105,32 +105,50 @@ type CloudPrepper struct {
 }
 
 func (p CloudPrepper) getFileSystem() (string, error) {
-	// check client compatibility with Docker API
-	valid, err := ValidDockerVersion()
+	// The regexp when passed a string creates a list of the form
+	// [repourl/image:tag, image:tag, tag] (the tag may or may not be present)
+	URLPattern := regexp.MustCompile("^.+/(.+(:.+){0,1})$")
+	URLMatch := URLPattern.FindStringSubmatch(p.Source)
+	// Removing the ":" so that the image path name can be <image><tag>
+	path := strings.Replace(URLMatch[1], ":", "", -1)
+	ref, err := docker.ParseReference("//" + p.Source)
 	if err != nil {
+		panic(err)
+	}
+
+	img, err := ref.NewImage(nil)
+	if err != nil {
+		glog.Error(err)
 		return "", err
 	}
-	var tarPath string
-	if !valid {
-		glog.Info("Docker version incompatible with api, shelling out to local Docker client.")
-		imageID, imageName, err := pullImageCmd(p.Source)
-		if err != nil {
-			return "", err
-		}
-		tarPath, err = imageToTarCmd(imageID, imageName)
-	} else {
-		imageID, imageName, err := pullImageFromRepo(p.Source)
-		if err != nil {
-			return "", err
-		}
-		tarPath, err = saveImageToTar(imageID, imageName)
-	}
+	defer img.Close()
+
+	imgSrc, err := ref.NewImageSource(nil, nil)
 	if err != nil {
+		glog.Error(err)
 		return "", err
 	}
 
-	defer os.Remove(tarPath)
-	return getImageFromTar(tarPath)
+	if _, ok := os.Stat(path); ok != nil {
+		os.MkdirAll(path, 0777)
+	}
+
+	for _, b := range img.LayerInfos() {
+		bi, _, err := imgSrc.GetBlob(b)
+		if err != nil {
+			glog.Errorf("Diff may be inaccurate, failed to pull image layer with error: %s", err)
+		}
+		gzf, err := gzip.NewReader(bi)
+		if err != nil {
+			glog.Errorf("Diff may be inaccurate, failed to read layers with error: %s", err)
+		}
+		tr := tar.NewReader(gzf)
+		err = unpackTar(tr, path)
+		if err != nil {
+			glog.Errorf("Diff may be inaccurate, failed to untar layer with error: %s", err)
+		}
+	}
+	return path, nil
 }
 
 func (p CloudPrepper) getConfig() (ConfigSchema, error) {
@@ -183,7 +201,10 @@ func (p IDPrepper) getFileSystem() (string, error) {
 	}
 
 	defer os.Remove(tarPath)
-	return getImageFromTar(tarPath)
+	glog.Info("Extracting image tar to obtain image file system")
+	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
+	err = ExtractTar(tarPath)
+	return path, err
 }
 
 func (p IDPrepper) getConfig() (ConfigSchema, error) {

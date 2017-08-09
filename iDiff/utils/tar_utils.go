@@ -18,20 +18,7 @@ type Directory struct {
 	Content []string
 }
 
-// UnTar takes in a path to a tar file and writes the untarred version to the provided target.
-// Only untars one level, does not untar nested tars.
-func UnTar(filename string, path string) error {
-	if _, ok := os.Stat(path); ok != nil {
-		os.MkdirAll(path, 0777)
-	}
-
-	file, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-	tr := tar.NewReader(file)
-
+func unpackTar(tr *tar.Reader, path string) error {
 	for {
 		header, err := tr.Next()
 		if err == io.EOF {
@@ -40,6 +27,21 @@ func UnTar(filename string, path string) error {
 		}
 		if err != nil {
 			glog.Fatalf(err.Error())
+			return err
+		}
+
+		if strings.Contains(header.Name, ".wh.") {
+			rmPath := filepath.Join(path, header.Name)
+			newName := strings.Replace(rmPath, ".wh.", "", 1)
+			err := os.Remove(rmPath)
+			if err != nil {
+				glog.Info(err)
+			}
+			err = os.RemoveAll(newName)
+			if err != nil {
+				glog.Info(err)
+			}
+			continue
 		}
 
 		target := filepath.Join(path, header.Name)
@@ -68,6 +70,28 @@ func UnTar(filename string, path string) error {
 				return err
 			}
 		}
+
+	}
+	return nil
+}
+
+// UnTar takes in a path to a tar file and writes the untarred version to the provided target.
+// Only untars one level, does not untar nested tars.
+func UnTar(filename string, path string) error {
+	if _, ok := os.Stat(path); ok != nil {
+		os.MkdirAll(path, 0777)
+	}
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	tr := tar.NewReader(file)
+	err = unpackTar(tr, path)
+	if err != nil {
+		glog.Error(err)
+		return err
 	}
 	return nil
 }
