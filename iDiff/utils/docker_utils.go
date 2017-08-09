@@ -128,6 +128,7 @@ func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
 				glog.Error("Docker History Command Exit Status: ", status.ExitStatus())
 			}
 		} else {
+			glog.Error(err)
 			return history, err
 		}
 	}

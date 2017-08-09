@@ -154,7 +154,10 @@ func (p IDPrepper) ImageToFS() (string, error) {
 	}
 
 	defer os.Remove(tarPath)
-	return getImageFromTar(tarPath)
+	glog.Info("Extracting image tar to obtain image file system")
+	path := strings.TrimSuffix(tarPath, filepath.Ext(tarPath))
+	err = ExtractTar(tarPath)
+	return path, err
 }
 
 type TarPrepper struct {
