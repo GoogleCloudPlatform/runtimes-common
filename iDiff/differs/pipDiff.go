@@ -45,6 +45,7 @@ func (d PipDiffer) getPackages(path string) (map[string]map[string]utils.Package
 		// layer doesn't have a Python version installed
 		return packages, nil
 	}
+
 	for _, pyVersion := range pythonVersions {
 		packagesPath := filepath.Join(path, "usr/local/lib", pyVersion, "site-packages")
 		contents, err := ioutil.ReadDir(packagesPath)
@@ -56,12 +57,14 @@ func (d PipDiffer) getPackages(path string) (map[string]map[string]utils.Package
 		for i := 0; i < len(contents); i++ {
 			c := contents[i]
 			fileName := c.Name()
+
 			// check if package
-			packageDir := regexp.MustCompile("^([a-z|A-Z]+)-(([0-9]+?\\.){3})dist-info$")
+			packageDir := regexp.MustCompile("^([a-z|A-Z|0-9|_]+)-(([0-9]+?\\.){2,3})dist-info$")
 			packageMatch := packageDir.FindStringSubmatch(fileName)
 			if len(packageMatch) != 0 {
 				packageName := packageMatch[1]
 				version := packageMatch[2][:len(packageMatch[2])-1]
+
 				// Retrieves size for actual package/script corresponding to each dist-info metadata directory
 				// by taking the file entry alphabetically before it (for a package) or after it (for a script)
 				var size string
@@ -83,14 +86,6 @@ func (d PipDiffer) getPackages(path string) (map[string]map[string]utils.Package
 				}
 				currPackage := utils.PackageInfo{Version: version, Size: size}
 				addToMap(packages, packageName, pyVersion, currPackage)
-			}
-
-			// if not package, check if Python file
-			pythonFile := regexp.MustCompile(".+\\.py$")
-			fileMatch := pythonFile.FindString(fileName)
-			if fileMatch != "" {
-				currPackage := utils.PackageInfo{}
-				addToMap(packages, fileName, pyVersion, currPackage)
 			}
 		}
 	}

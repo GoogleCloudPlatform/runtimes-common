@@ -72,8 +72,8 @@ func TestGetPythonPackages(t *testing.T) {
 			expectedPackages: map[string]map[string]utils.PackageInfo{
 				"packageone": {"python3.6": {Version: "3.6.9", Size: "0"}},
 				"packagetwo": {"python3.6": {Version: "4.6.2", Size: "0"}},
-				"script1.py": {"python3.6": {}},
-				"script2.py": {"python3.6": {}},
+				"script1":    {"python3.6": {Version: "1.0", Size: "0"}},
+				"script2":    {"python3.6": {Version: "2.0", Size: "0"}},
 			},
 		},
 		{
@@ -82,9 +82,9 @@ func TestGetPythonPackages(t *testing.T) {
 				"packageone": {"python3.6": {Version: "3.6.9", Size: "0"},
 					"python2.7": {Version: "0.1.1", Size: "0"}},
 				"packagetwo": {"python3.6": {Version: "4.6.2", Size: "0"}},
-				"script1.py": {"python3.6": {}},
-				"script2.py": {"python3.6": {}},
-				"script3.py": {"python2.7": {}},
+				"script1":    {"python3.6": {Version: "1.0", Size: "0"}},
+				"script2":    {"python3.6": {Version: "2.0", Size: "0"}},
+				"script3":    {"python2.7": {Version: "3.0", Size: "0"}},
 			},
 		},
 	}
