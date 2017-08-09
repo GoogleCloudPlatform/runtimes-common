@@ -90,7 +90,7 @@ type CloudPrepper struct {
 
 func (p CloudPrepper) ImageToFS() (string, error) {
 	// The regexp when passed a string creates a list of the form
-	// [entire string, everything after the first "/", everything after the ":" after the "/"]
+	// [repourl/image:tag, image:tag, tag] (the tag may or may not be present)
 	URLPattern := regexp.MustCompile("^.+/(.+(:.+){0,1})$")
 	URLMatch := URLPattern.FindStringSubmatch(p.Source)
 	// Removing the ":" so that the image path name can be <image><tag>
