@@ -11,8 +11,6 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
-
-	"github.com/golang/glog"
 )
 
 func TestUnTar(t *testing.T) {
@@ -189,21 +187,17 @@ func dirEquals(actual string, path string) bool {
 		newExpectedPath := filepath.Join(path, file.Name())
 		fstat, ok := os.Stat(newExpectedPath)
 		if ok != nil {
-			glog.Error(newExpectedPath, ok)
 			return false
 		}
 
 		if file.IsDir() && !dirEquals(newActualPath, newExpectedPath) {
-			glog.Error("Here")
 			return false
 		}
 
 		if fstat.Name() != file.Name() {
-			glog.Error(fstat.Name(), file.Name())
 			return false
 		}
 		if fstat.Size() != file.Size() {
-			glog.Error(fstat.Size(), file.Size())
 			return false
 		}
 		if filepath.Ext(file.Name()) == ".tar" {
@@ -214,7 +208,6 @@ func dirEquals(actual string, path string) bool {
 		content2, _ := ioutil.ReadFile(newExpectedPath)
 
 		if 0 != bytes.Compare(content1, content2) {
-			glog.Error(newActualPath, newExpectedPath)
 			return false
 		}
 	}
