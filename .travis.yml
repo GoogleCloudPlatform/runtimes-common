@@ -30,5 +30,7 @@ install:
   - go get -u github.com/bazelbuild/buildifier/buildifier
 
 script:
+ - docker history -h
+ - docker history --no-trunc gcr.io/gcp-runtimes/diff-base
  - sudo rm -rf /etc/docker
  - travis_wait ./iDiff/.iDiffTests.sh

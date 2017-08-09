@@ -120,6 +120,7 @@ func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
 	dockerHistCmd := exec.Command("docker", histArgs...)
 	var response bytes.Buffer
 	dockerHistCmd.Stdout = &response
+	glog.Error(dockerHistCmd)
 	if err := dockerHistCmd.Run(); err != nil {
 		glog.Error(err)
 		if exiterr, ok := err.(*exec.ExitError); ok {
@@ -128,7 +129,6 @@ func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
 				glog.Error("Docker History Command Exit Status: ", status.ExitStatus())
 			}
 		} else {
-			glog.Error(err)
 			return history, err
 		}
 	}
