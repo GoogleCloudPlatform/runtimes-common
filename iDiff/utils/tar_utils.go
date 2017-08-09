@@ -30,7 +30,7 @@ func unpackTar(tr *tar.Reader, path string) error {
 			return err
 		}
 
-		if strings.Contains(header.Name, ".wh.") || strings.Contains(header.Name, "/.wh.") {
+		if strings.Contains(header.Name, ".wh.") {
 			rmPath := filepath.Join(path, header.Name)
 			newName := strings.Replace(rmPath, ".wh.", "", 1)
 			err := os.Remove(rmPath)

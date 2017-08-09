@@ -3,7 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"io/ioutil"
 	"log"
@@ -108,14 +108,14 @@ func CopyDir(source string, dest string) (err error) {
 	}
 
 	if !fi.IsDir() {
-		return fmt.Errorf("Source not a directory")
+		return errors.New("Source not a directory")
 	}
 
 	// ensure dest dir does not already exist
 
 	_, err = os.Open(dest)
 	if !os.IsNotExist(err) {
-		return fmt.Errorf("Destination already exists")
+		return errors.New("Destination already exists")
 	}
 
 	// create dest dir

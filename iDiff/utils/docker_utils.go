@@ -122,7 +122,7 @@ func getImageHistory(image string) ([]img.HistoryResponseItem, error) {
 	dockerHistCmd.Stdout = &response
 	if err := dockerHistCmd.Run(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
-			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
+			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
 				glog.Error("Docker History Command Exit Status: ", status.ExitStatus())
 			}
 		} else {
@@ -193,7 +193,7 @@ func pullImageCmd(image string) (string, string, error) {
 	dockerPullCmd.Stdout = &response
 	if err := dockerPullCmd.Run(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
-			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
+			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
 				glog.Error("Docker Pull Command Exit Status: ", status.ExitStatus())
 			}
 		} else {
@@ -210,9 +210,8 @@ func imageToTarCmd(imageID, imageName string) (string, error) {
 	var out bytes.Buffer
 	dockerSaveCmd.Stdout = &out
 	if err := dockerSaveCmd.Run(); err != nil {
-		glog.Error(err)
 		if exiterr, ok := err.(*exec.ExitError); ok {
-			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok && status.ExitStatus() > 0 {
+			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
 				glog.Error("Docker Save Command Exit Status: ", status.ExitStatus())
 			}
 		} else {
