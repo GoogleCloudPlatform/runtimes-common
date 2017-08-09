@@ -117,16 +117,16 @@ func (p CloudPrepper) ImageToFS() (string, error) {
 	for _, b := range img.LayerInfos() {
 		bi, _, err := imgSrc.GetBlob(b)
 		if err != nil {
-			glog.Error(err)
+			glog.Errorf("Diff may be inaccurate, failed to pull image layer with error: %s", err)
 		}
 		gzf, err := gzip.NewReader(bi)
 		if err != nil {
-			glog.Error(err)
+			glog.Errorf("Diff may be inaccurate, failed to read layers with error: %s", err)
 		}
 		tr := tar.NewReader(gzf)
 		err = unpackTar(tr, path)
 		if err != nil {
-			glog.Error(err)
+			glog.Errorf("Diff may be inaccurate, failed to untar layer with error: %s", err)
 		}
 	}
 	return path, nil

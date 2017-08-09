@@ -1,9 +1,11 @@
 package differs
 
 import (
+	"os"
 	"sort"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/iDiff/utils"
+	"github.com/golang/glog"
 )
 
 type FileDiffer struct {
@@ -50,6 +52,15 @@ func diffImageFiles(image1, image2 utils.Image) (utils.DirDiff, error) {
 		Image2: image2.Source,
 		Adds:   adds,
 		Dels:   dels,
+	}
+
+	err = os.Remove(target1)
+	if err != nil {
+		glog.Error(err)
+	}
+	err = os.Remove(target2)
+	if err != nil {
+		glog.Error(err)
 	}
 	return diff, nil
 }
