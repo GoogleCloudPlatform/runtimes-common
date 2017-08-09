@@ -261,9 +261,11 @@ func (p TarPrepper) getConfig() (ConfigSchema, error) {
 				glog.Errorf("Could not read config file %s: %s", fileName, err)
 				return ConfigSchema{}, errors.New("Could not obtain image config")
 			}
-			var configFile ConfigSchema
-			json.Unmarshal(file, &configFile)
-			config = configFile
+			err = json.Unmarshal(file, &config)
+			if err != nil {
+				glog.Errorf("Could not marshal config file %s: %s", fileName, err)
+				return ConfigSchema{}, errors.New("Could not obtain image config")
+			}
 			configList = append(configList, fileName)
 		}
 	}
