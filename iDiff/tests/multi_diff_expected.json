@@ -54,7 +54,7 @@
       "Image2": "gcr.io/gcp-runtimes/multi-modified",
       "Packages2": {
         "pax": {
-          "multi-modified/cec75d97ca4c987a5dfa4347691af008cabf7a764084fba578c3c59dcbf446c7/layer/node_modules/pax/package.json": {
+          "multi-modified/node_modules/pax/package.json": {
             "Version": "0.2.1",
             "Size": "11998"
           }
@@ -85,16 +85,40 @@
       "Image1": "gcr.io/gcp-runtimes/multi-base",
       "Packages1": {
         "mock": {
-          "Version": "2.0.0",
-          "Size": "504226"
+          "python3.6": {
+            "Version": "2.0.0",
+            "Size": "504226"
+          }
         },
         "pbr": {
-          "Version": "3.1.1",
-          "Size": "447110"
+          "python3.6": {
+            "Version": "3.1.1",
+            "Size": "447110"
+          }
+        },
+        "pip": {
+          "python3.6": {
+            "Version": "9.0.1",
+            "Size": "5289421"
+          }
+        },
+        "setuptools": {
+          "python3.6": {
+            "Version": "36.2.2",
+            "Size": "839895"
+          }
         },
         "six": {
-          "Version": "1.10.0",
-          "Size": "30098"
+          "python3.6": {
+            "Version": "1.10.0",
+            "Size": "30098"
+          }
+        },
+        "wheel": {
+          "python3.6": {
+            "Version": "0.29.0",
+            "Size": "103509"
+          }
         }
       },
       "Image2": "gcr.io/gcp-runtimes/multi-modified",

@@ -3,7 +3,10 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -16,6 +19,7 @@ func TestUnTar(t *testing.T) {
 		tarPath  string
 		target   string
 		expected string
+		starter  string
 		err      bool
 	}{
 		{
@@ -36,21 +40,112 @@ func TestUnTar(t *testing.T) {
 			target:   "testTars/la-croix3",
 			expected: "testTars/la-croix3-actual",
 		},
+		{
+			descrip:  "Tar with .wh.'s",
+			tarPath:  "testTars/la-croix-wh.tar",
+			target:   "testTars/la-croix-wh",
+			expected: "testTars/la-croix-wh-actual",
+			starter:  "testTars/la-croix-starter",
+		},
+		{
+			descrip:  "Files updated",
+			tarPath:  "testTars/la-croix-update.tar",
+			target:   "testTars/la-croix-update",
+			expected: "testTars/la-croix-update-actual",
+			starter:  "testTars/la-croix-starter",
+		},
 	}
 	for _, test := range testCases {
+		if test.starter != "" {
+			CopyDir(test.starter, test.target)
+		}
 		err := UnTar(test.tarPath, test.target)
 		if err != nil && !test.err {
-			t.Errorf("Got unexpected error: %s", err)
+			t.Errorf(test.descrip, "Got unexpected error: %s", err)
 		}
 		if err == nil && test.err {
-			t.Errorf("Expected error but got none: %s", err)
+			t.Errorf(test.descrip, "Expected error but got none: %s", err)
 		}
 		if !dirEquals(test.expected, test.target) || !dirEquals(test.target, test.expected) {
-			t.Errorf("Directory created not correct structure.")
+			t.Errorf(test.descrip, "Directory created not correct structure.")
 		}
 		os.RemoveAll(test.target)
 	}
+}
 
+// Copies file source to destination dest.
+func CopyFile(source string, dest string) (err error) {
+	sf, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer sf.Close()
+	df, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer df.Close()
+	_, err = io.Copy(df, sf)
+	if err == nil {
+		si, err := os.Stat(source)
+		if err != nil {
+			err = os.Chmod(dest, si.Mode())
+		}
+
+	}
+
+	return nil
+}
+
+// Recursively copies a directory tree, attempting to preserve permissions.
+// Source directory must exist, destination directory must *not* exist.
+func CopyDir(source string, dest string) (err error) {
+
+	// get properties of source dir
+	fi, err := os.Stat(source)
+	if err != nil {
+		return err
+	}
+
+	if !fi.IsDir() {
+		return errors.New("Source not a directory")
+	}
+
+	// ensure dest dir does not already exist
+
+	_, err = os.Open(dest)
+	if !os.IsNotExist(err) {
+		return errors.New("Destination already exists")
+	}
+
+	// create dest dir
+
+	err = os.MkdirAll(dest, fi.Mode())
+	if err != nil {
+		return err
+	}
+
+	entries, err := ioutil.ReadDir(source)
+
+	for _, entry := range entries {
+
+		sfp := source + "/" + entry.Name()
+		dfp := dest + "/" + entry.Name()
+		if entry.IsDir() {
+			err = CopyDir(sfp, dfp)
+			if err != nil {
+				log.Println(err)
+			}
+		} else {
+			// perform copy
+			err = CopyFile(sfp, dfp)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+
+	}
+	return nil
 }
 
 func TestIsTar(t *testing.T) {
