@@ -252,7 +252,7 @@ func (p TarPrepper) getConfig() (ConfigSchema, error) {
 		if filepath.Ext(item.Name()) == ".json" && item.Name() != "manifest.json" {
 			if len(configList) != 0 {
 				// Another <image>.json file has already been processed and the image config obtained is uncertain.
-				glog.Error("Multiple possible config sources detected for image at " + p.Source + ", some diff results may be incorrect.")
+				glog.Error("Multiple possible config sources detected for image at " + p.Source + ". Multiple images likely contained in tar. Choosing first one, but diff results may not be completely accurate.")
 				break
 			}
 			fileName := filepath.Join(tmpDir, item.Name())
