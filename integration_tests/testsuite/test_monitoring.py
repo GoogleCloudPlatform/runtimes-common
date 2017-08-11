@@ -2,14 +2,14 @@
 
 # Copyright 2017 Google Inc. All rights reserved.
 
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the 'License');
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 
 # http://www.apache.org/licenses/LICENSE-2.0
 
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
+# distributed under the License is distributed on an 'AS IS' BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
@@ -26,7 +26,6 @@ import test_util
 
 
 class TestMonitoring(unittest.TestCase):
-
     def __init__(self, url, methodName='runTest'):
         self._url = urlparse.urljoin(url, test_util.MONITORING_ENDPOINT)
         super(TestMonitoring, self).__init__()
@@ -50,11 +49,12 @@ class TestMonitoring(unittest.TestCase):
             except Exception as e:
                 found_inserted_token = False
                 failure = e
-            elapsed = time.time()-start
+            elapsed = time.time() - start
 
-            logging.info("time elapsed checking for metric: {0}s".format(elapsed))
+            logging.info('time elapsed checking for metric: {0}s'.format(elapsed))
 
-            self.assertTrue(found_inserted_token, 'Token not found in Stackdriver monitoring! Last error: {0}'.format(failure))
+            self.assertTrue(found_inserted_token,
+                            'Token not found in Stackdriver monitoring! Last error: {0}'.format(failure))
         finally:
             self._try_cleanup_metric(client, metric_name)
 
@@ -62,9 +62,9 @@ class TestMonitoring(unittest.TestCase):
         try:
             descriptor = client.metric_descriptor(metric_name)
             descriptor.delete()
-            logging.info("metric {0} deleted".format(metric_name))
+            logging.info('metric {0} deleted'.format(metric_name))
         except Exception as e:
-            logging.warning("Error when deleting metric {0}, manual cleanup might be needed: {1}"
+            logging.warning('Error when deleting metric {0}, manual cleanup might be needed: {1}'
                             .format(metric_name, e.message))
 
     @retry(wait_fixed=5000, stop_max_attempt_number=20)
