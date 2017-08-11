@@ -41,20 +41,23 @@ class TestMonitoring(unittest.TestCase):
             self.assertEquals(response_code, 0,
                               'Error encountered inside sample application!')
 
-            logging.info('trying to find {0} stored in {1}...'.format(target, metric_name))
+            logging.info('trying to find {0} stored in {1}...'
+                         .format(target, metric_name))
             start = time.time()
             try:
-                found_inserted_token = self._read_metric(metric_name, target, client)
+                found_token = self._read_metric(metric_name, target, client)
                 failure = None
             except Exception as e:
-                found_inserted_token = False
+                found_token = False
                 failure = e
             elapsed = time.time() - start
 
-            logging.info('time elapsed checking for metric: {0}s'.format(elapsed))
+            logging.info('time elapsed checking for metric: {0}s'
+                         .format(elapsed))
 
-            self.assertTrue(found_inserted_token,
-                            'Token not found in Stackdriver monitoring! Last error: {0}'.format(failure))
+            self.assertTrue(found_token,
+                            'Token not found in Stackdriver monitoring!\n'
+                            'Last error: {0}'.format(failure))
         finally:
             self._try_cleanup_metric(client, metric_name)
 
@@ -64,23 +67,26 @@ class TestMonitoring(unittest.TestCase):
             descriptor.delete()
             logging.info('metric {0} deleted'.format(metric_name))
         except Exception as e:
-            logging.warning('Error when deleting metric {0}, manual cleanup might be needed: {1}'
+            logging.warning('Error when deleting metric {0},'
+                            ' manual cleanup might be needed: {1}'
                             .format(metric_name, e.message))
 
     @retry(wait_fixed=5000, stop_max_attempt_number=20)
     def _read_metric(self, name, target, client):
         query = client.query(name, minutes=5)
         if self._no_timeseries_in(query):
-            raise Exception('No timeseries match the query for metric {0}'.format(name))
+            raise Exception('No timeseries match the query for metric {0}'
+                            .format(name))
 
         for timeseries in query:
             for point in timeseries.points:
                 if point.value == target:
-                    logging.info('Token {0} found in Stackdriver '
-                                 'metrics {1}'.format(target, name))
+                    logging.info('Token {0} found in Stackdriver metrics {1}'
+                                 .format(target, name))
                     return True
                 print(point.value)
-        raise Exception('Token {0} not found in metric {1}'.format(target, name))
+        raise Exception('Token {0} not found in metric {1}'
+                        .format(target, name))
 
     def _no_timeseries_in(self, query):
         if query is None:
