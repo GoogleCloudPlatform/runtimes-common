@@ -18,6 +18,7 @@ import logging
 from retrying import retry
 import unittest
 import urlparse
+import time
 
 import google.cloud.monitoring
 
@@ -25,40 +26,69 @@ import test_util
 
 
 class TestMonitoring(unittest.TestCase):
-
     def __init__(self, url, methodName='runTest'):
         self._url = urlparse.urljoin(url, test_util.MONITORING_ENDPOINT)
         super(TestMonitoring, self).__init__()
 
     def runTest(self):
         payload = test_util.generate_metrics_payload()
-        _, response_code = test_util.post(self._url, payload,
-                                          test_util.METRIC_TIMEOUT)
-        self.assertEquals(response_code, 0,
-                          'Error encountered inside sample application!')
-
+        metric_name, target = payload.get('name'), payload.get('token')
         client = google.cloud.monitoring.Client()
 
-        self.assertTrue(self._read_metric(payload.get('name'),
-                                          payload.get('token'), client),
-                        'Token not found in Stackdriver monitoring!')
+        try:
+            _, response_code = test_util.post(self._url, payload,
+                                              test_util.METRIC_TIMEOUT)
+            self.assertEquals(response_code, 0,
+                              'Error encountered inside sample application!')
 
-    @retry(wait_fixed=8000, stop_max_attempt_number=10)
+            logging.info('trying to find {0} stored in {1}...'
+                         .format(target, metric_name))
+            start = time.time()
+            try:
+                found_token = self._read_metric(metric_name, target, client)
+                failure = None
+            except Exception as e:
+                found_token = False
+                failure = e
+            elapsed = time.time() - start
+
+            logging.info('time elapsed checking for metric: {0}s'
+                         .format(elapsed))
+
+            self.assertTrue(found_token,
+                            'Token not found in Stackdriver monitoring!\n'
+                            'Last error: {0}'.format(failure))
+        finally:
+            self._try_cleanup_metric(client, metric_name)
+
+    def _try_cleanup_metric(self, client, metric_name):
+        try:
+            descriptor = client.metric_descriptor(metric_name)
+            descriptor.delete()
+            logging.info('metric {0} deleted'.format(metric_name))
+        except Exception as e:
+            logging.warning('Error when deleting metric {0},'
+                            ' manual cleanup might be needed: {1}'
+                            .format(metric_name, e.message))
+
+    @retry(wait_fixed=5000, stop_max_attempt_number=20)
     def _read_metric(self, name, target, client):
-        query = client.query(name, minutes=2)
-        if self._query_is_empty(query):
-            raise Exception('Metric read retries exceeded!')
+        query = client.query(name, minutes=5)
+        if self._no_timeseries_in(query):
+            raise Exception('No timeseries match the query for metric {0}'
+                            .format(name))
 
         for timeseries in query:
             for point in timeseries.points:
                 if point.value == target:
-                    logging.info('Token {0} found in Stackdriver '
-                                 'metrics'.format(target))
+                    logging.info('Token {0} found in Stackdriver metrics {1}'
+                                 .format(target, name))
                     return True
                 print(point.value)
-        return False
+        raise Exception('Token {0} not found in metric {1}'
+                        .format(target, name))
 
-    def _query_is_empty(self, query):
+    def _no_timeseries_in(self, query):
         if query is None:
             logging.info('query is none')
             return True
