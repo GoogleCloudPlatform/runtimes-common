@@ -24,7 +24,6 @@ import test_util
 
 
 class TestCustomLogging(unittest.TestCase):
-
     def __init__(self, url, methodName='runTest'):
         self._url = url + test_util.CUSTOM_LOGGING_ENDPOINT
         super(TestCustomLogging, self).__init__()
@@ -48,22 +47,28 @@ class TestCustomLogging(unittest.TestCase):
                          'token is {1}, '
                          'level is {2}'.format(log_name, token, level))
 
-            self.assertTrue(self._read_log(client, log_name, token, level),
-                            'Log entry not found for posted token!')
+            project_id = test_util.project_id()
+
+            FILTER = 'logName = ' \
+                     '"projects/{0}/logs/{1}" ' \
+                     'AND (textPayload:{2} OR jsonPayload.message:*) ' \
+                     'AND severity = "{3}"'.format(project_id,
+                                                   log_name,
+                                                   test_util.LOGGING_PREFIX,
+                                                   level)
+
+            logging.info('logging filter: {0}'.format(FILTER))
+
+            self.assertTrue(
+                self._read_log(client, token, FILTER),
+                'Log entry not found for posted token!')
 
     @retry(wait_fixed=4000, stop_max_attempt_number=8)
-    def _read_log(self, client, log_name, token, level):
-        project_id = test_util.project_id()
-        FILTER = 'logName = projects/{0}/logs/{1} ' \
-                 'AND (textPayload:{2} OR jsonPayload.message:*)'.format(
-                     project_id,
-                     log_name,
-                     test_util.LOGGING_PREFIX
-                 )
+    def _read_log(self, client, token, FILTER):
         for entry in client.list_entries(filter_=FILTER):
             logging.debug(entry.payload)
             if (token in entry.payload or
-                isinstance(entry.payload, dict) and
+                    isinstance(entry.payload, dict) and
                     token in entry.payload.get('message')):
                 logging.info('Token {0} found in '
                              'Stackdriver logs!'.format(token))

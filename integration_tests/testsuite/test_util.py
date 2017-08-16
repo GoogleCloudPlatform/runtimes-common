@@ -25,6 +25,7 @@ from retrying import retry
 import string
 import subprocess
 import sys
+import google.auth
 
 requests.packages.urllib3.disable_warnings()
 
@@ -133,9 +134,8 @@ def _check_response(response, error_message):
 
 def project_id():
     try:
-        cmd = ['gcloud', 'config', 'list', '--format=json']
-        entries = json.loads(subprocess.check_output(cmd))
-        return entries.get('core').get('project')
+        _, project = google.auth.default()
+        return project
     except Exception as e:
         logging.error('Error encountered when retrieving project id!')
         logging.error(e)
