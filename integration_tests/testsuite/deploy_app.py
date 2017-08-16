@@ -17,6 +17,7 @@
 import datetime
 import logging
 import os
+from retrying import retry
 import subprocess
 import sys
 import test_util
@@ -123,6 +124,7 @@ def deploy_app(base_image, builder_image, appdir, yaml):
         os.chdir(owd)
 
 
+@retry(wait_fixed=4000, stop_max_attempt_number=8)
 def stop_app(deployed_version):
     logging.debug('Removing application version %s', deployed_version)
     try:
@@ -133,3 +135,4 @@ def stop_app(deployed_version):
     except subprocess.CalledProcessError as cpe:
         logging.error('Error encountered when deleting app version! %s',
                       cpe.output)
+        raise cpe
