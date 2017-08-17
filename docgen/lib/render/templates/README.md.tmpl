@@ -88,7 +88,7 @@ services:
   {{.Name}}:
     container_name: {{ .ContainerName }}
     image: {{.Image}}
-    {{- if gt (len .Arguments) 0}} \
+    {{- if gt (len .Arguments) 0}}
     command:
       {{- range .Arguments}}
       - {{.}}
