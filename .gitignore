@@ -6,4 +6,3 @@ structure_tests.test
 config/*
 .cfg/
 **/bazel-*
-iDiff/tests/*_actual.json
