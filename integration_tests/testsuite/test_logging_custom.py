@@ -21,12 +21,14 @@ from retrying import retry
 from google.cloud.logging import DESCENDING
 import google.cloud.logging
 
+import constants
 import test_util
 
 
 class TestCustomLogging(unittest.TestCase):
     def __init__(self, url, methodName='runTest'):
-        self._url = url + test_util.CUSTOM_LOGGING_ENDPOINT
+        self._base_url = url
+        self._url = url + constants.CUSTOM_LOGGING_ENDPOINT
         super(TestCustomLogging, self).__init__()
 
     def runTest(self):
@@ -50,13 +52,24 @@ class TestCustomLogging(unittest.TestCase):
 
             project_id = test_util.project_id()
 
-            FILTER = 'logName = ' \
-                     '"projects/{0}/logs/{1}" ' \
-                     'AND (textPayload:{2} OR jsonPayload.message:*) ' \
-                     'AND severity = "{3}"'.format(project_id,
-                                                   log_name,
-                                                   test_util.LOGGING_PREFIX,
-                                                   level)
+            environment = test_util.get_environment(self._base_url)
+            if environment == constants.GAE:
+                project_id = test_util.project_id()
+                FILTER = 'logName = ' \
+                         '"projects/{0}/logs/{1}" ' \
+                         'AND (textPayload:{2} OR jsonPayload.message:*) ' \
+                         'AND severity = '\
+                         '"{3}"'.format(project_id,
+                                        log_name,
+                                        constants.LOGGING_PREFIX,
+                                        level)
+            else:
+                FILTER = 'resource.type="container" ' \
+                         'AND resource.labels.cluster_name="{0}" ' \
+                         'AND textPayload:"{1}" ' \
+                         'AND severity = "{2}"'.format(constants.CLUSTER_NAME,
+                                                       token,
+                                                       level)
 
             logging.info('logging filter: {0}'.format(FILTER))
 

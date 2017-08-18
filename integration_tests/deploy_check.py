@@ -86,16 +86,16 @@ def _deploy_and_test(appdir, language, is_xrt):
     version = None
     try:
         logging.debug('Testing runtime image.')
-        version = deploy_app.deploy_app_and_record_latency(appdir,
-                                                           language, is_xrt)
+        version, url = deploy_app.deploy_app_and_record_latency(appdir,
+                                                                language,
+                                                                is_xrt)
         application_url = test_util.retrieve_url_for_version(version)
         _test_application(application_url)
     except Exception as e:
-        logging.error('Error when contacting application!')
-        logging.error(e)
+        logging.error('Error when contacting application! %s', e)
     finally:
         if version:
-            deploy_app.stop_app(version)
+            deploy_app.stop_version(version)
 
 
 @retry(wait_fixed=4000, stop_max_attempt_number=8)
