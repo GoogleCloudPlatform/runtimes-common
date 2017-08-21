@@ -51,10 +51,10 @@ class TestStandardLogging(unittest.TestCase):
                          'level is {2}'.format(log_name, token, level))
 
             project_id = test_util.project_id()
-            FILTER = 'logName = projects/{0}/logs/' \
-                     '{1} AND textPayload:"{2}"'.format(project_id,
-                                                        log_name,
-                                                        test_util.LOGGING_PREFIX)
+            FILTER = 'logName = projects/{0}/logs/{1} ' \
+                     'AND textPayload:"{2}"'.format(project_id,
+                                                    log_name,
+                                                    test_util.LOGGING_PREFIX)
 
             logging.info('logging filter: {0}'.format(FILTER))
             self.assertTrue(self._read_log(client, token, FILTER),

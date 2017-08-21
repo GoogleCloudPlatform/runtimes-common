@@ -64,10 +64,9 @@ class TestCustomLogging(unittest.TestCase):
                 self._read_log(client, token, FILTER),
                 'Log entry not found for posted token!')
 
-
     @retry(wait_fixed=4000, stop_max_attempt_number=8)
     def _read_log(self, client, token, FILTER):
-        with timeout(10.0, exception=Exception):         
+        with timeout(10.0, exception=Exception):
             for entry in client.list_entries(filter_=FILTER,
                                              order_by='timestamp desc',
                                              page_size=10):
