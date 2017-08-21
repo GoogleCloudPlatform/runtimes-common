@@ -12,20 +12,20 @@ Versioning tools for Dockerfile source repos.
 - Clone this repo:
 
 ``` shell
-git clone github.com/GoogleCloudPlatform/runtimes-common
-cd runtimes-common/versioning
+git clone https://github.com/GoogleCloudPlatform/runtimes-common.git
+cd runtimes-common
 ```
 
 - Build:
 
 ``` shell
-bazel build scripts:all
+bazel build versioning/scripts:all
 ```
 
 - Set the path to the built scripts:
 
 ``` shell
-export PATH=$PATH:$PWD/bazel-bin/scripts
+export PATH=$PATH:$PWD/bazel-bin/versioning/scripts
 ```
 
 # Create `versions.yaml`
@@ -46,20 +46,20 @@ Primary folders in the Dockerfile source repo:
 
 # Usage of `dockerfiles` command
 
-```console
+``` shell
 cd path/to/dockerfile/repo
 dockerfiles
 ```
 
 # Usage of `cloudbuild` command
 
-```console
+``` shell
 cd path/to/dockerfile/repo
 cloudbuild > cloudbuild.yaml
 ```
 
 You can use the generated `cloudbuild.yaml` file as followed:
 
-```console
+``` shell
 gcloud container builds submit --config=cloudbuild.yaml .
 ```
