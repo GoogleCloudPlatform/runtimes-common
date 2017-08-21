@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from interruptingcow import timeout
 import logging
 import unittest
 from retrying import retry
@@ -65,12 +66,15 @@ class TestCustomLogging(unittest.TestCase):
 
     @retry(wait_fixed=4000, stop_max_attempt_number=8)
     def _read_log(self, client, token, FILTER):
-        for entry in client.list_entries(filter_=FILTER):
-            logging.debug(entry.payload)
-            if (token in entry.payload or
+        with timeout(10.0, exception=Exception):
+            for entry in client.list_entries(filter_=FILTER,
+                                             order_by='timestamp desc',
+                                             page_size=10):
+                logging.debug(entry.payload)
+                if (token in entry.payload or
                     isinstance(entry.payload, dict) and
-                    token in entry.payload.get('message')):
-                logging.info('Token {0} found in '
-                             'Stackdriver logs!'.format(token))
-                return True
-        raise Exception('Log entry not found for posted token!')
+                        token in entry.payload.get('message')):
+                    logging.info('Token {0} found in '
+                                 'Stackdriver logs!'.format(token))
+                    return True
+            raise Exception('Log entry not found for posted token!')
