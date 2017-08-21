@@ -59,7 +59,9 @@ class TestStandardLogging(unittest.TestCase):
                  '{1} AND textPayload:"{2}"'.format(project_id,
                                                     log_name,
                                                     test_util.LOGGING_PREFIX)
-        for entry in client.list_entries(filter_=FILTER):
+        for entry in client.list_entries(filter_=FILTER,
+                                         order_by='timestamp desc',
+                                         page_size=10):
             # since the logs we're examining are for the deployed flex app,
             # we can safely log from the test driver without contaminating
             # the logs under examination.
