@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import logging
+from retrying import retry
 import unittest
 import urlparse
 
@@ -28,11 +29,15 @@ class TestRoot(unittest.TestCase):
         super(TestRoot, self).__init__()
 
     def runTest(self):
+        self._test_root()
+
+    @retry(wait_fixed=4000, stop_max_attempt_number=8)
+    def _test_root(self):
         logging.debug('Hitting endpoint: {0}'.format(self._url))
         output, status_code = test_util.get(self._url)
         logging.info('output is: {0}'.format(output))
-        self.assertEquals(status_code, 0,
-                          'Cannot connect to sample application!')
+        if status_code != 0:
+            raise Exception('Cannot connect to sample application!')
 
         self.assertEquals(output, test_util.ROOT_EXPECTED_OUTPUT,
                           'Unexpected output: expected {0}, received {1}'
