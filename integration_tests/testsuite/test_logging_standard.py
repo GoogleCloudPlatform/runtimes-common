@@ -54,7 +54,7 @@ class TestStandardLogging(unittest.TestCase):
             FILTER = 'logName = projects/{0}/logs/{1} ' \
                      'AND textPayload:"{2}"'.format(project_id,
                                                     log_name,
-                                                    test_util.LOGGING_PREFIX)
+                                                    token)
 
             logging.info('logging filter: {0}'.format(FILTER))
             self.assertTrue(self._read_log(client, token, FILTER),
