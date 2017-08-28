@@ -29,10 +29,10 @@ class TestRoot(unittest.TestCase):
         super(TestRoot, self).__init__()
 
     def runTest(self):
-        test_root()
+        self._test_root()
 
     @retry(wait_fixed=4000, stop_max_attempt_number=8)
-    def test_root(self):
+    def _test_root(self):
         logging.debug('Hitting endpoint: {0}'.format(self._url))
         output, status_code = test_util.get(self._url)
         logging.info('output is: {0}'.format(output))
