@@ -22,7 +22,7 @@ RUN apt-get update && \
 
 COPY requirements.txt /
 
-RUN pip install --upgrade -r /requirements.txt
+RUN pip install --upgrade pip && pip install --upgrade -r /requirements.txt
 
 COPY testsuite /testsuite
 
