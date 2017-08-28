@@ -74,8 +74,8 @@ class TestCustomLogging(unittest.TestCase):
         for entry in first_page:
             logging.debug(entry.payload)
             if (token in entry.payload or
-                isinstance(entry.payload, dict) and
-                token in entry.payload.get('message')):
+                    isinstance(entry.payload, dict) and
+                    token in entry.payload.get('message')):
                 logging.info('Token {0} found in '
                              'Stackdriver logs!'.format(token))
                 return True
