@@ -78,8 +78,8 @@ class TestCustom(unittest.TestCase):
         if path is not None:
             if steps is not None or validation is not None:
                 logging.warn('The configuration for test %s should not contains'
-                             'the fields steps or a validation and a field path',
-                             name)
+                             'the fields steps or a validation and a field path'
+                             , name)
                 return
             # Run old test
             test_endpoint = urlparse.urljoin(self._base_url, path)
@@ -95,10 +95,10 @@ class TestCustom(unittest.TestCase):
         for step in steps:
             self._runStep(context, step, step_num)
 
-        logging.debug("context : {0}".format(json.dumps(context,
-                                             sort_keys=True,
-                                             indent=4,
-                                             separators=(',', ': '))))
+        logging.debug("context : %s", json.dumps(context,
+                                                 sort_keys=True,
+                                                 indent=4,
+                                                 separators=(',', ': ')))
 
         self._validate(context, validation.get('match'))
 
@@ -151,9 +151,9 @@ class TestCustom(unittest.TestCase):
 
     def _validate(self, context, specification):
         """ Compare the specification with the context and assert that every key
-            present in the specification is also present in the context, and that
-            the value associated to that key in the context respect the regular
-            expression specified by the value in the specification.
+            present in the specification is also present in the context, and
+            that the value associated to that key in the context respect the
+            regular expression specified by the value in the specification.
 
         :param context: Dictionary containing for each step the request and
                the response.
