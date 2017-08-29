@@ -9,6 +9,14 @@ licenses(["notice"])  # Apache 2.0
 
 exports_files(["LICENSE"])
 
+py_library(
+    name = "reconciletags",
+    srcs = glob(["reconciletags/*.py"]),
+    deps = [
+        "@containerregistry",
+    ],
+)
+
 load(
     "@io_bazel_rules_go//go:def.bzl",
     "go_prefix",

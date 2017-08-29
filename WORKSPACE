@@ -32,8 +32,15 @@ new_go_repository(
 
 git_repository(
     name = "io_bazel_rules_docker",
+    commit = "db1b348dfdf161a784bc1efc5a1020395572b996",
     remote = "https://github.com/bazelbuild/rules_docker.git",
-    tag = "v0.0.1",
+
+)
+
+git_repository(
+    name = "containerregistry",
+    commit = "b0278a1544238d03648861b6d9395414d4c958e5",
+    remote = "https://github.com/google/containerregistry",
 )
 
 load(
