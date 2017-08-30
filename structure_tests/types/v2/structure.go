@@ -16,20 +16,25 @@ package v2
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/utils"
 )
 
 type StructureTest struct {
+	Driver             drivers.Driver
 	GlobalEnvVars      []unversioned.EnvVar
 	CommandTests       []CommandTest
 	FileExistenceTests []FileExistenceTest
 	FileContentTests   []FileContentTest
 	LicenseTests       []LicenseTest
+}
+
+func (st StructureTest) SetDriver(driver drivers.Driver) {
+	st.Driver = driver
 }
 
 func (st StructureTest) RunAll(t *testing.T) int {
@@ -49,16 +54,16 @@ func (st StructureTest) RunCommandTests(t *testing.T) int {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateCommandTest(t, tt)
 			for _, setup := range tt.Setup {
-				utils.ProcessCommand(t, tt.EnvVars, setup, tt.ShellMode, false)
+				st.Driver.ProcessCommand(t, tt.EnvVars, setup, tt.ShellMode, false)
 			}
 
 			fullCommand := append([]string{tt.Command}, tt.Args...)
 
-			stdout, stderr, exitcode := utils.ProcessCommand(t, tt.EnvVars, fullCommand, tt.ShellMode, true)
+			stdout, stderr, exitcode := st.Driver.ProcessCommand(t, tt.EnvVars, fullCommand, tt.ShellMode, true)
 			CheckOutput(t, tt, stdout, stderr, exitcode)
 
 			for _, teardown := range tt.Teardown {
-				utils.ProcessCommand(t, tt.EnvVars, teardown, tt.ShellMode, false)
+				st.Driver.ProcessCommand(t, tt.EnvVars, teardown, tt.ShellMode, false)
 			}
 			counter++
 		})
@@ -73,11 +78,7 @@ func (st StructureTest) RunFileExistenceTests(t *testing.T) int {
 			validateFileExistenceTest(t, tt)
 			var err error
 			var info os.FileInfo
-			if tt.IsDirectory {
-				info, err = os.Stat(tt.Path)
-			} else {
-				info, err = os.Stat(tt.Path)
-			}
+			info, err = st.Driver.StatFile(path)
 			if tt.ShouldExist && err != nil {
 				if tt.IsDirectory {
 					t.Errorf("Directory %s should exist but does not!", tt.Path)
@@ -108,7 +109,7 @@ func (st StructureTest) RunFileContentTests(t *testing.T) int {
 	for _, tt := range st.FileContentTests {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateFileContentTest(t, tt)
-			actualContents, err := ioutil.ReadFile(tt.Path)
+			actualContents, err := st.Driver.ReadFile(tt.Path)
 			if err != nil {
 				t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
 			}
@@ -133,7 +134,7 @@ func (st StructureTest) RunFileContentTests(t *testing.T) int {
 func (st StructureTest) RunLicenseTests(t *testing.T) int {
 	for num, tt := range st.LicenseTests {
 		t.Run(tt.LogName(num), func(t *testing.T) {
-			checkLicenses(t, tt)
+			checkLicenses(t, tt, st.Driver)
 		})
 		return 1
 	}

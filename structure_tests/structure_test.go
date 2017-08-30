@@ -24,6 +24,10 @@ import (
 	"strings"
 	"testing"
 
+	"fmt"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
+	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/utils"
 	"github.com/ghodss/yaml"
 )
 
@@ -81,18 +85,38 @@ func Parse(fp string) (StructureTest, error) {
 	if !ok {
 		return nil, errors.New("Error encountered when type casting Structure Test interface")
 	}
+	st.SetDriver(driverImpl)
 	return tests, nil
 }
 
 var configFiles arrayFlags
+var imageName, driver string
+var driverImpl drivers.Driver
 
 func TestMain(m *testing.M) {
-	flag.Var(&configFiles, "config", "path to the .yaml file containing test definitions")
+	// flag.Var(&configFiles, "config", "path to the .yaml file containing test definitions")
+	flag.StringVar(&imageName, "image", "", "path to test image")
+	flag.StringVar(&driver, "driver", "docker", "driver to use when running tests")
+
 	flag.Parse()
+
+	configFiles = flag.Args()
+
+	if imageName == "" {
+		//log error asking for image name, and exit
+	}
 
 	if len(configFiles) == 0 {
 		configFiles = append(configFiles, "/workspace/structure_test.json")
 	}
+
+	driverImpl = utils.InitDriver(driver)
+
+	fmt.Println(testing.Verbose())
+	fmt.Println(imageName)
+	fmt.Println(driver)
+	fmt.Println(configFiles)
+	// os.Exit(0)
 
 	if exit := m.Run(); exit != 0 {
 		os.Exit(exit)

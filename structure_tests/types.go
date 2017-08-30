@@ -18,11 +18,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/v1"
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/v2"
 )
 
 type StructureTest interface {
+	SetDriver(driver drivers.Driver)
 	RunAll(t *testing.T) int
 }
 

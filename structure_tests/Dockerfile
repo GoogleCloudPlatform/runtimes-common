@@ -12,11 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gcr.io/cloud-builders/docker
+FROM gcr.io/google-appengine/debian8
 
-RUN mkdir /test
-COPY structure_test /test/structure_test
-VOLUME /test
-COPY run.sh /run.sh
-
-ENTRYPOINT ["/run.sh"]
+COPY structure_test /structure_test
+ENTRYPOINT ["/structure_test"]
