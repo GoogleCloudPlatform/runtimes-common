@@ -15,13 +15,9 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
-	"strings"
-	"syscall"
 	"testing"
 )
 
@@ -137,77 +133,6 @@ func (st StructureTestv0) RunLicenseTests(t *testing.T) int {
 		return 1
 	}
 	return 0
-}
-
-// given an array of command parts, construct a full command and execute it against the
-// current environment. a list of environment variables can be passed to be set in the
-// environment before the command is executed. additionally, a boolean flag is passed
-// to specify whether or not we care about the output of the command.
-func ProcessCommandv0(t *testing.T, envVars []EnvVar, fullCommand []string,
-	shellMode bool, checkOutput bool) (string, string, int) {
-	var cmd *exec.Cmd
-	if len(fullCommand) == 0 {
-		t.Logf("empty command provided: skipping...")
-		return "", "", -1
-	}
-	var command string
-	var flags []string
-	if shellMode {
-		command = "/bin/sh"
-		flags = []string{"-c", strings.Join(fullCommand, " ")}
-	} else {
-		command = fullCommand[0]
-		flags = fullCommand[1:]
-	}
-	originalVars := SetEnvVars(t, envVars)
-	defer ResetEnvVars(t, originalVars)
-	if len(flags) > 0 {
-		cmd = exec.Command(command, flags...)
-	} else {
-		cmd = exec.Command(command)
-	}
-
-	if checkOutput {
-		t.Logf("Executing: %s", cmd.Args)
-	} else {
-		t.Logf("Executing setup/teardown: %s", cmd.Args)
-	}
-
-	var outbuf, errbuf bytes.Buffer
-
-	cmd.Stdout = &outbuf
-	cmd.Stderr = &errbuf
-
-	err := cmd.Run()
-	stdout := outbuf.String()
-	if stdout != "" {
-		t.Logf("stdout: %s", stdout)
-	}
-	stderr := errbuf.String()
-	if stderr != "" {
-		t.Logf("stderr: %s", stderr)
-	}
-	var exitCode int
-	if err != nil {
-		if checkOutput {
-			// The test might be designed to run a command that exits with an error.
-			t.Logf("Error running command: %s. Continuing.", err)
-		} else {
-			t.Fatalf("Error running setup/teardown command: %s.", err)
-		}
-		switch err := err.(type) {
-		default:
-			t.Errorf("Command failed to start! Unable to retrieve error info!")
-		case *exec.ExitError:
-			exitCode = err.Sys().(syscall.WaitStatus).ExitStatus()
-		case *exec.Error:
-			// Command started but failed to finish, so we can at least check the stderr
-			stderr = err.Error()
-		}
-	} else {
-		exitCode = cmd.ProcessState.Sys().(syscall.WaitStatus).ExitStatus()
-	}
-	return stdout, stderr, exitCode
 }
 
 func CheckOutputv0(t *testing.T, tt CommandTestv0, stdout string, stderr string, exitCode int) {
