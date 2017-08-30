@@ -114,6 +114,9 @@ class TagReconciler:
                     logging.debug('Existing Tags: {0}'.format(existing_tags))
 
                     name = docker_name.Digest(default_digest)
+                    creds = docker_creds.DefaultKeychain.Resolve(name)
+                    transport = transport_pool.Http(httplib2.Http)
+
                     with docker_image.FromRegistry(name, creds, transport) as img:
                         if img.exists():
                             full_digest = full_repo + '@sha256:' +image['digest']
