@@ -35,8 +35,8 @@ func (a *arrayFlags) Set(value string) error {
 }
 
 var schemaVersions map[string]VersionHolder = map[string]VersionHolder{
-	"1.0.0": new(VersionHolderv000),
-	"1.1.0": new(VersionHolderv100),
+	"1.0.0": new(VersionHolderv0),
+	"1.1.0": new(VersionHolderv1),
 }
 
 type SchemaVersion struct {
@@ -49,15 +49,15 @@ type VersionHolder interface {
 	New() StructureTest
 }
 
-type VersionHolderv000 struct{}
-type VersionHolderv100 struct{}
+type VersionHolderv0 struct{}
+type VersionHolderv1 struct{}
 
-func (v VersionHolderv000) New() StructureTest {
-	return new(StructureTestv000)
+func (v VersionHolderv0) New() StructureTest {
+	return new(StructureTestv0)
 }
 
-func (v VersionHolderv100) New() StructureTest {
-	return new(StructureTestv100)
+func (v VersionHolderv1) New() StructureTest {
+	return new(StructureTestv1)
 }
 
 type EnvVar struct {
