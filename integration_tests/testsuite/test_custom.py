@@ -20,13 +20,12 @@ import logging
 import requests
 import unittest
 import urlparse
-import collections
 
 import test_util
 
 
 class TestCustom(unittest.TestCase):
-    """ This TestCase fetch a configuration at the endpoint '/custom' describing
+    """ This TestCase fetch a configuration from the endpoint '/custom' describing
         a series of tests, then run each of them and report their results.
 
         In the case where a test of the series fail, this TestCase will be
@@ -60,11 +59,11 @@ class TestCustom(unittest.TestCase):
                 self._runTestForSpecification(specification, test_num)
 
     def _runTestForSpecification(self, specification, test_num):
-        """ Given the specification for a test execute the steps described and
-            assert the result.
+        """ Given the specification for a test execute the steps and
+            validate the result.
 
         :param specification: Dictionary containing the specification.
-        :param test_num: (int) Identifier of the test.
+        :param test_num: Identifier of the test.
         :return: None.
         """
         name = specification.get('name', 'test_{0}'.format(test_num))
@@ -77,21 +76,19 @@ class TestCustom(unittest.TestCase):
 
         if path is not None:
             if steps is not None or validation is not None:
-                logging.warn('The configuration for test %s should not contains'
-                             'the fields steps or a validation and a field path'
-                             , name)
+                logging.warn('When the field path is specified, the fields '
+                             'validation and steps should not be present')
                 return
-            # Run old test
+
+            # Run the old test
             test_endpoint = urlparse.urljoin(self._base_url, path)
             response, _ = test_util.get(test_endpoint, timeout=timeout)
             logging.debug(response)
             return
 
-        context = {
-            'name': name
-        }
-
+        context = {'name': name}
         step_num = 0
+
         for step in steps:
             self._runStep(context, step, step_num)
 
@@ -100,7 +97,7 @@ class TestCustom(unittest.TestCase):
                                                  indent=4,
                                                  separators=(',', ': ')))
 
-        self._validate(context, validation.get('match'))
+        self._validate(context, validation)
 
     def _runStep(self, context, step, step_num):
         """ Use the provided step's configuration to send a request to the
@@ -122,9 +119,9 @@ class TestCustom(unittest.TestCase):
         configuration = step.get('configuration', dict())
         path = step.get('path')
 
-        logging.debug("Running step {0} of test {1}".format(
-            context.get('name'),
-            step_name
+        logging.info("Running step {0} of test {1}".format(
+            step_name,
+            context.get('name')
         ))
 
         response = requests.request(method=configuration.get('method', 'GET'),
@@ -152,25 +149,44 @@ class TestCustom(unittest.TestCase):
     def _validate(self, context, specification):
         """ Compare the specification with the context and assert that every key
             present in the specification is also present in the context, and
-            that the value associated to that key in the context respect the
-            regular expression specified by the value in the specification.
+            that the value associated to that key in the context match the
+            regular expression specified in the specification.
 
         :param context: Dictionary containing for each step the request and
                the response.
-        :param specification: Dictionary .
+        :param specification: Dictionary with the following fields:
+               match: List of object containing:
+                 key: Path in the context e.g step.response.headers.property .
+                 pattern: Regular expression to be compared with the value
+                          present at the path `key` in the context.
         :return: None.
         """
-        for key, value in specification.items():
-            self.assertTrue(key in context,
-                            "{0} is not present in the context".format(key))
-            if isinstance(value, unicode) or isinstance(value, str):
-                self.assertIsNotNone(re.search(value, context.get(key)),
-                                     "The value ({0}) specified for {1} differ "
-                                     "from the value present "
-                                     "in the context ({2})"
-                                     .format(value, key, context.get(key)))
-            elif isinstance(value, collections.Mapping):
-                self._validate(context.get(key), value)
-            else:
-                self.fail("The value of {0} with type {1} cannot be "
-                          "verified".format(key, type(value)))
+
+        match = specification.get('match')
+        for test in match:
+            key = test.get('key')
+            value = self._evaluate_substitution(context, key)
+            pattern = test.get('pattern')
+            self.assertIsNotNone(re.search(pattern, value),
+                                 "The value `{0}` for the key `{1}` "
+                                 "do not match the pattern `{2}`"
+                                 .format(value, key, pattern))
+
+    def _evaluate_substitution(self, context, path):
+        """ Search for the path `path` in the context and return the associated
+            value.
+
+            If the path is not valid the test is considered failed.
+
+        :param context: A dictionary in which the key will be searched.
+        :param path: A list of keys separated by dots, representing a path
+                     in the context.
+        :return: The value present in the context at the path `path`.
+        """
+        for key in path.split('.'):
+            context = context.get(key)
+            self.assertIsNotNone(context, "An error occurred during the "
+                                          "substitution: the key {0} of path "
+                                          "{1} is not present in the context"
+                                          .format(key, path))
+        return context
