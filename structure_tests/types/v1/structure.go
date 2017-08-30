@@ -20,8 +20,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types"
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
+	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/utils"
 )
 
 type StructureTest struct {
@@ -33,8 +33,8 @@ type StructureTest struct {
 }
 
 func (st StructureTest) RunAll(t *testing.T) int {
-	originalVars := types.SetEnvVars(t, st.GlobalEnvVars)
-	defer types.ResetEnvVars(t, originalVars)
+	originalVars := utils.SetEnvVars(t, st.GlobalEnvVars)
+	defer utils.ResetEnvVars(t, originalVars)
 	testsRun := 0
 	testsRun += st.RunCommandTests(t)
 	testsRun += st.RunFileExistenceTests(t)
@@ -49,14 +49,14 @@ func (st StructureTest) RunCommandTests(t *testing.T) int {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateCommandTest(t, tt)
 			for _, setup := range tt.Setup {
-				types.ProcessCommand(t, tt.EnvVars, setup, tt.ShellMode, false)
+				utils.ProcessCommand(t, tt.EnvVars, setup, tt.ShellMode, false)
 			}
 
-			stdout, stderr, exitcode := types.ProcessCommand(t, tt.EnvVars, tt.Command, tt.ShellMode, true)
-			CheckOutputv0(t, tt, stdout, stderr, exitcode)
+			stdout, stderr, exitcode := utils.ProcessCommand(t, tt.EnvVars, tt.Command, tt.ShellMode, true)
+			CheckOutput(t, tt, stdout, stderr, exitcode)
 
 			for _, teardown := range tt.Teardown {
-				types.ProcessCommand(t, tt.EnvVars, teardown, tt.ShellMode, false)
+				utils.ProcessCommand(t, tt.EnvVars, teardown, tt.ShellMode, false)
 			}
 			counter++
 		})
@@ -116,11 +116,11 @@ func (st StructureTest) RunFileContentTests(t *testing.T) int {
 			var errMessage string
 			for _, s := range tt.ExpectedContents {
 				errMessage = "Expected string " + s + " not found in file contents!"
-				types.CompileAndRunRegex(s, contents, t, errMessage, true)
+				utils.CompileAndRunRegex(s, contents, t, errMessage, true)
 			}
 			for _, s := range tt.ExcludedContents {
 				errMessage = "Excluded string " + s + " found in file contents!"
-				types.CompileAndRunRegex(s, contents, t, errMessage, false)
+				utils.CompileAndRunRegex(s, contents, t, errMessage, false)
 			}
 			counter++
 		})
@@ -138,22 +138,22 @@ func (st StructureTest) RunLicenseTests(t *testing.T) int {
 	return 0
 }
 
-func CheckOutputv0(t *testing.T, tt CommandTest, stdout string, stderr string, exitCode int) {
+func CheckOutput(t *testing.T, tt CommandTest, stdout string, stderr string, exitCode int) {
 	for _, errStr := range tt.ExpectedError {
 		errMsg := fmt.Sprintf("Expected string '%s' not found in error!", errStr)
-		types.CompileAndRunRegex(errStr, stderr, t, errMsg, true)
+		utils.CompileAndRunRegex(errStr, stderr, t, errMsg, true)
 	}
 	for _, errStr := range tt.ExcludedError {
 		errMsg := fmt.Sprintf("Excluded string '%s' found in error!", errStr)
-		types.CompileAndRunRegex(errStr, stderr, t, errMsg, false)
+		utils.CompileAndRunRegex(errStr, stderr, t, errMsg, false)
 	}
 	for _, outStr := range tt.ExpectedOutput {
 		errMsg := fmt.Sprintf("Expected string '%s' not found in output!", outStr)
-		types.CompileAndRunRegex(outStr, stdout, t, errMsg, true)
+		utils.CompileAndRunRegex(outStr, stdout, t, errMsg, true)
 	}
 	for _, outStr := range tt.ExcludedOutput {
 		errMsg := fmt.Sprintf("Excluded string '%s' found in output!", outStr)
-		types.CompileAndRunRegex(outStr, stdout, t, errMsg, false)
+		utils.CompileAndRunRegex(outStr, stdout, t, errMsg, false)
 	}
 	if tt.ExitCode != exitCode {
 		t.Errorf("Test %s exited with incorrect error code! Expected: %d, Actual: %d", tt.Name, tt.ExitCode, exitCode)
