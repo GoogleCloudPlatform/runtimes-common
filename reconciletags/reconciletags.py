@@ -24,7 +24,14 @@ import json
 import logging
 import os
 import subprocess
+import httplib2
 
+
+from containerregistry.client.v2_2 import docker_image
+from containerregistry.client.v2_2 import docker_image_list
+from containerregistry.client import docker_creds
+from containerregistry.transport import transport_pool
+from containerregistry.client import docker_name
 
 class TagReconciler:
     def call(self, command, dry_run, fmt="json"):
@@ -52,12 +59,26 @@ class TagReconciler:
                     flat_tags_list.append(tag)
         return flat_tags_list
 
-    def get_existing_tags(self, repo):
-        output = json.loads(self.call('gcloud container images list-tags '
-                            '--no-show-occurrences {0}'.format(repo), False))
+    # def get_existing_tags(self, repo):
+    #     output = json.loads(self.call('gcloud container images list-tags '
+    #                         '--no-show-occurrences {0}'.format(repo), False))
 
-        list_of_tags = [image['tags'] for image in output]
-        existing_tags = self.flatten_tags_list(list_of_tags)
+    #     list_of_tags = [image['tags'] for image in output]
+    #     existing_tags = self.flatten_tags_list(list_of_tags)
+    #     return existing_tags
+    
+    def get_existing_tags(self, full_repo, digest):
+        full_digest = full_repo + '@sha256:' + digest
+        existing_tags = []
+
+        name = docker_name.Digest(full_digest)
+        creds = docker_creds.DefaultKeychain.Resolve(name)
+        transport = transport_pool.Http(httplib2.Http)
+
+        with docker_image.FromRegistry(name, creds, transport) as img:
+            if img.exists():
+                existing_tags = img.tags()
+        
         return existing_tags
 
     def get_latest_digest(self, repo):
@@ -82,14 +103,25 @@ class TagReconciler:
                 full_repo = os.path.join(registry, project['repository'])
                 default_repo = os.path.join(default_registry,
                                             project['repository'])
-                existing_tags = self.get_existing_tags(full_repo)
+
                 latest = self.get_latest_digest(full_repo)
-                logging.debug(existing_tags)
 
                 for image in project['images']:
-                    full_digest = default_repo + '@sha256:' + image['digest']
+                    default_digest = default_repo + '@sha256:' + image['digest']
                     full_tag = full_repo + ':' + image['tag']
 
+                    existing_tags = self.get_existing_tags(full_repo, image['digest'])
+                    logging.debug('Existing Tags: {0}'.format(existing_tags))
+
+                    name = docker_name.Digest(default_digest)
+                    with docker_image.FromRegistry(name, creds, transport) as img:
+                        if img.exists():
+                            full_digest = full_repo + '@sha256:' +image['digest']
+                            logging.debug(img.manifests())
+                            logging.debug(img.tags())
+                            manifest = img.manifest()
+                            logging.debug(manifest)
+                        
                     # Don't retag latest if it's already latest
                     if latest:
                         if latest.startswith('sha256:'):
@@ -104,7 +136,6 @@ class TagReconciler:
                     self.add_tags(full_digest, full_tag, dry_run)
 
                 logging.debug(self.get_existing_tags(full_repo))
-
 
 def main():
     parser = argparse.ArgumentParser()
