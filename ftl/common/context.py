@@ -20,61 +20,71 @@ import os
 
 
 class Base(object):
+    """Base is an abstract base class representing an application context.
 
-  # __enter__ and __exit__ allow use as a context manager.
-  @abc.abstractmethod
-  def __enter__(self):
-    """Initialize the context."""
-
-  def __exit__(self, unused_type, unused_value, unused_traceback):
-    """Cleanup the context."""
-    pass
-
-  @abc.abstractmethod
-  def Contains(self, relative_path):
-    """Whether the application context contains the given file."""
-
-  @abc.abstractmethod
-  def ListFiles(self):
-    """Recursively enumerate the files under the workspace.
-    Yields:
-      the paths of files within the context, suitable for use with GetFile.
+    It provides methods used by builders for accessing app files.
     """
+    # __enter__ and __exit__ allow use as a context manager.
+    @abc.abstractmethod
+    def __enter__(self):
+        """Initialize the context."""
 
-  @abc.abstractmethod
-  def GetFile(self, relative_path):
-    """Retrieve the contents of a particular file.
-    Args:
-      relative_path: The relative path of the file to read.
-    Returns:
-      the contents of the file.
-    """
+    @abc.abstractmethod
+    def __exit__(self, unused_type, unused_value, unused_traceback):
+        """Cleanup the context."""
+        pass
+
+    @abc.abstractmethod
+    def Contains(self, relative_path):
+        """Whether the application context contains the given file."""
+
+    @abc.abstractmethod
+    def ListFiles(self):
+        """Recursively enumerate the files under the workspace.
+        Yields:
+          the paths of files within the context, suitable for use with GetFile.
+        """
+
+    @abc.abstractmethod
+    def GetFile(self, relative_path):
+        """Retrieve the contents of a particular file.
+        Args:
+          relative_path: The relative path of the file to read.
+        Returns:
+          the contents of the file.
+        """
 
 
 class Workspace(Base):
+    """Workspace is a context implementation for working with files in a local
+    directory.
+    """
 
-  def __init__(self, directory):
-    super(Workspace, self).__init__()
-    self._directory = directory
+    def __init__(self, directory):
+        super(Workspace, self).__init__()
+        self._directory = directory
 
-  def __enter__(self):
-    return self
+    def __enter__(self):
+        return self
 
-  def Contains(self, relative_path):
-    """Override."""
-    fqpath = os.path.join(self._directory, relative_path)
-    return os.path.isfile(fqpath)
+    def __exit__(self):
+        return self
 
-  def ListFiles(self):
-    """Override."""
-    dir = self._directory + '/'
-    for root, dirnames, filenames in os.walk(dir):
-      relative = root[len(dir):]
-      for fname in filenames:
-        yield os.path.join(relative, fname)
+    def Contains(self, relative_path):
+        """Override."""
+        fqpath = os.path.join(self._directory, relative_path)
+        return os.path.isfile(fqpath)
 
-  def GetFile(self, filename):
-    """Override."""
-    fqname = os.path.join(self._directory, filename)
-    with open(fqname, 'rb') as f:
-      return f.read()
+    def ListFiles(self):
+        """Override."""
+        dir = self._directory + '/'
+        for root, dirnames, filenames in os.walk(dir):
+            relative = root[len(dir):]
+            for fname in filenames:
+                yield os.path.join(relative, fname)
+
+    def GetFile(self, filename):
+        """Override."""
+        fqname = os.path.join(self._directory, filename)
+        with open(fqname, 'rb') as f:
+            return f.read()

@@ -36,7 +36,7 @@ git_repository(
     remote = "https://github.com/bazelbuild/rules_docker.git",
 )
 
-# For node-build
+# For FTL.
 new_http_archive(
     name = "httplib2",
     build_file_content = """

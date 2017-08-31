@@ -23,73 +23,80 @@ from containerregistry.client.v2_2 import docker_session
 
 
 class Base(object):
+    """Base is an abstract base class representing a layer cache.
 
-  # __enter__ and __exit__ allow use as a context manager.
-  @abc.abstractmethod
-  def __enter__(self):
-    """Initialize the context."""
-
-  def __exit__(self, unused_type, unused_value, unused_traceback):
-    """Cleanup the context."""
-    pass
-
-  @abc.abstractmethod
-  def Get(self, base_image, namespace, checksum):
-    """Lookup a cached image.
-    Args:
-      base_image: the docker_image.Image on which things are based.
-      namespace: a namespace for this cache.
-      checksum: the checksum of the package descriptor atop our base.
-    Returns:
-      the docker_image.Image of the cache hit, or None.
+    It provides methods used by builders for accessing and storing layers.
     """
 
-  @abc.abstractmethod
-  def Store(self, base_image, namespace, checksum, value):
-    """Lookup a cached image.
-    Args:
-      base_image: the docker_image.Image on which things are based.
-      namespace: a namespace for this cache.
-      checksum: the checksum of the package descriptor atop our base.
-      value: the docker_image.Image to store into the cache.
-    """
+    # __enter__ and __exit__ allow use as a context manager.
+    @abc.abstractmethod
+    def __enter__(self):
+        """Initialize the context."""
+
+    def __exit__(self, unused_type, unused_value, unused_traceback):
+        """Cleanup the context."""
+        pass
+
+    @abc.abstractmethod
+    def Get(self, base_image, namespace, checksum):
+        """Lookup a cached image.
+        Args:
+          base_image: the docker_image.Image on which things are based.
+          namespace: a namespace for this cache.
+          checksum: the checksum of the package descriptor atop our base.
+        Returns:
+          the docker_image.Image of the cache hit, or None.
+        """
+
+    @abc.abstractmethod
+    def Store(self, base_image, namespace, checksum, value):
+        """Lookup a cached image.
+        Args:
+          base_image: the docker_image.Image on which things are based.
+          namespace: a namespace for this cache.
+          checksum: the checksum of the package descriptor atop our base.
+          value: the docker_image.Image to store into the cache.
+        """
 
 
 class Registry(Base):
+    """Registry is a cache implementation that stores layers in a registry.
 
-  def __init__(self, repo, creds, transport, threads=1, mount=None):
-    super(Registry, self).__init__()
-    self._repo = repo
-    self._creds = creds
-    self._transport = transport
-    self._threads = threads
-    self._mount = mount or []
+    It stores layers under a 'namespace', with a tag derived from the layer
+    checksum. For example: gcr.io/$repo/$namespace:$checksum
+    """
 
-  def __enter__(self):
-    return self
+    def __init__(self, repo, creds, transport, threads=1, mount=None):
+        super(Registry, self).__init__()
+        self._repo = repo
+        self._creds = creds
+        self._transport = transport
+        self._threads = threads
+        self._mount = mount or []
 
-  def _tag(self, base_image, namespace, checksum):
-    # TODO(mattmoor): pick up the latest containerregistry then use:
-    # fingerprint = '%s %s' % (base_image.digest(), checksum)
-    fingerprint = checksum
-    return docker_name.Tag('{base}/{namespace}:{tag}'.format(
-      base=str(self._repo),
-      namespace=namespace,
-      tag=hashlib.sha256(fingerprint).hexdigest()))
+    def __enter__(self):
+        return self
 
-  def Get(self, base_image, namespace, checksum):
-    entry = self._tag(base_image, namespace, checksum)
-    with docker_image.FromRegistry(
-        entry, self._creds, self._transport) as img:
-      if img.exists():
-        print('Found cached base image: %s.' % entry)
-        return img
-    print('No cached base image found for entry: %s.' % entry)
-    return None
+    def _tag(self, base_image, namespace, checksum):
+        fingerprint = '%s %s' % (base_image.digest(), checksum)
+        return docker_name.Tag('{base}/{namespace}:{tag}'.format(
+          base=str(self._repo),
+          namespace=namespace,
+          tag=hashlib.sha256(fingerprint).hexdigest()))
 
-  def Store(self, base_image, namespace, checksum, value):
-    entry = self._tag(base_image, namespace, checksum)
-    with docker_session.Push(
-        entry, self._creds, self._transport, threads=self._threads,
-        mount=self._mount) as session:
-      session.upload(value)
+    def Get(self, base_image, namespace, checksum):
+        entry = self._tag(base_image, namespace, checksum)
+        with docker_image.FromRegistry(
+          entry, self._creds, self._transport) as img:
+            if img.exists():
+                print('Found cached base image: %s.' % entry)
+                return img
+            print('No cached base image found for entry: %s.' % entry)
+        return None
+
+    def Store(self, base_image, namespace, checksum, value):
+        entry = self._tag(base_image, namespace, checksum)
+        with docker_session.Push(
+          entry, self._creds, self._transport, threads=self._threads,
+          mount=self._mount) as session:
+            session.upload(value)
