@@ -29,6 +29,7 @@ import httplib2
 
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_image_list
+from containerregistry.client.v2_2 import docker_session
 from containerregistry.client import docker_creds
 from containerregistry.transport import transport_pool
 from containerregistry.client import docker_name
@@ -44,11 +45,20 @@ class TagReconciler:
         else:
             logging.debug('Would have run {0}'.format(command))
 
-    def add_tags(self, digest, tag, dry_run):
-        logging.debug('Tagging {0} with {1}'.format(digest, tag))
-        command = ('gcloud container images add-tag {0} {1} '
-                   '-q'.format(digest, tag))
-        self.call(command, dry_run)
+    def add_tags(self, digest, tag, dry_run): 
+        if not dry_run:
+            src_name = docker_name.Digest(digest)
+            dest_name = docker_name.Tag(tag)
+            creds = docker_creds.DefaultKeychain.Resolve(src_name)
+            transport = transport_pool.Http(httplib2.Http)
+
+            with docker_image.FromRegistry(src_name, creds, transport) as src_img:
+                if src_img.exists():
+                    logging.debug('Tagging {0} with {1}'.format(digest, tag))
+                    with docker_session.Push(dest_name, creds, transport) as push:
+                        push.upload(src_img)
+        else:
+            logging.debug("Would have tagged {0} with {1}".format(digest, tag))
 
     # This turns a list of lists into one flat list of tags
     def flatten_tags_list(self, list_of_lists):
