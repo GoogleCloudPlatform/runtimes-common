@@ -35,16 +35,6 @@ from containerregistry.transport import transport_pool
 from containerregistry.client import docker_name
 
 class TagReconciler:
-    def call(self, command, dry_run, fmt="json"):
-        command += " --format=" + fmt
-        if not dry_run:
-            logging.debug('Running {0}'.format(command))
-            output = subprocess.check_output([command], shell=True)
-            logging.debug(output)
-            return output
-        else:
-            logging.debug('Would have run {0}'.format(command))
-
     def add_tags(self, digest, tag, dry_run): 
         if not dry_run:
             src_name = docker_name.Digest(digest)
@@ -59,15 +49,6 @@ class TagReconciler:
                         push.upload(src_img)
         else:
             logging.debug("Would have tagged {0} with {1}".format(digest, tag))
-
-    # This turns a list of lists into one flat list of tags
-    def flatten_tags_list(self, list_of_lists):
-        flat_tags_list = []
-        for sublist in list_of_lists:
-            for tag in sublist:
-                if tag:
-                    flat_tags_list.append(tag)
-        return flat_tags_list
     
     def get_existing_tags(self, full_repo, digest):
         full_digest = full_repo + '@sha256:' + digest
@@ -89,7 +70,7 @@ class TagReconciler:
                 return digest
     
     def reconcile_tags(self, data, dry_run):
-        self.call('gcloud config list', False)
+
         for project in data['projects']:
             default_registry = project['base_registry']
 
