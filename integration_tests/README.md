@@ -134,45 +134,44 @@ At this time, there is no support within the google-cloud-python client library 
 
 The integration test framework also contains support for running custom tests inside of the sample application, and reporting the results of these tests through the integration framework's report. 
 This provides a convenient way of running standard and custom tests inside of the same test run.
-
 The test driver will make a GET request to `/custom` at the sample application's URL, and retrieve a list of test configuration specs (see below) that specify the custom tests the sample application is set up to run. 
 The driver will then enter two phases for each test:
 * The Execution: the driver will make sequential requests to each of the specified paths and store the results.
 * The Validation: the results of the executions will be asserted using the provided specification.
 
 #### The Execution phase
-The execution can be configured using the `steps` field. This field will contain an array of `Step`, where each `Step` represent a request 
+The execution can be configured using the field `steps`. This field contain an array of `Step`, where each `Step` represent a request 
 and an associated configuration, a `Step` is defined using the following schema:
   * `name`: (optional) the name of the step.
   * `path`: (required) the path at which the request will be send.
   * `configuration`: (optional) the configuration of the request.
-    * `headers`: (optional) an object (key/value) representing the headers and their associated value.
+    * `headers`: (optional) an object (key/value) representing the headers and their values.
     * `method`: (optional, default to `GET`): The method to use for the request (`GET`/`POST`).
     * `content`: (optional) the body of the request.
     
 #### The Validation phase
 The results of the executions can be verified using the `validation` field. 
-The field `match` can be used to specify an array of `key` and `pattern` (regular expressions).
+The assertions are defined in the field `match` which specify an array of `key` and `pattern` (regular expressions) to be compared.
 
-The `key` represent a path into the executions' results: `{step-name}.response.*{field}`.
-The following fields are present into the response:
-* status: (integer) the status code of the response
-* headers: (object) key/value representing the headers' name and their values.
+The `key` represent a path into the execution results: `{step-name}.response.{field}`. 
+The value present at `key` will be extracted and compared with the `pattern`.
+The following fields are present in the response:
+* status: (integer) the status code of the response.
+* headers: (object) key/value representing the header names and their values.
 * content: (text/object) the body of the response (if the header `Content-Type` is present and contains `application/json` 
 the `content` is interpreted as a json object otherwise as plain text).
 
-
 The schema for `validation` is the following:
 * `validation`: the validation configuration
-  * `match`: an array of the expressions to be compared
-    * `key`: a path into the steps' results.
-    * `pattern`: a regular expression to be matched against the value at `key`.
+  * `match`: an array of the expressions to be compared.
+    * `key`: a path into the results of the steps.
+    * `pattern`: a regular expression to be matched against the value at the path `key`.
     
 These successes/failures will then be added to the integration test framework's report.
 
-#### Gzip example
+#### Example: Gzip headers
 
-This example configuration test the presence of the gzip headers. The request sent by the driver
+This example configuration tests the presence of the gzip headers. The request sent by the driver
 to the endpoint `/gzip` will contains the header `Accept-Encoding` with the value `gzip`.
 The validation phase will verify that the response's header `Content-Encoding` contains the value `gzip`.
 
