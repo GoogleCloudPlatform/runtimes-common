@@ -22,6 +22,12 @@ import (
 )
 
 type Driver interface {
+	Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
+		shellMode bool, checkOutput bool)
+
+	Teardown(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
+		shellMode bool, checkOutput bool)
+
 	// given an array of command parts, construct a full command and execute it against the
 	// current environment. a list of environment variables can be passed to be set in the
 	// environment before the command is executed. additionally, a boolean flag is passed

@@ -30,6 +30,16 @@ import (
 type InternalDriver struct {
 }
 
+func (d InternalDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
+	shellMode bool, checkOutput bool) {
+	d.ProcessCommand(t, envVars, fullCommand, shellMode, checkOutput)
+}
+
+func (d InternalDriver) Teardown(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
+	shellMode bool, checkOutput bool) {
+	d.ProcessCommand(t, envVars, fullCommand, shellMode, checkOutput)
+}
+
 func (d InternalDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
 	shellMode bool, checkOutput bool) (string, string, int) {
 	var cmd *exec.Cmd

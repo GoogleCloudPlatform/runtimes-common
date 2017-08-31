@@ -15,11 +15,19 @@
 package utils
 
 import (
+	"math/rand"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
 )
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 func CompileAndRunRegex(regex string, base string, t *testing.T, err string, shouldMatch bool) {
 	r, rErr := regexp.Compile(regex)
@@ -41,4 +49,12 @@ func InitDriver(driver string) drivers.Driver {
 	default:
 		return new(drivers.DockerDriver)
 	}
+}
+
+func GenerateContainerName() string {
+	b := make([]rune, 16)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }

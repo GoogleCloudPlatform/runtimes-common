@@ -54,7 +54,7 @@ func (st StructureTest) RunCommandTests(t *testing.T) int {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateCommandTest(t, tt)
 			for _, setup := range tt.Setup {
-				st.Driver.ProcessCommand(t, tt.EnvVars, setup, tt.ShellMode, false)
+				st.Driver.Setup(t, tt.EnvVars, setup, tt.ShellMode, false)
 			}
 
 			fullCommand := append([]string{tt.Command}, tt.Args...)
@@ -63,7 +63,7 @@ func (st StructureTest) RunCommandTests(t *testing.T) int {
 			CheckOutput(t, tt, stdout, stderr, exitcode)
 
 			for _, teardown := range tt.Teardown {
-				st.Driver.ProcessCommand(t, tt.EnvVars, teardown, tt.ShellMode, false)
+				st.Driver.Teardown(t, tt.EnvVars, teardown, tt.ShellMode, false)
 			}
 			counter++
 		})
