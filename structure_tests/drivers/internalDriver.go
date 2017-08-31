@@ -30,6 +30,10 @@ import (
 type InternalDriver struct {
 }
 
+func (d InternalDriver) Info() string {
+	return "InternalDriver"
+}
+
 func (d InternalDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
 	shellMode bool, checkOutput bool) {
 	d.ProcessCommand(t, envVars, fullCommand, shellMode, checkOutput)
@@ -141,4 +145,8 @@ func (d InternalDriver) StatFile(path string) (os.FileInfo, error) {
 
 func (d InternalDriver) ReadFile(path string) ([]byte, error) {
 	return ioutil.ReadFile(path)
+}
+
+func (d InternalDriver) ReadDir(path string) ([]os.FileInfo, error) {
+	return ioutil.ReadDir(path)
 }

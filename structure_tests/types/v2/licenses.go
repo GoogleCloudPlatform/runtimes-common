@@ -89,12 +89,12 @@ func checkLicenses(t *testing.T, tt LicenseTest, driver drivers.Driver) {
 				continue
 			}
 
-			checkFile(t, licenseFile)
+			checkFile(t, licenseFile, driver)
 		}
 	}
 
 	for _, file := range tt.Files {
-		checkFile(t, file)
+		checkFile(t, file, driver)
 	}
 }
 

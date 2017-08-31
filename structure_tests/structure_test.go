@@ -15,9 +15,11 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -25,7 +27,6 @@ import (
 	"testing"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
-	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/utils"
 	"github.com/ghodss/yaml"
 )
 
@@ -33,7 +34,7 @@ var totalTests int
 
 func TestAll(t *testing.T) {
 	for _, file := range configFiles {
-		tests, err := Parse(file)
+		tests, err := Parse(t, file)
 		if err != nil {
 			log.Fatalf("Error parsing config file: %s", err)
 		}
@@ -47,7 +48,7 @@ func TestAll(t *testing.T) {
 	}
 }
 
-func Parse(fp string) (StructureTest, error) {
+func Parse(t *testing.T, fp string) (StructureTest, error) {
 	testContents, err := ioutil.ReadFile(fp)
 	if err != nil {
 		return nil, err
@@ -73,17 +74,25 @@ func Parse(fp string) (StructureTest, error) {
 	if version == "" {
 		return nil, errors.New("Please provide JSON schema version")
 	}
-	st := schemaVersions[version]()
-	if st == nil {
+
+	var st StructureTest
+	if schemaVersion, ok := schemaVersions[version]; ok {
+		st = schemaVersion()
+	} else {
 		return nil, errors.New("Unsupported schema version: " + version)
 	}
 
 	unmarshal(testContents, st)
+	st.SetDriver(driverImpl)
+	// t.Logf("st driver is %s", st.GetDriver().Info())
+
 	tests, ok := st.(StructureTest) //type assertion
 	if !ok {
 		return nil, errors.New("Error encountered when type casting Structure Test interface")
 	}
-	st.SetDriver(driverImpl)
+	// tests.SetDriver(driverImpl)
+	// t.Logf(driverImpl.Info())
+	// t.Logf("st driver is %s", tests.GetDriver().Info())
 	return tests, nil
 }
 
@@ -96,24 +105,32 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&driver, "driver", "docker", "driver to use when running tests")
 
 	flag.Parse()
-
 	configFiles = flag.Args()
+	stdout := bufio.NewWriter(os.Stdout)
 
 	if imageName == "" {
-		//log error asking for image name, and exit
+		stdout.Write([]byte("Please supply name of image to test against\n"))
+		stdout.Flush()
+		os.Exit(1)
 	}
 
 	if len(configFiles) == 0 {
 		configFiles = append(configFiles, "/workspace/structure_test.json")
 	}
 
-	driverImpl = utils.InitDriver(driver)
+	driverImpl = drivers.InitDriver(driver, imageName)
+	if driverImpl == nil {
+		stdout.Write([]byte(fmt.Sprintf("Unsupported driver: %s\n", driver)))
+		stdout.Flush()
+		os.Exit(1)
+	} else {
+		stdout.Write([]byte(fmt.Sprintf("Using driver %s\n", driver)))
+		stdout.Flush()
+	}
 
-	// fmt.Println(testing.Verbose())
-	// fmt.Println(imageName)
-	// fmt.Println(driver)
-	// fmt.Println(configFiles)
-	// os.Exit(0)
+	// stdout.Write([]byte("Driver info\n"))
+	// stdout.Write([]byte(driverImpl.Info()))
+	// stdout.Flush()
 
 	if exit := m.Run(); exit != 0 {
 		os.Exit(exit)

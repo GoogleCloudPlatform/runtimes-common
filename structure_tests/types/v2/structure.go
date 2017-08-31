@@ -33,13 +33,23 @@ type StructureTest struct {
 	LicenseTests       []LicenseTest
 }
 
+// TODO(nkubala): remove this in favor of struct-local driver
+var Driver drivers.Driver
+
 func (st StructureTest) SetDriver(driver drivers.Driver) {
-	st.Driver = driver
+	// st.Driver = driver
+	Driver = driver
+}
+
+func (st StructureTest) GetDriver() drivers.Driver {
+	// return st.Driver
+	return Driver
 }
 
 func (st StructureTest) RunAll(t *testing.T) int {
-	originalVars := utils.SetEnvVars(t, st.GlobalEnvVars)
-	defer utils.ResetEnvVars(t, originalVars)
+	// t.Logf("driver info %s", st.GetDriver().Info())
+	originalVars := st.GetDriver().SetEnvVars(t, st.GlobalEnvVars)
+	defer st.GetDriver().ResetEnvVars(t, originalVars)
 	testsRun := 0
 	testsRun += st.RunCommandTests(t)
 	testsRun += st.RunFileExistenceTests(t)
@@ -54,16 +64,16 @@ func (st StructureTest) RunCommandTests(t *testing.T) int {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateCommandTest(t, tt)
 			for _, setup := range tt.Setup {
-				st.Driver.Setup(t, tt.EnvVars, setup, tt.ShellMode, false)
+				st.GetDriver().Setup(t, tt.EnvVars, setup, tt.ShellMode, false)
 			}
 
 			fullCommand := append([]string{tt.Command}, tt.Args...)
 
-			stdout, stderr, exitcode := st.Driver.ProcessCommand(t, tt.EnvVars, fullCommand, tt.ShellMode, true)
+			stdout, stderr, exitcode := st.GetDriver().ProcessCommand(t, tt.EnvVars, fullCommand, tt.ShellMode, true)
 			CheckOutput(t, tt, stdout, stderr, exitcode)
 
 			for _, teardown := range tt.Teardown {
-				st.Driver.Teardown(t, tt.EnvVars, teardown, tt.ShellMode, false)
+				st.GetDriver().Teardown(t, tt.EnvVars, teardown, tt.ShellMode, false)
 			}
 			counter++
 		})
@@ -78,7 +88,7 @@ func (st StructureTest) RunFileExistenceTests(t *testing.T) int {
 			validateFileExistenceTest(t, tt)
 			var err error
 			var info os.FileInfo
-			info, err = st.Driver.StatFile(path)
+			info, err = st.GetDriver().StatFile(tt.Path)
 			if tt.ShouldExist && err != nil {
 				if tt.IsDirectory {
 					t.Errorf("Directory %s should exist but does not!", tt.Path)
@@ -109,7 +119,7 @@ func (st StructureTest) RunFileContentTests(t *testing.T) int {
 	for _, tt := range st.FileContentTests {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateFileContentTest(t, tt)
-			actualContents, err := st.Driver.ReadFile(tt.Path)
+			actualContents, err := st.GetDriver().ReadFile(tt.Path)
 			if err != nil {
 				t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
 			}
@@ -134,7 +144,7 @@ func (st StructureTest) RunFileContentTests(t *testing.T) int {
 func (st StructureTest) RunLicenseTests(t *testing.T) int {
 	for num, tt := range st.LicenseTests {
 		t.Run(tt.LogName(num), func(t *testing.T) {
-			checkLicenses(t, tt, st.Driver)
+			checkLicenses(t, tt, st.GetDriver())
 		})
 		return 1
 	}

@@ -19,8 +19,6 @@ import (
 	"regexp"
 	"testing"
 	"time"
-
-	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
 )
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -37,17 +35,6 @@ func CompileAndRunRegex(regex string, base string, t *testing.T, err string, sho
 	}
 	if shouldMatch != r.MatchString(base) {
 		t.Errorf(err)
-	}
-}
-
-func InitDriver(driver string) drivers.Driver {
-	switch driver {
-	case "rkt":
-		return nil
-	case "internal":
-		return new(drivers.InternalDriver)
-	default:
-		return new(drivers.DockerDriver)
 	}
 }
 

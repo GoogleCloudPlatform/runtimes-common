@@ -22,6 +22,8 @@ import (
 )
 
 type Driver interface {
+	Info() string
+
 	Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
 		shellMode bool, checkOutput bool)
 
@@ -46,4 +48,15 @@ type Driver interface {
 	ReadFile(path string) ([]byte, error)
 
 	ReadDir(path string) ([]os.FileInfo, error)
+}
+
+func InitDriver(driver string, image string) Driver {
+	switch driver {
+	case "rkt":
+		return nil
+	case "internal":
+		return new(InternalDriver)
+	default:
+		return NewDockerDriver(image)
+	}
 }
