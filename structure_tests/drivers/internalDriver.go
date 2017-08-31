@@ -46,8 +46,8 @@ func (d InternalDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVa
 		command = fullCommand[0]
 		flags = fullCommand[1:]
 	}
-	originalVars := SetEnvVars(t, envVars)
-	defer ResetEnvVars(t, originalVars)
+	originalVars := d.SetEnvVars(t, envVars)
+	defer d.ResetEnvVars(t, originalVars)
 	if len(flags) > 0 {
 		cmd = exec.Command(command, flags...)
 	} else {

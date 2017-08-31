@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM gcr.io/google-appengine/debian8
+FROM gcr.io/cloud-builders/docker
 
 COPY structure_test /structure_test
 ENTRYPOINT ["/structure_test"]

@@ -38,8 +38,8 @@ func (st StructureTest) SetDriver(driver drivers.Driver) {
 }
 
 func (st StructureTest) RunAll(t *testing.T) int {
-	originalVars := utils.SetEnvVars(t, st.GlobalEnvVars)
-	defer utils.ResetEnvVars(t, originalVars)
+	originalVars := st.Driver.SetEnvVars(t, st.GlobalEnvVars)
+	defer st.Driver.ResetEnvVars(t, originalVars)
 	testsRun := 0
 	testsRun += st.RunCommandTests(t)
 	testsRun += st.RunFileExistenceTests(t)
@@ -54,14 +54,14 @@ func (st StructureTest) RunCommandTests(t *testing.T) int {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateCommandTest(t, tt)
 			for _, setup := range tt.Setup {
-				st.Driver.ProcessCommand(t, tt.EnvVars, setup, tt.ShellMode, false)
+				st.Driver.Setup(t, tt.EnvVars, setup, tt.ShellMode, false)
 			}
 
 			stdout, stderr, exitcode := st.Driver.ProcessCommand(t, tt.EnvVars, tt.Command, tt.ShellMode, true)
 			CheckOutput(t, tt, stdout, stderr, exitcode)
 
 			for _, teardown := range tt.Teardown {
-				st.Driver.ProcessCommand(t, tt.EnvVars, teardown, tt.ShellMode, false)
+				st.Driver.Teardown(t, tt.EnvVars, teardown, tt.ShellMode, false)
 			}
 			counter++
 		})
