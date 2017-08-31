@@ -20,7 +20,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/machine/libmachine/drivers"
+	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
 )
 
 // Not currently used, but leaving the possibility open
