@@ -90,7 +90,7 @@ class TestCustom(unittest.TestCase):
         step_num = 0
 
         for step in steps:
-            self._runStep(context, step, step_num)
+            self._runStep(context, step, step_num, timeout)
 
         logging.debug("context : %s", json.dumps(context,
                                                  sort_keys=True,
@@ -99,7 +99,7 @@ class TestCustom(unittest.TestCase):
 
         self._validate(context, validation)
 
-    def _runStep(self, context, step, step_num):
+    def _runStep(self, context, step, step_num, timeout):
         """ Use the provided step's configuration to send a request to the
             specified path and store the result into the context.
 
@@ -127,7 +127,8 @@ class TestCustom(unittest.TestCase):
         response = requests.request(method=configuration.get('method', 'GET'),
                                     url=path,
                                     headers=configuration.get('headers'),
-                                    data=configuration.get('content'))
+                                    data=configuration.get('content'),
+                                    timeout=timeout)
 
         if 'application/json' in response.headers.get("Content-Type"):
             content = response.json()
