@@ -31,8 +31,8 @@ from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_image_list
 from containerregistry.client.v2_2 import docker_session
 from containerregistry.client import docker_creds
-from containerregistry.transport import transport_pool
 from containerregistry.client import docker_name
+from containerregistry.transport import transport_pool
 
 class TagReconciler:
     def add_tags(self, digest, tag, dry_run): 
@@ -64,7 +64,7 @@ class TagReconciler:
         
         return existing_tags
     
-    def get_latest_digest(self, full_repo, manifests):
+    def get_latest_digest(self, manifests):
         for digest in manifests:
             if "latest" in manifests[digest]['tag']:
                 return digest
@@ -83,7 +83,6 @@ class TagReconciler:
                 for image in project['images']:
                     full_digest = full_repo + '@sha256:' + image['digest']
                     full_tag = full_repo + ':' + image['tag']
-                    existing_tags = []
 
                     name = docker_name.Digest(full_digest)
                     creds = docker_creds.DefaultKeychain.Resolve(name)
@@ -93,10 +92,9 @@ class TagReconciler:
                         if img.exists():
                             existing_tags = img.tags()
                             logging.debug("Existing Tags: {0}".format(existing_tags))
-                            logging.debug(full_repo)
 
                             manifests = img.manifests()
-                            latest = self.get_latest_digest(full_repo, manifests)
+                            latest = self.get_latest_digest(manifests)
                             
                             # Don't retag latest if it's already latest
                             if latest:
