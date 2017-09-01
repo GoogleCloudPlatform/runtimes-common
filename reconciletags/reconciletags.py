@@ -23,11 +23,9 @@ import argparse
 import json
 import logging
 import os
-import subprocess
 from containerregistry.client import docker_creds
 from containerregistry.client import docker_name
 from containerregistry.client.v2_2 import docker_image
-from containerregistry.client.v2_2 import docker_image_list
 from containerregistry.client.v2_2 import docker_session
 from containerregistry.transport import transport_pool
 import httplib2
@@ -35,26 +33,26 @@ import httplib2
 
 class TagReconciler:
 
-    
-    def add_tags(self, digest, tag, dry_run): 
+    def add_tags(self, digest, tag, dry_run):
         if not dry_run:
             src_name = docker_name.Digest(digest)
             dest_name = docker_name.Tag(tag)
             creds = docker_creds.DefaultKeychain.Resolve(src_name)
             transport = transport_pool.Http(httplib2.Http)
 
-            with docker_image.FromRegistry(src_name, creds, transport) as src_img:
+            with docker_image.FromRegistry(
+                src_name, creds, transport) as src_img:
                 if src_img.exists():
                     creds = docker_creds.DefaultKeychain.Resolve(dest_name)
                     logging.debug('Tagging {0} with {1}'.format(digest, tag))
                     with docker_session.Push(dest_name, creds, transport) as push:
                         push.upload(src_img)
                 else:
-                    logging.debug(
-                        "Unable to tag {0} as the image can't be found".format(digest))
+                    logging.debug("Unable to tag {0} \
+                        as the image can't be found".format(digest))
         else:
             logging.debug("Would have tagged {0} with {1}".format(digest, tag))
-    
+
     def get_existing_tags(self, full_repo, digest):
         full_digest = full_repo + '@sha256:' + digest
         existing_tags = []
@@ -68,14 +66,15 @@ class TagReconciler:
                 existing_tags = img.tags()
             else:
                 logging.debug(
-                    "Unable to get existing tags for {0} as the image can't be found".format(full_digest))
+                    "Unable to get existing tags for {0} \
+                        as the image can't be found".format(full_digest))
         return existing_tags
     
     def get_latest_digest(self, manifests):
         for digest in manifests:
-            if "latest" in manifests[digest]['tag']:
+            if 'latest' in manifests[digest]['tag']:
                 return digest
-    
+
     def reconcile_tags(self, data, dry_run):
         for project in data['projects']:
             default_registry = project['base_registry']
@@ -107,15 +106,15 @@ class TagReconciler:
                                 if latest.startswith('sha256:'):
                                     latest = latest[len('sha256:'):]
                                 if (image['tag'] == 'latest'
-                                and latest.startswith(image['digest'])):
-                                    logging.debug('Skipping tagging %s as latest as '
-                                                'it is already latest.',
-                                                image['digest'])
-                                    continue
-                            
-                            self.add_tags(full_digest, full_tag, dry_run)
+                                    and latest.startswith(image['digest'])):
+                                        logging.debug('Skipping tagging %s as latest as '
+                                                    'it is already latest.',
+                                                    image['digest'])
+                                        continue
+                        self.add_tags(full_digest, full_tag, dry_run)
 
-                logging.debug(self.get_existing_tags(full_repo, project['images'][0]['digest']))
+                logging.debug(self.get_existing_tags(
+                    full_repo, project['images'][0]['digest']))
 
 def main():
     parser = argparse.ArgumentParser()
