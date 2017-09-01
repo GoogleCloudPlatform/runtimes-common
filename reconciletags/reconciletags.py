@@ -24,17 +24,18 @@ import json
 import logging
 import os
 import subprocess
-import httplib2
-
-
+from containerregistry.client import docker_creds
+from containerregistry.client import docker_name
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_image_list
 from containerregistry.client.v2_2 import docker_session
-from containerregistry.client import docker_creds
-from containerregistry.client import docker_name
 from containerregistry.transport import transport_pool
+import httplib2
+
 
 class TagReconciler:
+
+    
     def add_tags(self, digest, tag, dry_run): 
         if not dry_run:
             src_name = docker_name.Digest(digest)
@@ -44,9 +45,13 @@ class TagReconciler:
 
             with docker_image.FromRegistry(src_name, creds, transport) as src_img:
                 if src_img.exists():
+                    creds = docker_creds.DefaultKeychain.Resolve(dest_name)
                     logging.debug('Tagging {0} with {1}'.format(digest, tag))
                     with docker_session.Push(dest_name, creds, transport) as push:
                         push.upload(src_img)
+                else:
+                    logging.debug(
+                        "Unable to tag {0} as the image can't be found".format(digest))
         else:
             logging.debug("Would have tagged {0} with {1}".format(digest, tag))
     
@@ -61,7 +66,9 @@ class TagReconciler:
         with docker_image.FromRegistry(name, creds, transport) as img:
             if img.exists():
                 existing_tags = img.tags()
-        
+            else:
+                logging.debug(
+                    "Unable to get existing tags for {0} as the image can't be found".format(full_digest))
         return existing_tags
     
     def get_latest_digest(self, manifests):
@@ -70,7 +77,6 @@ class TagReconciler:
                 return digest
     
     def reconcile_tags(self, data, dry_run):
-
         for project in data['projects']:
             default_registry = project['base_registry']
 
@@ -107,7 +113,7 @@ class TagReconciler:
                                                 image['digest'])
                                     continue
                             
-                        self.add_tags(full_digest, full_tag, dry_run)
+                            self.add_tags(full_digest, full_tag, dry_run)
 
                 logging.debug(self.get_existing_tags(full_repo, project['images'][0]['digest']))
 
