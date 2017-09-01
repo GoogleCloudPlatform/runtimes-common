@@ -7,8 +7,6 @@ load(
 
 go_library(
     name = "go_default_library",
-    srcs = glob(["*.go"]),
-    deps = [
-        "@in_gopkg_yaml_v2//:go_default_library",
-    ],
+    srcs = ["versions.go"],
+    deps = ["@in_gopkg_yaml_v2//:go_default_library"],
 )
