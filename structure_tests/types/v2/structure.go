@@ -25,7 +25,6 @@ import (
 )
 
 type StructureTest struct {
-	Driver             drivers.Driver
 	GlobalEnvVars      []unversioned.EnvVar
 	CommandTests       []CommandTest
 	FileExistenceTests []FileExistenceTest
@@ -37,17 +36,14 @@ type StructureTest struct {
 var Driver drivers.Driver
 
 func (st StructureTest) SetDriver(driver drivers.Driver) {
-	// st.Driver = driver
 	Driver = driver
 }
 
 func (st StructureTest) GetDriver() drivers.Driver {
-	// return st.Driver
 	return Driver
 }
 
 func (st StructureTest) RunAll(t *testing.T) int {
-	// t.Logf("driver info %s", st.GetDriver().Info())
 	originalVars := st.GetDriver().SetEnvVars(t, st.GlobalEnvVars)
 	defer st.GetDriver().ResetEnvVars(t, originalVars)
 	testsRun := 0
@@ -88,7 +84,7 @@ func (st StructureTest) RunFileExistenceTests(t *testing.T) int {
 			validateFileExistenceTest(t, tt)
 			var err error
 			var info os.FileInfo
-			info, err = st.GetDriver().StatFile(tt.Path)
+			info, err = st.GetDriver().StatFile(t, tt.Path)
 			if tt.ShouldExist && err != nil {
 				if tt.IsDirectory {
 					t.Errorf("Directory %s should exist but does not!", tt.Path)
@@ -119,7 +115,7 @@ func (st StructureTest) RunFileContentTests(t *testing.T) int {
 	for _, tt := range st.FileContentTests {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateFileContentTest(t, tt)
-			actualContents, err := st.GetDriver().ReadFile(tt.Path)
+			actualContents, err := st.GetDriver().ReadFile(t, tt.Path)
 			if err != nil {
 				t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
 			}

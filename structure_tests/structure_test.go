@@ -83,16 +83,12 @@ func Parse(t *testing.T, fp string) (StructureTest, error) {
 	}
 
 	unmarshal(testContents, st)
-	st.SetDriver(driverImpl)
-	// t.Logf("st driver is %s", st.GetDriver().Info())
 
 	tests, ok := st.(StructureTest) //type assertion
 	if !ok {
 		return nil, errors.New("Error encountered when type casting Structure Test interface")
 	}
-	// tests.SetDriver(driverImpl)
-	// t.Logf(driverImpl.Info())
-	// t.Logf("st driver is %s", tests.GetDriver().Info())
+	tests.SetDriver(driverImpl)
 	return tests, nil
 }
 
@@ -127,10 +123,6 @@ func TestMain(m *testing.M) {
 		stdout.Write([]byte(fmt.Sprintf("Using driver %s\n", driver)))
 		stdout.Flush()
 	}
-
-	// stdout.Write([]byte("Driver info\n"))
-	// stdout.Write([]byte(driverImpl.Info()))
-	// stdout.Flush()
 
 	if exit := m.Run(); exit != 0 {
 		os.Exit(exit)

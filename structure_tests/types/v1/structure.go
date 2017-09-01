@@ -25,7 +25,6 @@ import (
 )
 
 type StructureTest struct {
-	Driver             drivers.Driver
 	GlobalEnvVars      []unversioned.EnvVar
 	CommandTests       []CommandTest
 	FileExistenceTests []FileExistenceTest
@@ -33,12 +32,15 @@ type StructureTest struct {
 	LicenseTests       []LicenseTest
 }
 
+// TODO(nkubala): remove this in favor of struct-local driver
+var Driver drivers.Driver
+
 func (st StructureTest) SetDriver(driver drivers.Driver) {
-	st.Driver = driver
+	Driver = driver
 }
 
 func (st StructureTest) GetDriver() drivers.Driver {
-	return st.Driver
+	return Driver
 }
 
 func (st StructureTest) RunAll(t *testing.T) int {
@@ -55,7 +57,6 @@ func (st StructureTest) RunAll(t *testing.T) int {
 func (st StructureTest) RunCommandTests(t *testing.T) int {
 	counter := 0
 	for _, tt := range st.CommandTests {
-		// st.GetDriver().ResetImage()
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateCommandTest(t, tt)
 			for _, setup := range tt.Setup {
@@ -81,7 +82,7 @@ func (st StructureTest) RunFileExistenceTests(t *testing.T) int {
 			validateFileExistenceTest(t, tt)
 			var err error
 			var info os.FileInfo
-			info, err = st.GetDriver().StatFile(tt.Path)
+			info, err = st.GetDriver().StatFile(t, tt.Path)
 			if tt.ShouldExist && err != nil {
 				if tt.IsDirectory {
 					t.Errorf("Directory %s should exist but does not!", tt.Path)
@@ -112,7 +113,7 @@ func (st StructureTest) RunFileContentTests(t *testing.T) int {
 	for _, tt := range st.FileContentTests {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateFileContentTest(t, tt)
-			actualContents, err := st.GetDriver().ReadFile(tt.Path)
+			actualContents, err := st.GetDriver().ReadFile(t, tt.Path)
 			if err != nil {
 				t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
 			}

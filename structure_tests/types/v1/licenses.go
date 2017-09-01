@@ -41,7 +41,7 @@ var (
 
 func checkFile(t *testing.T, licenseFile string, driver drivers.Driver) {
 	// Read through the copyright file and make sure don't have an unauthorized license
-	license, err := driver.ReadFile(licenseFile)
+	license, err := driver.ReadFile(t, licenseFile)
 	if err != nil {
 		t.Errorf("Error reading license file for %s: %s", licenseFile, err.Error())
 		return
@@ -58,7 +58,7 @@ func checkFile(t *testing.T, licenseFile string, driver drivers.Driver) {
 func checkLicenses(t *testing.T, tt LicenseTest, driver drivers.Driver) {
 	if tt.Debian {
 		root := "/usr/share/doc"
-		packages, err := driver.ReadDir(root)
+		packages, err := driver.ReadDir(t, root)
 		if err != nil {
 			t.Fatalf("%s", err)
 		}
@@ -83,7 +83,7 @@ func checkLicenses(t *testing.T, tt LicenseTest, driver drivers.Driver) {
 
 			// If package doesn't have copyright file, log an error.
 			licenseFile := path.Join(root, p.Name(), "copyright")
-			_, err := driver.StatFile(licenseFile)
+			_, err := driver.StatFile(t, licenseFile)
 			if err != nil {
 				t.Errorf("Error reading license file for %s: %s", p.Name(), err.Error())
 				continue

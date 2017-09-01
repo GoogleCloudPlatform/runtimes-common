@@ -43,11 +43,11 @@ type Driver interface {
 
 	ResetEnvVars(t *testing.T, vars []unversioned.EnvVar)
 
-	StatFile(path string) (os.FileInfo, error)
+	StatFile(t *testing.T, path string) (os.FileInfo, error)
 
-	ReadFile(path string) ([]byte, error)
+	ReadFile(t *testing.T, path string) ([]byte, error)
 
-	ReadDir(path string) ([]os.FileInfo, error)
+	ReadDir(t *testing.T, path string) ([]os.FileInfo, error)
 }
 
 func InitDriver(driver string, image string) Driver {

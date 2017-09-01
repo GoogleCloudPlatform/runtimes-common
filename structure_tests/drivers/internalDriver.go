@@ -139,14 +139,14 @@ func (d InternalDriver) ResetEnvVars(t *testing.T, vars []unversioned.EnvVar) {
 	}
 }
 
-func (d InternalDriver) StatFile(path string) (os.FileInfo, error) {
+func (d InternalDriver) StatFile(t *testing.T, path string) (os.FileInfo, error) {
 	return os.Stat(path)
 }
 
-func (d InternalDriver) ReadFile(path string) ([]byte, error) {
+func (d InternalDriver) ReadFile(t *testing.T, path string) ([]byte, error) {
 	return ioutil.ReadFile(path)
 }
 
-func (d InternalDriver) ReadDir(path string) ([]os.FileInfo, error) {
+func (d InternalDriver) ReadDir(t *testing.T, path string) ([]os.FileInfo, error) {
 	return ioutil.ReadDir(path)
 }
