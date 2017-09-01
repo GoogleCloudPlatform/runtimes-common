@@ -16,15 +16,14 @@
 
 import argparse
 import glob
-import json
 import logging
 import os
-from ruamel import yaml
 import shutil
 import sys
 import tempfile
 
 import builder_util
+import yaml
 
 
 def main():
@@ -42,9 +41,9 @@ def _verify(directory):
     failures = 0
 
     try:
-        for config_file in glob.glob(os.path.join(directory, '*.json')):
+        for config_file in glob.glob(os.path.join(directory, '*.yaml')):
             with open(config_file, 'r') as f:
-                config = json.load(f)
+                config = yaml.load(f)
                 project_name = config['project']
                 latest_file = config['latest']
                 failures += _verify_latest_files_match(project_name,
@@ -52,11 +51,11 @@ def _verify(directory):
                 failures += _verify_latest_file_exists(latest_file)
         return failures
     except ValueError as ve:
-        logging.error('Error when parsing JSON! Check file formatting. \n{0}'
+        logging.error('Error when parsing YAML! Check file formatting. \n{0}'
                       .format(ve))
     except KeyError as ke:
-        logging.error('Config file is missing required field! \n{0}'
-                      .format(ke))
+        logging.error('Config file {0} is missing required field! \n{1}'
+                      .format(config_file, ke))
 
 
 def _verify_latest_files_match(project_name, config_latest):
@@ -69,7 +68,8 @@ def _verify_latest_files_match(project_name, config_latest):
     try:
         tmpdir = tempfile.mkdtemp()
         version_file = os.path.join(tmpdir, 'runtime.version')
-        builder_util.get_file_from_gcs(remote_version, version_file)
+        if not builder_util.get_file_from_gcs(remote_version, version_file):
+            return 1
 
         with open(version_file, 'r') as f:
             version_contents = f.read().strip('\n').strip(' ')
@@ -101,7 +101,7 @@ def _verify_latest_file_exists(latest_file_path):
                           .format(latest_file_path))
             return 1
         with open(latest_file, 'r') as f:
-            yaml.round_trip_load(f)
+            yaml.load(f)
         return 0
     except yaml.YAMLError as ye:
         logging.error(ye)
