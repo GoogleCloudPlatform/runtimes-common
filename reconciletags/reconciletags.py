@@ -48,8 +48,8 @@ class TagReconciler:
                     with docker_session.Push(dest_name, creds, transport) as push:
                         push.upload(src_img)
                 else:
-                    logging.debug("Unable to tag {0} \
-                        as the image can't be found".format(digest))
+                    logging.debug("Unable to tag {0}"
+                        " as the image can't be found".format(digest))
         else:
             logging.debug("Would have tagged {0} with {1}".format(digest, tag))
 
@@ -66,8 +66,8 @@ class TagReconciler:
                 existing_tags = img.tags()
             else:
                 logging.debug(
-                    "Unable to get existing tags for {0} \
-                        as the image can't be found".format(full_digest))
+                    "Unable to get existing tags for {0}"
+                        " as the image can't be found".format(full_digest))
         return existing_tags
     
     def get_latest_digest(self, manifests):
