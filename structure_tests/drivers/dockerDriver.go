@@ -15,26 +15,24 @@
 package drivers
 
 import (
-	"bufio"
 	"fmt"
 	"os"
-	"strings"
 	"testing"
 
 	"context"
 
+	"bytes"
+
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/utils"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
+	"github.com/fsouza/go-dockerclient"
 )
 
 type DockerDriver struct {
 	OriginalImage    string
 	CurrentImage     string
 	CurrentContainer string
-	cli              client.Client
+	cli              docker.Client
 }
 
 func (d DockerDriver) Info() string {
@@ -43,7 +41,7 @@ func (d DockerDriver) Info() string {
 }
 
 func NewDockerDriver(image string) DockerDriver {
-	newCli, err := client.NewEnvClient()
+	newCli, err := docker.NewClientFromEnv()
 	if err != nil {
 		panic(err)
 	}
@@ -63,20 +61,11 @@ func (d DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar,
 		return "", "", -1
 	}
 	env := []string{}
-	args := []string{}
 	if len(envVars) > 0 {
-		args = append(args, "--env")
 		for _, envVar := range envVars {
-			args = append(args, envVar.Key+"="+envVar.Value)
 			env = append(env, envVar.Key+"="+envVar.Value)
 		}
 	}
-	args = append(args, d.CurrentContainer)
-	// TODO(nkubala): do we still need this?
-	if shellMode {
-		args = append(args, "/bin/sh", "-c", strings.Join(fullCommand, " "))
-	}
-	// stdout, stderr, err := d.exec(t, flags)
 	stdout, stderr, exitCode := d.exec(t, env, fullCommand)
 
 	if stdout != "" {
@@ -92,11 +81,11 @@ func (d DockerDriver) SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unve
 	if len(vars) == 0 {
 		return nil
 	}
-	flags := []string{}
+	env := []string{}
 	for _, envVar := range vars {
-		flags = append(flags, envVar.Key+"="+envVar.Value)
+		env = append(env, envVar.Key+"="+envVar.Value)
 	}
-	d.runAndCommit(t, flags)
+	d.runAndCommit(t, env, nil)
 	return nil
 }
 
@@ -125,94 +114,122 @@ func (d DockerDriver) ReadDir(path string) ([]os.FileInfo, error) {
 // 2) starts the container
 // 3) commits the container with its changes to a new image,
 // and sets that image as the new "current image"
-func (d DockerDriver) runAndCommit(t *testing.T, args []string) string {
+func (d DockerDriver) runAndCommit(t *testing.T, env []string, command []string) string {
 	name := utils.GenerateContainerName()
 	t.Logf("container name is %s", name)
-	t.Logf("args: %v", args)
+	t.Logf("env: %v", env)
+	t.Logf("command: %v", command)
 
-	ctx := context.Background()
-	_, err := d.cli.ContainerCreate(ctx, &container.Config{
-		Image: d.CurrentImage,
-		Cmd:   args, // this command gets run when the container starts
-	}, nil, nil, name)
-	if err != nil {
-		panic(err)
+	// this is a placeholder command since apparently the client doesnt allow creating
+	// a container without a command.
+	// TODO(nkubala): figure out how to remove this
+	if len(command) == 0 {
+		command = []string{"/bin/sh"}
 	}
 
-	startoptions := &types.ContainerStartOptions{}
-	err = d.cli.ContainerStart(ctx, name, *startoptions)
+	ctx := context.Background()
 
-	commitOptions := &types.ContainerCommitOptions{}
-	resp, err := d.cli.ContainerCommit(ctx, name, *commitOptions)
-	d.CurrentImage = resp.ID
-	return name
+	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
+		Name: name,
+		Config: &docker.Config{
+			Env:          env,
+			Cmd:          command,
+			AttachStdout: true,
+			AttachStderr: true,
+		},
+		HostConfig:       nil,
+		NetworkingConfig: nil,
+		Context:          ctx,
+	})
+	if err != nil {
+		t.Errorf("Error creating container: %s", err.Error())
+		return ""
+	}
+	t.Logf("container name: %s", container.Name)
+
+	err = d.cli.StartContainer(name, nil)
+	if err != nil {
+		t.Errorf("Error creating container: %s", err.Error())
+	}
+
+	image, err := d.cli.CommitContainer(docker.CommitContainerOptions{
+		Container: name,
+		Context:   ctx,
+	})
+
+	if err != nil {
+		t.Errorf("Error committing container: %s", err.Error())
+	}
+
+	d.CurrentImage = image.ID
+	return image.ID
+
+	// return name
 }
 
 func (d DockerDriver) exec(t *testing.T, env []string, command []string) (string, string, int) {
 	ctx := context.Background()
 
-	config := &types.ExecConfig{
-		User:         "root",
-		Privileged:   true,
-		Tty:          false,
-		AttachStdin:  false,
+	exec, err := d.cli.CreateExec(docker.CreateExecOptions{
 		AttachStdout: true,
 		AttachStderr: true,
-		Detach:       false,
-		DetachKeys:   "",
+		Tty:          false,
 		Env:          env,
 		Cmd:          command,
-	}
+		Container:    d.CurrentContainer,
+		Context:      ctx,
+	})
 
-	response, err := d.cli.ContainerExecCreate(ctx, d.CurrentContainer, *config)
 	if err != nil {
-		panic(err)
+		t.Errorf("Error when creating exec instance: %s", err.Error())
+		return "", "", -1
 	}
-	execID := response.ID
 
-	// var stdout, stderr io.Writer
+	execID := exec.ID
 
-	//TODO(nkubala): figure out how to capture stdout/stderr here
-	// stdout = d.cli.out
-	// stderr = d.cli.err
+	stdout := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
 
-	var stdout, stderr string
+	err = d.cli.StartExec(execID, docker.StartExecOptions{
+		OutputStream: stdout,
+		ErrorStream:  stderr,
+		Detach:       true, //do we want to detach here?
+		Tty:          false,
+		Context:      ctx,
+	})
 
-	resp, err := d.cli.ContainerExecAttach(ctx, execID, *config)
 	if err != nil {
-		panic(err)
+		t.Errorf("Error when starting exec instance: %s", err.Error())
+		return "", "", -1
 	}
 
-	// TODO: how to unmultiplex this stream?
-	// TODO: this should be in a goroutine so it can continue reading while we inspect the proc?
-	// see https://godoc.org/github.com/moby/moby/client (ctrl + f "containerattach") and
-	// https://github.com/moby/moby/blob/master/client/container_attach.go#L34
-	scanner := bufio.NewScanner(resp.Reader)
-	for scanner.Scan() {
-		stdout = stdout + scanner.Text()
+	// TODO(nkubala): do we need to wait here?
+
+	var exitCode int
+	for {
+		execInspect, err := d.cli.InspectExec(execID)
+		if err != nil {
+			t.Errorf("Error when inspecting exec: %s", err.Error())
+			return "", "", -1
+		}
+		if execInspect.Running {
+			continue
+		} else {
+			exitCode = execInspect.ExitCode
+			break
+		}
 	}
 
-	// TODO: this should be in another goroutine
-	// should wrap in a 'while(inspectResp.running)' loop
-	var status int
-	inspectResp, err := d.cli.ContainerExecInspect(ctx, execID)
-	if err != nil {
-		status = -1
-	}
-	status = inspectResp.ExitCode
-
-	resp.Close()
-	return stdout, stderr, status
+	return stdout.String(), stderr.String(), exitCode
 }
 
 func (d DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
 	shellMode bool, checkOutput bool) {
-	flags := []string{}
-	// TODO(nkubala): run the command
+	env := []string{}
 	for _, envVar := range envVars {
-		flags = append(flags, envVar.Key+"="+envVar.Value)
+		env = append(env, envVar.Key+"="+envVar.Value)
 	}
-	d.runAndCommit(t, flags)
+	d.runAndCommit(t, env, fullCommand)
 }
 
 func (d DockerDriver) Teardown(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
