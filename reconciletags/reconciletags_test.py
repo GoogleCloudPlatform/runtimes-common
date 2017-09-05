@@ -64,9 +64,14 @@ class ReconcileTagsTest(unittest.TestCase):
     
     @patch('containerregistry.client.v2_2.docker_session.Push')
     @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
-    def test_reconcile_tags(self, mock_get_image, mock_docker_session):
-        mock_get_image.return_value = docker_image.FromRegistry()
-        mock_docker_session.return_value = docker_session.Push()
+    def test_reconcile_tags(self, mock_from_registry, mock_push):
+        fake_base = mock.MagicMock()
+        fake_base.tags.return_value = [_TAG1]
+
+        mock_img = mock.MagicMock()
+        mock_img.__enter__.return_value = fake_base
+        mock_from_registry.return_value = mock_img
+        mock_push.return_value = docker_session.Push()
 
         
         with mock.patch('reconciletags.logging.debug') as mock_output:
@@ -74,15 +79,17 @@ class ReconcileTagsTest(unittest.TestCase):
             self.r.reconcile_tags(self.data, False)
             logging_debug_ouput = [call[1][0] for call in mock_output.mock_calls]
 
-            assert mock_get_image.called
-            assert mock_docker_session.called
+            assert mock_from_registry.called
+            assert mock_push.called
+
             self.assertIn(self._tagging(_DIGEST1, _TAG1), logging_debug_ouput)
+            self.assertIn(_EXISTING_TAGS, logging_debug_ouput)
     
     @patch('containerregistry.client.v2_2.docker_session.Push')
     @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
-    def test_dry_run(self, mock_get_image, mock_docker_session):
-        mock_get_image.return_value = docker_image.FromRegistry()
-        mock_docker_session.return_value = docker_session.Push()
+    def test_dry_run(self, mock_from_registry, mock_push):
+        mock_from_registry.return_value = docker_image.FromRegistry()
+        mock_push.return_value = docker_session.Push()
 
         
         with mock.patch('reconciletags.logging.debug') as mock_output:
@@ -90,30 +97,32 @@ class ReconcileTagsTest(unittest.TestCase):
             self.r.reconcile_tags(self.data, True)
             logging_debug_ouput = [call[1][0] for call in mock_output.mock_calls]
 
-            assert mock_get_image.called
-            assert mock_docker_session.called
+            assert mock_from_registry.called
+            assert mock_push.called
+
             self.assertNotIn(self._tagging(_DIGEST1, _TAG1), logging_debug_ouput)
             self.assertIn(_TAGGING_DRY_RUN, logging_debug_ouput)
     
-    #@patch('containerregistry.client.v2_2.docker_image.FromRegistry.__enter__.tags')
     @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
-    def test_get_existing_tags(self, mock_get_image):
+    def test_get_existing_tags(self, mock_from_registry):
 
-        mock_get_image.return_value = docker_image.FromRegistry()
-        mock_get_image.return_value.tags.return_value = [_TAG1]
+        fake_base = mock.MagicMock()
+        fake_base.tags.return_value = [_TAG1]
 
-        with mock.patch('containerregistry.client.v2_2.docker_image.FromRegistry.__enter__.tags', 
-                            return_value=[_TAG1]) as mock_tag:
+        mock_img = mock.MagicMock()
+        mock_img.__enter__.return_value = fake_base
+        mock_from_registry.return_value = mock_img
 
-            existing_tags = self.r.get_existing_tags(_FULL_REPO, _DIGEST1)
-            assert mock_get_image.called
-            self.assertIn(_TAG1, existing_tags)
+        existing_tags = self.r.get_existing_tags(_FULL_REPO, _DIGEST1)
+        
+        assert mock_from_registry.called
+        self.assertEqual([_TAG1], existing_tags)
 
     @patch('containerregistry.client.v2_2.docker_session.Push')
     @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
-    def test_add_tag(self, mock_get_image, mock_docker_session):
-        mock_get_image.return_value = docker_image.FromRegistry()
-        mock_docker_session.return_value = docker_session.Push()
+    def test_add_tag(self, mock_from_registry, mock_push):
+        mock_from_registry.return_value = docker_image.FromRegistry()
+        mock_push.return_value = docker_session.Push()
 
         
         with mock.patch('reconciletags.logging.debug') as mock_output:
@@ -122,8 +131,9 @@ class ReconcileTagsTest(unittest.TestCase):
                             _FULL_REPO+':'+_TAG2, False)           
             logging_debug_ouput = [call[1][0] for call in mock_output.mock_calls]
 
-            assert mock_get_image.called
-            assert mock_docker_session.called
+            assert mock_from_registry.called
+            assert mock_push.called
+            
             self.assertIn(self._tagging(_DIGEST2, _TAG2), logging_debug_ouput) 
     
 
