@@ -25,8 +25,18 @@ import logging
 import os
 import subprocess
 
+from retrying import retry
+
 
 class TagReconciler:
+    def retry_on_calledprocesserror(exception):
+        return isinstance(exception, subprocess.CalledProcessError)
+
+    def retry_on_jsonerror(exception):
+        return isinstance(exception, ValueError)
+
+    @retry(retry_on_exception=retry_on_calledprocesserror,
+           stop_max_attempt_number=4, wait_fixed=2000)
     def call(self, command, dry_run, fmt="json"):
         command += " --format=" + fmt
         if not dry_run:
@@ -52,6 +62,8 @@ class TagReconciler:
                     flat_tags_list.append(tag)
         return flat_tags_list
 
+    @retry(retry_on_exception=retry_on_jsonerror,
+           stop_max_attempt_number=4, wait_fixed=2000)
     def get_existing_tags(self, repo):
         output = json.loads(self.call('gcloud container images list-tags '
                             '--no-show-occurrences {0}'.format(repo), False))
@@ -60,6 +72,8 @@ class TagReconciler:
         existing_tags = self.flatten_tags_list(list_of_tags)
         return existing_tags
 
+    @retry(retry_on_exception=retry_on_jsonerror,
+           stop_max_attempt_number=4, wait_fixed=2000)
     def get_latest_digest(self, repo):
         output = json.loads(self.call('gcloud container images list-tags '
                             '--no-show-occurrences {0}'.format(repo), False))
