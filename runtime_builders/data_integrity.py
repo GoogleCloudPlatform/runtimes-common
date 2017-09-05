@@ -45,7 +45,11 @@ def _verify(directory):
             with open(config_file, 'r') as f:
                 config = yaml.load(f)
                 project_name = config['project']
-                latest_file = config['latest']
+                latest_file = config.get('latest', '')
+                if not latest_file:
+                    logging.warn('Project %s has no latest file: skipping',
+                                 project_name)
+                    continue
                 failures += _verify_latest_files_match(project_name,
                                                        latest_file)
                 failures += _verify_latest_file_exists(latest_file)
