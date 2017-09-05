@@ -54,8 +54,6 @@ func InitDriver(driver string, image string) Driver {
 	switch driver {
 	case "rkt":
 		return nil
-	case "internal":
-		return new(InternalDriver)
 	default:
 		return NewDockerDriver(image)
 	}

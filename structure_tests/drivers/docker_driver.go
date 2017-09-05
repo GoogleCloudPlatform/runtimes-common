@@ -19,25 +19,29 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
+	"time"
 
 	"context"
 
 	"bufio"
+
+	"regexp"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
 	"github.com/fsouza/go-dockerclient"
 )
 
 type DockerDriver struct {
-	OriginalImage string
-	CurrentImage  string
-	cli           docker.Client
+	cli docker.Client
 }
 
+var originalImage, currentImage string
+
 func (d DockerDriver) Info() string {
-	return fmt.Sprintf("DockerDriver:\nOriginalImage: %s\nCurrentImage: %s\ncli: %s\n",
-		d.OriginalImage, d.CurrentImage, d.cli)
+	return fmt.Sprintf("DockerDriver:\nOriginalImage: %s\ncurrentImage: %s\ncli: %s\n",
+		originalImage, currentImage, d.cli)
 }
 
 func NewDockerDriver(image string) DockerDriver {
@@ -45,10 +49,10 @@ func NewDockerDriver(image string) DockerDriver {
 	if err != nil {
 		panic(err)
 	}
+	originalImage = image
+	currentImage = image
 	return DockerDriver{
-		OriginalImage: image,
-		CurrentImage:  image,
-		cli:           *newCli,
+		cli: *newCli,
 	}
 }
 
@@ -72,7 +76,7 @@ func (d DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar,
 		t.Logf("stderr: %s", stderr)
 	}
 	//reset image for next test
-	d.CurrentImage = d.OriginalImage
+	currentImage = originalImage
 	return stdout, stderr, exitCode
 }
 
@@ -82,14 +86,60 @@ func (d DockerDriver) SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unve
 	if len(vars) == 0 {
 		return nil
 	}
+	ctx := context.Background()
+	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
+		Config: &docker.Config{
+			Image:        currentImage,
+			Cmd:          []string{"NOOP_COMMAND_DO_NOT_RUN"},
+			AttachStdout: true,
+			AttachStderr: true,
+		},
+		HostConfig:       nil,
+		NetworkingConfig: nil,
+		Context:          ctx,
+	})
+	if err != nil {
+		t.Errorf("Error creating container: %s", err.Error())
+		return nil
+	}
+	image, err := d.cli.InspectContainer(container.ID)
+	if err != nil {
+		t.Errorf("Error when inspecting container: %s", err.Error())
+		return nil
+	}
+	// convert env to map for easier processing
+	imageEnv := make(map[string]string)
+	for _, varPair := range image.Config.Env {
+		pair := strings.Split(varPair, "=")
+		imageEnv[pair[0]] = pair[1]
+	}
+
+	before, _ := regexp.Compile(".*\\$(.*?):")
+	after, _ := regexp.Compile(".*:\\$(.*)")
+
 	env := []string{}
 	for _, envVar := range vars {
-		env = append(env, envVar.Key+"="+envVar.Value)
+		currentVar := ""
+		if match := before.FindStringSubmatch(envVar.Value); match != nil {
+			// first entry is the leftmost substring: second entry is the first group
+			currentVar = match[1]
+		}
+		if match := after.FindStringSubmatch(envVar.Value); match != nil {
+			currentVar = match[1]
+		}
+		if currentVar != "" {
+			if val, ok := imageEnv[currentVar]; ok {
+				env = append(env, envVar.Key+"="+strings.Replace(envVar.Value, "$"+currentVar, val, -1))
+			} else {
+				t.Errorf("Variable %s not found in image env! Check test config.", currentVar)
+			}
+		} else {
+			env = append(env, envVar.Key+"="+envVar.Value)
+		}
 	}
-	newImage := d.runAndCommit(t, env, nil)
 	// since these are global envvars, just overwrite the original image
-	d.OriginalImage = newImage
-	d.CurrentImage = d.OriginalImage
+	originalImage = d.runAndCommit(t, env, nil)
+	currentImage = originalImage
 	return nil
 }
 
@@ -108,7 +158,7 @@ func (d DockerDriver) retrieveFile(t *testing.T, path string, directory bool) (s
 	// given that not every container is guaranteed to have a shell.
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
-			Image:        d.CurrentImage,
+			Image:        currentImage,
 			Cmd:          []string{"NOOP_COMMAND_DO_NOT_RUN"},
 			AttachStdout: true,
 			AttachStderr: true,
@@ -197,7 +247,7 @@ func (d DockerDriver) runAndCommit(t *testing.T, env []string, command []string)
 
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
-			Image:        d.CurrentImage,
+			Image:        currentImage,
 			Env:          env,
 			Cmd:          command,
 			AttachStdout: true,
@@ -217,6 +267,8 @@ func (d DockerDriver) runAndCommit(t *testing.T, env []string, command []string)
 		t.Errorf("Error creating container: %s", err.Error())
 	}
 
+	_, err = d.cli.WaitContainer(container.ID)
+
 	image, err := d.cli.CommitContainer(docker.CommitContainerOptions{
 		Container: container.ID,
 		Context:   ctx,
@@ -226,7 +278,7 @@ func (d DockerDriver) runAndCommit(t *testing.T, env []string, command []string)
 		t.Errorf("Error committing container: %s", err.Error())
 	}
 
-	d.CurrentImage = image.ID
+	currentImage = image.ID
 	return image.ID
 }
 
@@ -236,7 +288,7 @@ func (d DockerDriver) exec(t *testing.T, env []string, command []string) (string
 	// first, start container from the current image
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
-			Image:        d.CurrentImage,
+			Image:        currentImage,
 			Env:          env,
 			Cmd:          command,
 			AttachStdout: true,
@@ -259,7 +311,9 @@ func (d DockerDriver) exec(t *testing.T, env []string, command []string) (string
 		t.Errorf("Error creating container: %s", err.Error())
 	}
 
-	err = d.cli.AttachToContainer(docker.AttachToContainerOptions{
+	err = d.cli.PauseContainer(container.ID)
+
+	_, err = d.cli.AttachToContainerNonBlocking(docker.AttachToContainerOptions{
 		Container:    container.ID,
 		OutputStream: stdout,
 		ErrorStream:  stderr,
@@ -268,6 +322,16 @@ func (d DockerDriver) exec(t *testing.T, env []string, command []string) (string
 		Stdout:       true,
 		Stderr:       true,
 	})
+
+	// since we can't block without losing the exit code, give go some
+	// time to attach before unpausing anything in the container
+	time.Sleep(1000 * time.Millisecond)
+
+	if err != nil {
+		t.Errorf("Error when attaching to container: %s", err.Error())
+	}
+
+	err = d.cli.UnpauseContainer(container.ID)
 
 	exitCode, err := d.cli.WaitContainer(container.ID)
 	if err != nil {
@@ -283,11 +347,11 @@ func (d DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullComm
 	for _, envVar := range envVars {
 		env = append(env, envVar.Key+"="+envVar.Value)
 	}
-	d.CurrentImage = d.runAndCommit(t, env, fullCommand)
+	currentImage = d.runAndCommit(t, env, fullCommand)
 }
 
 func (d DockerDriver) Teardown(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
 	shellMode bool, checkOutput bool) {
 	// reset to the original image
-	d.CurrentImage = d.OriginalImage
+	currentImage = originalImage
 }
