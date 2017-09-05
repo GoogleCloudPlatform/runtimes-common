@@ -23,7 +23,7 @@ import unittest
 class ReconciletagsE2eTest(unittest.TestCase):
 
     _FILE_NAME = 'e2e_test.json'
-    _DIR = 'tiny_docker_image/'
+    _DIR = 'reconciletags/tiny_docker_image/'
     _REPO = 'gcr.io/gcp-runtimes/reconciler-e2etest'
     _TAG = 'initial'
     _TEST_JSON = {

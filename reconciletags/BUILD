@@ -31,3 +31,15 @@ py_test(
     ],
 ) 
 
+py_test(
+    name = "reconciletags_e2e_test",
+    srcs = ["reconciletags_e2e_test.py",],
+    deps = [
+        "@containerregistry",
+        "@httplib2//:httplib2",
+    ],
+    data = [
+        "tiny_docker_image",
+    ],
+
+) 
