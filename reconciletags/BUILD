@@ -22,3 +22,12 @@ py_binary(
     ],
 )
 
+py_test(
+    name = "reconciletags_test",
+    srcs = ["reconciletags_test.py"],
+    deps = [
+        "@containerregistry",
+        "@httplib2//:httplib2",
+    ],
+) 
+
