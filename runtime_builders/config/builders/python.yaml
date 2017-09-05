@@ -1,4 +1,0 @@
-project: python
-builders:
-  - file: google3/third_party/python_docker/builder/python-latest.yaml
-    name: default

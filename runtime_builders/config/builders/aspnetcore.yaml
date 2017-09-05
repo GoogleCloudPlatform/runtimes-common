@@ -1,5 +1,0 @@
-project: aspnetcore
-builders:
-  - file: google3/third_party/aspnetcore_runtime/aspnetcore.yaml
-    name: default
-latest: gs://runtime-builders/aspnetcore-default-builder-20170822052732.yaml
