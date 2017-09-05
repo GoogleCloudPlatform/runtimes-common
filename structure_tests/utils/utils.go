@@ -37,11 +37,3 @@ func CompileAndRunRegex(regex string, base string, t *testing.T, err string, sho
 		t.Errorf(err)
 	}
 }
-
-func GenerateContainerName() string {
-	b := make([]rune, 16)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
-}

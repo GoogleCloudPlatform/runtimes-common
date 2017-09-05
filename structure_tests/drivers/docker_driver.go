@@ -26,7 +26,6 @@ import (
 	"bufio"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
-	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/utils"
 	"github.com/fsouza/go-dockerclient"
 )
 
@@ -60,11 +59,9 @@ func (d DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar,
 		t.Logf("empty command provided: skipping...")
 		return "", "", -1
 	}
-	env := []string{}
-	if len(envVars) > 0 {
-		for _, envVar := range envVars {
-			env = append(env, envVar.Key+"="+envVar.Value)
-		}
+	var env []string
+	for _, envVar := range envVars {
+		env = append(env, envVar.Key+"="+envVar.Value)
 	}
 	stdout, stderr, exitCode := d.exec(t, env, fullCommand)
 
@@ -80,8 +77,8 @@ func (d DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar,
 }
 
 func (d DockerDriver) SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unversioned.EnvVar {
-	// currently, this does not support substitution, so setting env vars is broken
-	// need to find a way to retrieve the existing values from the container before setting
+	// currently, this does not support substitution (e.g. PATH=/env/bin:$PATH), so setting env vars
+	// is broken. need to find a way to retrieve the existing values from the container before setting
 	if len(vars) == 0 {
 		return nil
 	}
@@ -112,7 +109,7 @@ func (d DockerDriver) retrieveFile(t *testing.T, path string, directory bool) (s
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
 			Image:        d.CurrentImage,
-			Cmd:          []string{"/bin/sh"},
+			Cmd:          []string{"NOOP_COMMAND_DO_NOT_RUN"},
 			AttachStdout: true,
 			AttachStderr: true,
 		},
@@ -188,7 +185,6 @@ func (d DockerDriver) ReadDir(t *testing.T, path string) ([]os.FileInfo, error) 
 // 3) commits the container with its changes to a new image,
 // and sets that image as the new "current image"
 func (d DockerDriver) runAndCommit(t *testing.T, env []string, command []string) string {
-	name := utils.GenerateContainerName()
 
 	// this is a placeholder command since apparently the client doesnt allow creating
 	// a container without a command.
@@ -199,8 +195,7 @@ func (d DockerDriver) runAndCommit(t *testing.T, env []string, command []string)
 
 	ctx := context.Background()
 
-	_, err := d.cli.CreateContainer(docker.CreateContainerOptions{
-		Name: name,
+	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
 			Image:        d.CurrentImage,
 			Env:          env,
@@ -217,13 +212,13 @@ func (d DockerDriver) runAndCommit(t *testing.T, env []string, command []string)
 		return ""
 	}
 
-	err = d.cli.StartContainer(name, nil)
+	err = d.cli.StartContainer(container.ID, nil)
 	if err != nil {
 		t.Errorf("Error creating container: %s", err.Error())
 	}
 
 	image, err := d.cli.CommitContainer(docker.CommitContainerOptions{
-		Container: name,
+		Container: container.ID,
 		Context:   ctx,
 	})
 
