@@ -17,6 +17,7 @@
 import logging
 import os
 import yaml
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -35,7 +36,7 @@ def copy_to_gcs(file_path, gcs_path):
         output = subprocess.check_output(command)
         logging.debug(output)
     except subprocess.CalledProcessError as cpe:
-        logging.error('Error encountered when writing to GCS!', cpe)
+        logging.error('Error encountered when writing to GCS! %s', cpe)
     except Exception as e:
         logging.error('Fatal error encountered when shelling command {0}'
                       .format(command))
@@ -99,12 +100,20 @@ def _verify_manifest_formatting(manifest):
             sys.exit(1)
         for key, val in manifest.get('runtimes').iteritems():
             file = val.get('target').get('file', '')
+            if not file:
+                continue
             if file.startswith('gs://'):
                 logging.error('Builder file {0} should NOT be prefixed with '
                               'GCS bucket prefix or bucket name!'.format(file))
                 sys.exit(1)
+            file = RUNTIME_BUCKET_PREFIX + file
+            if not _file_exists(file):
+                logging.error('File {0} not found in GCS!'
+                              .format(file))
+                sys.exit(1)
+
     except KeyError as ke:
-        logging.error('Error encountered when verifying manifest:', ke)
+        logging.error('Error encountered when verifying manifest: %s', ke)
         sys.exit(1)
 
 
@@ -139,7 +148,7 @@ def _build_manifest_graph(manifest):
             if not target:
                 if 'deprecation' not in val:
                     logging.error('No target or deprecation specified for '
-                                  'runtime: {0}'.format(key))
+                                  'runtime: %s', key)
                     sys.exit(1)
                 continue
             child = None
@@ -151,7 +160,7 @@ def _build_manifest_graph(manifest):
                 node_graph[key] = Node(key, isBuilder, child)
         return node_graph
     except (KeyError, AttributeError) as ke:
-        logging.error('Error encountered when verifying manifest:', ke)
+        logging.error('Error encountered when verifying manifest: %s', ke)
         sys.exit(1)
 
 
@@ -167,6 +176,18 @@ def load_manifest_file():
         return {'schema_version': SCHEMA_VERSION}
     finally:
         os.remove(tmp)
+
+
+def _file_exists(remote_path):
+    try:
+        logging.info('Checking file {0}'.format(remote_path))
+        tmpdir = tempfile.mkdtemp()
+        tmp_file = os.path.join(tmpdir, 'tmp')
+        if not get_file_from_gcs(remote_path, tmp_file):
+            return False
+        return True
+    finally:
+        shutil.rmtree(tmpdir)
 
 
 class Node:
