@@ -67,7 +67,7 @@ class Workspace(Base):
     def __enter__(self):
         return self
 
-    def __exit__(self):
+    def __exit__(self, unused_type, unused_value, unused_traceback):
         return self
 
     def Contains(self, relative_path):
@@ -88,3 +88,29 @@ class Workspace(Base):
         fqname = os.path.join(self._directory, filename)
         with open(fqname, 'rb') as f:
             return f.read()
+
+
+class Memory(Base):
+    """Memory is a context implementation for working with files in memory."""
+
+    def __init__(self):
+        self._files = {}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, unused_type, unused_value, unused_traceback):
+        return self
+
+    def AddFile(self, filename, contents):
+        self._files[filename] = contents
+
+    def Contains(self, relative_path):
+        return relative_path in self._files
+
+    def ListFiles(self):
+        for path in self._files:
+            yield path
+
+    def GetFile(self, filename):
+        return self._files[filename]
