@@ -15,17 +15,9 @@
 package utils
 
 import (
-	"math/rand"
 	"regexp"
 	"testing"
-	"time"
 )
-
-var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
 
 func CompileAndRunRegex(regex string, base string, t *testing.T, err string, shouldMatch bool) {
 	r, rErr := regexp.Compile(regex)

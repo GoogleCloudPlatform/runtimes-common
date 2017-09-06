@@ -52,8 +52,7 @@ type Driver interface {
 
 func InitDriver(driver string, image string) Driver {
 	switch driver {
-	case "rkt":
-		return nil
+	// future drivers will be added here
 	default:
 		return NewDockerDriver(image)
 	}

@@ -25,7 +25,6 @@ import (
 
 type StructureTest interface {
 	SetDriver(driver drivers.Driver)
-	GetDriver() drivers.Driver
 	RunAll(t *testing.T) int
 }
 

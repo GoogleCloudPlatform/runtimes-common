@@ -81,32 +81,16 @@ func (d DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar,
 }
 
 func (d DockerDriver) SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unversioned.EnvVar {
-	// currently, this does not support substitution (e.g. PATH=/env/bin:$PATH), so setting env vars
-	// is broken. need to find a way to retrieve the existing values from the container before setting
 	if len(vars) == 0 {
 		return nil
 	}
-	ctx := context.Background()
-	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
-		Config: &docker.Config{
-			Image:        currentImage,
-			Cmd:          []string{"NOOP_COMMAND_DO_NOT_RUN"},
-			AttachStdout: true,
-			AttachStderr: true,
-		},
-		HostConfig:       nil,
-		NetworkingConfig: nil,
-		Context:          ctx,
-	})
+
+	image, err := d.cli.InspectImage(currentImage)
 	if err != nil {
-		t.Errorf("Error creating container: %s", err.Error())
+		t.Errorf("Error when inspecting image: %s", err.Error())
 		return nil
 	}
-	image, err := d.cli.InspectContainer(container.ID)
-	if err != nil {
-		t.Errorf("Error when inspecting container: %s", err.Error())
-		return nil
-	}
+
 	// convert env to map for easier processing
 	imageEnv := make(map[string]string)
 	for _, varPair := range image.Config.Env {
@@ -114,8 +98,8 @@ func (d DockerDriver) SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unve
 		imageEnv[pair[0]] = pair[1]
 	}
 
-	before, _ := regexp.Compile(".*\\$(.*?):")
-	after, _ := regexp.Compile(".*:\\$(.*)")
+	before := regexp.MustCompile(".*\\$(.*?):")
+	after := regexp.MustCompile(".*:\\$(.*)")
 
 	env := []string{}
 	for _, envVar := range vars {
