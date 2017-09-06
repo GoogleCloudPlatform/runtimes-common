@@ -35,5 +35,4 @@ script:
  - ./.gofmt.sh
  - ./.buildifier.sh
  - bazel test reconciletags:reconciletags_test
- - bazel test reconciletags:reconciletags_e2e_test
  - bazel clean && bazel build //...
