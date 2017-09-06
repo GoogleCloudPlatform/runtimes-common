@@ -25,6 +25,7 @@ import (
 )
 
 type StructureTest struct {
+	Driver             drivers.Driver
 	GlobalEnvVars      []unversioned.EnvVar
 	CommandTests       []CommandTest
 	FileExistenceTests []FileExistenceTest
@@ -32,15 +33,13 @@ type StructureTest struct {
 	LicenseTests       []LicenseTest
 }
 
-var driverImpl drivers.Driver
-
 func (st StructureTest) SetDriver(driver drivers.Driver) {
-	driverImpl = driver
+	st.Driver = driver
 }
 
 func (st StructureTest) RunAll(t *testing.T) int {
-	originalVars := driverImpl.SetEnvVars(t, st.GlobalEnvVars)
-	defer driverImpl.ResetEnvVars(t, originalVars)
+	originalVars := st.Driver.SetEnvVars(t, st.GlobalEnvVars)
+	defer st.Driver.ResetEnvVars(t, originalVars)
 	testsRun := 0
 	testsRun += st.RunCommandTests(t)
 	testsRun += st.RunFileExistenceTests(t)
@@ -55,14 +54,14 @@ func (st StructureTest) RunCommandTests(t *testing.T) int {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateCommandTest(t, tt)
 			for _, setup := range tt.Setup {
-				driverImpl.Setup(t, tt.EnvVars, setup, tt.ShellMode, false)
+				st.Driver.Setup(t, tt.EnvVars, setup, tt.ShellMode, false)
 			}
 
-			stdout, stderr, exitcode := driverImpl.ProcessCommand(t, tt.EnvVars, tt.Command, tt.ShellMode, true)
+			stdout, stderr, exitcode := st.Driver.ProcessCommand(t, tt.EnvVars, tt.Command, tt.ShellMode, true)
 			CheckOutput(t, tt, stdout, stderr, exitcode)
 
 			for _, teardown := range tt.Teardown {
-				driverImpl.Teardown(t, tt.EnvVars, teardown, tt.ShellMode, false)
+				st.Driver.Teardown(t, tt.EnvVars, teardown, tt.ShellMode, false)
 			}
 			counter++
 		})
@@ -77,7 +76,7 @@ func (st StructureTest) RunFileExistenceTests(t *testing.T) int {
 			validateFileExistenceTest(t, tt)
 			var err error
 			var info os.FileInfo
-			info, err = driverImpl.StatFile(t, tt.Path)
+			info, err = st.Driver.StatFile(t, tt.Path)
 			if tt.ShouldExist && err != nil {
 				if tt.IsDirectory {
 					t.Errorf("Directory %s should exist but does not!", tt.Path)
@@ -108,7 +107,7 @@ func (st StructureTest) RunFileContentTests(t *testing.T) int {
 	for _, tt := range st.FileContentTests {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateFileContentTest(t, tt)
-			actualContents, err := driverImpl.ReadFile(t, tt.Path)
+			actualContents, err := st.Driver.ReadFile(t, tt.Path)
 			if err != nil {
 				t.Errorf("Failed to open %s. Error: %s", tt.Path, err)
 			}
@@ -133,7 +132,7 @@ func (st StructureTest) RunFileContentTests(t *testing.T) int {
 func (st StructureTest) RunLicenseTests(t *testing.T) int {
 	for num, tt := range st.LicenseTests {
 		t.Run(tt.LogName(num), func(t *testing.T) {
-			checkLicenses(t, tt, driverImpl)
+			checkLicenses(t, tt, st.Driver)
 		})
 		return 1
 	}

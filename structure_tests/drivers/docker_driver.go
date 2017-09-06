@@ -34,29 +34,29 @@ import (
 )
 
 type DockerDriver struct {
-	cli docker.Client
+	cli           docker.Client
+	originalImage string
+	currentImage  string
 }
 
-var originalImage, currentImage string
-
-func (d DockerDriver) Info() string {
+func (d *DockerDriver) Info() string {
 	return fmt.Sprintf("DockerDriver:\nOriginalImage: %s\ncurrentImage: %s\ncli: %s\n",
-		originalImage, currentImage, d.cli)
+		d.originalImage, d.currentImage, d.cli)
 }
 
-func NewDockerDriver(image string) DockerDriver {
+func NewDockerDriver(image string) *DockerDriver {
 	newCli, err := docker.NewClientFromEnv()
 	if err != nil {
 		panic(err)
 	}
-	originalImage = image
-	currentImage = image
-	return DockerDriver{
-		cli: *newCli,
+	return &DockerDriver{
+		originalImage: image,
+		currentImage:  image,
+		cli:           *newCli,
 	}
 }
 
-func (d DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
+func (d *DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
 	shellMode bool, checkOutput bool) (string, string, int) {
 
 	if len(fullCommand) == 0 {
@@ -76,16 +76,16 @@ func (d DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar,
 		t.Logf("stderr: %s", stderr)
 	}
 	//reset image for next test
-	currentImage = originalImage
+	d.currentImage = d.originalImage
 	return stdout, stderr, exitCode
 }
 
-func (d DockerDriver) SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unversioned.EnvVar {
+func (d *DockerDriver) SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unversioned.EnvVar {
 	if len(vars) == 0 {
 		return nil
 	}
 
-	image, err := d.cli.InspectImage(currentImage)
+	image, err := d.cli.InspectImage(d.currentImage)
 	if err != nil {
 		t.Errorf("Error when inspecting image: %s", err.Error())
 		return nil
@@ -122,18 +122,18 @@ func (d DockerDriver) SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unve
 		}
 	}
 	// since these are global envvars, just overwrite the original image
-	originalImage = d.runAndCommit(t, env, nil)
-	currentImage = originalImage
+	d.originalImage = d.runAndCommit(t, env, nil)
+	d.currentImage = d.originalImage
 	return nil
 }
 
-func (d DockerDriver) ResetEnvVars(t *testing.T, vars []unversioned.EnvVar) {
+func (d *DockerDriver) ResetEnvVars(t *testing.T, vars []unversioned.EnvVar) {
 	// since the container will be destroyed after the tests, this is a noop
 }
 
 // copies a file from a docker container to the local fs, and returns its path
 // caller is responsible for removing this file when finished
-func (d DockerDriver) retrieveFile(t *testing.T, path string, directory bool) (string, error) {
+func (d *DockerDriver) retrieveFile(t *testing.T, path string, directory bool) (string, error) {
 	ctx := context.Background()
 
 	// TODO(nkubala): this contains a hack to get around the fact that
@@ -142,7 +142,7 @@ func (d DockerDriver) retrieveFile(t *testing.T, path string, directory bool) (s
 	// given that not every container is guaranteed to have a shell.
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
-			Image:        currentImage,
+			Image:        d.currentImage,
 			Cmd:          []string{"NOOP_COMMAND_DO_NOT_RUN"},
 			AttachStdout: true,
 			AttachStderr: true,
@@ -181,7 +181,7 @@ func (d DockerDriver) retrieveFile(t *testing.T, path string, directory bool) (s
 	}
 }
 
-func (d DockerDriver) StatFile(t *testing.T, path string) (os.FileInfo, error) {
+func (d *DockerDriver) StatFile(t *testing.T, path string) (os.FileInfo, error) {
 	file, err := d.retrieveFile(t, path, false)
 	if err != nil {
 		return nil, err
@@ -198,7 +198,7 @@ func (d DockerDriver) StatFile(t *testing.T, path string) (os.FileInfo, error) {
 	return f, nil
 }
 
-func (d DockerDriver) ReadFile(t *testing.T, path string) ([]byte, error) {
+func (d *DockerDriver) ReadFile(t *testing.T, path string) ([]byte, error) {
 	file, err := d.retrieveFile(t, path, false)
 	if err != nil {
 		return nil, err
@@ -207,7 +207,7 @@ func (d DockerDriver) ReadFile(t *testing.T, path string) ([]byte, error) {
 	return ioutil.ReadFile(file)
 }
 
-func (d DockerDriver) ReadDir(t *testing.T, path string) ([]os.FileInfo, error) {
+func (d *DockerDriver) ReadDir(t *testing.T, path string) ([]os.FileInfo, error) {
 	// TODO(nkubala): unimplemented
 	return nil, nil
 }
@@ -218,7 +218,7 @@ func (d DockerDriver) ReadDir(t *testing.T, path string) ([]os.FileInfo, error) 
 // 2) starts the container
 // 3) commits the container with its changes to a new image,
 // and sets that image as the new "current image"
-func (d DockerDriver) runAndCommit(t *testing.T, env []string, command []string) string {
+func (d *DockerDriver) runAndCommit(t *testing.T, env []string, command []string) string {
 
 	// this is a placeholder command since apparently the client doesnt allow creating
 	// a container without a command.
@@ -231,7 +231,7 @@ func (d DockerDriver) runAndCommit(t *testing.T, env []string, command []string)
 
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
-			Image:        currentImage,
+			Image:        d.currentImage,
 			Env:          env,
 			Cmd:          command,
 			AttachStdout: true,
@@ -262,17 +262,17 @@ func (d DockerDriver) runAndCommit(t *testing.T, env []string, command []string)
 		t.Errorf("Error committing container: %s", err.Error())
 	}
 
-	currentImage = image.ID
+	d.currentImage = image.ID
 	return image.ID
 }
 
-func (d DockerDriver) exec(t *testing.T, env []string, command []string) (string, string, int) {
+func (d *DockerDriver) exec(t *testing.T, env []string, command []string) (string, string, int) {
 	ctx := context.Background()
 
 	// first, start container from the current image
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
-			Image:        currentImage,
+			Image:        d.currentImage,
 			Env:          env,
 			Cmd:          command,
 			AttachStdout: true,
@@ -325,17 +325,17 @@ func (d DockerDriver) exec(t *testing.T, env []string, command []string) (string
 	return stdout.String(), stderr.String(), exitCode
 }
 
-func (d DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
+func (d *DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
 	shellMode bool, checkOutput bool) {
 	env := []string{}
 	for _, envVar := range envVars {
 		env = append(env, envVar.Key+"="+envVar.Value)
 	}
-	currentImage = d.runAndCommit(t, env, fullCommand)
+	d.currentImage = d.runAndCommit(t, env, fullCommand)
 }
 
-func (d DockerDriver) Teardown(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
+func (d *DockerDriver) Teardown(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
 	shellMode bool, checkOutput bool) {
 	// reset to the original image
-	currentImage = originalImage
+	d.currentImage = d.originalImage
 }
