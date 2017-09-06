@@ -77,18 +77,16 @@ def load_manifest_file():
         os.remove(tmp)
 
 
+# 'gsutil ls' would eliminate the try/catch here, but it's eventually
+# consistent, while 'gsutil stat' is strongly consistent.
 def file_exists(remote_path):
     try:
         logging.info('Checking file {0}'.format(remote_path))
         command = ['gsutil', 'stat', remote_path]
-        proc = subprocess.Popen(command, stdout=subprocess.PIPE,
-                                stderr=subprocess.PIPE)
-        proc.communicate()
-        if proc.returncode:
-            return False
+        subprocess.check_call(command, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
         return True
-    except subprocess.CalledProcessError as cpe:
-        logging.error('Error when checking file in GCS: %s', cpe.output)
+    except subprocess.CalledProcessError:
         return False
 
 
