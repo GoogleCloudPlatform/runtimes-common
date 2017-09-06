@@ -105,8 +105,7 @@ func TestMain(m *testing.M) {
 	stdout := bufio.NewWriter(os.Stdout)
 
 	if imageName == "" {
-		stdout.Write([]byte("Please supply name of image to test against\n"))
-		stdout.Flush()
+		fmt.Fprintln(stdout, "Please supply name of image to test against")
 		os.Exit(1)
 	}
 
@@ -116,12 +115,10 @@ func TestMain(m *testing.M) {
 
 	driverImpl = drivers.InitDriver(driver, imageName)
 	if driverImpl == nil {
-		stdout.Write([]byte(fmt.Sprintf("Unsupported driver: %s\n", driver)))
-		stdout.Flush()
+		fmt.Fprintf(stdout, "Unsupported driver: %s\n", driver)
 		os.Exit(1)
 	} else {
-		stdout.Write([]byte(fmt.Sprintf("Using driver %s\n", driver)))
-		stdout.Flush()
+		fmt.Fprintf(stdout, "Using driver %s\n", driver)
 	}
 
 	if exit := m.Run(); exit != 0 {
