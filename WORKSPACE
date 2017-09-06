@@ -48,3 +48,25 @@ load(
   "docker_repositories"
 )
 docker_repositories()
+
+new_http_archive(
+    name = "mock",
+    build_file_content = """
+# Rename mock.py to __init__.py
+genrule(
+    name = "rename",
+    srcs = ["mock.py"],
+    outs = ["__init__.py"],
+    cmd = "cat $< >$@",
+)
+py_library(
+   name = "mock",
+   srcs = [":__init__.py"],
+   visibility = ["//visibility:public"],
+)""",
+    sha256 = "b839dd2d9c117c701430c149956918a423a9863b48b09c90e30a6013e7d2f44f",
+    strip_prefix = "mock-1.0.1/",
+    type = "tar.gz",
+    url = "https://pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz",
+)
+
