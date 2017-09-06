@@ -33,11 +33,11 @@ type StructureTest struct {
 	LicenseTests       []LicenseTest
 }
 
-func (st StructureTest) SetDriver(driver drivers.Driver) {
+func (st *StructureTest) SetDriver(driver drivers.Driver) {
 	st.Driver = driver
 }
 
-func (st StructureTest) RunAll(t *testing.T) int {
+func (st *StructureTest) RunAll(t *testing.T) int {
 	originalVars := st.Driver.SetEnvVars(t, st.GlobalEnvVars)
 	defer st.Driver.ResetEnvVars(t, originalVars)
 	testsRun := 0
@@ -48,7 +48,7 @@ func (st StructureTest) RunAll(t *testing.T) int {
 	return testsRun
 }
 
-func (st StructureTest) RunCommandTests(t *testing.T) int {
+func (st *StructureTest) RunCommandTests(t *testing.T) int {
 	counter := 0
 	for _, tt := range st.CommandTests {
 		t.Run(tt.LogName(), func(t *testing.T) {
@@ -69,7 +69,7 @@ func (st StructureTest) RunCommandTests(t *testing.T) int {
 	return counter
 }
 
-func (st StructureTest) RunFileExistenceTests(t *testing.T) int {
+func (st *StructureTest) RunFileExistenceTests(t *testing.T) int {
 	counter := 0
 	for _, tt := range st.FileExistenceTests {
 		t.Run(tt.LogName(), func(t *testing.T) {
@@ -129,7 +129,7 @@ func (st StructureTest) RunFileContentTests(t *testing.T) int {
 	return counter
 }
 
-func (st StructureTest) RunLicenseTests(t *testing.T) int {
+func (st *StructureTest) RunLicenseTests(t *testing.T) int {
 	for num, tt := range st.LicenseTests {
 		t.Run(tt.LogName(num), func(t *testing.T) {
 			checkLicenses(t, tt, st.Driver)
