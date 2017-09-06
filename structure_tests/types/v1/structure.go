@@ -78,17 +78,9 @@ func (st *StructureTest) RunFileExistenceTests(t *testing.T) int {
 			var info os.FileInfo
 			info, err = st.Driver.StatFile(t, tt.Path)
 			if tt.ShouldExist && err != nil {
-				if tt.IsDirectory {
-					t.Errorf("Directory %s should exist but does not!", tt.Path)
-				} else {
-					t.Errorf("File %s should exist but does not!", tt.Path)
-				}
+				t.Errorf("File %s should exist but does not!", tt.Path)
 			} else if !tt.ShouldExist && err == nil {
-				if tt.IsDirectory {
-					t.Errorf("Directory %s should not exist but does!", tt.Path)
-				} else {
-					t.Errorf("File %s should not exist but does!", tt.Path)
-				}
+				t.Errorf("File %s should not exist but does!", tt.Path)
 			}
 			if tt.Permissions != "" {
 				perms := info.Mode()

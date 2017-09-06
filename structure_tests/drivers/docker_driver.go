@@ -133,13 +133,11 @@ func (d *DockerDriver) ResetEnvVars(t *testing.T, vars []unversioned.EnvVar) {
 
 // copies a file from a docker container to the local fs, and returns its path
 // caller is responsible for removing this file when finished
-func (d *DockerDriver) retrieveFile(t *testing.T, path string, directory bool) (string, error) {
+func (d *DockerDriver) retrieveFile(t *testing.T, path string) (string, error) {
 	ctx := context.Background()
 
-	// TODO(nkubala): this contains a hack to get around the fact that
-	// the client will not allow creating a container without a command.
-	// we should remove this, or at the very least find a better alternative
-	// given that not every container is guaranteed to have a shell.
+	// this contains a placeholder command which does not get run, since
+	// the client doesn't allow creating a container without a command.
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
 			Image:        d.currentImage,
@@ -156,33 +154,29 @@ func (d *DockerDriver) retrieveFile(t *testing.T, path string, directory bool) (
 		return "", err
 	}
 
-	if directory {
-		return "", nil
-	} else {
-		tmpFile, err := ioutil.TempFile("", "structure_test")
-		if err != nil {
-			t.Errorf("Error when creating temp file: %s", err.Error())
-			return "", err
-		}
-		stream := bufio.NewWriter(tmpFile)
-
-		err = d.cli.DownloadFromContainer(container.ID, docker.DownloadFromContainerOptions{
-			OutputStream: stream,
-			Path:         path,
-			Context:      ctx,
-		})
-		if err != nil {
-			t.Errorf("Error when downloading file from container: %s", err.Error())
-			return "", err
-		}
-		stream.Flush()
-		tmpFile.Close()
-		return tmpFile.Name(), nil
+	tmpFile, err := ioutil.TempFile("", "structure_test")
+	if err != nil {
+		t.Errorf("Error when creating temp file: %s", err.Error())
+		return "", err
 	}
+	stream := bufio.NewWriter(tmpFile)
+
+	err = d.cli.DownloadFromContainer(container.ID, docker.DownloadFromContainerOptions{
+		OutputStream: stream,
+		Path:         path,
+		Context:      ctx,
+	})
+	if err != nil {
+		t.Errorf("Error when downloading file from container: %s", err.Error())
+		return "", err
+	}
+	stream.Flush()
+	tmpFile.Close()
+	return tmpFile.Name(), nil
 }
 
 func (d *DockerDriver) StatFile(t *testing.T, path string) (os.FileInfo, error) {
-	file, err := d.retrieveFile(t, path, false)
+	file, err := d.retrieveFile(t, path)
 	if err != nil {
 		return nil, err
 	}
@@ -199,17 +193,12 @@ func (d *DockerDriver) StatFile(t *testing.T, path string) (os.FileInfo, error) 
 }
 
 func (d *DockerDriver) ReadFile(t *testing.T, path string) ([]byte, error) {
-	file, err := d.retrieveFile(t, path, false)
+	file, err := d.retrieveFile(t, path)
 	if err != nil {
 		return nil, err
 	}
 	defer os.Remove(file)
 	return ioutil.ReadFile(file)
-}
-
-func (d *DockerDriver) ReadDir(t *testing.T, path string) ([]os.FileInfo, error) {
-	// TODO(nkubala): unimplemented
-	return nil, nil
 }
 
 // This method takes a command (in the form of a list of args), and does the following:
@@ -220,11 +209,10 @@ func (d *DockerDriver) ReadDir(t *testing.T, path string) ([]os.FileInfo, error)
 // and sets that image as the new "current image"
 func (d *DockerDriver) runAndCommit(t *testing.T, env []string, command []string) string {
 
-	// this is a placeholder command since apparently the client doesnt allow creating
-	// a container without a command.
-	// TODO(nkubala): figure out how to remove this
+	// this is a placeholder command that does not get run, since
+	// the client doesnt allow creating a container without a command.
 	if len(command) == 0 {
-		command = []string{"/bin/sh"}
+		command = []string{"NOOP_COMMAND_DO_NOT_RUN"}
 	}
 
 	ctx := context.Background()
