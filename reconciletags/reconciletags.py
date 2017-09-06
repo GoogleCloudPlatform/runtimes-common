@@ -43,17 +43,15 @@ class TagReconciler:
         creds = docker_creds.DefaultKeychain.Resolve(src_name)
         transport = transport_pool.Http(httplib2.Http)
 
-        with docker_image.FromRegistry(
-            src_name, creds, transport) as src_img:
-                if src_img.exists():
-                    creds = docker_creds.DefaultKeychain.Resolve(dest_name)
-                    logging.debug('Tagging {0} with {1}'.format(digest, tag))
-                    with docker_session.Push(
-                        dest_name, creds, transport) as push:
-                            push.upload(src_img)
-                else:
-                    logging.debug("""Unable to tag {0}
-                        as the image can't be found""".format(digest))
+        with docker_image.FromRegistry(src_name, creds, transport) as src_img:
+            if src_img.exists():
+                creds = docker_creds.DefaultKeychain.Resolve(dest_name)
+                logging.debug('Tagging {0} with {1}'.format(digest, tag))
+                with docker_session.Push(dest_name, creds, transport) as push:
+                        push.upload(src_img)
+            else:
+                logging.debug("""Unable to tag {0}
+                    as the image can't be found""".format(digest))
 
     def get_existing_tags(self, full_repo, digest):
         full_digest = full_repo + '@sha256:' + digest
@@ -96,30 +94,30 @@ class TagReconciler:
                     creds = docker_creds.DefaultKeychain.Resolve(name)
                     transport = transport_pool.Http(httplib2.Http)
 
-                    with docker_image.FromRegistry(
-                        name, creds, transport) as img:
+                    with docker_image.FromRegistry(name, creds,
+                                                   transport) as img:
                             if not img.exists():
-                                logging.debut('Could not retrieve  '+
-                                    '{0}'.format(full_digest))
+                                logging.debut('Could not retrieve  ' +
+                                              '{0}'.format(full_digest))
                                 return
 
                             existing_tags = img.tags()
-                            logging.debug('Existing Tags: '+
-                                '{0}'.format(existing_tags))
+                            logging.debug('Existing Tags: ' +
+                                          '{0}'.format(existing_tags))
 
                             manifests = img.manifests()
                             tagged_digest = self.get_tagged_digest(
                                 manifests, image['tag'])
-                            
+
                             # Don't retag an image if the tag already exists
                             if tagged_digest.startswith('sha256:'):
                                 tagged_digest = tagged_digest[len('sha256:'):]
                             if tagged_digest.startswith(image['digest']):
                                 logging.debug('Skipping tagging %s with %s as '
-                                    'that tag already exists.',
-                                        image['digest'], image['tag'])
+                                              'that tag already exists.',
+                                              image['digest'], image['tag'])
                                 continue
-                            
+
                             self.add_tags(full_digest, full_tag, dry_run)
 
                 logging.debug(self.get_existing_tags(
