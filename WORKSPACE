@@ -20,8 +20,8 @@ new_go_repository(
     name = "in_gopkg_yaml_v2",
     importpath = "gopkg.in/yaml.v2",
     remote = "https://github.com/go-yaml/yaml",
-    vcs = "git",
     tag = "v2",
+    vcs = "git",
 )
 
 new_go_repository(
@@ -34,7 +34,6 @@ git_repository(
     name = "io_bazel_rules_docker",
     commit = "db1b348dfdf161a784bc1efc5a1020395572b996",
     remote = "https://github.com/bazelbuild/rules_docker.git",
-
 )
 
 git_repository(
@@ -44,9 +43,11 @@ git_repository(
 )
 
 load(
-  "@io_bazel_rules_docker//docker:docker.bzl",
-  "docker_repositories"
+    "@io_bazel_rules_docker//docker:docker.bzl",
+    "docker_repositories",
+    "docker_pull",
 )
+
 docker_repositories()
 
 new_http_archive(
@@ -69,4 +70,3 @@ py_library(
     type = "tar.gz",
     url = "https://pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz",
 )
-
