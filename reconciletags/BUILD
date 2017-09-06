@@ -8,9 +8,9 @@ load(
 )
 
 load(
-     "@io_bazel_rules_docker//docker:docker.bzl",
-     "docker_push",
-     "docker_build",
+    "@io_bazel_rules_docker//docker:docker.bzl",
+    "docker_push",
+    "docker_build",
 )
 
 py_binary(
@@ -29,7 +29,7 @@ py_test(
         "@containerregistry",
         "@httplib2//:httplib2",
     ],
-) 
+)
 
 py_test(
     name = "reconciletags_e2e_test",
@@ -38,8 +38,4 @@ py_test(
         "@containerregistry",
         "@httplib2//:httplib2",
     ],
-    data = [
-        "tiny_docker_image",
-    ],
-
-) 
+)
