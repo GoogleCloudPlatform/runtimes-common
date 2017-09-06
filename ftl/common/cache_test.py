@@ -37,12 +37,12 @@ class RegistryTest(unittest.TestCase):
 
         # Test when the image exists.
         mock_img.exists.return_value = True
-        c = cache.Registry('gcr.io/google-appengine', None, None)
+        c = cache.Registry('fake.gcr.io/google-appengine', None, None)
         self.assertEquals(c.Get(fake_base, 'namespace', 'abc123'), mock_img)
 
         # Test when it does not exist
         mock_img.exists.return_value = False
-        c = cache.Registry('gcr.io/google-appengine', None, None)
+        c = cache.Registry('fake.gcr.io/google-appengine', None, None)
         self.assertIsNone(c.Get(fake_base, 'namespace', 'abc123'))
 
 
