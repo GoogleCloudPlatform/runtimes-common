@@ -23,87 +23,105 @@ import argparse
 import json
 import logging
 import os
-import subprocess
+from containerregistry.client import docker_creds
+from containerregistry.client import docker_name
+from containerregistry.client.v2_2 import docker_image
+from containerregistry.client.v2_2 import docker_session
+from containerregistry.transport import transport_pool
+import httplib2
 
 
 class TagReconciler:
-    def call(self, command, dry_run, fmt="json"):
-        command += " --format=" + fmt
-        if not dry_run:
-            logging.debug('Running {0}'.format(command))
-            output = subprocess.check_output([command], shell=True)
-            logging.debug(output)
-            return output
-        else:
-            logging.debug('Would have run {0}'.format(command))
 
     def add_tags(self, digest, tag, dry_run):
-        logging.debug('Tagging {0} with {1}'.format(digest, tag))
-        command = ('gcloud container images add-tag {0} {1} '
-                   '-q'.format(digest, tag))
-        self.call(command, dry_run)
+        if dry_run:
+            logging.debug("Would have tagged {0} with {1}".format(digest, tag))
+            return
 
-    # This turns a list of lists into one flat list of tags
-    def flatten_tags_list(self, list_of_lists):
-        flat_tags_list = []
-        for sublist in list_of_lists:
-            for tag in sublist:
-                if tag:
-                    flat_tags_list.append(tag)
-        return flat_tags_list
+        src_name = docker_name.Digest(digest)
+        dest_name = docker_name.Tag(tag)
+        creds = docker_creds.DefaultKeychain.Resolve(src_name)
+        transport = transport_pool.Http(httplib2.Http)
 
-    def get_existing_tags(self, repo):
-        output = json.loads(self.call('gcloud container images list-tags '
-                            '--no-show-occurrences {0}'.format(repo), False))
+        with docker_image.FromRegistry(src_name, creds, transport) as src_img:
+            if src_img.exists():
+                creds = docker_creds.DefaultKeychain.Resolve(dest_name)
+                logging.debug('Tagging {0} with {1}'.format(digest, tag))
+                with docker_session.Push(dest_name, creds, transport) as push:
+                        push.upload(src_img)
+            else:
+                logging.debug("""Unable to tag {0}
+                    as the image can't be found""".format(digest))
 
-        list_of_tags = [image['tags'] for image in output]
-        existing_tags = self.flatten_tags_list(list_of_tags)
+    def get_existing_tags(self, full_repo, digest):
+        full_digest = full_repo + '@sha256:' + digest
+        existing_tags = []
+
+        name = docker_name.Digest(full_digest)
+        creds = docker_creds.DefaultKeychain.Resolve(name)
+        transport = transport_pool.Http(httplib2.Http)
+
+        with docker_image.FromRegistry(name, creds, transport) as img:
+            if img.exists():
+                existing_tags = img.tags()
+            else:
+                logging.debug(
+                    """Unable to get existing tags for {0}
+                        as the image can't be found""".format(full_digest))
         return existing_tags
 
-    def get_latest_digest(self, repo):
-        output = json.loads(self.call('gcloud container images list-tags '
-                            '--no-show-occurrences {0}'.format(repo), False))
-        for image in output:
-            if 'latest' in image['tags']:
-                return image['digest']
+    def get_tagged_digest(self, manifests, tag):
+        for digest in manifests:
+            if tag in manifests[digest]['tag']:
+                return digest
+        return ""
 
     def reconcile_tags(self, data, dry_run):
-        # Hardcode dry_run to False for this call because we always want
-        # want to see config regardless of whether we actually run the
-        # reconciler.
-        self.call('gcloud config list', False)
         for project in data['projects']:
+
             default_registry = project['base_registry']
-            # additional registries are optional, just default to an empty list
-            # if it's absent from the config
             registries = project.get('additional_registries', [])
             registries.append(default_registry)
+
             for registry in registries:
                 full_repo = os.path.join(registry, project['repository'])
-                default_repo = os.path.join(default_registry,
-                                            project['repository'])
-                existing_tags = self.get_existing_tags(full_repo)
-                latest = self.get_latest_digest(full_repo)
-                logging.debug(existing_tags)
 
                 for image in project['images']:
-                    full_digest = default_repo + '@sha256:' + image['digest']
+                    full_digest = full_repo + '@sha256:' + image['digest']
                     full_tag = full_repo + ':' + image['tag']
 
-                    # Don't retag latest if it's already latest
-                    if latest:
-                        if latest.startswith('sha256:'):
-                            latest = latest[len('sha256:'):]
-                        if (image['tag'] == 'latest'
-                           and latest.startswith(image['digest'])):
-                            logging.debug('Skipping tagging %s as latest as '
-                                          'it is already latest.',
-                                          image['digest'])
-                            continue
+                    name = docker_name.Digest(full_digest)
+                    creds = docker_creds.DefaultKeychain.Resolve(name)
+                    transport = transport_pool.Http(httplib2.Http)
 
-                    self.add_tags(full_digest, full_tag, dry_run)
+                    with docker_image.FromRegistry(name, creds,
+                                                   transport) as img:
+                            if not img.exists():
+                                logging.debut('Could not retrieve  ' +
+                                              '{0}'.format(full_digest))
+                                return
 
-                logging.debug(self.get_existing_tags(full_repo))
+                            existing_tags = img.tags()
+                            logging.debug('Existing Tags: ' +
+                                          '{0}'.format(existing_tags))
+
+                            manifests = img.manifests()
+                            tagged_digest = self.get_tagged_digest(
+                                manifests, image['tag'])
+
+                            # Don't retag an image if the tag already exists
+                            if tagged_digest.startswith('sha256:'):
+                                tagged_digest = tagged_digest[len('sha256:'):]
+                            if tagged_digest.startswith(image['digest']):
+                                logging.debug('Skipping tagging %s with %s as '
+                                              'that tag already exists.',
+                                              image['digest'], image['tag'])
+                                continue
+
+                            self.add_tags(full_digest, full_tag, dry_run)
+
+                logging.debug(self.get_existing_tags(
+                    full_repo, project['images'][0]['digest']))
 
 
 def main():

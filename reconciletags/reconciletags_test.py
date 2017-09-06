@@ -17,21 +17,25 @@
 Unit tests for reconcile-tags.py.
 """
 import unittest
+from containerregistry.client.v2_2 import docker_image
+from containerregistry.client.v2_2 import docker_session
 import mock
+from mock import patch
 import reconciletags
 
 _REGISTRY = 'gcr.io'
 _REPO = 'foobar/baz'
 _FULL_REPO = _REGISTRY + '/' + _REPO
-_DIGEST1 = 'digest1'
-_DIGEST2 = 'digest2'
+_DIGEST1 = '0000000000000000000000000000000000000000000000000000000000000000'
+_DIGEST2 = '0000000000000000000000000000000000000000000000000000000000000001'
 _TAG1 = 'tag1'
 _TAG2 = 'tag2'
 
 _LIST_RESP = """
 [
   {
-    "digest": "sha256:digest1",
+    "digest":
+        "0000000000000000000000000000000000000000000000000000000000000000",
     "tags": [
       "tag1"
     ],
@@ -41,16 +45,8 @@ _LIST_RESP = """
 ]
 """
 
-_GCLOUD_CONFIG = 'gcloud config list --format=json'
-_GCLOUD_LIST = ('gcloud container images list-tags '
-                '--no-show-occurrences {0} --format=json'.format(_FULL_REPO))
-
 
 class ReconcileTagsTest(unittest.TestCase):
-
-    def _gcloudAdd(self, digest, tag):
-        return ('gcloud container images add-tag {0} {1} -q --format=json'
-                .format(_FULL_REPO+'@sha256:'+digest, _FULL_REPO+':'+tag))
 
     def setUp(self):
         self.r = reconciletags.TagReconciler()
@@ -60,45 +56,59 @@ class ReconcileTagsTest(unittest.TestCase):
                        'repository': _REPO,
                        'images': [{'digest': _DIGEST1, 'tag': _TAG1}]}]}
 
-    def test_reconcile_tags(self):
-        with mock.patch('subprocess.check_output',
-                        return_value=_LIST_RESP) as mock_output:
-            self.r.reconcile_tags(self.data, False)
-            mock_output.assert_any_call([_GCLOUD_CONFIG], shell=True)
-            mock_output.assert_any_call([_GCLOUD_LIST], shell=True)
-            mock_output.assert_any_call([self._gcloudAdd(_DIGEST1, _TAG1)],
-                                        shell=True)
+    @patch('containerregistry.client.v2_2.docker_session.Push')
+    @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
+    def test_reconcile_tags(self, mock_from_registry, mock_push):
+        fake_base = mock.MagicMock()
+        fake_base.tags.return_value = [_TAG1]
 
-    def test_dry_run(self):
-        with mock.patch('subprocess.check_output',
-                        return_value=_LIST_RESP) as mock_output:
-            self.r.reconcile_tags(self.data, True)
-            mock_output.assert_any_call([_GCLOUD_CONFIG], shell=True)
+        mock_img = mock.MagicMock()
+        mock_img.__enter__.return_value = fake_base
+        mock_from_registry.return_value = mock_img
+        mock_push.return_value = docker_session.Push()
 
-            # These next two lines test identical things, I added the "manual"
-            # check to ensure that my assertNotIn check would theoretically
-            # be looking for the correct thing.
-            mock_output.assert_any_call([_GCLOUD_LIST], shell=True)
-            self.assertIn((([_GCLOUD_LIST],), {'shell': True}),
-                          mock_output.mock_calls)
+        self.r.reconcile_tags(self.data, False)
 
-            self.assertNotIn((([self._gcloudAdd(_DIGEST1, _TAG1)],),
-                              {'shell': True}), mock_output.mock_calls)
+        assert mock_from_registry.called
+        assert mock_push.called
 
-    def test_get_existing_tags(self):
-        with mock.patch('subprocess.check_output',
-                        return_value=_LIST_RESP) as mock_output:
-            existing_tags = self.r.get_existing_tags(_FULL_REPO)
-            self.assertIn(_TAG1, existing_tags)
-            mock_output.assert_called_once_with([_GCLOUD_LIST], shell=True)
+    @patch('containerregistry.client.v2_2.docker_session.Push')
+    @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
+    def test_dry_run(self, mock_from_registry, mock_push):
+        mock_from_registry.return_value = docker_image.FromRegistry()
+        mock_push.return_value = docker_session.Push()
 
-    def test_add_tag(self):
-        with mock.patch('subprocess.check_output',
-                        return_value=_LIST_RESP) as mock_output:
-            self.r.add_tags(_FULL_REPO+'@sha256:'+_DIGEST2,
-                            _FULL_REPO+':'+_TAG2, False)
-            mock_output.assert_called_once_with(
-                [self._gcloudAdd(_DIGEST2, _TAG2)], shell=True)
+        self.r.reconcile_tags(self.data, True)
+
+        assert mock_from_registry.called
+        assert mock_push.called
+
+    @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
+    def test_get_existing_tags(self, mock_from_registry):
+
+        fake_base = mock.MagicMock()
+        fake_base.tags.return_value = [_TAG1]
+
+        mock_img = mock.MagicMock()
+        mock_img.__enter__.return_value = fake_base
+        mock_from_registry.return_value = mock_img
+
+        existing_tags = self.r.get_existing_tags(_FULL_REPO, _DIGEST1)
+
+        assert mock_from_registry.called
+        self.assertEqual([_TAG1], existing_tags)
+
+    @patch('containerregistry.client.v2_2.docker_session.Push')
+    @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
+    def test_add_tag(self, mock_from_registry, mock_push):
+        mock_from_registry.return_value = docker_image.FromRegistry()
+        mock_push.return_value = docker_session.Push()
+
+        self.r.add_tags(_FULL_REPO+'@sha256:'+_DIGEST2,
+                        _FULL_REPO+':'+_TAG2, False)
+
+        assert mock_from_registry.called
+        assert mock_push.called
 
 
 if __name__ == '__main__':

@@ -34,5 +34,5 @@ script:
  - flake8 .
  - ./.gofmt.sh
  - ./.buildifier.sh
- - python -m unittest discover -s reconciletags -p 'reconciletags_test.py'
  - bazel clean && bazel build //...
+ - bazel test reconciletags:reconciletags_test
