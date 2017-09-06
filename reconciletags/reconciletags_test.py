@@ -34,7 +34,8 @@ _TAG2 = 'tag2'
 _LIST_RESP = """
 [
   {
-    "digest": "0000000000000000000000000000000000000000000000000000000000000000",
+    "digest": 
+        "0000000000000000000000000000000000000000000000000000000000000000",
     "tags": [
       "tag1"
     ],
@@ -77,7 +78,8 @@ class ReconcileTagsTest(unittest.TestCase):
         with mock.patch('reconciletags.logging.debug') as mock_output:
 
             self.r.reconcile_tags(self.data, False)
-            logging_debug_output = [call[1][0] for call in mock_output.mock_calls]
+            logging_debug_output = [call[1][0] for 
+                call in mock_output.mock_calls]
 
             assert mock_from_registry.called
             assert mock_push.called
@@ -94,12 +96,14 @@ class ReconcileTagsTest(unittest.TestCase):
         with mock.patch('reconciletags.logging.debug') as mock_output:
 
             self.r.reconcile_tags(self.data, True)
-            logging_debug_output = [call[1][0] for call in mock_output.mock_calls]
+            logging_debug_output = [call[1][0] for 
+                call in mock_output.mock_calls]
 
             assert mock_from_registry.called
             assert mock_push.called
 
-            self.assertNotIn(self._tagging(_DIGEST1, _TAG1), logging_debug_output)
+            self.assertNotIn(self._tagging(_DIGEST1, _TAG1), 
+                logging_debug_output)
             self.assertIn(_TAGGING_DRY_RUN, logging_debug_output)
 
     @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
@@ -113,7 +117,7 @@ class ReconcileTagsTest(unittest.TestCase):
         mock_from_registry.return_value = mock_img
 
         existing_tags = self.r.get_existing_tags(_FULL_REPO, _DIGEST1)
-        
+
         assert mock_from_registry.called
         self.assertEqual([_TAG1], existing_tags)
 
@@ -126,13 +130,14 @@ class ReconcileTagsTest(unittest.TestCase):
         with mock.patch('reconciletags.logging.debug') as mock_output:
 
             self.r.add_tags(_FULL_REPO+'@sha256:'+_DIGEST2,
-                            _FULL_REPO+':'+_TAG2, False)           
-            logging_debug_output = [call[1][0] for call in mock_output.mock_calls]
+                            _FULL_REPO+':'+_TAG2, False)       
+            logging_debug_output = [call[1][0] for 
+                call in mock_output.mock_calls]
 
             assert mock_from_registry.called
             assert mock_push.called
 
-            self.assertIn(self._tagging(_DIGEST2, _TAG2), logging_debug_output) 
+            self.assertIn(self._tagging(_DIGEST2, _TAG2), logging_debug_output)
 
 
 if __name__ == '__main__':

@@ -42,14 +42,15 @@ class TagReconciler:
 
             with docker_image.FromRegistry(
                 src_name, creds, transport) as src_img:
-                if src_img.exists():
-                    creds = docker_creds.DefaultKeychain.Resolve(dest_name)
-                    logging.debug('Tagging {0} with {1}'.format(digest, tag))
-                    with docker_session.Push(dest_name, creds, transport) as push:
-                        push.upload(src_img)
-                else:
-                    logging.debug("Unable to tag {0}"
-                        " as the image can't be found".format(digest))
+                    if src_img.exists():
+                        creds = docker_creds.DefaultKeychain.Resolve(dest_name)
+                        logging.debug('Tagging {0} with {1}'.format(digest, tag))
+                        with docker_session.Push(
+                            dest_name, creds, transport) as push:
+                                push.upload(src_img)
+                    else:
+                        logging.debug("""Unable to tag {0}
+                            as the image can't be found""".format(digest))
         else:
             logging.debug("Would have tagged {0} with {1}".format(digest, tag))
 
@@ -66,10 +67,10 @@ class TagReconciler:
                 existing_tags = img.tags()
             else:
                 logging.debug(
-                    "Unable to get existing tags for {0}"
-                        " as the image can't be found".format(full_digest))
+                    """Unable to get existing tags for {0}
+                        as the image can't be found""".format(full_digest))
         return existing_tags
-    
+
     def get_latest_digest(self, manifests):
         for digest in manifests:
             if 'latest' in manifests[digest]['tag']:
@@ -83,7 +84,6 @@ class TagReconciler:
             registries.append(default_registry)
             for registry in registries:
                 full_repo = os.path.join(registry, project['repository'])
-                default_repo = os.path.join(default_registry, project['repository'])
 
                 for image in project['images']:
                     full_digest = full_repo + '@sha256:' + image['digest']
@@ -93,28 +93,30 @@ class TagReconciler:
                     creds = docker_creds.DefaultKeychain.Resolve(name)
                     transport = transport_pool.Http(httplib2.Http)
 
-                    with docker_image.FromRegistry(name, creds, transport) as img:
-                        if img.exists():
-                            existing_tags = img.tags()
-                            logging.debug("Existing Tags: {0}".format(existing_tags))
+                    with docker_image.FromRegistry(
+                        name, creds, transport) as img:
+                            if img.exists():
+                                existing_tags = img.tags()
+                                logging.debug("Existing Tags: {0}".format(existing_tags))
 
-                            manifests = img.manifests()
-                            latest = self.get_latest_digest(manifests)
-                            
-                            # Don't retag latest if it's already latest
-                            if latest:
-                                if latest.startswith('sha256:'):
-                                    latest = latest[len('sha256:'):]
-                                if (image['tag'] == 'latest'
-                                    and latest.startswith(image['digest'])):
-                                        logging.debug('Skipping tagging %s as latest as '
-                                                    'it is already latest.',
-                                                    image['digest'])
-                                        continue
-                        self.add_tags(full_digest, full_tag, dry_run)
+                                manifests = img.manifests()
+                                latest = self.get_latest_digest(manifests)
+                                
+                                # Don't retag latest if it's already latest
+                                if latest:
+                                    if latest.startswith('sha256:'):
+                                        latest = latest[len('sha256:'):]
+                                    if (image['tag'] == 'latest'
+                                        and latest.startswith(image['digest'])):
+                                            logging.debug('Skipping tagging %s as latest as '
+                                                        'it is already latest.',
+                                                            image['digest'])
+                                            continue
+                            self.add_tags(full_digest, full_tag, dry_run)
 
                 logging.debug(self.get_existing_tags(
                     full_repo, project['images'][0]['digest']))
+
 
 def main():
     parser = argparse.ArgumentParser()
