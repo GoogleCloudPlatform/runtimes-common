@@ -88,13 +88,13 @@ func Parse(t *testing.T, fp string) (StructureTest, error) {
 	if !ok {
 		return nil, errors.New("Error encountered when type casting Structure Test interface")
 	}
-	tests.SetDriver(driverImpl)
+	tests.SetDriverImpl(driverImpl, imageName)
 	return tests, nil
 }
 
 var configFiles arrayFlags
 var imageName, driver string
-var driverImpl drivers.Driver
+var driverImpl func(string) drivers.Driver
 
 func TestMain(m *testing.M) {
 	flag.StringVar(&imageName, "image", "", "path to test image")
@@ -113,13 +113,13 @@ func TestMain(m *testing.M) {
 		configFiles = append(configFiles, "/workspace/structure_test.json")
 	}
 
-	driverImpl = drivers.InitDriver(driver, imageName)
-	if driverImpl == nil {
-		fmt.Fprintf(stdout, "Unsupported driver: %s\n", driver)
+	var err error
+	driverImpl, err = drivers.InitDriverImpl(driver)
+	if err != nil {
+		fmt.Fprintln(stdout, err.Error())
 		os.Exit(1)
-	} else {
-		fmt.Fprintf(stdout, "Using driver %s\n", driver)
 	}
+	fmt.Fprintf(stdout, "Using driver %s\n", driver)
 
 	if exit := m.Run(); exit != 0 {
 		os.Exit(exit)

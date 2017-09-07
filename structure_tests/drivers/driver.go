@@ -15,6 +15,8 @@
 package drivers
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"testing"
 
@@ -22,26 +24,14 @@ import (
 )
 
 type Driver interface {
-	Info() string
-
-	Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
-		shellMode bool, checkOutput bool)
-
-	Teardown(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
-		shellMode bool, checkOutput bool)
+	Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []unversioned.Command)
 
 	// given an array of command parts, construct a full command and execute it against the
 	// current environment. a list of environment variables can be passed to be set in the
 	// environment before the command is executed. additionally, a boolean flag is passed
 	// to specify whether or not we care about the output of the command.
 	ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
-		shellMode bool, checkOutput bool) (string, string, int)
-
-	// given a list of environment variable key/value pairs, set these in the current environment.
-	// also, keep track of the previous values of these vars to reset after test execution.
-	SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unversioned.EnvVar
-
-	ResetEnvVars(t *testing.T, vars []unversioned.EnvVar)
+		checkOutput bool) (string, string, int)
 
 	StatFile(t *testing.T, path string) (os.FileInfo, error)
 
@@ -50,10 +40,12 @@ type Driver interface {
 	ReadDir(t *testing.T, path string) ([]os.FileInfo, error)
 }
 
-func InitDriver(driver string, image string) Driver {
+func InitDriverImpl(driver string) (func(string) Driver, error) {
 	switch driver {
 	// future drivers will be added here
+	case "docker":
+		return NewDockerDriver, nil
 	default:
-		return NewDockerDriver(image)
+		return nil, errors.New(fmt.Sprintf("Unsupported driver type: %s", driver))
 	}
 }

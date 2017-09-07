@@ -15,18 +15,14 @@
 package drivers
 
 import (
+	"bufio"
 	"bytes"
-	"fmt"
+	"context"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
-
-	"context"
-
-	"bufio"
-
-	"regexp"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
 	"github.com/fsouza/go-dockerclient"
@@ -38,12 +34,7 @@ type DockerDriver struct {
 	currentImage  string
 }
 
-func (d *DockerDriver) Info() string {
-	return fmt.Sprintf("DockerDriver:\nOriginalImage: %s\ncurrentImage: %s\ncli: %s\n",
-		d.originalImage, d.currentImage, d.cli)
-}
-
-func NewDockerDriver(image string) *DockerDriver {
+func NewDockerDriver(image string) Driver {
 	newCli, err := docker.NewClientFromEnv()
 	if err != nil {
 		panic(err)
@@ -55,13 +46,16 @@ func NewDockerDriver(image string) *DockerDriver {
 	}
 }
 
-func (d *DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
-	shellMode bool, checkOutput bool) (string, string, int) {
-
-	if len(fullCommand) == 0 {
-		t.Logf("empty command provided: skipping...")
-		return "", "", -1
+func (d *DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []unversioned.Command) {
+	env := d.processEnvVars(t, envVars)
+	for _, cmd := range fullCommand {
+		d.currentImage = d.runAndCommit(t, env, cmd)
 	}
+}
+
+func (d *DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
+	checkOutput bool) (string, string, int) {
+
 	var env []string
 	for _, envVar := range envVars {
 		env = append(env, envVar.Key+"="+envVar.Value)
@@ -79,7 +73,7 @@ func (d *DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar
 	return stdout, stderr, exitCode
 }
 
-func (d *DockerDriver) SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unversioned.EnvVar {
+func (d *DockerDriver) processEnvVars(t *testing.T, vars []unversioned.EnvVar) []string {
 	if len(vars) == 0 {
 		return nil
 	}
@@ -115,19 +109,13 @@ func (d *DockerDriver) SetEnvVars(t *testing.T, vars []unversioned.EnvVar) []unv
 				env = append(env, envVar.Key+"="+strings.Replace(envVar.Value, "$"+currentVar, val, -1))
 			} else {
 				t.Errorf("Variable %s not found in image env! Check test config.", currentVar)
+				return nil
 			}
 		} else {
 			env = append(env, envVar.Key+"="+envVar.Value)
 		}
 	}
-	// since these are global envvars, just overwrite the original image
-	d.originalImage = d.runAndCommit(t, env, nil)
-	d.currentImage = d.originalImage
-	return nil
-}
-
-func (d *DockerDriver) ResetEnvVars(t *testing.T, vars []unversioned.EnvVar) {
-	// since the container will be destroyed after the tests, this is a noop
+	return env
 }
 
 // copies a file from a docker container to the local fs, and returns its path
@@ -267,6 +255,7 @@ func (d *DockerDriver) runAndCommit(t *testing.T, env []string, command []string
 }
 
 func (d *DockerDriver) exec(t *testing.T, env []string, command []string) (string, string, int) {
+	//TODO(nkubala): remove
 	ctx := context.Background()
 
 	// first, start container from the current image
@@ -294,6 +283,7 @@ func (d *DockerDriver) exec(t *testing.T, env []string, command []string) (strin
 		t.Errorf("Error creating container: %s", err.Error())
 	}
 
+	//TODO(nkubala): look into adding timeout
 	exitCode, err := d.cli.WaitContainer(container.ID)
 	if err != nil {
 		t.Errorf("Error when waiting for container: %s", err.Error())
@@ -310,19 +300,4 @@ func (d *DockerDriver) exec(t *testing.T, env []string, command []string) (strin
 	}
 
 	return stdout.String(), stderr.String(), exitCode
-}
-
-func (d *DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
-	shellMode bool, checkOutput bool) {
-	env := []string{}
-	for _, envVar := range envVars {
-		env = append(env, envVar.Key+"="+envVar.Value)
-	}
-	d.currentImage = d.runAndCommit(t, env, fullCommand)
-}
-
-func (d *DockerDriver) Teardown(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
-	shellMode bool, checkOutput bool) {
-	// reset to the original image
-	d.currentImage = d.originalImage
 }
