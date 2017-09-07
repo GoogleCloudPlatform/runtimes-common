@@ -52,4 +52,3 @@ py_image(
         "@containerregistry",
     ],
 )
-
