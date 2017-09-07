@@ -23,7 +23,7 @@ import sys
 import subprocess
 
 
-_GCLOUD_CMD = ['gcloud', 'container', 'images', '--format=json']
+_GCLOUD_CMD = ['gcloud', 'alpha', 'container', 'images', '--format=json']
 
 
 # Severities
@@ -41,7 +41,10 @@ _SEV_MAP = {
 
 _SUB_MAP = {
     'launcher.gcr.io/google': 'gcr.io/google-appengine',
-    'l.gcr.io/google': 'gcr.io/google-appengine'
+    'l.gcr.io/google': 'gcr.io/google-appengine',
+    'eu.gcr.io/google-appengine': 'gcr.io/google-appengine',
+    'us.gcr.io/google-appengine': 'gcr.io/google-appengine',
+    'asia.gcr.io/google-appengine': 'gcr.io/google-appengine'
 }
 
 
@@ -92,7 +95,7 @@ def _check_for_vulnz(image, severity, whitelist):
 
     if count > 0:
         logging.info('Found %s unpatched vulnerabilities in %s. Run '
-                     '[gcloud container images describe %s] '
+                     '[gcloud alpha container images describe %s] '
                      'to see the full list.', count, image, image)
 
     return unpatched
