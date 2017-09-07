@@ -10,7 +10,6 @@ load(
     "docker_push",
     "docker_build",
 )
-
 load("@io_bazel_rules_docker//docker/contrib/python:image.bzl", "py_image")
 
 par_binary(
@@ -45,11 +44,11 @@ py_test(
 )
 
 py_image(
-   name = "reconciletags_image",
-   srcs = ["reconciletags.py"],
-   base = "@python_base//image",
-   main = "reconciletags.py",
-   deps = [
-       "@containerregistry",
-   ],
+    name = "reconciletags_image",
+    srcs = ["reconciletags.py"],
+    base = "@python_base//image",
+    main = "reconciletags.py",
+    deps = [
+        "@containerregistry",
+    ],
 )
