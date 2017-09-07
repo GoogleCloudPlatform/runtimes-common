@@ -25,14 +25,15 @@ import test_util
 
 
 class TestCustom(unittest.TestCase):
-    """This TestCase fetch a configuration from the endpoint '/custom' describing
-       a series of tests, then run each of them and report their results.
+    """This TestCase fetch a configuration from the endpoint '/custom'
+       describing a series of tests, then run each of them and report their
+       results.
 
     In the case where a test of the series fail, this TestCase will be
     considered as failed.
 
     The specification for the custom tests can be found at:
-    https://github.com/GoogleCloudPlatform/runtimes-common/tree/master/integration_tests#custom-tests
+    https://github.com/GoogleCloudPlatform/runtimes-common/tree/master/integration_tests#custom-tests # noqa
     """
 
     def __init__(self, url, methodName='runTest'):
@@ -41,7 +42,8 @@ class TestCustom(unittest.TestCase):
         unittest.TestCase.__init__(self)
 
     def runTest(self):
-        """Retrieve the configuration for the custom tests and launch the tests.
+        """Retrieve the configuration for the custom tests and launch the
+           tests.
 
         Returns:
             None.
@@ -204,7 +206,8 @@ class TestCustom(unittest.TestCase):
            (using a single request).
 
         Args:
-            specification: Dictionary containing the specification for the test.
+            specification: Dictionary containing the specification for the
+                           test.
 
         Returns:
             True if the test have been executed and is valid.
@@ -226,4 +229,3 @@ class TestCustom(unittest.TestCase):
             self.assertEqual(status, 0, "The response of the endpoint {0} "
                              "is not valid (2xx expected)".format(path))
             return True
-
