@@ -32,7 +32,7 @@ new_go_repository(
 
 git_repository(
     name = "io_bazel_rules_docker",
-    commit = "db1b348dfdf161a784bc1efc5a1020395572b996",
+    commit = "65df68f4f64e9c59eb571290eb86bf07766393b6",
     remote = "https://github.com/bazelbuild/rules_docker.git",
 )
 
@@ -73,13 +73,20 @@ py_library(
 
 docker_pull(
     name = "python_base",
+    digest = "sha256:163a514abdb54f99ba371125e884c612e30d6944628dd6c73b0feca7d31d2fb3",
     registry = "gcr.io",
     repository = "google-appengine/python",
-    digest = "sha256:163a514abdb54f99ba371125e884c612e30d6944628dd6c73b0feca7d31d2fb3",
 )
 
 http_file(
     name = "docker_credential_gcr",
-    url ="https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.4.1/docker-credential-gcr_linux_amd64-1.4.1.tar.gz",
     sha256 = "c4f51ff78c25e2bfef38af0f38c6966806e25da7c5e43092c53a4d467fea4743",
+    url = "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.4.1/docker-credential-gcr_linux_amd64-1.4.1.tar.gz",
+)
+
+docker_pull(
+    name = "node_base",
+    digest = "sha256:f98878fe17ac9474f5a4beb9f692272f698a9ce2dc1e6297d449b2003cfec3e9",
+    registry = "gcr.io",
+    repository = "google-appengine/nodejs",
 )

@@ -32,6 +32,7 @@ class Base(object):
     @abc.abstractmethod
     def __enter__(self):
         """Initialize the context."""
+        return self
 
     def __exit__(self, unused_type, unused_value, unused_traceback):
         """Cleanup the context."""
