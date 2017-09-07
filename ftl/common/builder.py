@@ -49,14 +49,11 @@ class Base(object):
           a raw string of the layer's .tar.gz
         """
 
-    # __enter__ and __exit__ allow use as a context manager.
-    @abc.abstractmethod
     def __enter__(self):
         """Initialize the builder."""
 
     def __exit__(self, unused_type, unused_value, unused_traceback):
         """Cleanup after the builder."""
-        pass
 
 
 class JustApp(Base):
@@ -65,10 +62,6 @@ class JustApp(Base):
     """
     def __init__(self, ctx):
         super(JustApp, self).__init__(ctx)
-
-    def __enter__(self):
-        """Override."""
-        return self
 
     def CreatePackageBase(self, base_image, cache):
         """Override."""
