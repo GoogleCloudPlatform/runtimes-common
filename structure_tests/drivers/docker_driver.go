@@ -17,7 +17,6 @@ package drivers
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -121,8 +120,6 @@ func (d *DockerDriver) processEnvVars(t *testing.T, vars []unversioned.EnvVar) [
 // copies a file from a docker container to the local fs, and returns its path
 // caller is responsible for removing this file when finished
 func (d *DockerDriver) retrieveFile(t *testing.T, path string) (string, error) {
-	ctx := context.Background()
-
 	// this contains a placeholder command which does not get run, since
 	// the client doesn't allow creating a container without a command.
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
@@ -134,7 +131,6 @@ func (d *DockerDriver) retrieveFile(t *testing.T, path string) (string, error) {
 		},
 		HostConfig:       nil,
 		NetworkingConfig: nil,
-		Context:          ctx,
 	})
 	if err != nil {
 		t.Errorf("Error creating container: %s", err.Error())
@@ -151,7 +147,6 @@ func (d *DockerDriver) retrieveFile(t *testing.T, path string) (string, error) {
 	err = d.cli.DownloadFromContainer(container.ID, docker.DownloadFromContainerOptions{
 		OutputStream: stream,
 		Path:         path,
-		Context:      ctx,
 	})
 	if err != nil {
 		t.Errorf("Error when downloading file from container: %s", err.Error())
@@ -213,8 +208,6 @@ func (d *DockerDriver) runAndCommit(t *testing.T, env []string, command []string
 		command = []string{"NOOP_COMMAND_DO_NOT_RUN"}
 	}
 
-	ctx := context.Background()
-
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
 			Image:        d.currentImage,
@@ -225,7 +218,6 @@ func (d *DockerDriver) runAndCommit(t *testing.T, env []string, command []string
 		},
 		HostConfig:       nil,
 		NetworkingConfig: nil,
-		Context:          ctx,
 	})
 	if err != nil {
 		t.Errorf("Error creating container: %s", err.Error())
@@ -243,7 +235,6 @@ func (d *DockerDriver) runAndCommit(t *testing.T, env []string, command []string
 
 	image, err := d.cli.CommitContainer(docker.CommitContainerOptions{
 		Container: container.ID,
-		Context:   ctx,
 	})
 
 	if err != nil {
@@ -255,9 +246,6 @@ func (d *DockerDriver) runAndCommit(t *testing.T, env []string, command []string
 }
 
 func (d *DockerDriver) exec(t *testing.T, env []string, command []string) (string, string, int) {
-	//TODO(nkubala): remove
-	ctx := context.Background()
-
 	// first, start container from the current image
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
@@ -269,7 +257,6 @@ func (d *DockerDriver) exec(t *testing.T, env []string, command []string) (strin
 		},
 		HostConfig:       nil,
 		NetworkingConfig: nil,
-		Context:          ctx,
 	})
 	if err != nil {
 		t.Errorf("Error creating container: %s", err.Error())
