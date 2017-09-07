@@ -25,14 +25,14 @@ import test_util
 
 
 class TestCustom(unittest.TestCase):
-    """ This TestCase fetch a configuration from the endpoint '/custom' describing
-        a series of tests, then run each of them and report their results.
+    """This TestCase fetch a configuration from the endpoint '/custom' describing
+       a series of tests, then run each of them and report their results.
 
-        In the case where a test of the series fail, this TestCase will be
-        considered as failed.
+    In the case where a test of the series fail, this TestCase will be
+    considered as failed.
 
-        The specification for the custom tests can be found at:
-        https://github.com/GoogleCloudPlatform/runtimes-common/tree/master/integration_tests#custom-tests
+    The specification for the custom tests can be found at:
+    https://github.com/GoogleCloudPlatform/runtimes-common/tree/master/integration_tests#custom-tests
     """
 
     def __init__(self, url, methodName='runTest'):
@@ -41,9 +41,10 @@ class TestCustom(unittest.TestCase):
         unittest.TestCase.__init__(self)
 
     def runTest(self):
-        """ Retrieve the configuration for the custom tests and launch the tests.
+        """Retrieve the configuration for the custom tests and launch the tests.
 
-        :return: None.
+        Returns:
+            None.
         """
         logging.debug('Retrieving list of custom test endpoints.')
         output, status_code = test_util.get(self._url)
@@ -56,41 +57,36 @@ class TestCustom(unittest.TestCase):
         else:
             for specification in json.loads(output):
                 test_num += 1
-                self._runTestForSpecification(specification, test_num)
+                self._run_test_for_specification(specification, test_num)
 
-    def _runTestForSpecification(self, specification, test_num):
-        """ Given the specification for a test execute the steps and
+    def _run_test_for_specification(self, specification, test_num):
+        """Given the specification for a test execute the steps and
             validate the result.
 
-        :param specification: Dictionary containing the specification.
-        :param test_num: Identifier of the test.
-        :return: None.
+        Args:
+            specification: Dictionary containing the specification.
+            test_num: Identifier of the test.
+
+        Returns:
+            None.
         """
         name = specification.get('name', 'test_{0}'.format(test_num))
         timeout = specification.get('timeout', 500)
-        path = specification.get('path')
         steps = specification.get('steps')
         validation = specification.get('validation')
 
         logging.info('Running custom test: %s', name)
 
-        if path is not None:
-            if steps is not None or validation is not None:
-                logging.warn('When the field path is specified, the fields '
-                             'validation and steps should not be present')
-                return
-
-            # Run the old test
-            test_endpoint = urlparse.urljoin(self._base_url, path)
-            response, _ = test_util.get(test_endpoint, timeout=timeout)
-            logging.debug(response)
+        if self._test_for_old_specification(specification):
             return
 
         context = {'name': name}
         step_num = 0
 
         for step in steps:
-            self._runStep(context, step, step_num, timeout)
+            step_name, step_context = self._run_step(context, step,
+                                                     step_num, timeout)
+            context[step_name] = step_context
 
         logging.debug("context : %s", json.dumps(context,
                                                  sort_keys=True,
@@ -99,12 +95,13 @@ class TestCustom(unittest.TestCase):
 
         self._validate(context, validation)
 
-    def _runStep(self, context, step, step_num, timeout):
-        """ Use the provided step's configuration to send a request to the
-            specified path and store the result into the context.
+    def _run_step(self, context, step, step_num, timeout):
+        """Use the provided step's configuration to send a request to the
+           specified path and store the result into the context.
 
-        :param context: A dictionary containing the context for the test.
-        :param step: A dictionary containing the configuration of the step,
+        Args:
+            context: A dictionary containing the context for the test.
+            step: A dictionary containing the configuration of the step,
                this include:
                  name (optional): name of the step.
                  configuration (optional):
@@ -112,8 +109,10 @@ class TestCustom(unittest.TestCase):
                     headers: Dictionary containing the headers of the request.
                     content: Payload attached to the request.
                  path: Url of the request
-        :param step_num: Index of the step.
-        :return: None.
+            step_num: Index of the step.
+
+        Returns:
+            None.
         """
         step_name = step.get('name', 'step_{0}'.format(step_num))
         configuration = step.get('configuration', dict())
@@ -124,8 +123,9 @@ class TestCustom(unittest.TestCase):
             context.get('name')
         ))
 
+        test_endpoint = urlparse.urljoin(self._base_url, path)
         response = requests.request(method=configuration.get('method', 'GET'),
-                                    url=path,
+                                    url=test_endpoint,
                                     headers=configuration.get('headers'),
                                     data=configuration.get('content'),
                                     timeout=timeout)
@@ -135,7 +135,7 @@ class TestCustom(unittest.TestCase):
         else:
             content = response.text
 
-        context[step_name] = {
+        step_context = {
             'request': {
                 'configuration': configuration,
                 'path': path
@@ -147,20 +147,24 @@ class TestCustom(unittest.TestCase):
             }
         }
 
-    def _validate(self, context, specification):
-        """ Compare the specification with the context and assert that every key
-            present in the specification is also present in the context, and
-            that the value associated to that key in the context match the
-            regular expression specified in the specification.
+        return step_name, step_context
 
-        :param context: Dictionary containing for each step the request and
+    def _validate(self, context, specification):
+        """Compare the specification with the context and assert that every key
+           present in the specification is also present in the context, and
+           that the value associated to that key in the context match the
+           regular expression specified in the specification.
+
+        Args:
+            context: Dictionary containing for each step the request and
                the response.
-        :param specification: Dictionary with the following fields:
+            specification: Dictionary with the following fields:
                match: List of object containing:
                  key: Path in the context e.g step.response.headers.property .
                  pattern: Regular expression to be compared with the value
                           present at the path `key` in the context.
-        :return: None.
+        Returns:
+            None.
         """
 
         match = specification.get('match')
@@ -174,15 +178,17 @@ class TestCustom(unittest.TestCase):
                                  .format(value, key, pattern))
 
     def _evaluate_substitution(self, context, path):
-        """ Search for the path `path` in the context and return the associated
-            value.
+        """Search for the path `path` in the context and return the associated
+           value.
 
-            If the path is not valid the test is considered failed.
+        If the path is not valid the test is considered failed.
 
-        :param context: A dictionary in which the key will be searched.
-        :param path: A list of keys separated by dots, representing a path
+        Args:
+            context: A dictionary in which the key will be searched.
+            path: A list of keys separated by dots, representing a path
                      in the context.
-        :return: The value present in the context at the path `path`.
+        Returns:
+            The value present in the context at the path `path`.
         """
         for key in path.split('.'):
             context = context.get(key)
@@ -191,3 +197,33 @@ class TestCustom(unittest.TestCase):
                                           "{1} is not present in the context"
                                           .format(key, path))
         return context
+
+    def _test_for_old_specification(self, specification):
+        """Verify if the old specification (using the field path) is present,
+           in which case the test is run with the appropriate behavior
+           (using a single request).
+
+        Args:
+            specification: Dictionary containing the specification for the test.
+
+        Returns:
+            True if the test have been executed and is valid.
+            In the case where the test is executed but the result is negative
+            the TestCase is considered as fail.
+        """
+        path = specification.get('path')
+        timeout = specification.get('timeout')
+
+        if path is not None:
+            if 'steps' in specification or 'validation' in specification:
+                self.fail('When the field path is specified, the fields '
+                          'validation and steps should not be present')
+
+            # Run the old test
+            test_endpoint = urlparse.urljoin(self._base_url, path)
+            response, status = test_util.get(test_endpoint, timeout=timeout)
+            logging.debug(response)
+            self.assertEqual(status, 0, "The response of the endpoint {0} "
+                             "is not valid (2xx expected)".format(path))
+            return True
+
