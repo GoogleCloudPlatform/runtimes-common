@@ -46,7 +46,7 @@ load(
     "@io_bazel_rules_docker//docker:docker.bzl",
     "docker_repositories",
     "docker_pull",
-
+)
 
 docker_repositories()
 
