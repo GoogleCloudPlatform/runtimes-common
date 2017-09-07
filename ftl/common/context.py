@@ -25,14 +25,11 @@ class Base(object):
     It provides methods used by builders for accessing app files.
     """
     # __enter__ and __exit__ allow use as a context manager.
-    @abc.abstractmethod
     def __enter__(self):
         """Initialize the context."""
 
-    @abc.abstractmethod
     def __exit__(self, unused_type, unused_value, unused_traceback):
         """Cleanup the context."""
-        pass
 
     @abc.abstractmethod
     def Contains(self, relative_path):
@@ -64,12 +61,6 @@ class Workspace(Base):
         super(Workspace, self).__init__()
         self._directory = directory
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, unused_type, unused_value, unused_traceback):
-        return self
-
     def Contains(self, relative_path):
         """Override."""
         fqpath = os.path.join(self._directory, relative_path)
@@ -95,12 +86,6 @@ class Memory(Base):
 
     def __init__(self):
         self._files = {}
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, unused_type, unused_value, unused_traceback):
-        return self
 
     def AddFile(self, filename, contents):
         self._files[filename] = contents

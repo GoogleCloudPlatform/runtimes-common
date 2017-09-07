@@ -35,7 +35,6 @@ class Base(object):
 
     def __exit__(self, unused_type, unused_value, unused_traceback):
         """Cleanup the context."""
-        pass
 
     @abc.abstractmethod
     def Get(self, base_image, namespace, checksum):
@@ -73,9 +72,6 @@ class Registry(Base):
         self._transport = transport
         self._threads = threads
         self._mount = mount or []
-
-    def __enter__(self):
-        return self
 
     def _tag(self, base_image, namespace, checksum):
         fingerprint = '%s %s' % (base_image.digest(), checksum)
