@@ -46,6 +46,8 @@ type Driver interface {
 	StatFile(t *testing.T, path string) (os.FileInfo, error)
 
 	ReadFile(t *testing.T, path string) ([]byte, error)
+
+	ReadDir(t *testing.T, path string) ([]os.FileInfo, error)
 }
 
 func InitDriver(driver string, image string) Driver {
