@@ -70,3 +70,11 @@ py_library(
     type = "tar.gz",
     url = "https://pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz",
 )
+
+docker_pull(
+    name = "python_base",
+    registry = "gcr.io",
+    repository = "google-appengine/python",
+    digest = "sha256:163a514abdb54f99ba371125e884c612e30d6944628dd6c73b0feca7d31d2fb3",
+)
+

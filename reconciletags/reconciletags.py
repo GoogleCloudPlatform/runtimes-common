@@ -28,6 +28,7 @@ from containerregistry.client import docker_name
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
 from containerregistry.transport import transport_pool
+from containerregistry.tools import patched
 import httplib2
 
 
@@ -142,4 +143,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    with patched.Httplib2():
+        main()
