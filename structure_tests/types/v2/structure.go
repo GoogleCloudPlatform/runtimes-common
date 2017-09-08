@@ -59,11 +59,11 @@ func (st *StructureTest) RunCommandTests(t *testing.T) int {
 			validateCommandTest(t, tt)
 			//each test needs to have its own instance of the driver: create that here
 			driver := st.NewDriver()
-			vars := append(tt.EnvVars, st.GlobalEnvVars...)
+			vars := append(st.GlobalEnvVars, tt.EnvVars...)
 			driver.Setup(t, vars, tt.Setup)
 
 			fullCommand := append([]string{tt.Command}, tt.Args...)
-			stdout, stderr, exitcode := driver.ProcessCommand(t, tt.EnvVars, fullCommand, true)
+			stdout, stderr, exitcode := driver.ProcessCommand(t, tt.EnvVars, fullCommand)
 
 			CheckOutput(t, tt, stdout, stderr, exitcode)
 			counter++

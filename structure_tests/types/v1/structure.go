@@ -58,10 +58,10 @@ func (st *StructureTest) RunCommandTests(t *testing.T) int {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateCommandTest(t, tt)
 			driver := st.NewDriver()
-			vars := append(tt.EnvVars, st.GlobalEnvVars...)
+			vars := append(st.GlobalEnvVars, tt.EnvVars...)
 			driver.Setup(t, vars, tt.Setup)
 
-			stdout, stderr, exitcode := driver.ProcessCommand(t, tt.EnvVars, tt.Command, true)
+			stdout, stderr, exitcode := driver.ProcessCommand(t, tt.EnvVars, tt.Command)
 
 			CheckOutput(t, tt, stdout, stderr, exitcode)
 			counter++

@@ -30,8 +30,7 @@ type Driver interface {
 	// current environment. a list of environment variables can be passed to be set in the
 	// environment before the command is executed. additionally, a boolean flag is passed
 	// to specify whether or not we care about the output of the command.
-	ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
-		checkOutput bool) (string, string, int)
+	ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string) (string, string, int)
 
 	StatFile(t *testing.T, path string) (os.FileInfo, error)
 

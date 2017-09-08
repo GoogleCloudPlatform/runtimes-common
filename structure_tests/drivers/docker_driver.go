@@ -19,7 +19,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
-	"regexp"
 	"strings"
 	"testing"
 
@@ -31,6 +30,7 @@ type DockerDriver struct {
 	cli           docker.Client
 	originalImage string
 	currentImage  string
+	env           map[string]string
 }
 
 func NewDockerDriver(image string) Driver {
@@ -42,6 +42,7 @@ func NewDockerDriver(image string) Driver {
 		originalImage: image,
 		currentImage:  image,
 		cli:           *newCli,
+		env:           nil,
 	}
 }
 
@@ -52,9 +53,7 @@ func (d *DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCom
 	}
 }
 
-func (d *DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string,
-	checkOutput bool) (string, string, int) {
-
+func (d *DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string) (string, string, int) {
 	var env []string
 	for _, envVar := range envVars {
 		env = append(env, envVar.Key+"="+envVar.Value)
@@ -72,47 +71,36 @@ func (d *DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar
 	return stdout, stderr, exitCode
 }
 
+func (d *DockerDriver) retrieveEnvVar(envVar string) string {
+	// since we're only retrieving these during processing, we can cache this on the driver
+	if d.env == nil {
+		image, err := d.cli.InspectImage(d.currentImage)
+		if err != nil {
+			return ""
+		}
+
+		// convert env to map for processing
+		imageEnv := make(map[string]string)
+		for _, varPair := range image.Config.Env {
+			pair := strings.Split(varPair, "=")
+			imageEnv[pair[0]] = pair[1]
+		}
+		d.env = imageEnv
+	}
+
+	return d.env[envVar]
+}
+
 func (d *DockerDriver) processEnvVars(t *testing.T, vars []unversioned.EnvVar) []string {
 	if len(vars) == 0 {
 		return nil
 	}
 
-	image, err := d.cli.InspectImage(d.currentImage)
-	if err != nil {
-		t.Errorf("Error when inspecting image: %s", err.Error())
-		return nil
-	}
-
-	// convert env to map for easier processing
-	imageEnv := make(map[string]string)
-	for _, varPair := range image.Config.Env {
-		pair := strings.Split(varPair, "=")
-		imageEnv[pair[0]] = pair[1]
-	}
-
-	before := regexp.MustCompile(".*\\$(.*?):")
-	after := regexp.MustCompile(".*:\\$(.*)")
-
 	env := []string{}
+
 	for _, envVar := range vars {
-		currentVar := ""
-		if match := before.FindStringSubmatch(envVar.Value); match != nil {
-			// first entry is the leftmost substring: second entry is the first group
-			currentVar = match[1]
-		}
-		if match := after.FindStringSubmatch(envVar.Value); match != nil {
-			currentVar = match[1]
-		}
-		if currentVar != "" {
-			if val, ok := imageEnv[currentVar]; ok {
-				env = append(env, envVar.Key+"="+strings.Replace(envVar.Value, "$"+currentVar, val, -1))
-			} else {
-				t.Errorf("Variable %s not found in image env! Check test config.", currentVar)
-				return nil
-			}
-		} else {
-			env = append(env, envVar.Key+"="+envVar.Value)
-		}
+		expandedVal := os.Expand(envVar.Value, d.retrieveEnvVar)
+		env = append(env, envVar.Key+"="+expandedVal)
 	}
 	return env
 }
@@ -200,13 +188,6 @@ func (d *DockerDriver) ReadDir(t *testing.T, path string) ([]os.FileInfo, error)
 // and sets that image as the new "current image"
 func (d *DockerDriver) runAndCommit(t *testing.T, env []string, command []string) string {
 	shouldRun := true
-
-	// this is a placeholder command that does not get run, since
-	// the client doesnt allow creating a container without a command.
-	if len(command) == 0 {
-		shouldRun = false
-		command = []string{"NOOP_COMMAND_DO_NOT_RUN"}
-	}
 
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{

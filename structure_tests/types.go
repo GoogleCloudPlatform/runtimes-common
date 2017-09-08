@@ -15,7 +15,6 @@
 package main
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
@@ -30,15 +29,6 @@ type StructureTest interface {
 }
 
 type arrayFlags []string
-
-func (a *arrayFlags) String() string {
-	return strings.Join(*a, ", ")
-}
-
-func (a *arrayFlags) Set(value string) error {
-	*a = append(*a, value)
-	return nil
-}
 
 var schemaVersions map[string]func() StructureTest = map[string]func() StructureTest{
 	"1.0.0": func() StructureTest { return new(v1.StructureTest) },
