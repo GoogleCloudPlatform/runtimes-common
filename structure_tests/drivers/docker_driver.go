@@ -151,11 +151,7 @@ func (d *DockerDriver) StatFile(t *testing.T, target string) (os.FileInfo, error
 			break
 		}
 		switch header.Typeflag {
-		case tar.TypeDir:
-			if filepath.Clean(header.Name) == path.Base(target) {
-				return header.FileInfo(), nil
-			}
-		case tar.TypeReg:
+		case tar.TypeDir, tar.TypeReg:
 			if filepath.Clean(header.Name) == path.Base(target) {
 				return header.FileInfo(), nil
 			}
@@ -206,18 +202,13 @@ func (d *DockerDriver) ReadDir(t *testing.T, target string) ([]os.FileInfo, erro
 		if err == io.EOF {
 			break
 		}
-		switch header.Typeflag {
-		case tar.TypeDir:
-			// we only want top level files/dirs here, no recursion. to get these, remove
+		if header.Typeflag == tar.TypeDir {
+			// we only want top level dirs here, no recursion. to get these, remove
 			// trailing separator and split on separator. there should only be two parts.
 			parts := strings.Split(strings.TrimSuffix(header.Name, string(os.PathSeparator)), string(os.PathSeparator))
 			if len(parts) == 2 {
 				infos = append(infos, header.FileInfo())
 			}
-		case tar.TypeReg:
-			continue
-		default:
-			continue
 		}
 	}
 	return infos, nil
