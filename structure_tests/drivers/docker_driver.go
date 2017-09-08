@@ -15,10 +15,13 @@
 package drivers
 
 import (
+	"archive/tar"
 	"bufio"
 	"bytes"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"os"
+	"path"
 	"strings"
 	"testing"
 
@@ -103,9 +106,9 @@ func (d *DockerDriver) processEnvVars(t *testing.T, vars []unversioned.EnvVar) [
 	return env
 }
 
-// copies a file from a docker container to the local fs, and returns its path
-// caller is responsible for removing this file when finished
-func (d *DockerDriver) retrieveFile(t *testing.T, path string) (string, error) {
+// copies a tar archive starting at the specified path from the image, and returns
+// a tar reader which can be used to iterate through its contents and retrieve metadata
+func (d *DockerDriver) retrieveTar(t *testing.T, path string) (*tar.Reader, error) {
 	// this contains a placeholder command which does not get run, since
 	// the client doesn't allow creating a container without a command.
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
@@ -120,15 +123,11 @@ func (d *DockerDriver) retrieveFile(t *testing.T, path string) (string, error) {
 	})
 	if err != nil {
 		t.Errorf("Error creating container: %s", err.Error())
-		return "", err
+		return nil, err
 	}
 
-	tmpFile, err := ioutil.TempFile("", "structure_test")
-	if err != nil {
-		t.Errorf("Error when creating temp file: %s", err.Error())
-		return "", err
-	}
-	stream := bufio.NewWriter(tmpFile)
+	var b bytes.Buffer
+	stream := bufio.NewWriter(&b)
 
 	err = d.cli.DownloadFromContainer(container.ID, docker.DownloadFromContainerOptions{
 		OutputStream: stream,
@@ -136,46 +135,93 @@ func (d *DockerDriver) retrieveFile(t *testing.T, path string) (string, error) {
 	})
 	if err != nil {
 		t.Errorf("Error when downloading file from container: %s", err.Error())
-		return "", err
+		return nil, err
 	}
 	stream.Flush()
-	tmpFile.Close()
-	return tmpFile.Name(), nil
+	return tar.NewReader(bytes.NewReader(b.Bytes())), nil
 }
 
-func (d *DockerDriver) StatFile(t *testing.T, path string) (os.FileInfo, error) {
-	file, err := d.retrieveFile(t, path)
+func (d *DockerDriver) StatFile(t *testing.T, filepath string) (os.FileInfo, error) {
+	reader, err := d.retrieveTar(t, filepath)
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(file)
-
-	f, err := os.Stat(file)
-	if err != nil {
-		return nil, err
+	for {
+		header, err := reader.Next()
+		if err == io.EOF {
+			break
+		}
+		switch header.Typeflag {
+		case tar.TypeDir:
+			continue
+		case tar.TypeReg:
+			if header.Name == path.Base(filepath) {
+				return header.FileInfo(), nil
+			}
+		default:
+			continue
+		}
 	}
-	if f == nil {
-		return nil, nil
-	}
-	return f, nil
+	return nil, fmt.Errorf("File %s not found in image", filepath)
 }
 
-func (d *DockerDriver) ReadFile(t *testing.T, path string) ([]byte, error) {
-	file, err := d.retrieveFile(t, path)
+func (d *DockerDriver) ReadFile(t *testing.T, filepath string) ([]byte, error) {
+	reader, err := d.retrieveTar(t, filepath)
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(file)
-	return ioutil.ReadFile(file)
+	for {
+		header, err := reader.Next()
+		if err == io.EOF {
+			break
+		}
+		switch header.Typeflag {
+		case tar.TypeDir:
+			continue
+		case tar.TypeReg:
+			if header.Name == path.Base(filepath) {
+				var b bytes.Buffer
+				stream := bufio.NewWriter(&b)
+				io.Copy(stream, reader)
+				return b.Bytes(), nil
+			}
+		default:
+			continue
+		}
+	}
+	return nil, fmt.Errorf("File %s not found in image", filepath)
 }
 
-func (d *DockerDriver) ReadDir(t *testing.T, path string) ([]os.FileInfo, error) {
-	tmpDir, err := d.retrieveFile(t, path)
-	defer os.RemoveAll(tmpDir)
+func (d *DockerDriver) ReadDir(t *testing.T, dirpath string) ([]os.FileInfo, error) {
+	reader, err := d.retrieveTar(t, dirpath)
 	if err != nil {
 		return nil, err
 	}
-	return ioutil.ReadDir(tmpDir)
+	for {
+		header, err := reader.Next()
+		if err == io.EOF {
+			break
+		}
+		switch header.Typeflag {
+		case tar.TypeDir:
+			if header.Name == path.Base(dirpath) {
+				var infos []os.FileInfo
+				for {
+					header, err := reader.Next()
+					if err == io.EOF {
+						break
+					}
+					infos = append(infos, header.FileInfo())
+				}
+				return infos, nil
+			}
+		case tar.TypeReg:
+			continue
+		default:
+			continue
+		}
+	}
+	return nil, fmt.Errorf("Directory %s not found in image", dirpath)
 }
 
 // This method takes a command (in the form of a list of args), and does the following:
