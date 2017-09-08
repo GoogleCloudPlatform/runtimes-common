@@ -23,6 +23,28 @@ par_binary(
     ],
 )
 
+par_binary(
+    name = "config_integrity",
+    srcs = ["config_integrity_test.py"],
+    main = "config_integrity_test.py",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@containerregistry",
+        "@httplib2//:httplib2",
+    ],
+)
+
+par_binary(
+    name = "data_integrity",
+    srcs = ["data_integrity_test.py"],
+    main = "data_integrity_test.py",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@containerregistry",
+        "@httplib2//:httplib2",
+    ],
+)
+
 py_test(
     name = "reconciletags_test",
     srcs = ["reconciletags_test.py"],
@@ -40,6 +62,24 @@ py_test(
         "@containerregistry",
         "@httplib2//:httplib2",
         "@mock",
+    ],
+)
+
+py_test(
+    name = "config_integrity_test",
+    srcs = ["config_integrity_test.py"],
+    deps = [
+        "@containerregistry",
+        "@httplib2//:httplib2",
+    ],
+)
+
+py_test(
+    name = "data_integrity_test",
+    srcs = ["data_integrity_test.py"],
+    deps = [
+        "@containerregistry",
+        "@httplib2//:httplib2",
     ],
 )
 
