@@ -49,9 +49,9 @@ func NewDockerDriver(image string) Driver {
 	}
 }
 
-func (d *DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []unversioned.Command) {
+func (d *DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommands []unversioned.Command) {
 	env := d.processEnvVars(t, envVars)
-	for _, cmd := range fullCommand {
+	for _, cmd := range fullCommands {
 		d.currentImage = d.runAndCommit(t, env, cmd)
 	}
 }
@@ -113,10 +113,8 @@ func (d *DockerDriver) retrieveTar(t *testing.T, path string) (*tar.Reader, erro
 	// the client doesn't allow creating a container without a command.
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
-			Image:        d.currentImage,
-			Cmd:          []string{"NOOP_COMMAND_DO_NOT_RUN"},
-			AttachStdout: true,
-			AttachStderr: true,
+			Image: d.currentImage,
+			Cmd:   []string{"NOOP_COMMAND_DO_NOT_RUN"},
 		},
 		HostConfig:       nil,
 		NetworkingConfig: nil,
@@ -237,8 +235,6 @@ func (d *DockerDriver) ReadDir(t *testing.T, dirpath string) ([]os.FileInfo, err
 // 3) commits the container with its changes to a new image,
 // and sets that image as the new "current image"
 func (d *DockerDriver) runAndCommit(t *testing.T, env []string, command []string) string {
-	shouldRun := true
-
 	container, err := d.cli.CreateContainer(docker.CreateContainerOptions{
 		Config: &docker.Config{
 			Image:        d.currentImage,
@@ -255,14 +251,12 @@ func (d *DockerDriver) runAndCommit(t *testing.T, env []string, command []string
 		return ""
 	}
 
-	if shouldRun {
-		err = d.cli.StartContainer(container.ID, nil)
-		if err != nil {
-			t.Errorf("Error creating container: %s", err.Error())
-		}
-
-		_, err = d.cli.WaitContainer(container.ID)
+	err = d.cli.StartContainer(container.ID, nil)
+	if err != nil {
+		t.Errorf("Error creating container: %s", err.Error())
 	}
+
+	_, err = d.cli.WaitContainer(container.ID)
 
 	image, err := d.cli.CommitContainer(docker.CommitContainerOptions{
 		Container: container.ID,
