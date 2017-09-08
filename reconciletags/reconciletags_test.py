@@ -120,10 +120,10 @@ class ReconcileTagsTest(unittest.TestCase):
         mock_img.__enter__.return_value = fake_base
         mock_from_registry.return_value = mock_img
 
-        digest = self.r.get_digest(_FULL_REPO, "0")
-        self.assertEqual(digest, "")
+        digest = self.r.get_digest_from_prefix(_FULL_REPO, _DIGEST1[0:3])
+        self.assertEqual(digest, '')
 
-        digest = self.r.get_digest(_FULL_REPO, _DIGEST1)
+        digest = self.r.get_digest_from_prefix(_FULL_REPO, _DIGEST1)
         self.assertEqual(digest, _DIGEST1)
 
 

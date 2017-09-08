@@ -36,7 +36,7 @@ class TagReconciler:
 
     def add_tags(self, digest, tag, dry_run):
         if dry_run:
-            logging.debug("Would have tagged {0} with {1}".format(digest, tag))
+            logging.debug('Would have tagged {0} with {1}'.format(digest, tag))
             return
 
         src_name = docker_name.Digest(digest)
@@ -75,9 +75,9 @@ class TagReconciler:
         for digest in manifests:
             if tag in manifests[digest]['tag']:
                 return digest
-        return ""
+        return ''
 
-    def get_digest(self, repo, prefix):
+    def get_digest_from_prefix(self, repo, prefix):
         name = docker_name.Repository(repo)
         creds = docker_creds.DefaultKeychain.Resolve(name)
         transport = transport_pool.Http(httplib2.Http)
@@ -86,11 +86,11 @@ class TagReconciler:
             digests = [d[len('sha256:'):] for d in img.manifests()]
             matches = [d for d in digests if d.startswith(prefix)]
             if len(matches) == 1:
-                return matches.pop()
-            elif len(matches) > 1:
+                return matches[0]
+            else:
                 logging.debug('{0} is not a unique digest prefix'.format(
                                                                   prefix))
-        return ""
+        return ''
 
     def reconcile_tags(self, data, dry_run):
         for project in data['projects']:
@@ -103,9 +103,11 @@ class TagReconciler:
                 full_repo = os.path.join(registry, project['repository'])
 
                 for image in project['images']:
-                    digest = self.get_digest(full_repo, image['digest'])
+                    digest = self.get_digest_from_prefix(full_repo,
+                                                         image['digest'])
                     if not digest:
-                        continue
+                        raise AssertionError('{0}'.format(image['digest'] +
+                                             'is not a unique digest prefix'))
                     full_digest = full_repo + '@sha256:' + digest
                     full_tag = full_repo + ':' + image['tag']
 
