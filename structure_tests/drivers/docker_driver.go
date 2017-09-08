@@ -22,6 +22,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -139,8 +140,8 @@ func (d *DockerDriver) retrieveTar(t *testing.T, path string) (*tar.Reader, erro
 	return tar.NewReader(bytes.NewReader(b.Bytes())), nil
 }
 
-func (d *DockerDriver) StatFile(t *testing.T, filepath string) (os.FileInfo, error) {
-	reader, err := d.retrieveTar(t, filepath)
+func (d *DockerDriver) StatFile(t *testing.T, target string) (os.FileInfo, error) {
+	reader, err := d.retrieveTar(t, target)
 	if err != nil {
 		return nil, err
 	}
@@ -151,22 +152,22 @@ func (d *DockerDriver) StatFile(t *testing.T, filepath string) (os.FileInfo, err
 		}
 		switch header.Typeflag {
 		case tar.TypeDir:
-			if header.Name == path.Base(filepath) {
+			if filepath.Clean(header.Name) == path.Base(target) {
 				return header.FileInfo(), nil
 			}
 		case tar.TypeReg:
-			if header.Name == path.Base(filepath) {
+			if filepath.Clean(header.Name) == path.Base(target) {
 				return header.FileInfo(), nil
 			}
 		default:
 			continue
 		}
 	}
-	return nil, fmt.Errorf("File %s not found in image", filepath)
+	return nil, fmt.Errorf("File %s not found in image", target)
 }
 
-func (d *DockerDriver) ReadFile(t *testing.T, filepath string) ([]byte, error) {
-	reader, err := d.retrieveTar(t, filepath)
+func (d *DockerDriver) ReadFile(t *testing.T, target string) ([]byte, error) {
+	reader, err := d.retrieveTar(t, target)
 	if err != nil {
 		return nil, err
 	}
@@ -177,11 +178,11 @@ func (d *DockerDriver) ReadFile(t *testing.T, filepath string) ([]byte, error) {
 		}
 		switch header.Typeflag {
 		case tar.TypeDir:
-			if header.Name == path.Base(filepath) {
-				return nil, fmt.Errorf("Cannot read specified path: %s is a directory, not a file", filepath)
+			if filepath.Clean(header.Name) == path.Base(target) {
+				return nil, fmt.Errorf("Cannot read specified path: %s is a directory, not a file", target)
 			}
 		case tar.TypeReg:
-			if header.Name == path.Base(filepath) {
+			if filepath.Clean(header.Name) == path.Base(target) {
 				var b bytes.Buffer
 				stream := bufio.NewWriter(&b)
 				io.Copy(stream, reader)
@@ -191,11 +192,11 @@ func (d *DockerDriver) ReadFile(t *testing.T, filepath string) ([]byte, error) {
 			continue
 		}
 	}
-	return nil, fmt.Errorf("File %s not found in image", filepath)
+	return nil, fmt.Errorf("File %s not found in image", target)
 }
 
-func (d *DockerDriver) ReadDir(t *testing.T, dirpath string) ([]os.FileInfo, error) {
-	reader, err := d.retrieveTar(t, dirpath)
+func (d *DockerDriver) ReadDir(t *testing.T, target string) ([]os.FileInfo, error) {
+	reader, err := d.retrieveTar(t, target)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +207,7 @@ func (d *DockerDriver) ReadDir(t *testing.T, dirpath string) ([]os.FileInfo, err
 		}
 		switch header.Typeflag {
 		case tar.TypeDir:
-			if header.Name == path.Base(dirpath) {
+			if filepath.Clean(header.Name) == path.Base(target) {
 				var infos []os.FileInfo
 				for {
 					header, err := reader.Next()
@@ -218,14 +219,14 @@ func (d *DockerDriver) ReadDir(t *testing.T, dirpath string) ([]os.FileInfo, err
 				return infos, nil
 			}
 		case tar.TypeReg:
-			if header.Name == path.Base(dirpath) {
-				return nil, fmt.Errorf("Cannot read path: %s is a file, not a directory", dirpath)
+			if filepath.Clean(header.Name) == path.Base(target) {
+				return nil, fmt.Errorf("Cannot read path: %s is a file, not a directory", target)
 			}
 		default:
 			continue
 		}
 	}
-	return nil, fmt.Errorf("Directory %s not found in image", dirpath)
+	return nil, fmt.Errorf("Directory %s not found in image", target)
 }
 
 // This method takes a command (in the form of a list of args), and does the following:
