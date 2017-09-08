@@ -76,6 +76,21 @@ class TagReconciler:
                 return digest
         return ""
 
+    def get_digest(self, repo, prefix):
+        name = docker_name.Repository(repo)
+        creds = docker_creds.DefaultKeychain.Resolve(name)
+        transport = transport_pool.Http(httplib2.Http)
+
+        with docker_image.FromRegistry(name, creds, transport) as img:
+            digests = [d[len('sha256:'):] for d in img.manifests()]
+            matches = [d for d in digests if d.startswith(prefix)]
+            if len(matches) == 1:
+                return matches.pop()
+            elif len(matches) > 1:
+                logging.debug('{0} is not a unique digest prefix'.format(
+                                                                  prefix))
+        return ""
+
     def reconcile_tags(self, data, dry_run):
         for project in data['projects']:
 
@@ -87,7 +102,10 @@ class TagReconciler:
                 full_repo = os.path.join(registry, project['repository'])
 
                 for image in project['images']:
-                    full_digest = full_repo + '@sha256:' + image['digest']
+                    digest = self.get_digest(full_repo, image['digest'])
+                    if not digest:
+                        continue
+                    full_digest = full_repo + '@sha256:' + digest
                     full_tag = full_repo + ':' + image['tag']
 
                     name = docker_name.Digest(full_digest)
@@ -97,7 +115,7 @@ class TagReconciler:
                     with docker_image.FromRegistry(name, creds,
                                                    transport) as img:
                             if not img.exists():
-                                logging.debut('Could not retrieve  ' +
+                                logging.debug('Could not retrieve  ' +
                                               '{0}'.format(full_digest))
                                 return
 
@@ -112,16 +130,15 @@ class TagReconciler:
                             # Don't retag an image if the tag already exists
                             if tagged_digest.startswith('sha256:'):
                                 tagged_digest = tagged_digest[len('sha256:'):]
-                            if tagged_digest.startswith(image['digest']):
+                            if tagged_digest.startswith(digest):
                                 logging.debug('Skipping tagging %s with %s as '
                                               'that tag already exists.',
-                                              image['digest'], image['tag'])
+                                              digest, image['tag'])
                                 continue
 
                             self.add_tags(full_digest, full_tag, dry_run)
 
-                logging.debug(self.get_existing_tags(
-                    full_repo, project['images'][0]['digest']))
+                    logging.debug(self.get_existing_tags(full_repo, digest))
 
 
 def main():

@@ -110,6 +110,22 @@ class ReconcileTagsTest(unittest.TestCase):
         assert mock_from_registry.called
         assert mock_push.called
 
+    @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
+    def test_get_digest(self, mock_from_registry):
+        fake_base = mock.MagicMock()
+        fake_base.manifests.return_value = ["sha256:" + _DIGEST1,
+                                            "sha256" + _DIGEST2]
+
+        mock_img = mock.MagicMock()
+        mock_img.__enter__.return_value = fake_base
+        mock_from_registry.return_value = mock_img
+
+        digest = self.r.get_digest(_FULL_REPO, "0")
+        self.assertEqual(digest, "")
+
+        digest = self.r.get_digest(_FULL_REPO, _DIGEST1)
+        self.assertEqual(digest, _DIGEST1)
+
 
 if __name__ == '__main__':
     unittest.main()
