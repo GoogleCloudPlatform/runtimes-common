@@ -87,10 +87,11 @@ class TagReconciler:
             matches = [d for d in digests if d.startswith(prefix)]
             if len(matches) == 1:
                 return matches[0]
-            else:
-                logging.debug('{0} is not a unique digest prefix'.format(
-                                                                  prefix))
-        return ''
+            if len(matches) == 0:
+                raise AssertionError('{0} is not a valid prefix'.format(
+                                                                 prefix))
+        raise AssertionError('{0} is not a unique digest prefix'.format(
+                                                                 prefix))
 
     def reconcile_tags(self, data, dry_run):
         for project in data['projects']:
@@ -105,9 +106,7 @@ class TagReconciler:
                 for image in project['images']:
                     digest = self.get_digest_from_prefix(full_repo,
                                                          image['digest'])
-                    if not digest:
-                        raise AssertionError('{0}'.format(image['digest'] +
-                                             'is not a unique digest prefix'))
+
                     full_digest = full_repo + '@sha256:' + digest
                     full_tag = full_repo + ':' + image['tag']
 
