@@ -66,8 +66,6 @@ func (d *DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar
 	if stderr != "" {
 		t.Logf("stderr: %s", stderr)
 	}
-	//reset image for next test
-	d.currentImage = d.originalImage
 	return stdout, stderr, exitCode
 }
 
