@@ -200,6 +200,7 @@ func (d *DockerDriver) ReadDir(t *testing.T, target string) ([]os.FileInfo, erro
 	if err != nil {
 		return nil, err
 	}
+	var infos []os.FileInfo
 	for {
 		header, err := reader.Next()
 		if err == io.EOF {
@@ -207,26 +208,19 @@ func (d *DockerDriver) ReadDir(t *testing.T, target string) ([]os.FileInfo, erro
 		}
 		switch header.Typeflag {
 		case tar.TypeDir:
-			if filepath.Clean(header.Name) == path.Base(target) {
-				var infos []os.FileInfo
-				for {
-					header, err := reader.Next()
-					if err == io.EOF {
-						break
-					}
-					infos = append(infos, header.FileInfo())
-				}
-				return infos, nil
+			// we only want top level files/dirs here, no recursion. to get these, remove
+			// trailing separator and split on separator. there should only be two parts.
+			parts := strings.Split(strings.TrimSuffix(header.Name, string(os.PathSeparator)), string(os.PathSeparator))
+			if len(parts) == 2 {
+				infos = append(infos, header.FileInfo())
 			}
 		case tar.TypeReg:
-			if filepath.Clean(header.Name) == path.Base(target) {
-				return nil, fmt.Errorf("Cannot read path: %s is a file, not a directory", target)
-			}
+			continue
 		default:
 			continue
 		}
 	}
-	return nil, fmt.Errorf("Directory %s not found in image", target)
+	return infos, nil
 }
 
 // This method takes a command (in the form of a list of args), and does the following:
