@@ -73,24 +73,30 @@ func (d *DockerDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar
 	return stdout, stderr, exitCode
 }
 
-func (d *DockerDriver) retrieveEnvVar(envVar string) string {
-	// since we're only retrieving these during processing, we can cache this on the driver
-	if d.env == nil {
-		image, err := d.cli.InspectImage(d.currentImage)
-		if err != nil {
-			return ""
-		}
+func retrieveEnv(d *DockerDriver) func(string) string {
+	return func(envVar string) string {
+		var env map[string]string
+		if env == nil {
+			image, err := d.cli.InspectImage(d.currentImage)
+			if err != nil {
+				return ""
+			}
 
-		// convert env to map for processing
-		imageEnv := make(map[string]string)
-		for _, varPair := range image.Config.Env {
-			pair := strings.Split(varPair, "=")
-			imageEnv[pair[0]] = pair[1]
+			// convert env to map for processing
+			imageEnv := make(map[string]string)
+			for _, varPair := range image.Config.Env {
+				pair := strings.Split(varPair, "=")
+				imageEnv[pair[0]] = pair[1]
+			}
+			env = imageEnv
 		}
-		d.env = imageEnv
+		return env[envVar]
 	}
+}
 
-	return d.env[envVar]
+func (d *DockerDriver) retrieveEnvVar(envVar string) string {
+	// since we're only retrieving these during processing, we can use a closure to cache this
+	return retrieveEnv(d)(envVar)
 }
 
 func (d *DockerDriver) processEnvVars(t *testing.T, vars []unversioned.EnvVar) []string {
