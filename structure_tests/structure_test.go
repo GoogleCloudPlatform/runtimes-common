@@ -110,7 +110,8 @@ func TestMain(m *testing.M) {
 	}
 
 	if len(configFiles) == 0 {
-		configFiles = append(configFiles, "/workspace/structure_test.json")
+		fmt.Fprintln(stdout, "Please provide at least one test config file")
+		os.Exit(1)
 	}
 
 	var err error
