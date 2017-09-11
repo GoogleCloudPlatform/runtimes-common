@@ -14,27 +14,35 @@
 
 import pytest
 
-import builder_util
+import verify_manifest
 import yaml
 
 
 def test_simple_manifest():
-    _load_build_verify('test_manifests/simple.yaml')
+    _verify_graph('test_manifests/simple.yaml')
 
 
 def test_circular_manifest():
     with pytest.raises(SystemExit):
-        _load_build_verify('test_manifests/circular.yaml')
+        _verify_graph('test_manifests/circular.yaml')
 
 
 def test_broken_manifest():
     with pytest.raises(SystemExit):
-        _load_build_verify('test_manifests/broken_link.yaml')
+        _verify_graph('test_manifests/broken_link.yaml')
 
 
-def _load_build_verify(manifest_file):
+def test_bad_gcs_manifest():
+    with pytest.raises(SystemExit):
+        with open('test_manifests/bad_gcs.yaml') as f:
+            manifest = yaml.load(f)
+            verify_manifest.verify_manifest(manifest)
+
+
+# this skips the GCS verification and just checks manifest structure
+def _verify_graph(manifest_file):
     with open(manifest_file) as f:
         manifest = yaml.load(f)
-    graph = builder_util._build_manifest_graph(manifest)
+    graph = verify_manifest._build_manifest_graph(manifest)
 
-    builder_util._verify_manifest_graph(graph)
+    verify_manifest._verify_manifest_graph(graph)

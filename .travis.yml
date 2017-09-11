@@ -34,5 +34,6 @@ script:
  - flake8 .
  - ./.gofmt.sh
  - ./.buildifier.sh
- - bazel clean && bazel build //...
+ # - bazel clean && bazel build //...
  - bazel test reconciletags:reconciletags_test
+ - cd runtime_builders && py.test test_manifest.py && cd ..

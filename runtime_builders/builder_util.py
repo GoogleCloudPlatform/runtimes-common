@@ -18,7 +18,6 @@ import logging
 import os
 import yaml
 import subprocess
-import sys
 import tempfile
 
 
@@ -35,7 +34,7 @@ def copy_to_gcs(file_path, gcs_path):
         output = subprocess.check_output(command)
         logging.debug(output)
     except subprocess.CalledProcessError as cpe:
-        logging.error('Error encountered when writing to GCS!', cpe)
+        logging.error('Error encountered when writing to GCS! %s', cpe)
     except Exception as e:
         logging.error('Fatal error encountered when shelling command {0}'
                       .format(command))
@@ -64,97 +63,6 @@ def get_file_from_gcs(gcs_file, temp_file):
         return False
 
 
-def verify_manifest(manifest):
-    """Verify that the provided runtime manifest is valid before publishing.
-
-    Aliases are provided for runtime 'names' that can be included in users'
-    application configuration files: this method ensures that all the aliases
-    can resolve to actual builder files.
-
-    All builders and aliases are turned into nodes in a graph, which is then
-    traversed to be sure that all nodes lead down to a builder node.
-
-    Example formatting of the manifest, showing both an 'alias' and
-    an actual builder file:
-
-    runtimes:
-      java:
-        target:
-          runtime: java-openjdk
-      java-openjdk:
-        target:
-          file: gs://runtimes/java-openjdk-1234.yaml
-        deprecation:
-          message: "openjdk is deprecated."
-    """
-    _verify_manifest_formatting(manifest)
-    node_graph = _build_manifest_graph(manifest)
-    _verify_manifest_graph(node_graph)
-
-
-def _verify_manifest_formatting(manifest):
-    try:
-        if 'schema_version' not in manifest:
-            logging.error('Manifest does not contain schema_version!')
-            sys.exit(1)
-        for key, val in manifest.get('runtimes').iteritems():
-            file = val.get('target').get('file', '')
-            if file.startswith('gs://'):
-                logging.error('Builder file {0} should NOT be prefixed with '
-                              'GCS bucket prefix or bucket name!'.format(file))
-                sys.exit(1)
-    except KeyError as ke:
-        logging.error('Error encountered when verifying manifest:', ke)
-        sys.exit(1)
-
-
-def _verify_manifest_graph(node_graph):
-    for _, node in node_graph.items():
-        seen = set()
-        child = node
-        while True:
-            seen.add(child)
-            if not child.child:
-                break
-            elif child.child not in node_graph.keys():
-                logging.error('Non-existent alias provided for {0}: {1}'
-                              .format(child.name, child.child))
-                sys.exit(1)
-            child = node_graph[child.child]
-            if child in seen:
-                logging.error('Circular dependency found in manifest! '
-                              'Check node {0}'.format(child))
-                sys.exit(1)
-        if not child.isBuilder:
-            logging.error('No terminating builder for alias {0}'
-                          .format(node.name))
-            sys.exit(1)
-
-
-def _build_manifest_graph(manifest):
-    try:
-        node_graph = {}
-        for key, val in manifest.get('runtimes').iteritems():
-            target = val.get('target', {})
-            if not target:
-                if 'deprecation' not in val:
-                    logging.error('No target or deprecation specified for '
-                                  'runtime: {0}'.format(key))
-                    sys.exit(1)
-                continue
-            child = None
-            isBuilder = 'file' in target.keys()
-            if not isBuilder:
-                child = target['runtime']
-            node = node_graph.get(key, {})
-            if not node:
-                node_graph[key] = Node(key, isBuilder, child)
-        return node_graph
-    except (KeyError, AttributeError) as ke:
-        logging.error('Error encountered when verifying manifest:', ke)
-        sys.exit(1)
-
-
 def load_manifest_file():
     try:
         _, tmp = tempfile.mkstemp(text=True)
@@ -167,6 +75,19 @@ def load_manifest_file():
         return {'schema_version': SCHEMA_VERSION}
     finally:
         os.remove(tmp)
+
+
+# 'gsutil ls' would eliminate the try/catch here, but it's eventually
+# consistent, while 'gsutil stat' is strongly consistent.
+def file_exists(remote_path):
+    try:
+        logging.info('Checking file {0}'.format(remote_path))
+        command = ['gsutil', 'stat', remote_path]
+        subprocess.check_call(command, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 
 class Node:
