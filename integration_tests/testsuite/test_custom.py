@@ -83,8 +83,8 @@ class TestCustom(unittest.TestCase):
             return
 
         if validation is None:
-            self.fail("A validation must be specified in the step "
-                      "configuration")
+            self.fail('A validation must be specified in the step '
+                      'configuration')
 
         context = {'name': name}
         step_num = 0
@@ -94,7 +94,7 @@ class TestCustom(unittest.TestCase):
                                                      step_num, timeout)
             context[step_name] = step_context
 
-        logging.debug("context : %s", json.dumps(context,
+        logging.debug('context : %s', json.dumps(context,
                                                  sort_keys=True,
                                                  indent=4,
                                                  separators=(',', ': ')))
@@ -124,7 +124,7 @@ class TestCustom(unittest.TestCase):
         configuration = step.get('configuration', dict())
         path = step.get('path')
 
-        logging.info("Running step {0} of test {1}".format(
+        logging.info('Running step {0} of test {1}'.format(
             step_name,
             context.get('name')
         ))
@@ -136,7 +136,7 @@ class TestCustom(unittest.TestCase):
                                     data=configuration.get('content'),
                                     timeout=timeout)
 
-        if 'application/json' in response.headers.get("Content-Type"):
+        if 'application/json' in response.headers.get('Content-Type'):
             content = response.json()
         else:
             content = response.text
@@ -179,8 +179,8 @@ class TestCustom(unittest.TestCase):
             value = self._evaluate_substitution(context, key)
             pattern = test.get('pattern')
             self.assertIsNotNone(re.search(pattern, value),
-                                 "The value `{0}` for the key `{1}` "
-                                 "do not match the pattern `{2}`"
+                                 'The value `{0}` for the key `{1}` '
+                                 'do not match the pattern `{2}`'
                                  .format(value, key, pattern))
 
     def _evaluate_substitution(self, context, path):
@@ -198,9 +198,9 @@ class TestCustom(unittest.TestCase):
         """
         for key in path.split('.'):
             context = context.get(key)
-            self.assertIsNotNone(context, "An error occurred during the "
-                                          "substitution: the key {0} of path "
-                                          "{1} is not present in the context"
+            self.assertIsNotNone(context, 'An error occurred during the '
+                                          'substitution: the key {0} of path '
+                                          '{1} is not present in the context'
                                           .format(key, path))
         return context
 
@@ -230,6 +230,6 @@ class TestCustom(unittest.TestCase):
             test_endpoint = urlparse.urljoin(self._base_url, path)
             response, status = test_util.get(test_endpoint, timeout=timeout)
             logging.debug(response)
-            self.assertEqual(status, 0, "The response of the endpoint {0} "
-                             "is not valid (2xx expected)".format(path))
+            self.assertEqual(status, 0, 'The response of the endpoint {0} '
+                             'is not valid (2xx expected)'.format(path))
             return True
