@@ -73,7 +73,7 @@ class TestCustom(unittest.TestCase):
             None.
         """
         name = specification.get('name', 'test_{0}'.format(test_num))
-        timeout = specification.get('timeout', 500)
+        timeout = specification.get('timeout', 3000)
         steps = specification.get('steps')
         validation = specification.get('validation')
 
