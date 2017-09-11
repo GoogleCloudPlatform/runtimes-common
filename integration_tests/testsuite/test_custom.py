@@ -74,13 +74,17 @@ class TestCustom(unittest.TestCase):
         """
         name = specification.get('name', 'test_{0}'.format(test_num))
         timeout = specification.get('timeout', 3000)
-        steps = specification.get('steps')
+        steps = specification.get('steps', [])
         validation = specification.get('validation')
 
         logging.info('Running custom test: %s', name)
 
         if self._test_for_old_specification(specification):
             return
+
+        if validation is None:
+            self.fail("A validation must be specified in the step "
+                      "configuration")
 
         context = {'name': name}
         step_num = 0
@@ -169,7 +173,7 @@ class TestCustom(unittest.TestCase):
             None.
         """
 
-        match = specification.get('match')
+        match = specification.get('match', [])
         for test in match:
             key = test.get('key')
             value = self._evaluate_substitution(context, key)
