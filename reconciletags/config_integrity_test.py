@@ -21,30 +21,26 @@ import glob
 import json
 import logging
 import os
-import subprocess
 import unittest
+from containerregistry.client import docker_creds
+from containerregistry.client import docker_name
+from containerregistry.client.v2_2 import docker_image
+from containerregistry.transport import transport_pool
+from containerregistry.tools import patched
+import httplib2
 
 
 class ReconcilePresubmitTest(unittest.TestCase):
 
-    # This function requires gcloud be installed and authenticated
-    # with your project
     def _get_digests(self, repo):
-        try:
-            output = json.loads(
-                subprocess.check_output(['gcloud', 'container',
-                                         'images', 'list-tags',
-                                         '--no-show-occurrences',
-                                         '--format=json', '--limit=100',
-                                         repo]))
-            # grab the digest for each image and strip off the 'sha256:'
-            # for matching purposes
-            digests = [image['digest'].split(':')[1] for image in output]
+        name = docker_name.Repository(repo)
+        creds = docker_creds.DefaultKeychain.Resolve(name)
+        transport = transport_pool.Http(httplib2.Http)
+
+        with docker_image.FromRegistry(name, creds, transport) as img:
+            digests = [d[len('sha256:'):] for d in img.manifests()]
             return digests
-        except OSError as e:
-            logging.error(e)
-            self.fail('Make sure gcloud is installed and properly '
-                      'authenticated')
+        raise AssertionError('Unable to get digests from {0}'.format(repo))
 
     def test_json_structure(self):
         for f in glob.glob('../config/tag/*.json'):
@@ -81,5 +77,6 @@ class ReconcilePresubmitTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    unittest.main()
+    with patched.Httplib2():
+        logging.basicConfig(level=logging.DEBUG)
+        unittest.main()
