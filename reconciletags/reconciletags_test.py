@@ -56,9 +56,11 @@ class ReconcileTagsTest(unittest.TestCase):
                        'repository': _REPO,
                        'images': [{'digest': _DIGEST1, 'tag': _TAG1}]}]}
 
+    @patch('reconciletags.TagReconciler.get_digest_from_prefix')
     @patch('containerregistry.client.v2_2.docker_session.Push')
     @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
-    def test_reconcile_tags(self, mock_from_registry, mock_push):
+    def test_reconcile_tags(self, mock_from_registry, mock_push,
+                            mock_get_digest):
         fake_base = mock.MagicMock()
         fake_base.tags.return_value = [_TAG1]
 
@@ -67,16 +69,20 @@ class ReconcileTagsTest(unittest.TestCase):
         mock_from_registry.return_value = mock_img
         mock_push.return_value = docker_session.Push()
 
+        mock_get_digest.return_value = _DIGEST1
+
         self.r.reconcile_tags(self.data, False)
 
         assert mock_from_registry.called
         assert mock_push.called
 
+    @patch('reconciletags.TagReconciler.get_digest_from_prefix')
     @patch('containerregistry.client.v2_2.docker_session.Push')
     @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
-    def test_dry_run(self, mock_from_registry, mock_push):
+    def test_dry_run(self, mock_from_registry, mock_push, mock_get_digest):
         mock_from_registry.return_value = docker_image.FromRegistry()
         mock_push.return_value = docker_session.Push()
+        mock_get_digest.return_value = _DIGEST1
 
         self.r.reconcile_tags(self.data, True)
 
@@ -109,6 +115,22 @@ class ReconcileTagsTest(unittest.TestCase):
 
         assert mock_from_registry.called
         assert mock_push.called
+
+    @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
+    def test_get_digest(self, mock_from_registry):
+        fake_base = mock.MagicMock()
+        fake_base.manifests.return_value = ["sha256:" + _DIGEST1,
+                                            "sha256" + _DIGEST2]
+
+        mock_img = mock.MagicMock()
+        mock_img.__enter__.return_value = fake_base
+        mock_from_registry.return_value = mock_img
+
+        with self.assertRaises(AssertionError):
+            self.r.get_digest_from_prefix(_FULL_REPO, _DIGEST1[0:3])
+
+        digest = self.r.get_digest_from_prefix(_FULL_REPO, _DIGEST1)
+        self.assertEqual(digest, _DIGEST1)
 
 
 if __name__ == '__main__':
