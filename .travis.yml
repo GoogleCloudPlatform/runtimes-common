@@ -30,7 +30,7 @@ install:
   - go get -u github.com/bazelbuild/buildifier/buildifier
 
 script:
- - find . -name "*.sh" | xargs shellcheck
+ - find . -name "*.sh" | grep -v vendor/ | xargs shellcheck
  - flake8 .
  - ./.gofmt.sh
  - ./.buildifier.sh
