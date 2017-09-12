@@ -58,6 +58,7 @@ py_test(
 py_test(
     name = "reconciletags_e2e_test",
     srcs = ["reconciletags_e2e_test.py"],
+    data = ["e2e_test.json"],
     deps = [
         "@containerregistry",
         "@httplib2//:httplib2",

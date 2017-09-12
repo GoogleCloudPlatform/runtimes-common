@@ -58,8 +58,9 @@ class ReconciletagsE2eTest(unittest.TestCase):
         # grab the just created digest
         output = self._ListTags(self._REPO)
         self.assertEqual(len(output), 1)
-        self.digest = output.pop()['digest'].split(':')[1]
-
+        output = output.pop()
+        self.digest = output['digest'].split(':')[1]
+        self.assertEqual(len(output['tags']), 1)
         # write the proper json to the config file
         self._TEST_JSON['projects'][0]['images'][0]['digest'] = self.digest
 
@@ -70,7 +71,7 @@ class ReconciletagsE2eTest(unittest.TestCase):
     def tearDown(self):
         subprocess.call(['gcloud', 'container', 'images',
                          'delete', self._REPO + '@sha256:' + self.digest,
-                         '-q'])
+                         '-q', '--force-delete-tags'])
 
     def testTagReconciler(self):
         # run the reconciler
@@ -96,8 +97,31 @@ class ReconciletagsE2eTest(unittest.TestCase):
 
         # now try with a fake digest
         self._TEST_JSON['projects'][0]['images'][0]['digest'] = 'fakedigest'
-        with self.assertRaises(subprocess.CalledProcessError):
+        with self.assertRaises(AssertionError):
             self.r.reconcile_tags(self._TEST_JSON, False)
+
+    def testParFile(self):
+        subprocess.call(['bazel', 'build', 'reconciletags:reconciletags.par'])
+        subprocess.call(['bazel-bin/reconciletags/reconciletags.par',
+                        'reconciletags/'+self._FILE_NAME])
+        # check list-tags to see if it added the correct tag
+        output = self._ListTags(self._REPO)
+        for image in output:
+            if image['digest'].split(':')[1] == self.digest:
+                self.assertEquals(len(image['tags']), 2)
+                self.assertEquals(image['tags'][1], 'testing')
+                self.assertEquals(image['tags'][0], self._TAG)
+
+        # run reconciler again and make sure nothing changed
+        subprocess.call(['bazel-bin/reconciletags/reconciletags.par',
+                        'reconciletags/'+self._FILE_NAME])
+
+        output = self._ListTags(self._REPO)
+        for image in output:
+            if image['digest'].split(':')[1] == self.digest:
+                self.assertEquals(len(image['tags']), 2)
+                self.assertEquals(image['tags'][1], 'testing')
+                self.assertEquals(image['tags'][0], self._TAG)
 
 
 if __name__ == '__main__':
