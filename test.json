@@ -1,0 +1,1 @@
+{'projects': [{'images': [{'tag': 'test', 'digest': u'3b3a29e3c90ae7762bdf587d19302e62485b6bef46e114b741f7d75dba023bd3'}], 'base_registry': 'gcr.io', 'repository': 'gcp-runtimes/reconciler-e2etest', 'additional_registries': []}]}

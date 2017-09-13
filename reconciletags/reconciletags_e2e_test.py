@@ -18,6 +18,9 @@ import json
 import reconciletags
 import subprocess
 import unittest
+import tempfile
+import os
+import shutil
 
 
 class ReconciletagsE2eTest(unittest.TestCase):
@@ -51,10 +54,8 @@ class ReconciletagsE2eTest(unittest.TestCase):
         return output
 
     def _BuildImage(self, full_image_name):
-        # create a non-functional but tiny docker image
-        subprocess.call(['gcloud', 'container', 'builds',
-                         'submit', self._DIR, '-q', '--tag', full_image_name])
-
+        #create a non-functional but tiny docker image
+        subprocess.call(['gcloud', 'container', 'builds', 'submit', '--config', 'reconciletags/cloudbuild.yaml', '.'])
         # grab the just created digest
         output = self._ListTags(self._REPO)
         self.assertEqual(len(output), 1)
@@ -72,12 +73,8 @@ class ReconciletagsE2eTest(unittest.TestCase):
         subprocess.call(['gcloud', 'container', 'images',
                          'delete', self._REPO + '@sha256:' + self.digest,
                          '-q', '--force-delete-tags'])
-
-    def testTagReconciler(self):
-        # run the reconciler
-        self.r.reconcile_tags(self._TEST_JSON, False)
-
-        # check list-tags to see if it added the correct tag
+    
+    def checkListTagsOutput(self):
         output = self._ListTags(self._REPO)
         for image in output:
             if image['digest'].split(':')[1] == self.digest:
@@ -85,44 +82,40 @@ class ReconciletagsE2eTest(unittest.TestCase):
                 self.assertEquals(image['tags'][1], 'testing')
                 self.assertEquals(image['tags'][0], self._TAG)
 
-        # run reconciler again and make sure nothing changed
-        self.r.reconcile_tags(self._TEST_JSON, False)
+    # def testTagReconciler(self):
+    #     # run the reconciler
+    #     self.r.reconcile_tags(self._TEST_JSON, False)
+    #     # check list-tags to see if it added the correct tag
+    #     self.checkListTagsOutput()
 
-        output = self._ListTags(self._REPO)
-        for image in output:
-            if image['digest'].split(':')[1] == self.digest:
-                self.assertEquals(len(image['tags']), 2)
-                self.assertEquals(image['tags'][1], 'testing')
-                self.assertEquals(image['tags'][0], self._TAG)
+    #     # run reconciler again and make sure nothing changed
+    #     self.r.reconcile_tags(self._TEST_JSON, False)
+    #     self.checkListTagsOutput()
 
-        # now try with a fake digest
-        self._TEST_JSON['projects'][0]['images'][0]['digest'] = 'fakedigest'
-        with self.assertRaises(AssertionError):
-            self.r.reconcile_tags(self._TEST_JSON, False)
+    #     # now try with a fake digest
+    #     self._TEST_JSON['projects'][0]['images'][0]['digest'] = 'fakedigest'
+    #     with self.assertRaises(AssertionError):
+    #         self.r.reconcile_tags(self._TEST_JSON, False)
 
     def testParFile(self):
-        subprocess.call(['bazel', 'build', 'reconciletags:reconciletags.par'])
-        subprocess.call(['bazel-bin/reconciletags/reconciletags.par',
+        subprocess.call(['./reconciletags/reconciletags.par',
                         'reconciletags/'+self._FILE_NAME])
         # check list-tags to see if it added the correct tag
-        output = self._ListTags(self._REPO)
-        for image in output:
-            if image['digest'].split(':')[1] == self.digest:
-                self.assertEquals(len(image['tags']), 2)
-                self.assertEquals(image['tags'][1], 'testing')
-                self.assertEquals(image['tags'][0], self._TAG)
+        self.checkListTagsOutput()
 
         # run reconciler again and make sure nothing changed
-        subprocess.call(['bazel-bin/reconciletags/reconciletags.par',
+        subprocess.call(['./reconciletags/reconciletags.par',
                         'reconciletags/'+self._FILE_NAME])
+        self.checkListTagsOutput()
 
-        output = self._ListTags(self._REPO)
-        for image in output:
-            if image['digest'].split(':')[1] == self.digest:
-                self.assertEquals(len(image['tags']), 2)
-                self.assertEquals(image['tags'][1], 'testing')
-                self.assertEquals(image['tags'][0], self._TAG)
+    # def testRetaggerContainer(self):
+    #     repo = 'gcr.io/gcp-runtimes/retagger'
+    #     tag = 'latest'
+    #     pwd = subprocess.check_output(['pwd']).rstrip()
 
+    #     subprocess.call(['docker', 'run', '-v', pwd+'/reconciletags:/data',
+    #                     repo + ':' + tag, '/data/e2e_test.json'])
+    #     self.checkListTagsOutput()
 
 if __name__ == '__main__':
     unittest.main()
