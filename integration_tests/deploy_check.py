@@ -97,6 +97,7 @@ def _deploy_and_test(appdir, language, is_xrt):
         if version:
             deploy_app.stop_app(version)
 
+
 @retry(wait_fixed=4000, stop_max_attempt_number=8)
 def _test_application(application_url):
     output, status_code = test_util.get(application_url)
@@ -108,6 +109,7 @@ def _test_application(application_url):
         raise RuntimeError(message)
     else:
         return output
+
 
 if __name__ == '__main__':
     sys.exit(main())
