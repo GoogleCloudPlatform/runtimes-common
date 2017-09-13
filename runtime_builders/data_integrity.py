@@ -32,12 +32,13 @@ def main():
     parser.add_argument('--directory', '-d',
                         help='directory containing all builder config files',
                         required=True)
+    parser.add_argument('--presubmit', '-p', action='store_true', default=False)
     args = parser.parse_args()
 
-    return _verify(args.directory)
+    return _verify(args.directory, args.presubmit)
 
 
-def _verify(directory):
+def _verify(directory, presubmit):
     failures = 0
 
     try:
@@ -50,8 +51,9 @@ def _verify(directory):
                     logging.warn('Project %s has no latest file: skipping',
                                  project_name)
                     continue
-                failures += _verify_latest_files_match(project_name,
-                                                       latest_file)
+                if not presubmit:
+                    failures += _verify_latest_files_match(project_name,
+                                                           latest_file)
                 failures += _verify_latest_file_exists(latest_file)
         return failures
     except ValueError as ve:
