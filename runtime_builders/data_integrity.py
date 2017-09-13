@@ -32,7 +32,8 @@ def main():
     parser.add_argument('--directory', '-d',
                         help='directory containing all builder config files',
                         required=True)
-    parser.add_argument('--presubmit', '-p', action='store_true', default=False)
+    parser.add_argument('--presubmit', '-p', action='store_true',
+                        default=False)
     args = parser.parse_args()
 
     return _verify(args.directory, args.presubmit)
