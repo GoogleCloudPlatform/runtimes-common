@@ -73,33 +73,42 @@ class TestCustom(unittest.TestCase):
             None.
         """
         name = specification.get('name', 'test_{0}'.format(test_num))
-        timeout = specification.get('timeout', 3000)
-        steps = specification.get('steps', [])
-        validation = specification.get('validation')
-
         logging.info('Running custom test: %s', name)
 
-        if self._test_for_old_specification(specification):
-            return
+        if self._is_simple_test(specification):
+            self._run_simple_test(specification)
+        else:
+            self._run_composite_test(name, specification)
 
-        if validation is None:
+    def _run_composite_test(self, name, specification):
+        """Execute a test composed of multiple step.
+
+        Args:
+            name: Name of the test
+            specification: Dictionary containing the specification of the test.
+
+        Returns:
+            Fail the TestCase if the configuration is invalid or if the
+            validation is negative.
+        """
+        timeout = specification.get('timeout', 2000)
+        steps_specification = specification.get('steps', [])
+        validation_specification = specification.get('validation')
+
+        if validation_specification is None:
             self.fail('A validation must be specified in the step '
                       'configuration')
-
         context = {'name': name}
         step_num = 0
-
-        for step in steps:
+        for step in steps_specification:
             step_name, step_context = self._run_step(context, step,
                                                      step_num, timeout)
             context[step_name] = step_context
-
         logging.debug('context : %s', json.dumps(context,
                                                  sort_keys=True,
                                                  indent=4,
                                                  separators=(',', ': ')))
-
-        self._validate(context, validation)
+        self._validate(context, validation_specification)
 
     def _run_step(self, context, step, step_num, timeout):
         """Use the provided step's configuration to send a request to the
@@ -124,10 +133,8 @@ class TestCustom(unittest.TestCase):
         configuration = step.get('configuration', dict())
         path = step.get('path')
 
-        logging.info('Running step {0} of test {1}'.format(
-            step_name,
-            context.get('name')
-        ))
+        logging.info('Running step {0} of test {1}, sending request to'
+                     'path {2}'.format(step_name, context.get('name'), path))
 
         test_endpoint = urlparse.urljoin(self._base_url, path)
         response = requests.request(method=configuration.get('method', 'GET'),
@@ -155,7 +162,7 @@ class TestCustom(unittest.TestCase):
 
         return step_name, step_context
 
-    def _validate(self, context, specification):
+    def _validate(self, context, validation_specification):
         """Compare the specification with the context and assert that every key
            present in the specification is also present in the context, and
            that the value associated to that key in the context match the
@@ -164,7 +171,7 @@ class TestCustom(unittest.TestCase):
         Args:
             context: Dictionary containing for each step the request and
                the response.
-            specification: Dictionary with the following fields:
+            validation_specification: Dictionary with the following fields:
                match: List of object containing:
                  key: Path in the context e.g step.response.headers.property .
                  pattern: Regular expression to be compared with the value
@@ -172,18 +179,17 @@ class TestCustom(unittest.TestCase):
         Returns:
             None.
         """
-
-        match = specification.get('match', [])
+        match = validation_specification.get('match', [])
         for test in match:
             key = test.get('key')
-            value = self._evaluate_substitution(context, key)
+            value = self._get_value_at_path(context, key)
             pattern = test.get('pattern')
             self.assertIsNotNone(re.search(pattern, value),
                                  'The value `{0}` for the key `{1}` '
                                  'do not match the pattern `{2}`'
                                  .format(value, key, pattern))
 
-    def _evaluate_substitution(self, context, path):
+    def _get_value_at_path(self, context, path):
         """Search for the path `path` in the context and return the associated
            value.
 
@@ -204,32 +210,42 @@ class TestCustom(unittest.TestCase):
                                           .format(key, path))
         return context
 
-    def _test_for_old_specification(self, specification):
-        """Verify if the old specification (using the field path) is present,
-           in which case the test is run with the appropriate behavior
-           (using a single request).
+    def _run_simple_test(self, specification):
+        """Send a request to the url specified in the path field of the
+           specification.
 
         Args:
             specification: Dictionary containing the specification for the
                            test.
 
         Returns:
-            True if the test have been executed and is valid.
             In the case where the test is executed but the result is negative
             the TestCase is considered as fail.
         """
         path = specification.get('path')
-        timeout = specification.get('timeout')
+        timeout = specification.get('timeout', 2000)
 
+        test_endpoint = urlparse.urljoin(self._base_url, path)
+        response, status = test_util.get(test_endpoint, timeout=timeout)
+        logging.debug(response)
+        self.assertEqual(status, 0, 'The response of the endpoint {0} '
+                         'is not valid (2xx expected)'.format(path))
+
+    def _is_simple_test(self, specification):
+        """Verify if the test specify only a path or a list of steps and a
+           validation.
+
+        Args:
+            specification: Dictionary containing the specification for the
+                           test.
+
+        Returns:
+            Whether this is a simple test (containing only a path) or a
+            composite test (with multiple steps).
+        """
+        path = specification.get('path')
         if path is not None:
             if 'steps' in specification or 'validation' in specification:
                 self.fail('When the field path is specified, the fields '
                           'validation and steps should not be present')
-
-            # Run the old test
-            test_endpoint = urlparse.urljoin(self._base_url, path)
-            response, status = test_util.get(test_endpoint, timeout=timeout)
-            logging.debug(response)
-            self.assertEqual(status, 0, 'The response of the endpoint {0} '
-                             'is not valid (2xx expected)'.format(path))
             return True

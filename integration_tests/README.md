@@ -14,7 +14,7 @@ To run these tests through a cloudbuild, add the following build step to the **e
 **It's crucial that this step appears after your image under test has been built**; without a built image, there will be nothing to test, and your build will fail!
 
 
-The sample application directory should contains the application fulfilling the integration test spec, as well as the necessary build artifacts to deploy the application via gcloud, which means at minimum:
+The sample application directory should contain the application fulfilling the integration test spec, as well as the necessary build artifacts to deploy the application via gcloud, which means at minimum:
 
 * a templated `Dockerfile.in`, with the first line being
 	` FROM ${STAGING_IMAGE} `
@@ -140,7 +140,7 @@ The driver will then enter two phases for each test:
 * The Validation: the results of the executions will be asserted using the provided specification.
 
 #### The Execution phase
-The execution can be configured using the field `steps`. This field contain an array of `Step`, where each `Step` represent a request 
+The execution can be configured using the field `steps`. This field contains an array of `Step`, where each `Step` represent a request 
 and an associated configuration, a `Step` is defined using the following schema:
   * `name`: (optional) the name of the step.
   * `path`: (required) the path at which the request will be send.
