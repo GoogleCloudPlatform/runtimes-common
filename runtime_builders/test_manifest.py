@@ -34,9 +34,7 @@ def test_broken_manifest():
 
 def test_bad_gcs_manifest():
     with pytest.raises(SystemExit):
-        with open('test_manifests/bad_gcs.yaml') as f:
-            manifest = yaml.load(f)
-            verify_manifest.verify_manifest(manifest)
+        verify_manifest.verify_manifest('test_manifests/bad_gcs.yaml')
 
 
 # this skips the GCS verification and just checks manifest structure
