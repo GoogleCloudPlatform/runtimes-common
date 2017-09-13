@@ -103,10 +103,8 @@ def _test_application(application_url):
     output, status_code = test_util.get(application_url)
 
     if status_code:
-        message = 'Application returned non-zero status code: %d' % status_code
-        logging.error(message)
         logging.error(output)
-        raise RuntimeError(message)
+        raise RuntimeError('Application returned non-zero status code: %d', status_code)
     else:
         return output
 
