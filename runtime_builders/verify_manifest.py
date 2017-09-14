@@ -17,6 +17,7 @@
 import argparse
 import logging
 import sys
+import yaml
 
 import builder_util
 
@@ -33,7 +34,7 @@ def main():
     verify_manifest(args.manifest)
 
 
-def verify_manifest(manifest):
+def verify_manifest(manifest_file):
     """Verify that the provided runtime manifest is valid before publishing.
 
     Aliases are provided for runtime 'names' that can be included in users'
@@ -56,9 +57,11 @@ def verify_manifest(manifest):
         deprecation:
           message: "openjdk is deprecated."
     """
-    _verify_manifest_formatting(manifest)
-    node_graph = _build_manifest_graph(manifest)
-    _verify_manifest_graph(node_graph)
+    with open(manifest_file) as f:
+        manifest = yaml.load(f)
+        _verify_manifest_formatting(manifest)
+        node_graph = _build_manifest_graph(manifest)
+        _verify_manifest_graph(node_graph)
 
 
 def _verify_manifest_formatting(manifest):

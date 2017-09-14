@@ -40,9 +40,7 @@ def main():
     try:
         if not args.manifest.endswith('.yaml'):
             logging.error('Please provide path to runtime.yaml manifest.')
-        with open(args.manifest, 'r') as f:
-            manifest = yaml.safe_load(f)
-        verify_manifest.verify_manifest(manifest)
+        verify_manifest.verify_manifest(args.manifest)
         builder_util.copy_to_gcs(args.manifest, builder_util.MANIFEST_FILE)
 
         if args.directory:

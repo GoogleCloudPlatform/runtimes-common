@@ -1,1 +1,0 @@
-/usr/local/google/home/priyawadhwa/.cache/bazel/_bazel_priyawadhwa/51c4c489639ab99aa134625dea0e7bf3/execroot/__main__/reconciletags/tiny_docker_image/Dockerfile
