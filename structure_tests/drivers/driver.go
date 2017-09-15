@@ -44,6 +44,8 @@ func InitDriverImpl(driver string) (func(string) Driver, error) {
 	// future drivers will be added here
 	case "docker":
 		return NewDockerDriver, nil
+	case "tar":
+		return NewTarDriver, nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Unsupported driver type: %s", driver))
 	}

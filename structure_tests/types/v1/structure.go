@@ -26,7 +26,7 @@ import (
 
 type StructureTest struct {
 	DriverImpl         func(string) drivers.Driver
-	Image              string
+	Artifact           string
 	GlobalEnvVars      []unversioned.EnvVar
 	CommandTests       []CommandTest
 	FileExistenceTests []FileExistenceTest
@@ -35,12 +35,12 @@ type StructureTest struct {
 }
 
 func (st *StructureTest) NewDriver() drivers.Driver {
-	return st.DriverImpl(st.Image)
+	return st.DriverImpl(st.Artifact)
 }
 
-func (st *StructureTest) SetDriverImpl(f func(string) drivers.Driver, image string) {
+func (st *StructureTest) SetDriverImpl(f func(string) drivers.Driver, artifact string) {
 	st.DriverImpl = f
-	st.Image = image
+	st.Artifact = artifact
 }
 
 func (st *StructureTest) RunAll(t *testing.T) int {
