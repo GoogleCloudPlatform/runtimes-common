@@ -133,8 +133,6 @@ func TestMain(m *testing.M) {
 	stdout.WriteString(fmt.Sprintf("Using driver %s\n", driver))
 	stdout.Flush()
 
-	// os.Exit(0)
-
 	if exit := m.Run(); exit != 0 {
 		os.Exit(exit)
 	}

@@ -28,14 +28,8 @@ type TarDriver struct {
 	Image pkgutil.Image
 }
 
-// TODO(nkubala): need to call 'pkgutil.CleanupImage(image)' somewhere
 func NewTarDriver(imageName string) Driver {
 	// container-diff will infer from the source the correct prepper to use
-
-	// ip := pkgutil.DaemonPrepper{
-	// 	Source: imageName,
-	// }
-
 	ip := pkgutil.ImagePrepper{
 		Source: imageName,
 	}
@@ -46,6 +40,10 @@ func NewTarDriver(imageName string) Driver {
 	return &TarDriver{
 		Image: image,
 	}
+}
+
+func (d *TarDriver) Destroy() {
+	pkgutil.CleanupImage(d.Image)
 }
 
 func (d *TarDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []unversioned.Command) {

@@ -37,6 +37,8 @@ type Driver interface {
 	ReadFile(t *testing.T, path string) ([]byte, error)
 
 	ReadDir(t *testing.T, path string) ([]os.FileInfo, error)
+
+	Destroy()
 }
 
 func InitDriverImpl(driver string) (func(string) Driver, error) {

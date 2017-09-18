@@ -50,6 +50,10 @@ func NewDockerDriver(image string) Driver {
 	}
 }
 
+func (d *DockerDriver) Destroy() {
+	// noop
+}
+
 func (d *DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommands []unversioned.Command) {
 	env := d.processEnvVars(t, envVars)
 	for _, cmd := range fullCommands {
