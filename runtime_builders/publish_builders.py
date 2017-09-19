@@ -39,7 +39,7 @@ def main():
 
     try:
         if not args.manifest.endswith('.yaml'):
-            logging.error('Please provide path to runtime.yaml manifest.')
+            logging.error('Please provide path to runtimes.yaml manifest.')
         verify_manifest.verify_manifest(args.manifest)
         builder_util.copy_to_gcs(args.manifest, builder_util.MANIFEST_FILE)
 
@@ -57,6 +57,12 @@ def _publish_latest(builder_dir):
     for f in glob.glob(os.path.join(builder_dir, '*.yaml')):
         with open(f, 'r') as f:
             config = yaml.safe_load(f)
+
+        if 'latest' not in config or 'project' not in config:
+
+            logging.error('Config file {0} is missing a required field!'
+                          .format(f))
+            continue
 
         latest = config['latest']
         project_name = config['project']
