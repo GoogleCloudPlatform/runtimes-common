@@ -58,13 +58,15 @@ def _publish_latest(builder_dir):
         with open(f, 'r') as f:
             config = yaml.safe_load(f)
 
-        try:
-            latest = config['latest']
-            project_name = config['project']
+        if 'latest' not in config or 'project' not in config:
 
-        except KeyError as ke:
-            logging.error('Config file {0} is missing required field!\n{1}'
-                          .format(f, ke))
+            logging.error('Config file {0} is missing a required field!'
+                          .format(f))
+            continue
+
+        latest = config['latest']
+        project_name = config['project']
+
         parts = os.path.splitext(latest)
         prefix = builder_util.RUNTIME_BUCKET_PREFIX + project_name + '-'
         latest_file = parts[0].replace(prefix, '')
