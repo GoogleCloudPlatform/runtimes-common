@@ -55,25 +55,22 @@ def main():
 
 def _publish_latest(builder_dir):
     for f in glob.glob(os.path.join(builder_dir, '*.yaml')):
-        try:
-            with open(f, 'r') as f:
-                config = yaml.safe_load(f)
+        with open(f, 'r') as f:
+            config = yaml.safe_load(f)
 
+        try:
             latest = config['latest']
             project_name = config['project']
 
-            parts = os.path.splitext(latest)
-            prefix = builder_util.RUNTIME_BUCKET_PREFIX + project_name + '-'
-            latest_file = parts[0].replace(prefix, '')
-            file_name = '{0}.version'.format(project_name)
-            full_path = builder_util.RUNTIME_BUCKET_PREFIX + file_name
-            builder_util.write_to_gcs(full_path, latest_file)
-        except ValueError as ve:
-            logging.error('Error when parsing yaml! Check file formatting. \n{0}'
-                          .format(ve))
         except KeyError as ke:
-            logging.error('Config file is missing required field! \n{0}'
-                          .format(ke))
+            logging.error('Config file {0} is missing required field!\n{1}'
+                          .format(f, ke))
+        parts = os.path.splitext(latest)
+        prefix = builder_util.RUNTIME_BUCKET_PREFIX + project_name + '-'
+        latest_file = parts[0].replace(prefix, '')
+        file_name = '{0}.version'.format(project_name)
+        full_path = builder_util.RUNTIME_BUCKET_PREFIX + file_name
+        builder_util.write_to_gcs(full_path, latest_file)
 
 
 if __name__ == '__main__':
