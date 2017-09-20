@@ -58,6 +58,12 @@ py_test(
 py_test(
     name = "reconciletags_e2e_test",
     srcs = ["reconciletags_e2e_test.py"],
+    data = [
+        "e2e_cloudbuild.yaml",
+        "e2e_test.json",
+        "tiny_docker_image/Dockerfile",
+        ":reconciletags.par",
+    ],
     deps = [
         "@containerregistry",
         "@httplib2//:httplib2",
@@ -83,10 +89,25 @@ py_test(
     ],
 )
 
+docker_build(
+    name = "docker_credential_gcr",
+    base = "@python_base//image",
+    directory = "/usr/local/bin",
+    tars = ["@docker_credential_gcr//file"],
+)
+
+#This config file configures the client library to consult the credential helper for authenticating against GCR
+docker_build(
+    name = "docker_config_json",
+    base = ":docker_credential_gcr",
+    directory = "//root/.docker",
+    files = ["config.json"],
+)
+
 py_image(
     name = "reconciletags_image",
     srcs = ["reconciletags.py"],
-    base = "@python_base//image",
+    base = ":docker_config_json",
     main = "reconciletags.py",
     deps = [
         "@containerregistry",
