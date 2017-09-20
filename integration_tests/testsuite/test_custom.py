@@ -180,6 +180,7 @@ class TestCustom(unittest.TestCase):
             None.
         """
         match = validation_specification.get('match', [])
+        endpoint = validation_specification.get('endpoint')
         for test in match:
             key = test.get('key')
             value = self._get_value_at_path(context, key)
@@ -188,6 +189,12 @@ class TestCustom(unittest.TestCase):
                                  'The value `{0}` for the key `{1}` '
                                  'do not match the pattern `{2}`'
                                  .format(value, key, pattern))
+
+        if endpoint:
+            status, _ = test_util.post(url=urlparse.urljoin(self._base_url,
+                                                            endpoint),
+                                       payload=context)
+            self.assertNotEquals('ERROR', status)
 
     def _get_value_at_path(self, context, path):
         """Search for the path `path` in the context and return the associated
