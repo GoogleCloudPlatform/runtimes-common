@@ -26,7 +26,7 @@ go test -c .. -o structure-test
 
 # Run the debian tests, they should always pass on latest
 res=$(./structure-test -image gcr.io/google-appengine/debian8 debian_test.yaml)
-code=$(echo $?)
+code=$?
 
 if [[ ("$res" != "PASS" || "$code" != "0") ]];
 then
@@ -37,7 +37,7 @@ fi
 
 # Run some bogus tests, they should fail as expected
 res=$(./structure-test -image gcr.io/google-appengine/debian8 debian_failure_test.yaml)
-code=$(echo $?)
+code=$?
 
 if ! [[ ("$res" =~ FAIL$ && "$code" == "1") ]];
 then
