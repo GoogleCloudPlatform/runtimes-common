@@ -17,6 +17,7 @@
 import argparse
 import json
 import logging
+from retrying import retry
 import subprocess
 import sys
 
@@ -88,19 +89,25 @@ def _deploy_and_test(appdir, language, is_xrt):
         version = deploy_app.deploy_app_and_record_latency(appdir,
                                                            language, is_xrt)
         application_url = test_util.retrieve_url_for_version(version)
-        output, status_code = test_util.get(application_url)
-
-        if status_code:
-            logging.error('Application returned non-zero status code: %d',
-                          status_code)
-            logging.error(output)
-            sys.exit(status_code)
+        _test_application(application_url)
     except Exception as e:
         logging.error('Error when contacting application!')
         logging.error(e)
     finally:
         if version:
             deploy_app.stop_app(version)
+
+
+@retry(wait_fixed=4000, stop_max_attempt_number=8)
+def _test_application(application_url):
+    output, status_code = test_util.get(application_url)
+
+    if status_code:
+        logging.error(output)
+        raise RuntimeError('Application returned non-zero status code: %d',
+                           status_code)
+    else:
+        return output
 
 
 if __name__ == '__main__':
