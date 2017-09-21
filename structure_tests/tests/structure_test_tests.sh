@@ -21,7 +21,7 @@
 #to do on a known quantity, the latest debian docker image.
 
 failures=0
-# build newest structure test image
+# build newest structure test binary
 go test -c .. -o structure-test
 
 # Run the debian tests, they should always pass on latest
