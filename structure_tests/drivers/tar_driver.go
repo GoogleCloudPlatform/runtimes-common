@@ -28,18 +28,28 @@ type TarDriver struct {
 	Image pkgutil.Image
 }
 
-func NewTarDriver(imageName string) Driver {
-	// container-diff will infer from the source the correct prepper to use
-	ip := pkgutil.ImagePrepper{
+func NewTarDriver(imageName string) (Driver, error) {
+	// try the local daemon first. if no dice, try a remote registry
+	var prepper pkgutil.Prepper
+	prepper = pkgutil.DaemonPrepper{
 		Source: imageName,
 	}
-	image, err := ip.GetImage()
+	var image pkgutil.Image
+	image, err := prepper.GetImage()
 	if err != nil {
-		panic(err)
+		// couldnt find the image locally: try the remote
+		prepper = pkgutil.CloudPrepper{
+			Source: imageName,
+		}
+		image, err = prepper.GetImage()
+		if err != nil {
+			// didn't find image anywhere; exit
+			return nil, err
+		}
 	}
 	return &TarDriver{
 		Image: image,
-	}
+	}, nil
 }
 
 func (d *TarDriver) Destroy() {

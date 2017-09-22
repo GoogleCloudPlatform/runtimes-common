@@ -37,17 +37,17 @@ type DockerDriver struct {
 	env           map[string]string
 }
 
-func NewDockerDriver(image string) Driver {
+func NewDockerDriver(image string) (Driver, error) {
 	newCli, err := docker.NewClientFromEnv()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return &DockerDriver{
 		originalImage: image,
 		currentImage:  image,
 		cli:           *newCli,
 		env:           nil,
-	}
+	}, nil
 }
 
 func (d *DockerDriver) Destroy() {
