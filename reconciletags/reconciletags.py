@@ -140,7 +140,7 @@ class TagReconciler:
                         for registry in registries:
                             full_repo = os.path.join(registry,
                                                      project['repository'])
-                            full_digest = full_repo + '@sha256:' + digest
+                            full_digest = default_repo + '@sha256:' + digest
                             full_tag = full_repo + ':' + image['tag']
                             self.add_tags(full_digest, full_tag, dry_run)
 
