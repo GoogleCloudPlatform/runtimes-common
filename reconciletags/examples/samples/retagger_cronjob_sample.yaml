@@ -1,0 +1,30 @@
+apiVersion: batch/v2alpha1
+kind: CronJob
+metadata:
+  name: retagger-cronjob
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: retagger 
+            image: gcr.io/gcp-runtimes/retagger:latest
+            volumeMounts:
+            - name: git-volume
+              mountPath: /data
+            - name: retagger-secret
+              mountPath: /secret
+            args: ["/data/retagger-example/sample.json"]
+            env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /secret/retagger_secret.json
+          volumes:
+          - name: git-volume
+            gitRepo:
+              repository: "https://github.com/priyawadhwa/retagger-example"
+          - name: retagger-secret
+            secret:
+              secretName: retagger-secret
+          restartPolicy: OnFailure
