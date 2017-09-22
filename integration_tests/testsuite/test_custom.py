@@ -191,10 +191,13 @@ class TestCustom(unittest.TestCase):
                                  .format(value, key, pattern))
 
         if endpoint:
-            status, _ = test_util.post(url=urlparse.urljoin(self._base_url,
-                                                            endpoint),
-                                       payload=context)
-            self.assertNotEquals('ERROR', status)
+            _, response_code = test_util.post(url=urlparse.urljoin(
+                                              self._base_url,
+                                              endpoint),
+                                              payload=context)
+            self.assertEqual(response_code, 0, "The validation endpoint {0}"
+                                               "returned a negative response"
+                                               .format(endpoint))
 
     def _get_value_at_path(self, context, path):
         """Search for the path `path` in the context and return the associated
