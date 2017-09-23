@@ -109,7 +109,8 @@ class TagReconciler:
 
                 default_digest = default_repo + '@sha256:' + digest
                 default_name = docker_name.Digest(default_digest)
-                default_creds = docker_creds.DefaultKeychain.Resolve(default_name)
+                default_creds = (docker_creds.DefaultKeychain
+                                 .Resolve(default_name))
                 transport = transport_pool.Http(httplib2.Http)
 
                 # Bail out if the digest in the config file doesn't exist.
