@@ -1,7 +1,7 @@
 GCP Structure Tests
 ====================
 
-The GCP Structure Tests provide a powerful framework to validate the structure of a Docker image. These tests can be used to check the output of commands in an image, as well as verify metadata and contents of the filesystem.
+The GCP Structure Tests provide a powerful framework to validate the structure of a container image. These tests can be used to check the output of commands in an image, as well as verify metadata and contents of the filesystem.
 
 To run the test framework, simply download the binary for your OS here:
 - TODO: add links to binaries
@@ -61,7 +61,6 @@ File existence tests check to make sure a specific file (or directory) exist wit
 
 - Name (string, **required**): The name of the test
 - Path (string, **required**): Path to the file or directory under test
-- IsDirectory (boolean, **required**): Whether or not the specified path is a directory (as opposed to a file)
 - ShouldExist (boolean, **required**): Whether or not the specified file or directory should exist in the file system
 - Permissions (string, *optional*): The expected Unix permission string (e.g.
   drwxrwxrwx) of the files or directory.
@@ -71,7 +70,6 @@ Example:
 fileExistenceTests:
 - name: 'Root'
   path: '/'
-  isDirectory: true
   shouldExist: true
   permissions: '-rw-r--r--'
 ```
@@ -125,6 +123,20 @@ globalEnvVars:
   - key: "PATH"
     value: "/env/bin:$PATH"
 ```
+
+
+## Running File Tests Without Docker
+
+Container images can be represented in multiple formats, and the Docker image is just one of them. At their core, images are just a series of layers, each of which is a tarball, and so can be interacted with without a working Docker daemon. While running command tests currently requires a functioning Docker daemon on the host machine, File Existence/Content tests do not. This can be particularly useful when dealing with images which have been `docker export`ed or saved in a different image format than the Docker format. To run tests without using a Docker daemon, a user can specify a different "driver" to use in the tests, with the `-driver` flag.
+
+An example test run with a different driver looks like:
+```shell
+./structure-test -driver tar -image gcr.io/google-appengine/python python_test_config.yaml
+```
+
+The currently supported drivers in the framework are:
+- `docker`: the default driver. Supports all tests, and uses the Docker daemon on the host to run them.
+- `tar`: a tar driver, which converts an image to a single tarball before interacting with it. Does *not* support command tests.
 
 
 ### Running Structure Tests Through Bazel
