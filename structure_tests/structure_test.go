@@ -95,7 +95,7 @@ func Parse(t *testing.T, fp string) (StructureTest, error) {
 var configFiles arrayFlags
 
 var imagePath, driver string
-var driverImpl func(string) drivers.Driver
+var driverImpl func(string) (drivers.Driver, error)
 
 func TestMain(m *testing.M) {
 	flag.StringVar(&imagePath, "image", "", "path to test image")
@@ -108,32 +108,39 @@ func TestMain(m *testing.M) {
 
 	flag.Parse()
 	configFiles = flag.Args()
-	stdout := bufio.NewWriter(os.Stdout)
+	stdout = bufio.NewWriter(os.Stdout)
 
 	if imagePath == "" {
-		stdout.WriteString("Please supply path to image or tarball to test against\n")
-		stdout.Flush()
+		logToStdout("Please supply path to image or tarball to test against")
 		os.Exit(1)
 	}
 
 	if len(configFiles) == 0 {
-		stdout.WriteString("Please provide at least one test config file\n")
-		stdout.Flush()
+		logToStdout("Please provide at least one test config file")
 		os.Exit(1)
 	}
 
 	var err error
 
-	driverImpl, err = drivers.InitDriverImpl(driver)
-	if err != nil {
-		stdout.WriteString(err.Error())
-		stdout.Flush()
+	driverImpl = drivers.InitDriverImpl(driver)
+	if driverImpl == nil {
+		logToStdout("Unsupported driver type: %s", driver)
 		os.Exit(1)
 	}
-	stdout.WriteString(fmt.Sprintf("Using driver %s\n", driver))
-	stdout.Flush()
+	if err != nil {
+		logToStdout(err.Error())
+		os.Exit(1)
+	}
+	logToStdout("Using driver %s", driver)
 
 	if exit := m.Run(); exit != 0 {
 		os.Exit(exit)
 	}
+}
+
+var stdout *bufio.Writer
+
+func logToStdout(s string, args ...string) {
+	stdout.WriteString(fmt.Sprintf(s+"\n", args))
+	stdout.Flush()
 }

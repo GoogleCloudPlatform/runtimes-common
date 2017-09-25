@@ -15,7 +15,6 @@
 package drivers
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -48,8 +47,6 @@ func InitDriverImpl(driver string) func(string) (Driver, error) {
 	case "tar":
 		return NewTarDriver
 	default:
-		return func(s string) (Driver, error) {
-			return nil, fmt.Errorf("Unsupported driver type: %s", driver)
-		}
+		return nil
 	}
 }
