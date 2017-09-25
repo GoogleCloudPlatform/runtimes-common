@@ -108,41 +108,52 @@ class TagReconciler:
                                                      image['digest'])
 
                 default_digest = default_repo + '@sha256:' + digest
-
-                name = docker_name.Digest(default_digest)
-                creds = docker_creds.DefaultKeychain.Resolve(name)
+                default_name = docker_name.Digest(default_digest)
+                default_creds = (docker_creds.DefaultKeychain
+                                 .Resolve(default_name))
                 transport = transport_pool.Http(httplib2.Http)
 
-                with docker_image.FromRegistry(name, creds,
+                # Bail out if the digest in the config file doesn't exist.
+                with docker_image.FromRegistry(default_name,
+                                               default_creds,
                                                transport) as img:
-                        if not img.exists():
-                            logging.debug('Could not retrieve  ' +
-                                          '{0}'.format(default_digest))
-                            return
 
-                        existing_tags = img.tags()
-                        logging.debug('Existing Tags: ' +
-                                      '{0}'.format(existing_tags))
+                    if not img.exists():
+                        logging.debug('Could not retrieve  ' +
+                                      '{0}'.format(default_digest))
+                        return
 
-                        manifests = img.manifests()
-                        tagged_digest = self.get_tagged_digest(
-                            manifests, image['tag'])
+                for registry in registries:
 
-                        # Don't retag an image if the tag already exists
-                        if tagged_digest.startswith('sha256:'):
-                            tagged_digest = tagged_digest[len('sha256:'):]
-                        if tagged_digest.startswith(digest):
-                            logging.debug('Skipping tagging %s with %s as '
-                                          'that tag already exists.',
-                                          digest, image['tag'])
-                            continue
+                    full_repo = os.path.join(registry, project['repository'])
+                    full_digest = full_repo + '@sha256:' + digest
+                    name = docker_name.Digest(full_digest)
+                    creds = docker_creds.DefaultKeychain.Resolve(name)
 
-                        for registry in registries:
-                            full_repo = os.path.join(registry,
-                                                     project['repository'])
-                            full_digest = default_repo + '@sha256:' + digest
-                            full_tag = full_repo + ':' + image['tag']
-                            self.add_tags(full_digest, full_tag, dry_run)
+                    with docker_image.FromRegistry(name, creds,
+                                                   transport) as img:
+                        if img.exists():
+
+                            existing_tags = img.tags()
+                            logging.debug('Existing Tags: ' +
+                                          '{0}'.format(existing_tags))
+
+                            manifests = img.manifests()
+                            tagged_digest = self.get_tagged_digest(
+                                manifests, image['tag'])
+
+                            # Don't retag an image if the tag already exists
+                            if tagged_digest.startswith('sha256:'):
+                                tagged_digest = tagged_digest[len('sha256:'):]
+                            if tagged_digest.startswith(digest):
+                                logging.debug('Skipping tagging %s with %s as '
+                                              'that tag already exists.',
+                                              digest, image['tag'])
+                                continue
+
+                        # We can safely retag now.
+                        full_tag = full_repo + ':' + image['tag']
+                        self.add_tags(full_digest, full_tag, dry_run)
 
                 logging.debug(self.get_existing_tags(default_repo, digest))
 
