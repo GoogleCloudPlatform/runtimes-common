@@ -15,7 +15,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -108,15 +107,14 @@ func TestMain(m *testing.M) {
 
 	flag.Parse()
 	configFiles = flag.Args()
-	stdout = bufio.NewWriter(os.Stdout)
 
 	if imagePath == "" {
-		logToStdout("Please supply path to image or tarball to test against")
+		fmt.Println("Please supply path to image or tarball to test against")
 		os.Exit(1)
 	}
 
 	if len(configFiles) == 0 {
-		logToStdout("Please provide at least one test config file")
+		fmt.Println("Please provide at least one test config file")
 		os.Exit(1)
 	}
 
@@ -124,23 +122,16 @@ func TestMain(m *testing.M) {
 
 	driverImpl = drivers.InitDriverImpl(driver)
 	if driverImpl == nil {
-		logToStdout("Unsupported driver type: %s", driver)
+		fmt.Printf("Unsupported driver type: %s", driver)
 		os.Exit(1)
 	}
 	if err != nil {
-		logToStdout(err.Error())
+		fmt.Printf(err.Error())
 		os.Exit(1)
 	}
-	logToStdout("Using driver %s", driver)
+	fmt.Printf("Using driver %s", driver)
 
 	if exit := m.Run(); exit != 0 {
 		os.Exit(exit)
 	}
-}
-
-var stdout *bufio.Writer
-
-func logToStdout(s string, args ...string) {
-	stdout.WriteString(fmt.Sprintf(s+"\n", args))
-	stdout.Flush()
 }
