@@ -35,11 +35,7 @@ type StructureTest struct {
 }
 
 func (st *StructureTest) NewDriver() (drivers.Driver, error) {
-	driver, err := st.DriverImpl(st.Image)
-	if err != nil {
-		return nil, err
-	}
-	return driver, nil
+	return st.DriverImpl(st.Image)
 }
 
 func (st *StructureTest) SetDriverImpl(f func(string) (drivers.Driver, error), image string) {
