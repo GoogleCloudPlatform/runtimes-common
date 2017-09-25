@@ -153,7 +153,7 @@ class TagReconciler:
 
                         # We can safely retag now.
                         full_tag = full_repo + ':' + image['tag']
-                        self.add_tags(full_digest, full_tag, dry_run)
+                        self.add_tags(default_digest, full_tag, dry_run)
 
                 logging.debug(self.get_existing_tags(default_repo, digest))
 
