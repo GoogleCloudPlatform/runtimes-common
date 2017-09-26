@@ -125,10 +125,10 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	fmt.Printf("Using driver %s", driver)
+	fmt.Printf("Using driver %s\n", driver)
 
 	if exit := m.Run(); exit != 0 {
 		os.Exit(exit)
