@@ -27,11 +27,6 @@ To ensure the secret was created, run
 
 retagger-secret should be in the output list of secrets.
 
-__Activate Service Account in gCloud__
-
-To activate the service account in gCloud, run the following command, where [ACCOUNT] is the client\_email associated with the service account. This field is available in retagger_secret.json.
-
-`gcloud auth activate-service-account [ACCOUNT] --key-file=[PATH TO retagger_secret.json]`
 
 Running Retagger as a Pod
 -------------------------
