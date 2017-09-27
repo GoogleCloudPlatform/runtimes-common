@@ -37,3 +37,4 @@ script:
  # - bazel clean && bazel build //...
  - bazel test reconciletags:reconciletags_test
  - cd runtime_builders && py.test test_manifest.py && cd ..
+ - cd structure_tests && make && cd ..
