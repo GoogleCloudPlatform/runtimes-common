@@ -60,7 +60,6 @@ func (d *TarDriver) Destroy() {
 func (d *TarDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommand []unversioned.Command) {
 	// this driver is unable to process commands, inform user and fail.
 	t.Fatal("Tar driver is unable to process commands, please use a different driver")
-	return
 }
 
 func (d *TarDriver) ProcessCommand(t *testing.T, envVars []unversioned.EnvVar, fullCommand []string) (string, string, int) {
