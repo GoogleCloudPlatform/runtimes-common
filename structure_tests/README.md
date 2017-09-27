@@ -11,7 +11,7 @@ To run the test framework, simply download the binary for your OS here:
 ## Example Run
 An example run of the test framework:
 ```shell
-./structure-test -test.v -image gcr.io/google-appengine/python 
+./structure-test -test.v -image gcr.io/google-appengine/python \
 python_test_config.yaml
 ```
 This command will run the tests on the GAE Python image, with verbose logging, 
@@ -173,7 +173,7 @@ in the tests, with the `-driver` flag.
 
 An example test run with a different driver looks like:
 ```shell
-./structure-test -driver tar -image gcr.io/google-appengine/python 
+./structure-test -driver tar -image gcr.io/google-appengine/python \
 python_test_config.yaml
 ```
 
