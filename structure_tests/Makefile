@@ -21,13 +21,10 @@ VERSION ?= v$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_BUILD)
 
 GOOS ?= $(shell go env GOOS)
 GOARCH = amd64
-ORG := github.com/GoogleCloudPlatform
 PROJECT := runtimes-common/structure_tests
-REPOPATH ?= $(ORG)/$(PROJECT)
-RELEASE_BUCKET ?= $(PROJECT)
+RELEASE_BUCKET ?= gcp-container-tools/structure-test
 
 SUPPORTED_PLATFORMS := linux-$(GOARCH) darwin-$(GOARCH) windows-$(GOARCH).exe
-BUILD_PACKAGE = $(REPOPATH)
 
 BUILD_DIR ?= ./out
 BUCKET ?= structure-test
@@ -37,13 +34,13 @@ $(BUILD_DIR)/$(PROJECT): $(BUILD_DIR)/$(PROJECT)-$(GOOS)-$(GOARCH)
 	cp $(BUILD_DIR)/$(PROJECT)-$(GOOS)-$(GOARCH) $@
 
 $(BUILD_DIR)/$(PROJECT)-%-$(GOARCH): $(GO_FILES) $(BUILD_DIR)
-	GOOS=$* GOARCH=$(GOARCH) CGO_ENABLED=0 go test -c . -o $@ $(BUILD_PACKAGE)
+	GOOS=$* GOARCH=$(GOARCH) CGO_ENABLED=0 go test -c . -o $@
 
 %.sha256: %
 	shasum -a 256 $< &> $@
 
 %.exe: %
-	mv $< $@
+	cp $< $@
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
