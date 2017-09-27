@@ -100,10 +100,6 @@ func TestMain(m *testing.M) {
 	flag.StringVar(&imagePath, "image", "", "path to test image")
 	flag.StringVar(&driver, "driver", "docker", "driver to use when running tests")
 
-	var logLevel string
-	flag.StringVar(&logLevel, "logLevel", "0", "test")
-	flag.Lookup("v").Value.Set(logLevel)
-
 	flag.Parse()
 	configFiles = flag.Args()
 
