@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "helpers.go",
+        "normalize.go",
+        "reference.go",
+        "regexp.go",
+    ],
+    importpath = "github.com/containers/image/docker/reference",
+    visibility = ["//visibility:public"],
+    deps = ["//vendor/github.com/opencontainers/go-digest:go_default_library"],
+)
