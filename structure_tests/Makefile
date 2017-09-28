@@ -24,7 +24,7 @@ GOARCH = amd64
 PROJECT := runtimes-common/structure_tests
 RELEASE_BUCKET ?= gcp-container-tools/structure-test
 
-SUPPORTED_PLATFORMS := linux-$(GOARCH) darwin-$(GOARCH) windows-$(GOARCH).exe
+SUPPORTED_PLATFORMS := linux-$(GOARCH) darwin-$(GOARCH)
 
 BUILD_DIR ?= ./out
 BUCKET ?= structure-test
