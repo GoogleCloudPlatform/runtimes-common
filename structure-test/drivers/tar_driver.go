@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	pkgutil "github.com/GoogleCloudPlatform/container-diff/pkg/util"
-	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
+	"github.com/GoogleCloudPlatform/runtimes-common/structure-test/types/unversioned"
 )
 
 type TarDriver struct {
