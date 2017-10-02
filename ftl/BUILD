@@ -48,6 +48,20 @@ py_test(
     ],
 )
 
+py_test(
+    name = "node_builder_test",
+    srcs = ["node/builder_test.py"],
+    data =
+        glob(
+            ["node/testdata/**"],
+        ),
+    main = "node/builder_test.py",
+    deps = [
+        ":node_lib",
+        "@mock//:mock",
+    ],
+)
+
 py_library(
     name = "node_lib",
     srcs = glob(["node/*.py"]),

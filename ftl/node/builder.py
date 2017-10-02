@@ -11,18 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """This package defines the interface for orchestrating image builds."""
 
 import hashlib
 import os
 import subprocess
 import tempfile
-
+import logging
 
 from containerregistry.client.v2_2 import append
 from ftl.common import builder
-
 
 _NODE_NAMESPACE = 'node-package-lock-cache'
 _PACKAGE_LOCK = 'package-lock.json'
@@ -30,7 +28,6 @@ _PACKAGE_JSON = 'package.json'
 
 
 class Node(builder.JustApp):
-
     def __init__(self, ctx):
         super(Node, self).__init__(ctx)
 
@@ -40,47 +37,39 @@ class Node(builder.JustApp):
 
     def CreatePackageBase(self, base_image, cache):
         """Override."""
-        if self._ctx.Contains(_PACKAGE_LOCK):
-            print('Using %s as a package descriptor.' % _PACKAGE_LOCK)
-            descriptor = self._ctx.GetFile(_PACKAGE_LOCK)
-        elif self._ctx.Contains(_PACKAGE_JSON):
-            print('Using %s as a package descriptor.' % _PACKAGE_JSON)
-            descriptor = self._ctx.GetFile(_PACKAGE_JSON)
-        else:
-            print('No package descriptor found. Not installing anything.')
+        # Copy out the relevant package descriptors to a tempdir.
+        descriptor = None
+        for p in [_PACKAGE_LOCK, _PACKAGE_JSON]:
+            if self._ctx.Contains(p):
+                descriptor = p
+        if not descriptor:
+            logging.info('No package descriptor found. No packages installed.')
             return base_image
 
         checksum = hashlib.sha256(descriptor).hexdigest()
         hit = cache.Get(base_image, _NODE_NAMESPACE, checksum)
         if hit:
-            print('Found cached dependency layer for %s' % checksum)
+            logging.info('Found cached dependency layer for %s' % checksum)
             return hit
         else:
-            print('No cached dependency layer for %s' % checksum)
+            logging.info('No cached dependency layer for %s' % checksum)
 
         # We want the node_modules directory rooted at /app/node_modules in
         # the final image.
         # So we build a hierarchy like:
-        # /$tmpdir/app/node_modules
-        # And use the -C flag to tar to root the tarball at /$tmpdir.
+        # /$tmp/app/node_modules
+        # And use the -C flag to tar to root the tarball at /$tmp.
         tmp = tempfile.mkdtemp()
         app_dir = os.path.join(tmp, 'app')
         os.mkdir(app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
-        for p in [_PACKAGE_LOCK, _PACKAGE_JSON]:
-            if self._ctx.Contains(p):
-                with open(os.path.join(app_dir, p), 'w') as f:
-                    f.write(self._ctx.GetFile(p))
+        with open(os.path.join(app_dir, descriptor), 'w') as f:
+            f.write(self._ctx.GetFile(descriptor))
 
         tar_path = tempfile.mktemp()
         subprocess.check_call(['npm', 'install'], cwd=app_dir)
-        subprocess.check_call([
-            'tar',
-            '-C', tmp,
-            '-cf', tar_path,
-            '.'
-        ])
+        subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
 
         # We need the sha of the unzipped and zipped tarball.
         # So for performance, tar, sha, zip, sha.
@@ -90,7 +79,7 @@ class Node(builder.JustApp):
         layer = open(os.path.join(tmp, tar_path + '.gz'), 'rb').read()
 
         with append.Layer(base_image, layer, diff_id=sha) as dep_image:
-            print('Storing layer %s in cache.', sha)
+            logging.info('Storing layer %s in cache.', sha)
             cache.Store(base_image, _NODE_NAMESPACE, checksum, dep_image)
             return dep_image
 
