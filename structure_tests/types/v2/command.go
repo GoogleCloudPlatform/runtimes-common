@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1
+package v2
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/structure-test/types/unversioned"
+	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
 )
 
 type CommandTest struct {
@@ -26,7 +26,8 @@ type CommandTest struct {
 	Setup          []unversioned.Command
 	EnvVars        []unversioned.EnvVar
 	ExitCode       int
-	Command        []string
+	Command        string
+	Args           []string
 	ExpectedOutput []string
 	ExcludedOutput []string
 	ExpectedError  []string
@@ -37,8 +38,8 @@ func validateCommandTest(t *testing.T, tt CommandTest) {
 	if tt.Name == "" {
 		t.Fatalf("Please provide a valid name for every test!")
 	}
-	if tt.Command == nil || len(tt.Command) == 0 {
-		t.Fatalf("Please provide a valid command to run for test %s", tt.Name)
+	if tt.Command == "" {
+		t.Fatalf("Please provide a valid entrypoint to run for test %s", tt.Name)
 	}
 	if tt.Setup != nil {
 		for _, c := range tt.Setup {
@@ -48,9 +49,9 @@ func validateCommandTest(t *testing.T, tt CommandTest) {
 		}
 	}
 	if tt.EnvVars != nil {
-		for _, envVar := range tt.EnvVars {
-			if envVar.Key == "" || envVar.Value == "" {
-				t.Fatalf("Please provide non-empty keys and values for all specified env vars")
+		for _, env_var := range tt.EnvVars {
+			if env_var.Key == "" || env_var.Value == "" {
+				t.Fatalf("Please provide non-empty keys and values for all specified env_vars")
 			}
 		}
 	}
