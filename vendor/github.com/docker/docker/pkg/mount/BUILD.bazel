@@ -21,7 +21,7 @@ go_library(
         ],
         "//conditions:default": [],
     }),
-    cgo = True,
+    cgo = False,
     importpath = "github.com/docker/docker/pkg/mount",
     visibility = ["//visibility:public"],
     deps = select({

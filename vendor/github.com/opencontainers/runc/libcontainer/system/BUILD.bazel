@@ -17,7 +17,7 @@ go_library(
         ],
         "//conditions:default": [],
     }),
-    cgo = True,
+    cgo = False,
     importpath = "github.com/opencontainers/runc/libcontainer/system",
     visibility = ["//visibility:public"],
     deps = select({
