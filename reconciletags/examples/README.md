@@ -9,11 +9,7 @@ To run the retagger through Kubernetes as either a Pod or a CronJob on a Google 
 
 __Creating a Service Account__
 
-First, create a service account, which will later be used for authentication purposes.
-
-![alt text](images/image1.png)
-
-Name the account, and select `Storage > Storage Admin` as the role. Download as a JSON file, and rename this file to **retagger_secret.json**
+First, create a service account, which will later be used for authentication purposes. Name the account, and select `Storage > Storage Admin` as the role. Download as a JSON file, and rename this file to **retagger_secret.json**
 
 __Create a Secret__
 
