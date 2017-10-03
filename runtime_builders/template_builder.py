@@ -51,7 +51,7 @@ def _resolve_and_publish(config_file, bucket):
             if 'yaml' not in config_file:
                 logging.error('Please provide a valid yaml config file.')
                 sys.exit(1)
-            project_cfg = yaml.round_trip_load(f)
+            project_cfg = yaml.round_trip_load(f, preserve_quotes=True)
             project_name = project_cfg['project']
             for builder in project_cfg['builders']:
                 cfg = os.path.abspath(str(builder['file']))
@@ -91,7 +91,7 @@ def _resolve_tags(config_file):
     with open(config_file, 'r') as infile:
         logging.info('Templating file: {0}'.format(config_file))
         try:
-            config = yaml.round_trip_load(infile)
+            config = yaml.round_trip_load(infile, preserve_quotes=True)
 
             for step in config.get('steps'):
                 image = step.get('name')
