@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package v1
+package v2
 
 import (
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
-	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
-	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/utils"
+	"github.com/GoogleCloudPlatform/runtimes-common/structure-test/drivers"
+	"github.com/GoogleCloudPlatform/runtimes-common/structure-test/types/unversioned"
+	"github.com/GoogleCloudPlatform/runtimes-common/structure-test/utils"
 )
 
 type StructureTest struct {
@@ -57,6 +57,7 @@ func (st *StructureTest) RunCommandTests(t *testing.T) int {
 	for _, tt := range st.CommandTests {
 		t.Run(tt.LogName(), func(t *testing.T) {
 			validateCommandTest(t, tt)
+			//each test needs to have its own instance of the driver: create that here
 			driver, err := st.NewDriver()
 			if err != nil {
 				t.Errorf(err.Error())
@@ -65,7 +66,8 @@ func (st *StructureTest) RunCommandTests(t *testing.T) int {
 			vars := append(st.GlobalEnvVars, tt.EnvVars...)
 			driver.Setup(t, vars, tt.Setup)
 
-			stdout, stderr, exitcode := driver.ProcessCommand(t, tt.EnvVars, tt.Command)
+			fullCommand := append([]string{tt.Command}, tt.Args...)
+			stdout, stderr, exitcode := driver.ProcessCommand(t, tt.EnvVars, fullCommand)
 
 			CheckOutput(t, tt, stdout, stderr, exitcode)
 			counter++
@@ -103,7 +105,7 @@ func (st *StructureTest) RunFileExistenceTests(t *testing.T) int {
 	return counter
 }
 
-func (st StructureTest) RunFileContentTests(t *testing.T) int {
+func (st *StructureTest) RunFileContentTests(t *testing.T) int {
 	counter := 0
 	for _, tt := range st.FileContentTests {
 		t.Run(tt.LogName(), func(t *testing.T) {

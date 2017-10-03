@@ -9,11 +9,11 @@ go_library(
         "licenses.go",
         "structure.go",
     ],
-    importpath = "github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/v1",
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/structure-test/types/v1",
     visibility = ["//visibility:public"],
     deps = [
-        "//structure_tests/drivers:go_default_library",
-        "//structure_tests/types/unversioned:go_default_library",
-        "//structure_tests/utils:go_default_library",
+        "//structure-test/drivers:go_default_library",
+        "//structure-test/types/unversioned:go_default_library",
+        "//structure-test/utils:go_default_library",
     ],
 )

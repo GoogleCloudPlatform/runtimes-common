@@ -55,7 +55,7 @@ set -ex
 structure_test = rule(
     attrs = {
         "_structure_test": attr.label(
-            default = Label("//structure_tests:ext_run"),
+            default = Label("//structure-test:ext_run"),
             cfg = "target",
             allow_files = True,
             executable = True,
