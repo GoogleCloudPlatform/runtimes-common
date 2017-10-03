@@ -114,7 +114,7 @@ timeout: {{ .TimeoutSeconds }}s
 
 const testsDir = "tests"
 const functionalTestsDir = "tests/functional_tests"
-const structureTestsDir = "tests/structure_tests"
+const structureTestsDir = "tests/structure-test"
 const testJsonSuffix = "_test.json"
 const testYamlSuffix = "_test.yaml"
 const workspacePrefix = "/workspace/"
