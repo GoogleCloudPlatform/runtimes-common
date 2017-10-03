@@ -26,7 +26,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/structure-test/types/unversioned"
+	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
 	"github.com/fsouza/go-dockerclient"
 )
 

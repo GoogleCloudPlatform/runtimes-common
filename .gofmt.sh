@@ -22,7 +22,7 @@ if [[ $files ]]; then
     exit 1
 fi
 
-files=$(go vet ./structure-test)
+files=$(go vet ./structure_tests)
 if [[ $files ]]; then
    echo "Go vet errors in files: $files"
    exit 1
