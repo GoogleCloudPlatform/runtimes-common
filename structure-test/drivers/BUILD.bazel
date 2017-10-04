@@ -7,10 +7,10 @@ go_library(
         "driver.go",
         "tar_driver.go",
     ],
-    importpath = "github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers",
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/structure-test/drivers",
     visibility = ["//visibility:public"],
     deps = [
-        "//structure_tests/types/unversioned:go_default_library",
+        "//structure-test/types/unversioned:go_default_library",
         "//vendor/github.com/GoogleCloudPlatform/container-diff/pkg/util:go_default_library",
         "//vendor/github.com/fsouza/go-dockerclient:go_default_library",
     ],
