@@ -13,6 +13,7 @@
 # limitations under the License.
 """This package defines the interface for caching objects."""
 
+import os
 import abc
 import hashlib
 import logging
@@ -99,3 +100,56 @@ class Registry(Base):
                 threads=self._threads,
                 mount=self._mount) as session:
             session.upload(value)
+
+class MockHybridRegistry(Base):
+    """MockHybridRegistry is a cache implementation that stores layers in memory
+    and can get docker tarballs from the local file system.
+
+    It stores layers under a 'namespace', with a tag derived from the layer
+    checksum. For example: gcr.io/$repo/$namespace:$checksum
+    """
+
+    def __init__(self, repo, directory):
+        super(MockHybridRegistry, self).__init__()
+        self._directory = directory
+        self._repo = repo
+        self._map = {}
+        self._cache_miss = 0
+
+    def _tag(self, base_image, namespace, checksum):
+        fingerprint = '%s %s' % (base_image.digest(), checksum)
+        return docker_name.Tag('{base}/{namespace}:{tag}'.format(
+          base=str(self._repo),
+          namespace=namespace,
+          tag=hashlib.sha256(fingerprint).hexdigest()))
+
+    def Get(self, base_image, namespace, checksum):
+        entry = self._tag(base_image, namespace, checksum)
+        if entry in self._map:
+            return self._map[entry]
+        tarball = os.path.join(self._directory, str(entry))
+        if os.path.isfile(tarball):
+            print('Found cached base image: %s.' % entry)
+            self._map[entry] = docker_image.FromTarball(tarball)
+            return self._map[entry]
+        print('No cached base image found for entry: %s.' % entry)
+        self._cache_miss += 1
+        return None
+
+    def Store(self, base_image, namespace, checksum, value):
+        entry = self._tag(base_image, namespace, checksum)
+        self._map[entry] = value
+
+    def StoreTarImage(self, namespace, checksum, tarpath, config_text):
+        with docker_image.FromDisk(config_text, zip([], []), tarpath) as base_image:
+            entry = self._tag(base_image, namespace, checksum)
+            self._map[entry] = base_image
+
+    def GetMap(self):
+        return self._map
+
+    def GetCacheMiss(self):
+        return self._cache_miss
+
+    def ResetCacheMiss(self):
+        self._cache_miss = 0
