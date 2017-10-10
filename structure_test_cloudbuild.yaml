@@ -1,0 +1,7 @@
+steps:
+#Build the binary with bazel
+  - name:  'gcr.io/cloud-builders/bazel'
+    args: ['build', 'structure_tests:go_default_test']
+#Copy par files into commit SHA bucket
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', 'bazel-bin/structure_tests/go_default_test', 'gs://gcp-container-tools/structure-test/$COMMIT_SHA/']
