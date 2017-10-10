@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck disable=SC2181
 # shellcheck disable=SC2046
-files=$(buildifier -mode=check $(find . -not -path "./vendor/*" -name 'BUILD*' -o -name '*.bzl' -type f))
+files=$(buildifier -mode=check $(find . -not -path "./vendor/*" -name 'BUILD' -o -name '*.bzl' -type f))
 if [ $? -ne 0 ]; then
   exit 1
 fi
