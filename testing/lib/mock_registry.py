@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from containerregistry.client.v2_2 import docker_image
-import unittest
 
 
 class MockRegistry():
@@ -41,14 +40,15 @@ class MockRegistry():
 
     def setTags(self, full_repo, tags):
         if not self.existsImage(full_repo):
-            raise AssertionError('%s does not exist in registry' % full_repo)
+            raise AssertionError('{0} does not exist in registry'.format(
+                  full_repo))
         self._tags[full_repo] = tags
 
     def getTags(self, full_repo):
         repo = self.getFullRepoStr(full_repo)
         if repo in self._tags:
             return self._tags[repo]
-        raise AssertionError('No tags exist for %s' % repo)
+        raise AssertionError('No tags exist for {0}'.format(repo))
 
     def setImage(self, full_repo, image):
         full_repo = self.getFullRepoStr(full_repo)
@@ -58,7 +58,8 @@ class MockRegistry():
         full_repo = self.getFullRepoStr(full_repo)
         if full_repo in self._registry:
             return self._registry[full_repo]
-        raise AssertionError('%s does not exist in registry' % full_repo)
+        raise AssertionError('{0} does not exist in registry'.format(
+                             full_repo))
 
     def existsImage(self, full_repo):
         full_repo = self.getFullRepoStr(full_repo)
@@ -72,16 +73,8 @@ class MockRegistry():
         repository = self.getRepoStr(repository)
         if repository in self._manifests:
             return self._manifests[repository]
-        raise AssertionError('%s does not have an available manifest' % repository)
+        raise AssertionError('{0} has no associated manifest'.format(
+                             repository))
 
     def clearRegistry(self):
         self._registry = {}
-
-
-class WithMockRegistry(unittest.TestCase):
-
-    def AssertPushed(self, registry, name):
-        self.assertTrue(registry.existsImage(str(name)))
-
-    def AssertNotPushed(self, registry, name):
-        self.assertFalse(registry.existsImage(str(name)))

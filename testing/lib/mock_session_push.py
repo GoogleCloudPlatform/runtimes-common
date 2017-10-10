@@ -22,6 +22,9 @@ class MockSessionPush(docker_session.Push):
 
     def __init__(self, name="", creds="", transport="", mount=None, threads=1):
         self._name = name
+        self._transport = transport
+        self._mount = mount
+        self._threads = threads
 
     def setRegistry(self, registry):
         if isinstance(registry, mock_registry.MockRegistry):
@@ -29,7 +32,8 @@ class MockSessionPush(docker_session.Push):
 
     def upload(self, src_image, use_digest=False):
         if not src_image.exists():
-            raise AssertionError("%s does not exist in registry" % (str(src_image)))
+            raise AssertionError("{0} does not exist in registry".format(
+                                (str(src_image))))
 
         dest_img = MockSessionPush.REGISTRY.getImage(src_image)
         MockSessionPush.REGISTRY.setImage(self._name, dest_img)

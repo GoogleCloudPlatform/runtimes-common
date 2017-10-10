@@ -38,5 +38,3 @@ py_test(
     deps = ["@containerregistry"],
     data = [":test.tar"]
 )
-
-
