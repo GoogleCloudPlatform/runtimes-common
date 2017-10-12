@@ -73,7 +73,7 @@ class MockRegistry():
         repository = self.getRepoStr(repository)
         if repository in self._manifests:
             return self._manifests[repository]
-        raise AssertionError('{0} has no associated manifest'.format(
+        raise AssertionError('{0} has no manifest'.format(
                              repository))
 
     def clearRegistry(self):

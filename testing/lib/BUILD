@@ -35,6 +35,6 @@ docker_build(
 py_test(
     name = "mock_registry_tests",
     srcs = ["mock_registry_tests.py"],
+    data = [":test.tar"],
     deps = ["@containerregistry"],
-    data = [":test.tar"]
 )
