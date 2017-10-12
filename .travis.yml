@@ -1,6 +1,7 @@
 sudo: required
 dist: trusty
 
+
 language: java
 python:
         - "2.7"
@@ -12,8 +13,12 @@ go_import_path: github.com/GoogleCloudPlatform/runtimes-common
 jdk:
   - oraclejdk8
 
+env:
+  - NODE_VERSION="6.11.4"
+
 before_install:
-        - pip install --user --upgrade -r requirements.txt
+  - pip install --user --upgrade -r requirements.txt
+  - nvm install $NODE_VERSION
 
 addons:
   apt:
@@ -36,5 +41,6 @@ script:
  - ./.buildifier.sh
  # - bazel clean && bazel build //...
  - bazel test reconciletags:reconciletags_test
+ - bazel run //ftl:node_builder_test
  - cd runtime_builders && py.test test_manifest.py && cd ..
  - cd structure_tests && make && cd ..
