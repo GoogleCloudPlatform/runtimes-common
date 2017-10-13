@@ -59,34 +59,34 @@ def main():
     target_image = docker_name.Tag(args.name)
     target_creds = docker_creds.DefaultKeychain.Resolve(target_image)
 
-    with context.Workspace(args.directory) as ctx:
-        with cache.Registry(
-                target_image.as_repository(),
-                target_creds,
-                transport,
-                threads=_THREADS,
-                mount=[base_name]) as cash:
-            with builder.From(ctx) as bldr:
-                with docker_image.FromRegistry(base_name, base_creds,
-                                               transport) as base_image:
+    ctx = context.Workspace(args.directory)
+    cash = cache.Registry(
+            target_image.as_repository(),
+            target_creds,
+            transport,
+            threads=_THREADS,
+            mount=[base_name])
+    bldr = builder.From(ctx)
+    with docker_image.FromRegistry(base_name,
+                                   base_creds,
+                                   transport) as base_image:
 
-                    # Create (or pull from cache) the base image with the
-                    # package descriptor installation overlaid.
-                    logging.info('Generating dependency layer...')
-                    with bldr.CreatePackageBase(base_image, cash) as deps:
-                        # Construct the application layer from the context.
-                        logging.info('Generating app layer...')
-                        app_layer, diff_id = bldr.BuildAppLayer()
-                        with append.Layer(
-                                deps, app_layer, diff_id=diff_id) as app_image:
-                            with docker_session.Push(
-                                    target_image,
-                                    target_creds,
-                                    transport,
-                                    threads=_THREADS,
-                                    mount=[base_name]) as session:
-                                logging.info('Pushing final image...')
-                                session.upload(app_image)
+        # Create (or pull from cache) the base image with the
+        # package descriptor installation overlaid.
+        logging.info('Generating dependency layer...')
+        with bldr.CreatePackageBase(base_image, cash) as deps:
+            # Construct the application layer from the context.
+            logging.info('Generating app layer...')
+            app_layer, diff_id = bldr.BuildAppLayer()
+            with append.Layer(deps, app_layer, diff_id=diff_id) as app_image:
+                with docker_session.Push(
+                        target_image,
+                        target_creds,
+                        transport,
+                        threads=_THREADS,
+                        mount=[base_name]) as session:
+                    logging.info('Pushing final image...')
+                    session.upload(app_image)
 
 
 if __name__ == '__main__':
