@@ -49,7 +49,6 @@ parser.add_argument(
 
 def main():
     args = parser.parse_args()
-
     transport = transport_pool.Http(httplib2.Http, size=_THREADS)
 
     # TODO(mattmoor): Support digest base images.

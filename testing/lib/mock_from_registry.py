@@ -20,8 +20,12 @@ class MockFromRegistry(docker_image.FromRegistry):
 
     REGISTRY = mock_registry.MockRegistry()
 
-    def __init__(self, name="", basic_creds=None, transport=None):
+    def __init__(self, name="", basic_creds=None, transport=None, accepted_mimes=None):
         self._name = name
+        self._basic_creds = basic_creds
+        self._transport = transport
+        self._accepted_mimes = accepted_mimes
+        self._response = {}
 
     def setRegistry(self, registry):
         if isinstance(registry, mock_registry.MockRegistry):
@@ -32,6 +36,9 @@ class MockFromRegistry(docker_image.FromRegistry):
 
     def manifests(self):
         return MockFromRegistry.REGISTRY.getManifests(self._name)
+
+    def manifest(self):
+        return self.manifests()
 
     def tags(self):
         return MockFromRegistry.REGISTRY.getTags(self._name)

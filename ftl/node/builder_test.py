@@ -24,6 +24,7 @@ from ftl.node import builder
 
 
 class TarDockerImage():
+
     def __init__(self, config_path, tarball_path):
         self._config = open(config_path, 'r').read()
         # TODO(aaron-prindle) use fast image format instead of tarball
@@ -50,14 +51,14 @@ class BuilderTestCase():
             self._base_image.GetDockerImage(), self._cash)
 
     def GetCacheEntries(self):
-        return len(self._cash._map)
+        return len(self._cash._registry._registry)
 
     def GetCacheMap(self):
-        return self._cash._map
+        return self._cash._registry._registry
 
     def GetCacheEntryByStringKey(self, key):
         # cast key to docker_tag
-        return self._cash[key]
+        return self._cash._registry.getImage(key)
 
 
 class NodeTest(unittest.TestCase):

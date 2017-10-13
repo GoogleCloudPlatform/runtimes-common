@@ -58,6 +58,7 @@ py_test(
     main = "node/builder_test.py",
     deps = [
         ":node_lib",
+        "//testing/lib:containerregistry_mock_lib",
         "@mock//:mock",
     ],
 )
@@ -81,7 +82,10 @@ py_binary(
     name = "node_builder",
     srcs = [":node_lib"],
     main = "node/main.py",
-    deps = ["@containerregistry"],
+    deps = [
+        "@containerregistry",
+         "//testing/lib:containerregistry_mock_lib",
+    ],
 )
 
 py_image(
@@ -91,5 +95,24 @@ py_image(
     main = "node/main.py",
     deps = [
         "@containerregistry",
+    ],
+)
+
+docker_build(
+    name = "test",
+    base = "@python_base//image",
+)
+
+py_test(
+    name = "node_main_test",
+    srcs = ["node/main_test.py"],
+    data = glob(
+        ["node/testdata/**"],
+    ),
+    main = "node/main_test.py",
+    deps = [
+        ":node_lib",
+        "//testing/lib:containerregistry_mock_lib",
+        "@mock//:mock",
     ],
 )
