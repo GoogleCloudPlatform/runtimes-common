@@ -68,7 +68,7 @@ class Node(builder.JustApp):
             f.write(self._ctx.GetFile(descriptor))
 
         tar_path = tempfile.mktemp()
-        subprocess.check_call(['npm', 'install'], cwd=app_dir)
+        subprocess.check_call(['npm', 'install', '--no-cache'], cwd=app_dir)
         subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
 
         # We need the sha of the unzipped and zipped tarball.
