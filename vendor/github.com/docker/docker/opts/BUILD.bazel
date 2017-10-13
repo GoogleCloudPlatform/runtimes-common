@@ -19,7 +19,6 @@ go_library(
         ],
         "//conditions:default": [],
     }),
-    importpath = "github.com/docker/docker/opts",
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/docker/docker/api/types:go_default_library",
