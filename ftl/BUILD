@@ -58,6 +58,7 @@ py_test(
     main = "node/builder_test.py",
     deps = [
         ":node_lib",
+        "//testing/lib:containerregistry_mock_lib",
         "@mock//:mock",
     ],
 )
