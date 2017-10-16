@@ -49,7 +49,7 @@ parser.add_argument(
 
 
 def main(args):
-    args = parser.parse_args(args[1:])
+    args = parser.parse_args(args)
 
     transport = transport_pool.Http(httplib2.Http, size=_THREADS)
 
@@ -91,4 +91,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main(sys.argv[1:])

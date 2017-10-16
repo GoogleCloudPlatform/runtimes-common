@@ -38,7 +38,7 @@ class NodeTest(mock_registry_test_base.MockRegistryTestBase):
         append_layer_mock.return_value = self.registry.getImage(
                                          'fake.gcr.io/base/image:appended')
 
-        args = ["main.py", "--base=fake.gcr.io/base/image:initial",
+        args = ["--base=fake.gcr.io/base/image:initial",
                 "--name=fake.gcr.io/base/image:latest", "--directory= "]
 
         main.main(args)
