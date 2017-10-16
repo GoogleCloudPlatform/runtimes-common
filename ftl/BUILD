@@ -83,8 +83,8 @@ py_binary(
     srcs = [":node_lib"],
     main = "node/main.py",
     deps = [
+        "//testing/lib:containerregistry_mock_lib",
         "@containerregistry",
-         "//testing/lib:containerregistry_mock_lib",
     ],
 )
 
@@ -98,17 +98,10 @@ py_image(
     ],
 )
 
-docker_build(
-    name = "test",
-    base = "@python_base//image",
-)
-
 py_test(
     name = "node_main_test",
     srcs = ["node/main_test.py"],
-    data = glob(
-        ["node/testdata/**"],
-    ),
+    data = [":node_builder_base.tar"],
     main = "node/main_test.py",
     deps = [
         ":node_lib",

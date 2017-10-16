@@ -42,6 +42,7 @@ script:
  # - bazel clean && bazel build //...
  - bazel test reconciletags:reconciletags_test
  - bazel run //ftl:node_builder_test
+ - bazel test //ftl:node_main_test
  - bazel test testing/lib:mock_registry_tests
  - cd runtime_builders && py.test test_manifest.py && cd ..
  - cd structure_tests && make && cd ..
