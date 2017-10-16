@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import unittest
-import sys
 from mock import patch
 from testing.lib import mock_registry_test_base
 from containerregistry.client.v2_2 import docker_image
@@ -39,10 +38,10 @@ class NodeTest(mock_registry_test_base.MockRegistryTestBase):
         append_layer_mock.return_value = self.registry.getImage(
                                          'fake.gcr.io/base/image:appended')
 
-        sys.argv = ["main.py",  "--base=fake.gcr.io/base/image:initial",
-                    "--name=fake.gcr.io/base/image:latest",
-                    "--directory= "]
-        main.main()
+        args = ["main.py", "--base=fake.gcr.io/base/image:initial",
+                "--name=fake.gcr.io/base/image:latest", "--directory= "]
+
+        main.main(args)
 
         self.AssertPushed(self.registry, 'fake.gcr.io/base/image:latest')
 

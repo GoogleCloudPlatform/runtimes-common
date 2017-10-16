@@ -14,6 +14,7 @@
 """A binary for constructing images from a source context."""
 
 import argparse
+import sys
 
 from containerregistry.client import docker_creds
 from containerregistry.client import docker_name
@@ -47,8 +48,8 @@ parser.add_argument(
     help='The path where the application data sits.')
 
 
-def main():
-    args = parser.parse_args()
+def main(args):
+    args = parser.parse_args(args[1:])
 
     transport = transport_pool.Http(httplib2.Http, size=_THREADS)
 
@@ -90,4 +91,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)

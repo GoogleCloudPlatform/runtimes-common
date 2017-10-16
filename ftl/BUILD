@@ -44,6 +44,7 @@ py_test(
     srcs = ["common/cache_test.py"],
     deps = [
         ":ftl_lib",
+        "//testing/lib:containerregistry_mock_lib",
         "@mock//:mock",
     ],
 )
