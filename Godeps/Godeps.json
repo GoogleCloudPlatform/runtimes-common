@@ -8,11 +8,11 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/Azure/go-ansiterm",
-			"Rev": "70b2c90b260171e829f1ebd7c17f600c11858dbe"
+			"Rev": "d6e3b3328b783f23731bc4d058875b0371ff8109"
 		},
 		{
 			"ImportPath": "github.com/Azure/go-ansiterm/winterm",
-			"Rev": "70b2c90b260171e829f1ebd7c17f600c11858dbe"
+			"Rev": "d6e3b3328b783f23731bc4d058875b0371ff8109"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/container-diff/pkg/util",

@@ -28,7 +28,6 @@ go_library(
         ],
         "//conditions:default": [],
     }),
-    importpath = "github.com/fsouza/go-dockerclient",
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/docker/docker/api/types/swarm:go_default_library",
