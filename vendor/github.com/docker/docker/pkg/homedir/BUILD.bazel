@@ -14,7 +14,6 @@ go_library(
         ],
         "//conditions:default": [],
     }),
-    importpath = "github.com/docker/docker/pkg/homedir",
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/github.com/opencontainers/runc/libcontainer/user:go_default_library",

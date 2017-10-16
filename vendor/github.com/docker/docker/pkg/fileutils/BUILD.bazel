@@ -16,7 +16,6 @@ go_library(
         ],
         "//conditions:default": [],
     }),
-    importpath = "github.com/docker/docker/pkg/fileutils",
     visibility = ["//visibility:public"],
     deps = ["//vendor/github.com/sirupsen/logrus:go_default_library"],
 )
