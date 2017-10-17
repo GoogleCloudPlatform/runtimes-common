@@ -92,16 +92,6 @@ func retrieveEnv(d *DockerDriver) func(string) string {
 	}
 }
 
-func convertEnvToMap(env []string) map[string]string {
-	// convert env to map for processing
-	envMap := make(map[string]string)
-	for _, varPair := range env {
-		pair := strings.Split(varPair, "=")
-		envMap[pair[0]] = pair[1]
-	}
-	return envMap
-}
-
 func (d *DockerDriver) retrieveEnvVar(envVar string) string {
 	// since we're only retrieving these during processing, we can use a closure to cache this
 	return retrieveEnv(d)(envVar)
