@@ -45,3 +45,4 @@ script:
  - bazel test testing/lib:mock_registry_tests
  - cd runtime_builders && py.test test_manifest.py && cd ..
  - cd structure_tests && make && cd ..
+ - bazel build //structure_tests:go_default_test
