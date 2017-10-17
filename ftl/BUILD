@@ -53,6 +53,7 @@ py_test(
     srcs = ["common/cache_test.py"],
     deps = [
         ":ftl_lib",
+        "//testing/lib:containerregistry_mock_lib",
         "@mock//:mock",
     ],
 )
@@ -90,7 +91,10 @@ py_binary(
     name = "node_builder",
     srcs = [":node_lib"],
     main = "node/main.py",
-    deps = ["@containerregistry"],
+    deps = [
+        "//testing/lib:containerregistry_mock_lib",
+        "@containerregistry",
+    ],
 )
 
 py_image(
@@ -100,5 +104,17 @@ py_image(
     main = "node/main.py",
     deps = [
         "@containerregistry",
+    ],
+)
+
+py_test(
+    name = "node_main_test",
+    srcs = ["node/main_test.py"],
+    data = [":node_builder_base.tar"],
+    main = "node/main_test.py",
+    deps = [
+        ":node_lib",
+        "//testing/lib:containerregistry_mock_lib",
+        "@mock//:mock",
     ],
 )
