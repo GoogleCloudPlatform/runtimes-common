@@ -19,7 +19,7 @@ import tempfile
 from containerregistry.client.v2_2 import docker_image
 
 from ftl.common import context
-from ftl.common import cache
+from ftl.common import test_util
 from ftl.node import builder
 
 
@@ -70,8 +70,8 @@ class NodeTest(unittest.TestCase):
         test_case = BuilderTestCase(
             builder.Node,
             context.Workspace(os.path.join(current_dir, "testdata/node_app")),
-            cache.MockHybridRegistry('fake.gcr.io/google-appengine',
-                                     tempfile.mkdtemp()),
+            test_util.MockHybridRegistry('fake.gcr.io/google-appengine',
+                                         tempfile.mkdtemp()),
             TarDockerImage(
                 os.path.join(current_dir, "testdata/base_image/config_file"),
                 os.path.join(
