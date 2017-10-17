@@ -21,6 +21,15 @@ py_library(
     ],
 )
 
+py_library(
+    name = "test_lib",
+    srcs = ["common/test_util.py"],
+    deps = [
+        "//testing/lib:containerregistry_mock_lib",
+        "@mock//:mock",
+    ],
+)
+
 py_test(
     name = "context_test",
     srcs = ["common/context_test.py"],
@@ -59,8 +68,7 @@ py_test(
     main = "node/builder_test.py",
     deps = [
         ":node_lib",
-        "//testing/lib:containerregistry_mock_lib",
-        "@mock//:mock",
+        ":test_lib",
     ],
 )
 
