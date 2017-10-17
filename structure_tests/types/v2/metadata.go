@@ -25,11 +25,11 @@ const CMD_PLACEHOLDER = "##METADATA_TEST_PLACEHOLDER"
 
 type MetadataTest struct {
 	Env          []unversioned.EnvVar
-	ExposedPorts map[string]struct{}
+	ExposedPorts []string
 	Entrypoint   []string
 	Cmd          []string
 	Workdir      string
-	Volumes      map[string]struct{}
+	Volumes      []string
 }
 
 func validateMetadataTest(t *testing.T, tt MetadataTest) {

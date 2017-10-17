@@ -22,7 +22,6 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/utils"
-	docker "github.com/fsouza/go-dockerclient"
 )
 
 type StructureTest struct {
@@ -205,24 +204,25 @@ func (st *StructureTest) RunMetadataTests(t *testing.T) int {
 			t.Errorf("Image Workdir %s does not match config Workdir: %s", st.MetadataTest.Workdir, config.Workdir)
 		}
 
-		t.Logf("image config ports: %v", config.ExposedPorts)
-
-		for containerPort, hostPort := range st.MetadataTest.ExposedPorts {
-			t.Logf("port: %s:%s", containerPort, hostPort)
-			configHostPort, ok := config.ExposedPorts[docker.Port(containerPort)]
-			if !ok {
-				t.Errorf("Image port %s not mapped in config", containerPort)
-			} else if configHostPort != hostPort {
-				t.Errorf("Incorrect port mapping found in config: %s:%s", containerPort, configHostPort)
+	PortLoop:
+		for _, port := range st.MetadataTest.ExposedPorts {
+			for _, configPort := range config.ExposedPorts {
+				if port == configPort {
+					continue PortLoop
+				}
 			}
+			t.Errorf("Port %s not found in config", port)
 		}
 
-		for containerVolume, hostVolume := range st.MetadataTest.Volumes {
-			if config.Volumes[containerVolume] != hostVolume {
-				t.Errorf("Incorrect volume mounting found in config: %s:%s", containerVolume, config.Volumes[containerVolume])
+	VolumeLoop:
+		for _, volume := range st.MetadataTest.Volumes {
+			for _, configVolume := range config.Volumes {
+				if volume == configVolume {
+					continue VolumeLoop
+				}
 			}
+			t.Errorf("Volume %s not found in config", volume)
 		}
-
 	})
 	return 1
 }

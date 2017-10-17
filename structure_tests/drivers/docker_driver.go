@@ -323,12 +323,24 @@ func (d *DockerDriver) GetConfig(t *testing.T) (unversioned.Config, error) {
 		return unversioned.Config{}, err
 	}
 
+	// docker provides these as maps (since they can be mapped in docker run commands)
+	// since this will never be the case when built through a dockerfile, we convert to list of strings
+	volumes := []string{}
+	for v := range img.Config.Volumes {
+		volumes = append(volumes, v)
+	}
+
+	ports := []string{}
+	for p := range img.Config.ExposedPorts {
+		ports = append(ports, p.Port())
+	}
+
 	return unversioned.Config{
 		Env:          convertEnvToMap(img.Config.Env),
 		Entrypoint:   img.Config.Entrypoint,
 		Cmd:          img.Config.Cmd,
-		Volumes:      img.Config.Volumes,
+		Volumes:      volumes,
 		Workdir:      img.Config.WorkingDir,
-		ExposedPorts: img.Config.ExposedPorts,
+		ExposedPorts: ports,
 	}, nil
 }

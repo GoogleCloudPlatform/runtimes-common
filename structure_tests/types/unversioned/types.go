@@ -14,8 +14,6 @@
 
 package unversioned
 
-import docker "github.com/fsouza/go-dockerclient"
-
 type EnvVar struct {
 	Key   string
 	Value string
@@ -25,9 +23,9 @@ type Config struct {
 	Env          map[string]string
 	Entrypoint   []string
 	Cmd          []string
-	Volumes      map[string]struct{}
+	Volumes      []string
 	Workdir      string
-	ExposedPorts map[docker.Port]struct{}
+	ExposedPorts []string
 }
 
 type Command []string
