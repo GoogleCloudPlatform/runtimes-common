@@ -22,6 +22,7 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/drivers"
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/utils"
+	docker "github.com/fsouza/go-dockerclient"
 )
 
 type StructureTest struct {
@@ -31,6 +32,7 @@ type StructureTest struct {
 	CommandTests       []CommandTest
 	FileExistenceTests []FileExistenceTest
 	FileContentTests   []FileContentTest
+	MetadataTest       MetadataTest
 	LicenseTests       []LicenseTest
 }
 
@@ -48,6 +50,7 @@ func (st *StructureTest) RunAll(t *testing.T) int {
 	testsRun += st.RunCommandTests(t)
 	testsRun += st.RunFileExistenceTests(t)
 	testsRun += st.RunFileContentTests(t)
+	testsRun += st.RunMetadataTests(t)
 	testsRun += st.RunLicenseTests(t)
 	return testsRun
 }
@@ -139,6 +142,89 @@ func (st *StructureTest) RunFileContentTests(t *testing.T) int {
 		})
 	}
 	return counter
+}
+
+func (st *StructureTest) RunMetadataTests(t *testing.T) int {
+	t.Run(st.MetadataTest.LogName(), func(t *testing.T) {
+		validateMetadataTest(t, st.MetadataTest)
+
+		driver, err := st.NewDriver()
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+		defer driver.Destroy()
+		config, err := driver.GetConfig(t)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+		for _, pair := range st.MetadataTest.Env {
+			if config.Env[pair.Key] == "" {
+				t.Errorf("variable %s not found in image env", pair.Key)
+			} else if config.Env[pair.Key] != pair.Value {
+				t.Errorf("env var %s value does not match expected value: %s", pair.Key, pair.Value)
+			}
+		}
+
+		if len(st.MetadataTest.Cmd) > 0 {
+			// legitimate cmd provided by user in config
+			if st.MetadataTest.Cmd[0] != CMD_PLACEHOLDER {
+				// mismatched lengths auto fails
+				if len(st.MetadataTest.Cmd) != len(config.Cmd) {
+					t.Errorf("Image Cmd %v does not match expected Cmd: %v", st.MetadataTest.Cmd, config.Cmd)
+				}
+				for i := range st.MetadataTest.Cmd {
+					if st.MetadataTest.Cmd[i] != config.Cmd[i] {
+						t.Errorf("Image config Cmd does not match expected value: %s", st.MetadataTest.Cmd)
+					}
+				}
+			}
+		} else if len(config.Cmd) > 0 {
+			// explicit empty cmd was provided by user but image has one: fail
+			t.Errorf("Image Cmd expected to be empty but is %v instead", config.Cmd)
+		}
+
+		if len(st.MetadataTest.Entrypoint) > 0 {
+			// legitimate entrypoint provided by user in config
+			if st.MetadataTest.Entrypoint[0] != CMD_PLACEHOLDER {
+				// mismatched lengths auto fails
+				if len(st.MetadataTest.Entrypoint) != len(config.Entrypoint) {
+					t.Errorf("Image entrypoint %v does not match expected Cmd: %v", st.MetadataTest.Entrypoint, config.Entrypoint)
+				}
+				for i := range st.MetadataTest.Entrypoint {
+					if st.MetadataTest.Entrypoint[i] != config.Entrypoint[i] {
+						t.Errorf("Image config entrypoint does not match expected value: %s", st.MetadataTest.Entrypoint)
+					}
+				}
+			}
+		} else if len(config.Entrypoint) > 0 {
+			// explicit empty entrypoint was provided by user but image has one: fail
+			t.Errorf("Image entrypoint expected to be empty but is %v instead", config.Entrypoint)
+		}
+
+		if st.MetadataTest.Workdir != "" && st.MetadataTest.Workdir != config.Workdir {
+			t.Errorf("Image Workdir %s does not match config Workdir: %s", st.MetadataTest.Workdir, config.Workdir)
+		}
+
+		t.Logf("image config ports: %v", config.ExposedPorts)
+
+		for containerPort, hostPort := range st.MetadataTest.ExposedPorts {
+			t.Logf("port: %s:%s", containerPort, hostPort)
+			configHostPort, ok := config.ExposedPorts[docker.Port(containerPort)]
+			if !ok {
+				t.Errorf("Image port %s not mapped in config", containerPort)
+			} else if configHostPort != hostPort {
+				t.Errorf("Incorrect port mapping found in config: %s:%s", containerPort, configHostPort)
+			}
+		}
+
+		for containerVolume, hostVolume := range st.MetadataTest.Volumes {
+			if config.Volumes[containerVolume] != hostVolume {
+				t.Errorf("Incorrect volume mounting found in config: %s:%s", containerVolume, config.Volumes[containerVolume])
+			}
+		}
+
+	})
+	return 1
 }
 
 func (st *StructureTest) RunLicenseTests(t *testing.T) int {

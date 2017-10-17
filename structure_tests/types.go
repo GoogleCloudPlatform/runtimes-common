@@ -32,7 +32,14 @@ type arrayFlags []string
 
 var schemaVersions map[string]func() StructureTest = map[string]func() StructureTest{
 	"1.0.0": func() StructureTest { return new(v1.StructureTest) },
-	"2.0.0": func() StructureTest { return new(v2.StructureTest) },
+	"2.0.0": func() StructureTest {
+		return &v2.StructureTest{
+			MetadataTest: v2.MetadataTest{
+				Cmd:        []string{v2.CMD_PLACEHOLDER},
+				Entrypoint: []string{v2.CMD_PLACEHOLDER},
+			},
+		}
+	},
 }
 
 type SchemaVersion struct {

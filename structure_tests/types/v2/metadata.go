@@ -12,22 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package unversioned
+package v2
 
-import docker "github.com/fsouza/go-dockerclient"
+import (
+	"fmt"
+	"testing"
 
-type EnvVar struct {
-	Key   string
-	Value string
-}
+	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
+)
 
-type Config struct {
-	Env          map[string]string
+const CMD_PLACEHOLDER = "##METADATA_TEST_PLACEHOLDER"
+
+type MetadataTest struct {
+	Env          []unversioned.EnvVar
+	ExposedPorts map[string]struct{}
 	Entrypoint   []string
 	Cmd          []string
-	Volumes      map[string]struct{}
 	Workdir      string
-	ExposedPorts map[docker.Port]struct{}
+	Volumes      map[string]struct{}
 }
 
-type Command []string
+func validateMetadataTest(t *testing.T, tt MetadataTest) {
+
+}
+
+func (mt MetadataTest) LogName() string {
+	return fmt.Sprintf("Metadata Test")
+}

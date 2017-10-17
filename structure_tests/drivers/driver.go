@@ -36,6 +36,8 @@ type Driver interface {
 
 	ReadDir(t *testing.T, path string) ([]os.FileInfo, error)
 
+	GetConfig(t *testing.T) (unversioned.Config, error)
+
 	Destroy()
 }
 

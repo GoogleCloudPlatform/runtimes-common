@@ -79,3 +79,7 @@ func (d *TarDriver) ReadFile(t *testing.T, path string) ([]byte, error) {
 func (d *TarDriver) ReadDir(t *testing.T, path string) ([]os.FileInfo, error) {
 	return ioutil.ReadDir(filepath.Join(d.Image.FSPath, path))
 }
+
+func (d *TarDriver) GetConfig(t *testing.T) (unversioned.Config, error) {
+	return unversioned.Config{}, nil
+}
