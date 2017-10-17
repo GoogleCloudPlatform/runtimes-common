@@ -16,7 +16,6 @@ package v2
 
 import (
 	"fmt"
-	"testing"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
 )
@@ -30,10 +29,6 @@ type MetadataTest struct {
 	Cmd          []string
 	Workdir      string
 	Volumes      []string
-}
-
-func validateMetadataTest(t *testing.T, tt MetadataTest) {
-
 }
 
 func (mt MetadataTest) LogName() string {
