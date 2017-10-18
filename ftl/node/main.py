@@ -32,6 +32,14 @@ from ftl.common import context
 from ftl.node import builder
 
 _THREADS = 32
+_LEVEL_MAP = {
+    "NOTSET": logging.NOTSET,
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL,
+}
 
 parser = argparse.ArgumentParser(
     description='Construct node images from source.')
@@ -47,9 +55,18 @@ parser.add_argument(
     action='store',
     help='The path where the application data sits.')
 
+parser.add_argument(
+    "-v",
+    "--verbosity",
+    default="NOTSET",
+    nargs="?",
+    action='store',
+    choices=_LEVEL_MAP.keys())
+
 
 def main(args):
     args = parser.parse_args(args)
+    logging.getLogger().setLevel(_LEVEL_MAP[args.verbosity])
 
     transport = transport_pool.Http(httplib2.Http, size=_THREADS)
 
@@ -62,14 +79,13 @@ def main(args):
 
     ctx = context.Workspace(args.directory)
     cash = cache.Registry(
-            target_image.as_repository(),
-            target_creds,
-            transport,
-            threads=_THREADS,
-            mount=[base_name])
+        target_image.as_repository(),
+        target_creds,
+        transport,
+        threads=_THREADS,
+        mount=[base_name])
     bldr = builder.From(ctx)
-    with docker_image.FromRegistry(base_name,
-                                   base_creds,
+    with docker_image.FromRegistry(base_name, base_creds,
                                    transport) as base_image:
 
         # Create (or pull from cache) the base image with the
