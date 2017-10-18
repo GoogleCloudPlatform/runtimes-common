@@ -145,8 +145,6 @@ func (st *StructureTest) RunFileContentTests(t *testing.T) int {
 
 func (st *StructureTest) RunMetadataTests(t *testing.T) int {
 	t.Run(st.MetadataTest.LogName(), func(t *testing.T) {
-		validateMetadataTest(t, st.MetadataTest)
-
 		driver, err := st.NewDriver()
 		if err != nil {
 			t.Errorf(err.Error())
