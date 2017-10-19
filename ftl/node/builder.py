@@ -18,6 +18,7 @@ import os
 import subprocess
 import tempfile
 import logging
+import json
 
 from containerregistry.client.v2_2 import append
 
@@ -63,13 +64,14 @@ class Node(builder.JustApp):
         tmp = tempfile.mkdtemp()
         app_dir = os.path.join(tmp, 'app')
         os.mkdir(app_dir)
-
         # Copy out the relevant package descriptors to a tempdir.
         with open(os.path.join(app_dir, descriptor), 'w') as f:
             f.write(self._ctx.GetFile(descriptor))
 
         tar_path = tempfile.mktemp()
-        subprocess.check_call(['npm', 'install', '--no-cache'], cwd=app_dir)
+        check_gcp_build(json.loads(self._ctx.GetFile(_PACKAGE_JSON)), app_dir)
+        subprocess.check_call(['rm', '-rf', 'node_modules'], cwd=app_dir)
+        subprocess.check_call(['npm', 'install', '--production', '--no-cache'])
         subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
 
         # We need the sha of the unzipped and zipped tarball.
@@ -83,6 +85,18 @@ class Node(builder.JustApp):
             logging.info('Storing layer %s in cache.', sha)
             cache.Store(base_image, _NODE_NAMESPACE, checksum, dep_image)
             return dep_image
+
+
+def check_gcp_build(package_json, app_dir):
+    scripts = package_json.get('scripts', {})
+    gcp_build = scripts.get('gcp-build')
+
+    if not gcp_build:
+        return
+
+    os.environ["NODE_ENV"] = "development"
+    subprocess.check_call(['npm', 'install'], cwd=app_dir)
+    subprocess.check_call(['npm', 'run-script', 'gcp-build'])
 
 
 def From(ctx):
