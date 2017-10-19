@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os
 import unittest
+import shutil
 import tempfile
 
 from containerregistry.client.v2_2 import docker_image
@@ -62,21 +64,34 @@ class BuilderTestCase():
 
 
 class NodeTest(unittest.TestCase):
-    def setup(self, builder, ctx, cash):
-        pass
+
+    @classmethod
+    def setUpClass(cls):
+        current_dir = os.path.dirname(__file__)
+        cls.base_image = TarDockerImage(
+            os.path.join(current_dir, "testdata/base_image/config_file"),
+            os.path.join(
+                current_dir,
+                "testdata/base_image/distroless-nodejs-latest.tar.gz"))
+        cls.ctx = context.Workspace(
+            os.path.join(current_dir, "testdata/node_app"))
+
+    def setUp(self):
+        self._tmpdir = tempfile.mkdtemp()
+        self.cache = test_util.MockHybridRegistry(
+            'fake.gcr.io/google-appengine',
+            self._tmpdir)
+
+    def tearDown(self):
+        shutil.rmtree(self._tmpdir)
 
     def test_create_package_base(self):
-        current_dir = os.path.dirname(__file__)
         test_case = BuilderTestCase(
             builder.Node,
-            context.Workspace(os.path.join(current_dir, "testdata/node_app")),
-            test_util.MockHybridRegistry('fake.gcr.io/google-appengine',
-                                         tempfile.mkdtemp()),
-            TarDockerImage(
-                os.path.join(current_dir, "testdata/base_image/config_file"),
-                os.path.join(
-                    current_dir,
-                    "testdata/base_image/distroless-nodejs-latest.tar.gz")), )
+            self.ctx,
+            self.cache,
+            self.base_image)
+
         test_case.CreatePackageBase()
         # check that image was added to the cache
         self.assertEqual(1, test_case.GetCacheEntries())
@@ -84,6 +99,7 @@ class NodeTest(unittest.TestCase):
             self.assertEqual(
                 str(k).startswith("fake.gcr.io/google-appengine/node-package"),
                 True)
+
         test_case.CreatePackageBase()
         # check that image was added to the cache
         self.assertEqual(1, len(test_case.GetCacheMap()))
@@ -91,6 +107,46 @@ class NodeTest(unittest.TestCase):
             self.assertEqual(
                 str(k).startswith("fake.gcr.io/google-appengine/node-package"),
                 True)
+
+    def test_overrides(self):
+        b = builder.Node(self.ctx)
+        app_base = b.CreatePackageBase(self.base_image.GetDockerImage(),
+                                       self.cache)
+        cfg = json.loads(app_base.config_file())
+        self.assertEqual(cfg['config']['Entrypoint'],
+                         ['sh', '-c', "'node server.js'"])
+
+
+class ParseEntrypointTest(unittest.TestCase):
+
+    def add_shell(self, args):
+        return ['sh', '-c', "'%s'" % args]
+
+    def test_no_scripts(self):
+        self.assertEqual(
+            builder.parse_entrypoint({}),
+            self.add_shell('node server.js'))
+
+    def test_prestart(self):
+        self.assertEqual(
+            builder.parse_entrypoint(
+                {'scripts': {'prestart': 'foo'}}),
+            self.add_shell('foo && node server.js')
+        )
+
+    def test_start(self):
+        self.assertEqual(
+            builder.parse_entrypoint(
+                {'scripts': {'start': 'foo'}}),
+            self.add_shell('foo')
+        )
+
+    def test_both(self):
+        self.assertEqual(
+            builder.parse_entrypoint(
+                {'scripts': {'prestart': 'foo', 'start': 'baz'}}),
+            self.add_shell('foo && baz')
+        )
 
 
 if __name__ == '__main__':
