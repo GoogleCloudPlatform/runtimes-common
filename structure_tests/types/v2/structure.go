@@ -168,10 +168,11 @@ func (st *StructureTest) RunMetadataTests(t *testing.T) int {
 				// mismatched lengths auto fails
 				if len(st.MetadataTest.Cmd) != len(config.Cmd) {
 					t.Errorf("Image Cmd %v does not match expected Cmd: %v", st.MetadataTest.Cmd, config.Cmd)
-				}
-				for i := range st.MetadataTest.Cmd {
-					if st.MetadataTest.Cmd[i] != config.Cmd[i] {
-						t.Errorf("Image config Cmd does not match expected value: %s", st.MetadataTest.Cmd)
+				} else {
+					for i := range st.MetadataTest.Cmd {
+						if st.MetadataTest.Cmd[i] != config.Cmd[i] {
+							t.Errorf("Image config Cmd does not match expected value: %s", st.MetadataTest.Cmd)
+						}
 					}
 				}
 			}
@@ -186,10 +187,11 @@ func (st *StructureTest) RunMetadataTests(t *testing.T) int {
 				// mismatched lengths auto fails
 				if len(st.MetadataTest.Entrypoint) != len(config.Entrypoint) {
 					t.Errorf("Image entrypoint %v does not match expected Cmd: %v", st.MetadataTest.Entrypoint, config.Entrypoint)
-				}
-				for i := range st.MetadataTest.Entrypoint {
-					if st.MetadataTest.Entrypoint[i] != config.Entrypoint[i] {
-						t.Errorf("Image config entrypoint does not match expected value: %s", st.MetadataTest.Entrypoint)
+				} else {
+					for i := range st.MetadataTest.Entrypoint {
+						if st.MetadataTest.Entrypoint[i] != config.Entrypoint[i] {
+							t.Errorf("Image config entrypoint does not match expected value: %s", st.MetadataTest.Entrypoint)
+						}
 					}
 				}
 			}
@@ -202,27 +204,28 @@ func (st *StructureTest) RunMetadataTests(t *testing.T) int {
 			t.Errorf("Image Workdir %s does not match config Workdir: %s", st.MetadataTest.Workdir, config.Workdir)
 		}
 
-	PortLoop:
 		for _, port := range st.MetadataTest.ExposedPorts {
-			for _, configPort := range config.ExposedPorts {
-				if port == configPort {
-					continue PortLoop
-				}
+			if !valueInList(port, config.ExposedPorts) {
+				t.Errorf("Port %s not found in config", port)
 			}
-			t.Errorf("Port %s not found in config", port)
 		}
 
-	VolumeLoop:
 		for _, volume := range st.MetadataTest.Volumes {
-			for _, configVolume := range config.Volumes {
-				if volume == configVolume {
-					continue VolumeLoop
-				}
+			if !valueInList(volume, config.Volumes) {
+				t.Errorf("Volume %s not found in config", volume)
 			}
-			t.Errorf("Volume %s not found in config", volume)
 		}
 	})
 	return 1
+}
+
+func valueInList(target string, list []string) bool {
+	for _, value := range list {
+		if target == value {
+			return true
+		}
+	}
+	return false
 }
 
 func (st *StructureTest) RunLicenseTests(t *testing.T) int {
