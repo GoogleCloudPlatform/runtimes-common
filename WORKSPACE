@@ -24,7 +24,7 @@ git_repository(
 
 git_repository(
     name = "containerregistry",
-    commit = "b0278a1544238d03648861b6d9395414d4c958e5",
+    commit = "009ca89e9616c2f68155cf9c5fc6cbbb34aff3a0",
     remote = "https://github.com/google/containerregistry",
 )
 
