@@ -29,6 +29,7 @@ go_binary(
 
 go_test(
     name = "go_default_test",
+    testonly = False,
     srcs = ["structure_test.go"],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/structure_tests",
     library = ":go_default_library",
@@ -36,21 +37,20 @@ go_test(
         "//structure_tests/drivers:go_default_library",
         "//vendor/github.com/ghodss/yaml:go_default_library",
     ],
-    testonly = False,
 )
 
 container_image(
     name = "structure_test_image",
-    base = "@distroless_base//image",
-    files = [":go_default_test"],
-    cmd = ["/go_default_test"],
     testonly = False,
+    base = "@distroless_base//image",
+    cmd = ["/go_default_test"],
+    files = [":go_default_test"],
 )
 
 container_push(
     name = "push_structure_test",
-    image = ":structure_test_image",
     format = "Docker",
+    image = ":structure_test_image",
     registry = "gcr.io",
     repository = "gcp-runtimes/structure-test",
     tag = "bazel",
