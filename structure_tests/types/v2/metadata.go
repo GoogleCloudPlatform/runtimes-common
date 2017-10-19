@@ -20,13 +20,11 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
 )
 
-const CMD_PLACEHOLDER = "##METADATA_TEST_PLACEHOLDER"
-
 type MetadataTest struct {
 	Env          []unversioned.EnvVar
 	ExposedPorts []string
-	Entrypoint   []string
-	Cmd          []string
+	Entrypoint   *[]string
+	Cmd          *[]string
 	Workdir      string
 	Volumes      []string
 }

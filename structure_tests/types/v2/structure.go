@@ -162,42 +162,28 @@ func (st *StructureTest) RunMetadataTests(t *testing.T) int {
 			}
 		}
 
-		if len(st.MetadataTest.Cmd) > 0 {
-			// legitimate cmd provided by user in config
-			if st.MetadataTest.Cmd[0] != CMD_PLACEHOLDER {
-				// mismatched lengths auto fails
-				if len(st.MetadataTest.Cmd) != len(config.Cmd) {
-					t.Errorf("Image Cmd %v does not match expected Cmd: %v", st.MetadataTest.Cmd, config.Cmd)
-				} else {
-					for i := range st.MetadataTest.Cmd {
-						if st.MetadataTest.Cmd[i] != config.Cmd[i] {
-							t.Errorf("Image config Cmd does not match expected value: %s", st.MetadataTest.Cmd)
-						}
+		if st.MetadataTest.Cmd != nil {
+			if len(*st.MetadataTest.Cmd) != len(config.Cmd) {
+				t.Errorf("Image Cmd %v does not match expected Cmd: %v", *st.MetadataTest.Cmd, config.Cmd)
+			} else {
+				for i := range *st.MetadataTest.Cmd {
+					if (*st.MetadataTest.Cmd)[i] != config.Cmd[i] {
+						t.Errorf("Image config Cmd does not match expected value: %s", *st.MetadataTest.Cmd)
 					}
 				}
 			}
-		} else if len(config.Cmd) > 0 {
-			// explicit empty cmd was provided by user but image has one: fail
-			t.Errorf("Image Cmd expected to be empty but is %v instead", config.Cmd)
 		}
 
-		if len(st.MetadataTest.Entrypoint) > 0 {
-			// legitimate entrypoint provided by user in config
-			if st.MetadataTest.Entrypoint[0] != CMD_PLACEHOLDER {
-				// mismatched lengths auto fails
-				if len(st.MetadataTest.Entrypoint) != len(config.Entrypoint) {
-					t.Errorf("Image entrypoint %v does not match expected Cmd: %v", st.MetadataTest.Entrypoint, config.Entrypoint)
-				} else {
-					for i := range st.MetadataTest.Entrypoint {
-						if st.MetadataTest.Entrypoint[i] != config.Entrypoint[i] {
-							t.Errorf("Image config entrypoint does not match expected value: %s", st.MetadataTest.Entrypoint)
-						}
+		if st.MetadataTest.Entrypoint != nil {
+			if len(*st.MetadataTest.Entrypoint) != len(config.Entrypoint) {
+				t.Errorf("Image entrypoint %v does not match expected entrypoint: %v", *st.MetadataTest.Entrypoint, config.Entrypoint)
+			} else {
+				for i := range *st.MetadataTest.Entrypoint {
+					if (*st.MetadataTest.Entrypoint)[i] != config.Entrypoint[i] {
+						t.Errorf("Image config entrypoint does not match expected value: %s", *st.MetadataTest.Entrypoint)
 					}
 				}
 			}
-		} else if len(config.Entrypoint) > 0 {
-			// explicit empty entrypoint was provided by user but image has one: fail
-			t.Errorf("Image entrypoint expected to be empty but is %v instead", config.Entrypoint)
 		}
 
 		if st.MetadataTest.Workdir != "" && st.MetadataTest.Workdir != config.Workdir {
