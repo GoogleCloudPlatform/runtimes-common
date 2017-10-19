@@ -1,4 +1,5 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+load("@io_bazel_rules_docker//container:container.bzl", "container_image", "container_push")
 
 licenses(["notice"])
 
@@ -35,4 +36,22 @@ go_test(
         "//structure_tests/drivers:go_default_library",
         "//vendor/github.com/ghodss/yaml:go_default_library",
     ],
+    testonly = False,
+)
+
+container_image(
+    name = "structure_test_image",
+    base = "@distroless_base//image",
+    files = [":go_default_test"],
+    cmd = ["/go_default_test"],
+    testonly = False,
+)
+
+container_push(
+    name = "push_structure_test",
+    image = ":structure_test_image",
+    format = "Docker",
+    registry = "gcr.io",
+    repository = "gcp-runtimes/structure-test",
+    tag = "bazel",
 )
