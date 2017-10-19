@@ -50,7 +50,7 @@ class Node(builder.JustApp):
         if not descriptor:
             logging.info('No package descriptor found. No packages installed.')
             return base_image
-        
+
         checksum = hashlib.sha256(descriptor).hexdigest()
         hit = cache.Get(base_image, _NODE_NAMESPACE, checksum)
         if hit:
@@ -58,6 +58,7 @@ class Node(builder.JustApp):
             return hit
         else:
             logging.info('No cached dependency layer for %s' % checksum)
+
         # We want the node_modules directory rooted at /app/node_modules in
         # the final image.
         # So we build a hierarchy like:
@@ -71,9 +72,7 @@ class Node(builder.JustApp):
             f.write(self._ctx.GetFile(descriptor))
 
         tar_path = tempfile.mktemp()
-        
         check_gcp_build(json.loads(self._ctx.GetFile(_PACKAGE_JSON)), app_dir)
-        print('made it')
         subprocess.check_call(['rm', '-rf', 'node_modules'], cwd=app_dir)
         subprocess.check_call(['npm', 'install', '--production', '--no-cache'], cwd=app_dir)
         subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
