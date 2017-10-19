@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import os
 import unittest
 import shutil
@@ -107,46 +106,6 @@ class NodeTest(unittest.TestCase):
             self.assertEqual(
                 str(k).startswith("fake.gcr.io/google-appengine/node-package"),
                 True)
-
-    def test_overrides(self):
-        b = builder.Node(self.ctx)
-        app_base = b.CreatePackageBase(self.base_image.GetDockerImage(),
-                                       self.cache)
-        cfg = json.loads(app_base.config_file())
-        self.assertEqual(cfg['config']['Entrypoint'],
-                         ['sh', '-c', "'node server.js'"])
-
-
-class ParseEntrypointTest(unittest.TestCase):
-
-    def add_shell(self, args):
-        return ['sh', '-c', "'%s'" % args]
-
-    def test_no_scripts(self):
-        self.assertEqual(
-            builder.parse_entrypoint({}),
-            self.add_shell('node server.js'))
-
-    def test_prestart(self):
-        self.assertEqual(
-            builder.parse_entrypoint(
-                {'scripts': {'prestart': 'foo'}}),
-            self.add_shell('foo && node server.js')
-        )
-
-    def test_start(self):
-        self.assertEqual(
-            builder.parse_entrypoint(
-                {'scripts': {'start': 'foo'}}),
-            self.add_shell('foo')
-        )
-
-    def test_both(self):
-        self.assertEqual(
-            builder.parse_entrypoint(
-                {'scripts': {'prestart': 'foo', 'start': 'baz'}}),
-            self.add_shell('foo && baz')
-        )
 
 
 if __name__ == '__main__':
