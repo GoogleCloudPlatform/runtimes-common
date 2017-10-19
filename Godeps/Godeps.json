@@ -16,7 +16,7 @@
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/container-diff/pkg/util",
-			"Rev": "b089b9b1c90e74b7faaf971ca795155c7076f522"
+			"Rev": "a2c4d963175b8af8e41e840b7981a0eb51298aa2"
 		},
 		{
 			"ImportPath": "github.com/Microsoft/go-winio",
@@ -322,7 +322,7 @@
 		},
 		{
 			"ImportPath": "github.com/docker/go-units",
-			"Comment": "v0.3.1-12-g0dadbb0",
+			"Comment": "v0.3.2",
 			"Rev": "0dadbb0345b35ec7ef35e228dabb8de89a65bf52"
 		},
 		{
@@ -343,10 +343,6 @@
 			"ImportPath": "github.com/gogo/protobuf/proto",
 			"Comment": "v0.4-56-g2adc21fd",
 			"Rev": "2adc21fd136931e0388e278825291678e1d98309"
-		},
-		{
-			"ImportPath": "github.com/golang/glog",
-			"Rev": "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
