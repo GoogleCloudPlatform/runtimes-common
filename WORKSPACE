@@ -77,6 +77,21 @@ http_file(
     url = "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.4.1/docker-credential-gcr_linux_amd64-1.4.1.tar.gz",
 )
 
+# TODO(aaron-prindle) cleanup circular dep here by pushing ubuntu_base to GCR
+# OR by moving structure_test to own repo
+
+git_repository(
+    name = "debian_docker",
+    commit = "72cd6607fb809d8eda3d4b88c8b94f84c2921372",
+    remote = "https://github.com/GoogleCloudPlatform/debian-docker.git",
+)
+
+http_file(
+    name = "ubuntu_tar_download",
+    sha256 = "e43f802f876505c0cee1759fbc545f65b2d59c4dd33835e93afea3fa124b5799",
+    url = "https://partner-images.canonical.com/core/xenial/20171006/ubuntu-xenial-core-cloudimg-amd64-root.tar.gz",
+)
+
 docker_pull(
     name = "node_base",
     digest = "sha256:f98878fe17ac9474f5a4beb9f692272f698a9ce2dc1e6297d449b2003cfec3e9",
