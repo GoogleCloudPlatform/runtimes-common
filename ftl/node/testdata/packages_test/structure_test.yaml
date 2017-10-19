@@ -1,0 +1,9 @@
+schemaVersion: '2.0.0'
+fileExistenceTests:
+- name: 'express dependency'
+  path: '/app/node_modules/express'
+  shouldExist: true
+  isDirectory: true
+- name: 'package devdependency'
+  path: '/app/node_modules/package'
+  shouldExist: false

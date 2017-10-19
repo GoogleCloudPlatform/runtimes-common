@@ -1,0 +1,9 @@
+schemaVersion: '2.0.0'
+fileExistenceTests:
+- name: 'gcp-build hello'
+  path: '/app/hello.txt'
+  shouldExist: true
+fileContentTests:
+- name: 'gcp-build hello content'
+  path: '/app/hello.txt'
+  expectedContents: ['Hello world!']
