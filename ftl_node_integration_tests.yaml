@@ -25,32 +25,14 @@ steps:
   - name:  'bazel/ftl:node_builder_image'
     args: ['--base', 'gcr.io/google-appengine/nodejs:latest',
            '--name', 'gcr.io/ftl-node-test/gcp-build-test:latest',
-           '--directory', '.']
-    dir: 'ftl/node/testdata/gcp_build_test/'
+           '--directory', 'ftl/node/testdata/gcp_build_test/']
   # Pull docker image into local daemon 
   - name:  'gcr.io/cloud-builders/docker'
     args: ['pull', 'gcr.io/ftl-node-test/gcp-build-test:latest']
   # Run structure tests with bazel
   - name:  'gcr.io/cloud-builders/bazel'
-    args: ['run', '--', 'structure_tests:go_default_test', '-image',
+    args: ['run', '--', 'structure_tests:go_default_test', '-driver', 'tar', '-image',
            'gcr.io/ftl-node-test/gcp-build-test:latest', '/workspace/ftl/node/testdata/gcp_build_test/structure_test.yaml']
   # Delete the image
   - name:  'gcr.io/cloud-builders/gcloud'
     args: ['container', 'images', 'delete', 'gcr.io/ftl-node-test/gcp-build-test:latest']
-# 3. Test entrypoint
-  # Build node image
-  - name:  'bazel/ftl:node_builder_image'
-    args: ['--base', 'gcr.io/google-appengine/nodejs:latest',
-           '--name', 'gcr.io/ftl-node-test/entrypoint-test:latest',
-           '--directory', '.']
-    dir: 'ftl/node/testdata/entrypoint_test/'
-  # Pull docker image into local daemon 
-  - name:  'gcr.io/cloud-builders/docker'
-    args: ['pull', 'gcr.io/ftl-node-test/entrypoint-test:latest']
-  # Run structure tests with bazel
-  - name:  'gcr.io/cloud-builders/bazel'
-    args: ['run', '--', 'structure_tests:go_default_test', '-image',
-           'gcr.io/ftl-node-test/entrypoint-test:latest', '/workspace/ftl/node/testdata/entrypoint_test/structure_test.yaml']
-  # Delete the image
-  - name:  'gcr.io/cloud-builders/gcloud'
-    args: ['container', 'images', 'delete', 'gcr.io/ftl-node-test/entrypoint-test:latest']
