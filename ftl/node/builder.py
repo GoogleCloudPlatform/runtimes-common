@@ -97,9 +97,11 @@ def check_gcp_build(package_json, app_dir):
     if not gcp_build:
         return
 
-    os.environ["NODE_ENV"] = "development"
-    subprocess.check_call(['npm', 'install'], cwd=app_dir)
-    subprocess.check_call(['npm', 'run-script', 'gcp-build'], cwd=app_dir)
+    env = os.environ.copy()
+    env["NODE_ENV"] = "development"
+    subprocess.check_call(['npm', 'install'], cwd=app_dir, env=env)
+    subprocess.check_call(['npm', 'run-script', 'gcp-build'],
+                          cwd=app_dir, env=env)
 
 
 def From(ctx):
