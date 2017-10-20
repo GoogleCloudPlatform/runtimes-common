@@ -18,18 +18,14 @@ import os
 import subprocess
 import tempfile
 import logging
-import json
 
 from containerregistry.client.v2_2 import append
-from containerregistry.transform.v2_2 import metadata
 
 from ftl.common import builder
 
 _NODE_NAMESPACE = 'node-package-lock-cache'
 _PACKAGE_LOCK = 'package-lock.json'
 _PACKAGE_JSON = 'package.json'
-
-_DEFAULT_ENTRYPOINT = 'node server.js'
 
 
 class Node(builder.JustApp):
@@ -83,30 +79,10 @@ class Node(builder.JustApp):
         subprocess.check_call(['gzip', tar_path])
         layer = open(os.path.join(tmp, tar_path + '.gz'), 'rb').read()
 
-        entrypoint = parse_entrypoint(
-            json.loads(self._ctx.GetFile(_PACKAGE_JSON)))
-
-        overrides = metadata.Overrides(entrypoint=entrypoint)
-
-        with append.Layer(base_image, layer,
-                          diff_id=sha, overrides=overrides) as dep_image:
+        with append.Layer(base_image, layer, diff_id=sha) as dep_image:
             logging.info('Storing layer %s in cache.', sha)
             cache.Store(base_image, _NODE_NAMESPACE, checksum, dep_image)
             return dep_image
-
-
-def parse_entrypoint(package_json):
-    entrypoint = []
-
-    scripts = package_json.get('scripts', {})
-    start = scripts.get('start', _DEFAULT_ENTRYPOINT)
-    prestart = scripts.get('prestart')
-
-    if prestart:
-        entrypoint = '%s && %s' % (prestart, start)
-    else:
-        entrypoint = start
-    return ['sh', '-c', "'%s'" % entrypoint]
 
 
 def From(ctx):
