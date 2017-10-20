@@ -19,4 +19,13 @@ type EnvVar struct {
 	Value string
 }
 
+type Config struct {
+	Env          map[string]string
+	Entrypoint   []string
+	Cmd          []string
+	Volumes      []string
+	Workdir      string
+	ExposedPorts []string
+}
+
 type Command []string

@@ -27,7 +27,7 @@ import (
 	"testing"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/structure_tests/types/unversioned"
-	"github.com/fsouza/go-dockerclient"
+	docker "github.com/fsouza/go-dockerclient"
 )
 
 type DockerDriver struct {
@@ -37,17 +37,21 @@ type DockerDriver struct {
 	env           map[string]string
 }
 
-func NewDockerDriver(image string) Driver {
+func NewDockerDriver(image string) (Driver, error) {
 	newCli, err := docker.NewClientFromEnv()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return &DockerDriver{
 		originalImage: image,
 		currentImage:  image,
 		cli:           *newCli,
 		env:           nil,
-	}
+	}, nil
+}
+
+func (d *DockerDriver) Destroy() {
+	// noop
 }
 
 func (d *DockerDriver) Setup(t *testing.T, envVars []unversioned.EnvVar, fullCommands []unversioned.Command) {
@@ -81,14 +85,8 @@ func retrieveEnv(d *DockerDriver) func(string) string {
 			if err != nil {
 				return ""
 			}
-
 			// convert env to map for processing
-			imageEnv := make(map[string]string)
-			for _, varPair := range image.Config.Env {
-				pair := strings.Split(varPair, "=")
-				imageEnv[pair[0]] = pair[1]
-			}
-			env = imageEnv
+			env = convertEnvToMap(image.Config.Env)
 		}
 		return env[envVar]
 	}
@@ -157,7 +155,7 @@ func (d *DockerDriver) StatFile(t *testing.T, target string) (os.FileInfo, error
 			break
 		}
 		switch header.Typeflag {
-		case tar.TypeDir, tar.TypeReg:
+		case tar.TypeDir, tar.TypeReg, tar.TypeLink, tar.TypeSymlink:
 			if filepath.Clean(header.Name) == path.Base(target) {
 				return header.FileInfo(), nil
 			}
@@ -183,7 +181,9 @@ func (d *DockerDriver) ReadFile(t *testing.T, target string) ([]byte, error) {
 			if filepath.Clean(header.Name) == path.Base(target) {
 				return nil, fmt.Errorf("Cannot read specified path: %s is a directory, not a file", target)
 			}
-		case tar.TypeReg:
+		case tar.TypeSymlink:
+			return d.ReadFile(t, header.Linkname)
+		case tar.TypeReg, tar.TypeLink:
 			if filepath.Clean(header.Name) == path.Base(target) {
 				var b bytes.Buffer
 				stream := bufio.NewWriter(&b)
@@ -304,4 +304,33 @@ func (d *DockerDriver) exec(t *testing.T, env []string, command []string) (strin
 	}
 
 	return stdout.String(), stderr.String(), exitCode
+}
+
+func (d *DockerDriver) GetConfig(t *testing.T) (unversioned.Config, error) {
+	img, err := d.cli.InspectImage(d.currentImage)
+	if err != nil {
+		t.Errorf("Error when inspecting image: %s", err.Error())
+		return unversioned.Config{}, err
+	}
+
+	// docker provides these as maps (since they can be mapped in docker run commands)
+	// since this will never be the case when built through a dockerfile, we convert to list of strings
+	volumes := []string{}
+	for v := range img.Config.Volumes {
+		volumes = append(volumes, v)
+	}
+
+	ports := []string{}
+	for p := range img.Config.ExposedPorts {
+		ports = append(ports, p.Port())
+	}
+
+	return unversioned.Config{
+		Env:          convertEnvToMap(img.Config.Env),
+		Entrypoint:   img.Config.Entrypoint,
+		Cmd:          img.Config.Cmd,
+		Volumes:      volumes,
+		Workdir:      img.Config.WorkingDir,
+		ExposedPorts: ports,
+	}, nil
 }

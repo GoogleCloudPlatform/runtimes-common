@@ -27,6 +27,7 @@ class Base(object):
     # __enter__ and __exit__ allow use as a context manager.
     def __enter__(self):
         """Initialize the context."""
+        return self
 
     def __exit__(self, unused_type, unused_value, unused_traceback):
         """Cleanup the context."""

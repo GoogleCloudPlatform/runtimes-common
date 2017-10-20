@@ -57,8 +57,8 @@ class Base(object):
 
 
 class JustApp(Base):
-    """JustApp is an implementation of a builder that only generates an application
-    layer.
+    """JustApp is an implementation of a builder that only generates an
+    application layer.
     """
     def __init__(self, ctx):
         super(JustApp, self).__init__(ctx)

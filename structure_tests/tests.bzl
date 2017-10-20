@@ -20,24 +20,34 @@ load(
 )
 
 def _impl(ctx):
-    ext_run_location = ctx.executable._structure_test.short_path
+
+    if (not (ctx.attr.image_tar or ctx.executable.image) or
+        (ctx.attr.image_tar and ctx.executable.image)):
+        fail('Please specify one of \'image\' or \'image_tar\'')
+    st_binary = ctx.executable._structure_test.short_path
     config_location = ctx.file.config.short_path
-    load_location = ctx.executable.image.short_path
+    if ctx.executable.image:
+        load_statement = ctx.executable.image.short_path
+        image = ctx.attr.image
+        runfiles = [ctx.executable.image] + image.files.to_list() + image.data_runfiles.files.to_list()
+    else: # image_tar was set.
+        load_statement = 'docker load -i %s' % ctx.file.image_tar.short_path
+        image = ctx.attr.image_tar
+        runfiles = [ctx.file.image_tar]
 
-    # docker_build rules always generate an image named 'bazel/$package:$name'.
-    image_name = "bazel/%s:%s" % (ctx.attr.image.label.package, ctx.attr.image.label.name)
-
-    # Generate a shell script to execute ext_run with the correct flags.
+    image_name = "bazel/%s:%s" % (image.label.package, image.label.name)
+    # Generate a shell script to execute structure_tests with the correct flags.
     test_contents = """\
 #!/bin/bash
 set -ex
-# Execute the image loader script.
-%s
+# Execute the image load statement.
+{0}
 
 # Run the tests.
-%s \
-  -i %s \
-  -c %s""" % (load_location, ext_run_location, image_name, config_location)
+{1} \
+  -image {2} \
+  $(pwd)/{3}
+""".format(load_statement, st_binary, image_name, config_location)
     ctx.file_action(
         output=ctx.outputs.executable,
         content=test_contents
@@ -45,25 +55,26 @@ set -ex
 
     return struct(runfiles=ctx.runfiles(files = [
         ctx.executable._structure_test,
-        ctx.executable.image,
         ctx.file.config] + 
-        ctx.attr.image.files.to_list() +
-        ctx.attr.image.data_runfiles.files.to_list()
+        runfiles
         ),
     )
 
 structure_test = rule(
     attrs = {
         "_structure_test": attr.label(
-            default = Label("//structure_tests:ext_run"),
+            default = Label("//structure_tests:go_default_test"),
             cfg = "target",
             allow_files = True,
             executable = True,
         ),
         "image": attr.label(
-            mandatory = True,
             executable = True,
             cfg = "target",
+        ),
+        "image_tar": attr.label(
+            allow_files = [".tar"],
+            single_file = True,
         ),
         "config": attr.label(
             mandatory = True,
