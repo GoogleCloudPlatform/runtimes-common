@@ -10,7 +10,7 @@ load(
     "docker_push",
     "docker_build",
 )
-load("@io_bazel_rules_docker//docker/contrib/python:image.bzl", "py_image")
+load("@io_bazel_rules_docker//python:image.bzl", "py_image")
 
 par_binary(
     name = "reconciletags",
