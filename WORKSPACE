@@ -18,7 +18,7 @@ go_proto_repositories()
 
 git_repository(
     name = "io_bazel_rules_docker",
-    commit = "65df68f4f64e9c59eb571290eb86bf07766393b6",
+    commit = "8bbe2a8abd382641e65ff7127a3700a8530f02ce",
     remote = "https://github.com/bazelbuild/rules_docker.git",
 )
 
@@ -35,6 +35,13 @@ load(
 )
 
 docker_repositories()
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "repositories"
+)
+
+repositories()
 
 new_http_archive(
     name = "mock",
@@ -75,4 +82,11 @@ docker_pull(
     digest = "sha256:f98878fe17ac9474f5a4beb9f692272f698a9ce2dc1e6297d449b2003cfec3e9",
     registry = "gcr.io",
     repository = "google-appengine/nodejs",
+)
+
+docker_pull(
+    name = "distroless_base",
+    digest = "sha256:4a8979a768c3ef8d0a8ed8d0af43dc5920be45a51749a9c611d178240f136eb4",
+    registry = "gcr.io",
+    repository = "distroless/base"
 )
