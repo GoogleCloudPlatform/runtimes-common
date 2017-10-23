@@ -7,3 +7,4 @@ fileExistenceTests:
 - name: 'package devdependency'
   path: '/app/node_modules/package'
   shouldExist: false
+  isDirectory: true
