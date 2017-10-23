@@ -8,7 +8,6 @@ load(
     "@io_bazel_rules_docker//docker:docker.bzl",
     "docker_build",
 )
-load("//structure_tests:tests.bzl", "structure_test")
 
 py_library(
     name = "ftl_lib",
@@ -118,16 +117,4 @@ py_test(
         "//testing/lib:containerregistry_mock_lib",
         "@mock//:mock",
     ],
-)
-
-structure_test(
-    name = "ftl_node_packages_test",
-    config = "node/testdata/packages_test/structure_test.yaml",
-    image = "@ftl_node_packages_test_image//image",
-)
-
-structure_test(
-    name = "ftl_node_gcp_buid_test",
-    config = "node/testdata/gcp_build_test/structure_test.yaml",
-    image = "@ftl_node_gcp_buid_test_image//image",
 )

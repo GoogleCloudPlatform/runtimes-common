@@ -90,18 +90,3 @@ docker_pull(
     registry = "gcr.io",
     repository = "distroless/base"
 )
-
-# Images for FTL Node integration tests
-docker_pull(
-    name = "ftl_node_packages_test_image",
-    registry = "gcr.io",
-    repository = "ftl-node-test/packages-test",
-    tag = "latest",
-)
-
-docker_pull(
-    name = "ftl_node_gcp_buid_test_image",
-    registry = "gcr.io",
-    repository = "ftl-node-test/gcp-build-test",
-    tag = "latest",
-)

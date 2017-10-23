@@ -4,6 +4,9 @@ steps:
     args: ['build', 'ftl:node_builder_image.tar']
   - name:  'gcr.io/cloud-builders/docker'
     args: ['load', '--input', 'bazel-bin/ftl/node_builder_image.tar']
+#Pull structure tests image
+  - name:  'gcr.io/cloud-builders/docker'
+    args: ['pull', 'gcr.io/gcp-runtimes/structure-test:6195641f5a5a14c63c7945262066270842150ddb']
 # 1. Test packages are installed correctly
   # Build node image
   - name:  'bazel/ftl:node_builder_image'
@@ -14,8 +17,8 @@ steps:
   - name:  'gcr.io/cloud-builders/docker'
     args: ['pull', 'gcr.io/ftl-node-test/packages-test:latest']
   # Run structure tests with bazel
-  - name:  'gcr.io/gcp-runtimes/structure-test:ef86c91252fa51d16220e9d570dd156adca72fc1'
-    args: [-image, 'gcr.io/ftl-node-test/packages-test:latest', '/workspace/ftl/node/testdata/packages_test/structure_test.yaml']
+  - name:  'gcr.io/gcp-runtimes/structure-test:6195641f5a5a14c63c7945262066270842150ddb'
+    args: ['/go_default_test', '-image', 'gcr.io/ftl-node-test/packages-test:latest', '/workspace/ftl/node/testdata/packages_test/structure_test.yaml']
 # 2. Test gcp-build script executes correctly
   # Build node image
   - name:  'bazel/ftl:node_builder_image'
@@ -26,6 +29,6 @@ steps:
   - name:  'gcr.io/cloud-builders/docker'
     args: ['pull', 'gcr.io/ftl-node-test/gcp-build-test:latest']
   # Run structure tests with bazel
-  - name:  'gcr.io/gcp-runtimes/structure-test:ef86c91252fa51d16220e9d570dd156adca72fc1'
-    args: ['test', 'ftl:ftl_node_gcp_buid_test']
+  - name:  'gcr.io/gcp-runtimes/structure-test:6195641f5a5a14c63c7945262066270842150ddb'
+    args: ['/go_default_test', '-image', 'gcr.io/ftl-node-test/gcp-build-test:latest', '/workspace/ftl/node/testdata/gcp_build_test/structure_test.yaml'] 
 
