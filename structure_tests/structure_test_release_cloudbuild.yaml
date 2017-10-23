@@ -6,7 +6,3 @@ steps:
 # Upload the binary to GCS
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', 'bazel-bin/structure_tests/go_default_test', 'gs://structure-test/$TAG_NAME/structure-test']
-
-# Alias the binary to 'latest'
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', 'gs://structure-test/$TAG_NAME/structure-test', 'gs://structure-test/latest/structure-test']
