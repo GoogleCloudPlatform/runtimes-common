@@ -161,11 +161,16 @@ The following fields are present in the response:
 * content: (text/object) the body of the response (if the header `Content-Type` is present and contains `application/json` 
 the `content` is interpreted as a json object otherwise as plain text).
 
+You can also use an `endpoint` in the test application to assert the result of the test. A request (POST) will be sent to
+the specified endpoint, containing the context as a json payload, and the status code of the response will be asserted 
+(2xx will considered as a success).
+
 The schema for `validation` is the following:
 * `validation`: the validation configuration
-  * `match`: an array of the expressions to be compared.
+  * `match` (optional): an array of the expressions to be compared.
     * `key`: a path into the results of the steps.
     * `pattern`: a regular expression to be matched against the value at the path `key`.
+  * `endpoint` (optional): A path in the test application to assert the result of the test.
     
 These successes/failures will then be added to the integration test framework's report.
 
