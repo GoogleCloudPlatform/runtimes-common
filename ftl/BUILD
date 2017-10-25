@@ -82,7 +82,7 @@ py_library(
 # So, reset it to [""] before building our py_image.
 docker_build(
     name = "node_builder_base",
-    base = "@node_base//image",
+    base = "@debian_docker//reproducible/ubuntu:node_8_5_0_ubuntu_build",
     cmd = [""],
     entrypoint = "",
 )
