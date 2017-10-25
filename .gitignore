@@ -2,7 +2,6 @@
 *.project
 *.pyc
 *.pydevproject
-structure_tests.test
 config/*
 .cfg/
 **/bazel-*
