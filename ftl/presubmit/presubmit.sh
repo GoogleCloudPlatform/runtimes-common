@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1090
 set -ex
 source "$KOKORO_GFILE_DIR/common.sh"
 cd github/runtimes-common
