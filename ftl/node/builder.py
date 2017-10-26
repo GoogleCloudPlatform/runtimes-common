@@ -21,6 +21,7 @@ import logging
 import json
 
 from containerregistry.client.v2_2 import append
+from containerregistry.transform.v2_2 import metadata
 
 from ftl.common import builder
 
@@ -28,9 +29,12 @@ _NODE_NAMESPACE = 'node-package-lock-cache'
 _PACKAGE_LOCK = 'package-lock.json'
 _PACKAGE_JSON = 'package.json'
 
+_DEFAULT_ENTRYPOINT = 'node server.js'
+
 
 class Node(builder.JustApp):
     def __init__(self, ctx):
+        self._overrides = None
         super(Node, self).__init__(ctx)
 
     def __enter__(self):
@@ -39,16 +43,29 @@ class Node(builder.JustApp):
 
     def CreatePackageBase(self, base_image, cache):
         """Override."""
-        # Copy out the relevant package descriptors to a tempdir.
+        # Figure out if we need to override entrypoint.
+        # Save the overrides for later to avoid adding an extra layer.
+        pj_contents = {}
+        if self._ctx.Contains(_PACKAGE_JSON):
+            pj_contents = json.loads(self._ctx.GetFile(_PACKAGE_JSON))
+        entrypoint = parse_entrypoint(pj_contents)
+        overrides = metadata.Overrides(entrypoint=entrypoint)
+
         descriptor = None
-        for p in [_PACKAGE_LOCK, _PACKAGE_JSON]:
-            if self._ctx.Contains(p):
-                descriptor = p
+        for f in [_PACKAGE_LOCK, _PACKAGE_JSON]:
+            if self._ctx.Contains(f):
+                descriptor = f
+                descriptor_contents = self._ctx.GetFile(f)
+                break
+
         if not descriptor:
             logging.info('No package descriptor found. No packages installed.')
-            return base_image
 
-        checksum = hashlib.sha256(descriptor).hexdigest()
+            # Add the overrides now.
+            return append.Layer(
+                base_image, tar_gz=None, overrides=overrides)
+
+        checksum = hashlib.sha256(descriptor_contents).hexdigest()
         hit = cache.Get(base_image, _NODE_NAMESPACE, checksum)
         if hit:
             logging.info('Found cached dependency layer for %s' % checksum)
@@ -67,7 +84,7 @@ class Node(builder.JustApp):
 
         # Copy out the relevant package descriptors to a tempdir.
         with open(os.path.join(app_dir, descriptor), 'w') as f:
-            f.write(self._ctx.GetFile(descriptor))
+            f.write(descriptor_contents)
 
         tar_path = tempfile.mktemp()
         check_gcp_build(json.loads(self._ctx.GetFile(_PACKAGE_JSON)), app_dir)
@@ -84,7 +101,8 @@ class Node(builder.JustApp):
         subprocess.check_call(['gzip', tar_path])
         layer = open(os.path.join(tmp, tar_path + '.gz'), 'rb').read()
 
-        with append.Layer(base_image, layer, diff_id=sha) as dep_image:
+        with append.Layer(
+          base_image, layer, diff_id=sha, overrides=overrides) as dep_image:
             logging.info('Storing layer %s in cache.', sha)
             cache.Store(base_image, _NODE_NAMESPACE, checksum, dep_image)
             return dep_image
@@ -106,3 +124,17 @@ def check_gcp_build(package_json, app_dir):
 
 def From(ctx):
     return Node(ctx)
+
+
+def parse_entrypoint(package_json):
+    entrypoint = []
+
+    scripts = package_json.get('scripts', {})
+    start = scripts.get('start', _DEFAULT_ENTRYPOINT)
+    prestart = scripts.get('prestart')
+
+    if prestart:
+        entrypoint = '%s && %s' % (prestart, start)
+    else:
+        entrypoint = start
+    return ['sh', '-c', "'%s'" % entrypoint]
