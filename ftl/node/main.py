@@ -56,6 +56,11 @@ parser.add_argument(
     help='The path where the application data sits.')
 
 parser.add_argument(
+    '--image',
+    action='store_true',
+    help='Use this flag to build the node builder image with bazel run')
+
+parser.add_argument(
     "-v",
     "--verbosity",
     default="NOTSET",
@@ -66,6 +71,10 @@ parser.add_argument(
 
 def main(args):
     args = parser.parse_args(args)
+    
+    if args.image:
+        return
+
     logging.getLogger().setLevel(_LEVEL_MAP[args.verbosity])
 
     transport = transport_pool.Http(httplib2.Http, size=_THREADS)
