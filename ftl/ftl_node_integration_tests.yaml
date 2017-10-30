@@ -1,7 +1,9 @@
 steps:
 #Build node ftl image with bazel
   - name:  'gcr.io/cloud-builders/bazel'
-    args: ['run', '//ftl:node_builder_image.tar']
+    args: ['build', '//ftl:node_builder_image.tar']
+  - name:  'gcr.io/cloud-builders/docker'
+    args: ['load', '--input', 'bazel-bin/ftl/node_builder_image.tar']
 #Pull structure tests image
   - name:  'gcr.io/cloud-builders/docker'
     args: ['pull', 'gcr.io/gcp-runtimes/structure-test:6195641f5a5a14c63c7945262066270842150ddb']
@@ -29,4 +31,3 @@ steps:
   # Run structure tests with bazel
   - name:  'gcr.io/gcp-runtimes/structure-test:6195641f5a5a14c63c7945262066270842150ddb'
     args: ['/go_default_test', '-image', 'gcr.io/ftl-node-test/gcp-build-test:latest', '/workspace/ftl/node/testdata/gcp_build_test/structure_test.yaml']
-
