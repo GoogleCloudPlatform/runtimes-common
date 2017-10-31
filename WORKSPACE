@@ -71,9 +71,12 @@ docker_pull(
     repository = "google-appengine/python",
 )
 
-http_file(
+new_http_archive(
     name = "docker_credential_gcr",
     sha256 = "c4f51ff78c25e2bfef38af0f38c6966806e25da7c5e43092c53a4d467fea4743",
+    type = "tar.gz",
+    build_file_content = """package(default_visibility = ["//visibility:public"])
+exports_files(["docker-credential-gcr"])""",
     url = "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.4.1/docker-credential-gcr_linux_amd64-1.4.1.tar.gz",
 )
 

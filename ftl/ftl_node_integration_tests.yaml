@@ -29,4 +29,3 @@ steps:
   # Run structure tests with bazel
   - name:  'gcr.io/gcp-runtimes/structure-test:6195641f5a5a14c63c7945262066270842150ddb'
     args: ['/go_default_test', '-image', 'gcr.io/ftl-node-test/gcp-build-test:latest', '/workspace/ftl/node/testdata/gcp_build_test/structure_test.yaml']
-
