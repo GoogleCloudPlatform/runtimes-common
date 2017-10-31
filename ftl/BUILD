@@ -78,6 +78,22 @@ py_library(
     deps = [":ftl_lib"],
 )
 
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+
+pkg_tar(
+    name = "default_creds",
+    srcs = [":config.json"],
+    package_dir = "/root/.docker",
+    mode = "0600",
+)
+
+pkg_tar(
+    name = "cred_helper",
+    srcs = ["@docker_credential_gcr//:docker-credential-gcr"],
+    package_dir = "/usr/local/bin",
+    mode = "0555",
+)
+
 # The node base image sets a default CMD, which causes issues if you run our image with no CMD.
 # So, reset it to [""] before building our py_image.
 docker_build(
@@ -85,6 +101,10 @@ docker_build(
     base = "@debian_docker//reproducible/ubuntu:node_8_5_0_ubuntu_build",
     cmd = [""],
     entrypoint = "",
+    tars = [
+        ":cred_helper.tar",
+        ":default_creds.tar",
+    ],
 )
 
 py_binary(

@@ -89,25 +89,35 @@ py_test(
     ],
 )
 
-docker_build(
-    name = "docker_credential_gcr",
-    base = "@python_base//image",
-    directory = "/usr/local/bin",
-    tars = ["@docker_credential_gcr//file"],
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+
+pkg_tar(
+    name = "default_creds",
+    srcs = [":config.json"],
+    package_dir = "/root/.docker",
+    mode = "0600",
 )
 
-#This config file configures the client library to consult the credential helper for authenticating against GCR
+pkg_tar(
+    name = "cred_helper",
+    srcs = ["@docker_credential_gcr//:docker-credential-gcr"],
+    package_dir = "/usr/local/bin",
+    mode = "0555",
+)
+
 docker_build(
-    name = "docker_config_json",
-    base = ":docker_credential_gcr",
-    directory = "//root/.docker",
-    files = ["config.json"],
+    name = "reconcile_base",
+    base = "@python_base//image",
+    tars = [
+        ":cred_helper.tar",
+        ":default_creds.tar",
+    ],
 )
 
 py_image(
     name = "reconciletags_image",
     srcs = ["reconciletags.py"],
-    base = ":docker_config_json",
+    base = ":reconcile_base",
     main = "reconciletags.py",
     deps = [
         "@containerregistry",
