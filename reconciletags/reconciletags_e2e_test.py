@@ -15,7 +15,7 @@
 """End to end test for the tag reconciler."""
 
 import json
-import reconciletags
+import tag_reconciler
 import subprocess
 import unittest
 
@@ -46,7 +46,6 @@ class ReconciletagsE2eTest(unittest.TestCase):
         output = json.loads(
             subprocess.check_output(['gcloud', 'container',
                                      'images', 'list-tags',
-                                     '--no-show-occurrences',
                                      '--format=json', repo]))
         return output
 
@@ -64,7 +63,7 @@ class ReconciletagsE2eTest(unittest.TestCase):
         self._TEST_JSON['projects'][0]['images'][0]['digest'] = self.digest
 
     def setUp(self):
-        self.r = reconciletags.TagReconciler()
+        self.r = tag_reconciler.TagReconciler()
         self._BuildImage(self._REPO + ':' + self._TAG)
 
     def tearDown(self):
