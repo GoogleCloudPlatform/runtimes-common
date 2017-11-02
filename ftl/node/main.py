@@ -15,12 +15,15 @@
 
 import argparse
 import sys
-
+import tarfile
+import tempfile
+import os
 from containerregistry.client import docker_creds
 from containerregistry.client import docker_name
 from containerregistry.client.v2_2 import append
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
+from containerregistry.client.v2_2 import save
 from containerregistry.transport import transport_pool
 
 import httplib2
@@ -54,6 +57,11 @@ parser.add_argument(
     '--directory',
     action='store',
     help='The path where the application data sits.')
+
+parser.add_argument(
+    '--local',
+    action='store_true',
+    help='Store final image as local tarball instead of pushing to registry')
 
 parser.add_argument(
     "-v",
@@ -96,6 +104,12 @@ def main(args):
             logging.info('Generating app layer...')
             app_layer, diff_id = bldr.BuildAppLayer()
             with append.Layer(deps, app_layer, diff_id=diff_id) as app_image:
+                if args.local:
+                    tmp = os.path.join(tempfile.mkdtemp(), 'image.tar')
+                    with tarfile.open(name=tmp, mode='w') as tar:
+                        save.tarball(target_image, app_image, tar)
+                    logging.info("Image tarball located at {0}".format(tmp))
+                    return
                 with docker_session.Push(
                         target_image,
                         target_creds,
