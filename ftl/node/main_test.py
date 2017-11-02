@@ -13,12 +13,9 @@
 # limitations under the License.
 
 import unittest
-import tempfile
-import os
 from mock import patch
 from testing.lib import mock_registry_test_base
 from containerregistry.client.v2_2 import docker_image
-from containerregistry.client.v2_2 import save
 import main
 
 
@@ -47,35 +44,6 @@ class NodeTest(mock_registry_test_base.MockRegistryTestBase):
         main.main(args)
 
         self.AssertPushed(self.registry, 'fake.gcr.io/base/image:latest')
-    
-    @patch('containerregistry.client.v2_2.save.tarball')
-    @patch('tempfile.mkdtemp')
-    @patch('containerregistry.client.v2_2.append.Layer')
-    def test_main_local(self, append_layer_mock, tmpdir_mock, save_tarball_mock):
-        with docker_image.FromTarball('ftl/node_builder_base.tar') as img:
-            self.registry.setImage('fake.gcr.io/base/image:initial', img)
-
-        with docker_image.FromRegistry('fake.gcr.io/base/image:initial'
-                                       ) as img:
-            self.registry.setImage('fake.gcr.io/base/image:appended', img)
-
-        self.AssertPushed(self.registry, 'fake.gcr.io/base/image:initial')
-        self.AssertPushed(self.registry, 'fake.gcr.io/base/image:appended')
-
-        append_layer_mock.return_value = self.registry.getImage(
-            'fake.gcr.io/base/image:appended')
-        tmpdir_mock.return_value = os.getcwd()
-        save_tarball_mock.return_value = self.registry.getImage('fake.gcr.io/base/image:initial')
-
-        args = ["--base=fake.gcr.io/base/image:initial",
-                "--name=fake.gcr.io/base/image:latest", "--directory= ", "--local"]
-
-        main.main(args)
-
-        self.AssertNotPushed(self.registry, 'fake.gcr.io/base/image:latest')
-        image_tar_path = os.path.join(os.getcwd(), 'image.tar')
-        self.assertTrue(os.path.isfile(image_tar_path))
-        os.remove(image_tar_path)
 
 
 if __name__ == '__main__':

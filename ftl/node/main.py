@@ -16,7 +16,6 @@
 import argparse
 import sys
 import tarfile
-import tempfile
 import os
 from containerregistry.client import docker_creds
 from containerregistry.client import docker_name
@@ -64,6 +63,11 @@ parser.add_argument(
     help='Store final image as local tarball instead of pushing to registry')
 
 parser.add_argument(
+    '--filepath',
+    action='store',
+    help='Path to tar created by --local flag')
+
+parser.add_argument(
     "-v",
     "--verbosity",
     default="NOTSET",
@@ -105,10 +109,16 @@ def main(args):
             app_layer, diff_id = bldr.BuildAppLayer()
             with append.Layer(deps, app_layer, diff_id=diff_id) as app_image:
                 if args.local:
-                    tmp = os.path.join(tempfile.mkdtemp(), 'image.tar')
-                    with tarfile.open(name=tmp, mode='w') as tar:
+                    if not args.filepath:
+                        raise AssertionError('Please provide path to tar \
+                                             with --filepath flag')
+                    dir = os.path.dirname(args.filepath)
+                    if not os.path.exists(dir):
+                        os.makedirs(dir)
+                    with tarfile.open(name=args.filepath, mode='w') as tar:
                         save.tarball(target_image, app_image, tar)
-                    logging.info("Image tarball located at {0}".format(tmp))
+                    logging.info("{0} tarball located at {1}".format(
+                                 str(target_image), args.filepath))
                     return
                 with docker_session.Push(
                         target_image,
