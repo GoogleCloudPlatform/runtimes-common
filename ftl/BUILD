@@ -98,7 +98,7 @@ pkg_tar(
 # So, reset it to [""] before building our py_image.
 docker_build(
     name = "node_builder_base",
-    base = "@debian_docker//reproducible/ubuntu:node_8_5_0_ubuntu_16_0_4_build",
+    base = "@base_images_docker//reproducible/ubuntu:node_8_5_0_ubuntu_16_0_4_build",
     cmd = [""],
     entrypoint = "",
     tars = [

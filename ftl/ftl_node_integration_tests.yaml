@@ -35,7 +35,7 @@ steps:
     args: ['--base', 'gcr.io/google-appengine/nodejs:latest',
            '--name', 'gcr.io/ftl-node-test/ftl-local-test:latest',
            '--directory', 'ftl/node/testdata/gcp_build_test/',
-           '--local', '--filepath', '/workspace/image.tar']
+           '--output-path', '/workspace/image.tar']
   # Load docker image from tarball
   - name:  'gcr.io/cloud-builders/docker'
     args: ['load', '-i', '/workspace/image.tar']

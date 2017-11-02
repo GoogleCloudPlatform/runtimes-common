@@ -16,7 +16,6 @@
 import argparse
 import sys
 import tarfile
-import os
 from containerregistry.client import docker_creds
 from containerregistry.client import docker_name
 from containerregistry.client.v2_2 import append
@@ -58,14 +57,11 @@ parser.add_argument(
     help='The path where the application data sits.')
 
 parser.add_argument(
-    '--local',
-    action='store_true',
-    help='Store final image as local tarball instead of pushing to registry')
-
-parser.add_argument(
-    '--filepath',
+    '--output-path',
+    dest='output_path',
     action='store',
-    help='Path to tar created by --local flag')
+    help='Store final image as local tarball at output path \
+          instead of pushing to registry')
 
 parser.add_argument(
     "-v",
@@ -108,17 +104,11 @@ def main(args):
             logging.info('Generating app layer...')
             app_layer, diff_id = bldr.BuildAppLayer()
             with append.Layer(deps, app_layer, diff_id=diff_id) as app_image:
-                if args.local:
-                    if not args.filepath:
-                        raise AssertionError('Please provide path to tar \
-                                             with --filepath flag')
-                    dir = os.path.dirname(args.filepath)
-                    if not os.path.exists(dir):
-                        os.makedirs(dir)
-                    with tarfile.open(name=args.filepath, mode='w') as tar:
+                if args.output_path:
+                    with tarfile.open(name=args.output_path, mode='w') as tar:
                         save.tarball(target_image, app_image, tar)
                     logging.info("{0} tarball located at {1}".format(
-                                 str(target_image), args.filepath))
+                                 str(target_image), args.output_path))
                     return
                 with docker_session.Push(
                         target_image,

@@ -137,4 +137,4 @@ def parse_entrypoint(package_json):
         entrypoint = '%s && %s' % (prestart, start)
     else:
         entrypoint = start
-    return ['sh', '-c', "'%s'" % entrypoint]
+    return ['sh', '-c', entrypoint]
