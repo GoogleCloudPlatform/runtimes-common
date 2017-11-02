@@ -22,39 +22,39 @@ import logging
 import os
 import shutil
 import unittest
+import tempfile
 from containerregistry.tools import patched
 from reconciletags import tag_reconciler
 from reconciletags import data_integrity_test
 from reconciletags import config_integrity_test
 
 
-def create_temp_dir(files):
-    dir = "../config/tag/"
-    os.makedirs(dir)
+def run_test(files, test):
+    # Save original directory
+    original_dir = os.getcwd()
+    # Create temp directory
+    tmpdir = tempfile.mkdtemp()
 
+    # Then, create base and config/tag directories within tmpdir
+    base_dir = os.path.join(tmpdir, 'base')
+    os.mkdir(base_dir)
+    filesdir = os.path.join(tmpdir, 'config/tag/')
+    os.makedirs(filesdir)
+
+    # Copy JSON files into config/tag
     for file in files:
         if os.path.isfile(file):
-            shutil.copy(file, dir)
+            shutil.copy(file, filesdir)
         else:
             raise AssertionError("{0} is not a valid file".format(file))
 
-
-def delete_temp_dir():
-    shutil.rmtree("../config/")
-
-
-def run_config_integrity_test(files):
-    create_temp_dir(files)
-    suite = unittest.TestLoader().loadTestsFromTestCase(
-        config_integrity_test.ReconcilePresubmitTest)
+    # Switch to base directory and run tests
+    os.chdir(base_dir)
+    suite = unittest.TestLoader().loadTestsFromTestCase(test)
     unittest.TextTestRunner().run(suite)
 
-
-def run_data_integrity_test(files):
-    create_temp_dir(files)
-    suite = unittest.TestLoader().loadTestsFromTestCase(
-        data_integrity_test.DataIntegrityTest)
-    unittest.TextTestRunner().run(suite)
+    # Return to original directory
+    os.chdir(original_dir)
 
 
 def main():
@@ -74,17 +74,11 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
 
     if args.data_integrity:
-        try:
-            run_data_integrity_test(args.files)
-        finally:
-            delete_temp_dir()
+        run_test(args.files, data_integrity_test.DataIntegrityTest)
         return
 
     if args.dry_run:
-        try:
-            run_config_integrity_test(args.files)
-        finally:
-            delete_temp_dir()
+        run_test(args.files, config_integrity_test.ReconcilePresubmitTest)
 
     r = tag_reconciler.TagReconciler()
     for f in args.files:
