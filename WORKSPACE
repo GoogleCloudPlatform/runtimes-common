@@ -85,15 +85,22 @@ exports_files(["docker-credential-gcr"])""",
 
 git_repository(
     name = "debian_docker",
-    commit = "72cd6607fb809d8eda3d4b88c8b94f84c2921372",
+    commit = "22223b6005ea9ddc39ea1f0dbdf97505473192c6",
     remote = "https://github.com/GoogleCloudPlatform/debian-docker.git",
 )
 
-http_file(
-    name = "ubuntu_tar_download",
-    sha256 = "e43f802f876505c0cee1759fbc545f65b2d59c4dd33835e93afea3fa124b5799",
-    url = "https://partner-images.canonical.com/core/xenial/20171006/ubuntu-xenial-core-cloudimg-amd64-root.tar.gz",
-)
+UBUNTU_MAP = {
+    "16_0_4": {
+        "sha256": "51a8c466269bdebf232cac689aafad8feacd64804b13318c01096097a186d051",
+        "url": "https://storage.googleapis.com/ubuntu_tar/20171028/ubuntu-xenial-core-cloudimg-amd64-root.tar.gz",
+    },
+}
+
+[http_file(
+    name = "ubuntu_%s_tar_download" % version,
+    sha256 = map["sha256"],
+    url = map["url"],
+) for version, map in UBUNTU_MAP.items()]
 
 docker_pull(
     name = "node_base",
