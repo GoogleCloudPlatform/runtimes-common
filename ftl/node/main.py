@@ -56,6 +56,12 @@ parser.add_argument(
     help='The path where the application data sits.')
 
 parser.add_argument(
+    '--no-cache',
+    dest='no_cache',
+    action='store_true',
+    help='Do not use cache during build.')
+
+parser.add_argument(
     "-v",
     "--verbosity",
     default="NOTSET",
@@ -91,7 +97,7 @@ def main(args):
         # Create (or pull from cache) the base image with the
         # package descriptor installation overlaid.
         logging.info('Generating dependency layer...')
-        with bldr.CreatePackageBase(base_image, cash) as deps:
+        with bldr.CreatePackageBase(base_image, cash, args.no_cache) as deps:
             # Construct the application layer from the context.
             logging.info('Generating app layer...')
             app_layer, diff_id = bldr.BuildAppLayer()
