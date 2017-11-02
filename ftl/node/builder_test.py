@@ -146,13 +146,13 @@ class NodeTest(unittest.TestCase):
         self.ctx.AddFile('package.json', json.dumps(pj))
 
         base = self.test_case.CreatePackageBase()
-        self.assertEqual(_entrypoint(base), ['sh', '-c', "'foo bar'"])
+        self.assertEqual(_entrypoint(base), ['sh', '-c', 'foo bar'])
 
     def test_create_package_base_no_entrypoint(self):
         self.ctx.AddFile('package.json', _PACKAGE_JSON_TEXT)
 
         base = self.test_case.CreatePackageBase()
-        self.assertEqual(_entrypoint(base), ['sh', '-c', "'node server.js'"])
+        self.assertEqual(_entrypoint(base), ['sh', '-c', 'node server.js'])
 
     def test_create_package_base_prestart(self):
         pj = _PACKAGE_JSON.copy()
@@ -163,13 +163,13 @@ class NodeTest(unittest.TestCase):
         self.ctx.AddFile('package.json', json.dumps(pj))
 
         base = self.test_case.CreatePackageBase()
-        self.assertEqual(_entrypoint(base), ['sh', '-c', "'foo bar && baz'"])
+        self.assertEqual(_entrypoint(base), ['sh', '-c', 'foo bar && baz'])
 
     def test_create_package_base_no_descriptor(self):
         self.assertFalse(self.ctx.Contains('package.json'))
         self.assertFalse(self.ctx.Contains('package-lock.json'))
         base = self.test_case.CreatePackageBase()
-        self.assertEqual(_entrypoint(base), ['sh', '-c', "'node server.js'"])
+        self.assertEqual(_entrypoint(base), ['sh', '-c', 'node server.js'])
 
 
 def _entrypoint(image):

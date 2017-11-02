@@ -84,9 +84,9 @@ exports_files(["docker-credential-gcr"])""",
 # OR by moving structure_test to own repo
 
 git_repository(
-    name = "debian_docker",
+    name = "base_images_docker",
     commit = "22223b6005ea9ddc39ea1f0dbdf97505473192c6",
-    remote = "https://github.com/GoogleCloudPlatform/debian-docker.git",
+    remote = "https://github.com/GoogleCloudPlatform/base-images-docker.git",
 )
 
 UBUNTU_MAP = {
