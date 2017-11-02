@@ -88,6 +88,9 @@ parser.add_argument(
 def main(args):
     args = parser.parse_args(args)
     logging.getLogger().setLevel(_LEVEL_MAP[args.verbosity])
+    logging.basicConfig(
+        format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
+        datefmt='%Y-%m-%d,%H:%M:%S')
     transport = transport_pool.Http(httplib2.Http, size=_THREADS)
 
     # TODO(mattmoor): Support digest base images.
