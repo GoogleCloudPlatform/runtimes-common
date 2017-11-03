@@ -2,5 +2,5 @@ steps:
   - name:  'gcr.io/cloud-builders/bazel'
     args: ['run','//ftl:node_builder_image', '--', '--norun']
   - name: gcr.io/cloud-builders/docker:latest
-    args: ['tag', 'bazel/ftl:node_builder_image', 'gcr.io/gcp-runtimes/ftl_node_8_5_0:${COMMIT_SHA}']
-images: ['gcr.io/gcp-runtimes/ftl_node_8_5_0']
+    args: ['tag', 'bazel/ftl:node_builder_image', 'gcr.io/gcp-runtimes/ftl_node_8_5_0_ubuntu_16_0_4_build:${COMMIT_SHA}']
+images: ['gcr.io/gcp-runtimes/ftl_node_8_5_0_ubuntu_16_0_4_build']
