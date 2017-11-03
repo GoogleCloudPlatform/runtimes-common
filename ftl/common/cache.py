@@ -101,6 +101,7 @@ class Registry(Base):
                 mount=self._mount) as session:
             session.upload(value)
 
+
 class MockHybridRegistry(Base):
     """MockHybridRegistry is a cache implementation that stores layers in memory
     and can get docker tarballs from the local file system.
@@ -119,9 +120,9 @@ class MockHybridRegistry(Base):
     def _tag(self, base_image, namespace, checksum):
         fingerprint = '%s %s' % (base_image.digest(), checksum)
         return docker_name.Tag('{base}/{namespace}:{tag}'.format(
-          base=str(self._repo),
-          namespace=namespace,
-          tag=hashlib.sha256(fingerprint).hexdigest()))
+            base=str(self._repo),
+            namespace=namespace,
+            tag=hashlib.sha256(fingerprint).hexdigest()))
 
     def Get(self, base_image, namespace, checksum):
         entry = self._tag(base_image, namespace, checksum)
@@ -141,7 +142,8 @@ class MockHybridRegistry(Base):
         self._map[entry] = value
 
     def StoreTarImage(self, namespace, checksum, tarpath, config_text):
-        with docker_image.FromDisk(config_text, zip([], []), tarpath) as base_image:
+        with docker_image.FromDisk(config_text, zip([], []),
+                                   tarpath) as base_image:
             entry = self._tag(base_image, namespace, checksum)
             self._map[entry] = base_image
 
