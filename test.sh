@@ -8,7 +8,7 @@ flake8 .
 ./.buildifier.sh
 
 echo "Running tests..."
- bazel test --test_output=errors reconciletags:reconciletags_test
- bazel test --test_output=errors ftl/...
- bazel test --test_output=errors testing/lib:mock_registry_tests
- cd runtime_builders && py.test test_manifest.py && cd ..
+bazel test --test_output=errors reconciletags:reconciletags_test
+bazel test --test_output=errors ftl/...
+bazel test --test_output=errors testing/lib:mock_registry_tests
+cd runtime_builders && py.test test_manifest.py && cd ..
