@@ -41,7 +41,7 @@ class Node(builder.JustApp):
         """Override."""
         return self
 
-    def CreatePackageBase(self, base_image, cache, no_cache):
+    def CreatePackageBase(self, base_image, cache, use_cache=True):
         """Override."""
         # Figure out if we need to override entrypoint.
         # Save the overrides for later to avoid adding an extra layer.
@@ -66,14 +66,16 @@ class Node(builder.JustApp):
                 base_image, tar_gz=None, overrides=overrides)
 
         checksum = hashlib.sha256(descriptor_contents).hexdigest()
-        if not no_cache:
+        if use_cache:
             hit = cache.Get(base_image, _NODE_NAMESPACE, checksum)
             if hit:
                 logging.info('Found cached dependency layer for %s' % checksum)
                 return hit
             else:
                 logging.info('No cached dependency layer for %s' % checksum)
-
+        else:
+            logging.info('Skipping checking cache for dependency layer %s'
+                         % checksum)
         # We want the node_modules directory rooted at /app/node_modules in
         # the final image.
         # So we build a hierarchy like:
@@ -104,9 +106,11 @@ class Node(builder.JustApp):
 
         with append.Layer(
           base_image, layer, diff_id=sha, overrides=overrides) as dep_image:
-            if not no_cache:
+            if use_cache:
                 logging.info('Storing layer %s in cache.', sha)
                 cache.Store(base_image, _NODE_NAMESPACE, checksum, dep_image)
+            else:
+                logging.info('Skipping storing layer %s in cache.', sha)
             return dep_image
 
 

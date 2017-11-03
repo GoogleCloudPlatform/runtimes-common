@@ -21,7 +21,7 @@ from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
 import mock
 from mock import patch
-import reconciletags
+import tag_reconciler
 
 _REGISTRY = 'gcr.io'
 _REPO = 'foobar/baz'
@@ -49,14 +49,14 @@ _LIST_RESP = """
 class ReconcileTagsTest(unittest.TestCase):
 
     def setUp(self):
-        self.r = reconciletags.TagReconciler()
+        self.r = tag_reconciler.TagReconciler()
         self.data = {'projects':
                      [{'base_registry': 'gcr.io',
                        'additional_registries': [],
                        'repository': _REPO,
                        'images': [{'digest': _DIGEST1, 'tag': _TAG1}]}]}
 
-    @patch('reconciletags.TagReconciler.get_digest_from_prefix')
+    @patch('tag_reconciler.TagReconciler.get_digest_from_prefix')
     @patch('containerregistry.client.v2_2.docker_session.Push')
     @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
     def test_reconcile_tags(self, mock_from_registry, mock_push,
@@ -76,7 +76,7 @@ class ReconcileTagsTest(unittest.TestCase):
         assert mock_from_registry.called
         assert mock_push.called
 
-    @patch('reconciletags.TagReconciler.get_digest_from_prefix')
+    @patch('tag_reconciler.TagReconciler.get_digest_from_prefix')
     @patch('containerregistry.client.v2_2.docker_session.Push')
     @patch('containerregistry.client.v2_2.docker_image.FromRegistry')
     def test_dry_run(self, mock_from_registry, mock_push, mock_get_digest):
