@@ -76,6 +76,19 @@ class Node(builder.JustApp):
         else:
             logging.info('Skipping checking cache for dependency layer %s'
                          % checksum)
+
+        layer, sha = self._gen_package_tar(descriptor, descriptor_contents)
+
+        with append.Layer(
+          base_image, layer, diff_id=sha, overrides=overrides) as dep_image:
+            if use_cache:
+                logging.info('Storing layer %s in cache.', sha)
+                cache.Store(base_image, _NODE_NAMESPACE, checksum, dep_image)
+            else:
+                logging.info('Skipping storing layer %s in cache.', sha)
+            return dep_image
+
+    def _gen_package_tar(self, descriptor, descriptor_contents):
         # We want the node_modules directory rooted at /app/node_modules in
         # the final image.
         # So we build a hierarchy like:
@@ -102,16 +115,7 @@ class Node(builder.JustApp):
         # We use gzip for performance instead of python's zip.
         sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
         subprocess.check_call(['gzip', tar_path])
-        layer = open(os.path.join(tmp, tar_path + '.gz'), 'rb').read()
-
-        with append.Layer(
-          base_image, layer, diff_id=sha, overrides=overrides) as dep_image:
-            if use_cache:
-                logging.info('Storing layer %s in cache.', sha)
-                cache.Store(base_image, _NODE_NAMESPACE, checksum, dep_image)
-            else:
-                logging.info('Skipping storing layer %s in cache.', sha)
-            return dep_image
+        return open(os.path.join(tmp, tar_path + '.gz'), 'rb').read(), sha
 
 
 def check_gcp_build(package_json, app_dir):

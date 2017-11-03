@@ -57,10 +57,17 @@ parser.add_argument(
     help='The path where the application data sits.')
 
 parser.add_argument(
+    '--no-cache',
+    dest='cache',
+    action='store_false',
+    help='Do not use cache during build.')
+
+parser.add_argument(
     '--cache',
-    default='True',
-    action='store',
-    help='Boolean to use cache during build.')
+    dest='cache',
+    default=True,
+    action='store_true',
+    help='Use cache during build (default).')
 
 parser.add_argument(
     '--output-path',
@@ -81,7 +88,6 @@ parser.add_argument(
 def main(args):
     args = parser.parse_args(args)
     logging.getLogger().setLevel(_LEVEL_MAP[args.verbosity])
-
     transport = transport_pool.Http(httplib2.Http, size=_THREADS)
 
     # TODO(mattmoor): Support digest base images.
@@ -105,8 +111,7 @@ def main(args):
         # Create (or pull from cache) the base image with the
         # package descriptor installation overlaid.
         logging.info('Generating dependency layer...')
-        with bldr.CreatePackageBase(base_image, cash,
-                                    eval(args.cache)) as deps:
+        with bldr.CreatePackageBase(base_image, cash, args.cache) as deps:
             # Construct the application layer from the context.
             logging.info('Generating app layer...')
             app_layer, diff_id = bldr.BuildAppLayer()

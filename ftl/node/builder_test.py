@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import json
+import mock
 import os
 import unittest
 import shutil
@@ -72,6 +73,11 @@ class BuilderTestCase():
     def __init__(self, builder_fxn, ctx, cash, base_image):
         self._ctx = ctx
         self._builder = builder_fxn(ctx)
+
+        # Mock out the calls to NPM for speed.
+        self._builder._gen_package_tar = mock.Mock()
+        self._builder._gen_package_tar.return_value = ('layer', 'sha')
+
         self._cash = cash
         self._base_image = base_image
 
