@@ -29,7 +29,7 @@ py_library(
 
 docker_build(
     name = "test",
-    base = "@python_base//image",
+    base = "@distroless_base//image",
 )
 
 py_test(
