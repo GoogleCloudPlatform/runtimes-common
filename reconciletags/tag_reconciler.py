@@ -13,14 +13,9 @@
 # limitations under the License.
 
 """Reads json files mapping docker digests to tags and reconciles them.
-
-Reads all json files in current directory and parses it into repositories
-and tags. Calls gcloud container images add-tag on each entry.
 If there are no changes that api call is no-op.
 """
 
-import argparse
-import json
 import logging
 import os
 from containerregistry.client import docker_creds
@@ -28,7 +23,6 @@ from containerregistry.client import docker_name
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
 from containerregistry.transport import transport_pool
-from containerregistry.tools import patched
 import httplib2
 
 
@@ -156,25 +150,3 @@ class TagReconciler:
                         self.add_tags(default_digest, full_tag, dry_run)
 
                 logging.debug(self.get_existing_tags(default_repo, digest))
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--dry-run', dest='dry_run',
-                        action='store_true', default=False)
-    parser.add_argument('files',
-                        help='The files to run the reconciler on',
-                        nargs='+')
-    args = parser.parse_args()
-    logging.basicConfig(level=logging.DEBUG)
-    r = TagReconciler()
-    for f in args.files:
-        logging.debug('---Processing {0}---'.format(f))
-        with open(f) as tag_map:
-            data = json.load(tag_map)
-            r.reconcile_tags(data, args.dry_run)
-
-
-if __name__ == '__main__':
-    with patched.Httplib2():
-        main()

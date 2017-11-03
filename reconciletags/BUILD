@@ -12,10 +12,15 @@ load(
 )
 load("@io_bazel_rules_docker//python:image.bzl", "py_image")
 
+py_library(
+    name = "reconciletags_lib",
+    srcs = glob(["*.py"]),
+)
+
 par_binary(
     name = "reconciletags",
-    srcs = ["reconciletags.py"],
-    main = "reconciletags.py",
+    srcs = [":reconciletags_lib"],
+    main = "reconciletags_main.py",
     visibility = ["//visibility:public"],
     deps = [
         "@containerregistry",
@@ -116,9 +121,9 @@ docker_build(
 
 py_image(
     name = "reconciletags_image",
-    srcs = ["reconciletags.py"],
+    srcs = [":reconciletags_lib"],
     base = ":reconcile_base",
-    main = "reconciletags.py",
+    main = "reconciletags_main.py",
     deps = [
         "@containerregistry",
     ],
