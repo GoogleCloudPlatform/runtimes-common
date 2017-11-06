@@ -18,6 +18,7 @@ import gzip
 import hashlib
 import os
 import tarfile
+import logging
 
 
 class Base(object):
@@ -60,6 +61,7 @@ class JustApp(Base):
     """JustApp is an implementation of a builder that only generates an
     application layer.
     """
+
     def __init__(self, ctx):
         super(JustApp, self).__init__(ctx)
 
@@ -73,17 +75,21 @@ class JustApp(Base):
     def BuildAppLayer(self):
         """Override."""
         buf = cStringIO.StringIO()
+        logging.info('Starting to generate tarfile from context...')
         with tarfile.open(fileobj=buf, mode='w') as out:
             for name in self._ctx.ListFiles():
                 content = self._ctx.GetFile(name)
                 info = tarfile.TarInfo(os.path.join('app', name))
                 info.size = len(content)
                 out.addfile(info, fileobj=cStringIO.StringIO(content))
+        logging.info('Finished generating tarfile from context.')
 
         tar = buf.getvalue()
         sha = 'sha256:' + hashlib.sha256(tar).hexdigest()
 
         gz = cStringIO.StringIO()
+        logging.info('Starting to gzip tarfile...')
         with gzip.GzipFile(fileobj=gz, mode='w', compresslevel=1) as f:
             f.write(tar)
+        logging.info('Finished gzipping tarfile.')
         return gz.getvalue(), sha

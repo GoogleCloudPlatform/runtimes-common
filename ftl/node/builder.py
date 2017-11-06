@@ -62,8 +62,7 @@ class Node(builder.JustApp):
             logging.info('No package descriptor found. No packages installed.')
 
             # Add the overrides now.
-            return append.Layer(
-                base_image, tar_gz=None, overrides=overrides)
+            return append.Layer(base_image, tar_gz=None, overrides=overrides)
 
         checksum = hashlib.sha256(descriptor_contents).hexdigest()
         if use_cache:
@@ -104,17 +103,25 @@ class Node(builder.JustApp):
 
         tar_path = tempfile.mktemp()
         check_gcp_build(json.loads(self._ctx.GetFile(_PACKAGE_JSON)), app_dir)
-        subprocess.check_call(['rm', '-rf',
-                              os.path.join(app_dir, 'node_modules')])
-        subprocess.check_call(['npm', 'install', '--production', '--no-cache'],
-                              cwd=app_dir)
+        subprocess.check_call(
+            ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
+        logging.info('Starting npm install ...')
+        subprocess.check_call(
+            ['npm', 'install', '--production', '--no-cache'], cwd=app_dir)
+        logging.info('Finished npm install.')
+
+        logging.info('Starting to tar npm packages...')
         subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
+        logging.info('Finished generating tarfile for npm packages.')
 
         # We need the sha of the unzipped and zipped tarball.
         # So for performance, tar, sha, zip, sha.
         # We use gzip for performance instead of python's zip.
         sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
+
+        logging.info('Starting to gzip npm package tarfile...')
         subprocess.check_call(['gzip', tar_path])
+        logging.info('Finished generating gzip npm package tarfile.')
         return open(os.path.join(tmp, tar_path + '.gz'), 'rb').read(), sha
 
 
@@ -128,8 +135,8 @@ def check_gcp_build(package_json, app_dir):
     env = os.environ.copy()
     env["NODE_ENV"] = "development"
     subprocess.check_call(['npm', 'install'], cwd=app_dir, env=env)
-    subprocess.check_call(['npm', 'run-script', 'gcp-build'],
-                          cwd=app_dir, env=env)
+    subprocess.check_call(
+        ['npm', 'run-script', 'gcp-build'], cwd=app_dir, env=env)
 
 
 def From(ctx):
