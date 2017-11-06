@@ -1,6 +1,8 @@
 #!/bin/bash
 set -ex
 
+echo "Installing dependencies..."
+
 # shellcheck source=/dev/null
 source "$KOKORO_GFILE_DIR/common.sh"
 
@@ -12,9 +14,12 @@ if [ -f "$KOKORO_GFILE_DIR"/shellcheck-latest.linux ]; then
 fi
 
 pushd github/runtimes-common
-
 # Install deps.
 sudo pip install --upgrade -r requirements.txt
 
+echo "Running unit tests..."
 # Run the tests.
 ./test.sh
+
+echo "Running integration tests..."
+gcloud container builds submit --config ftl/ftl_node_integration_tests.yaml .
