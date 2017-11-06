@@ -48,7 +48,6 @@ if __name__ == "__main__":
 
 
 class TarDockerImage():
-
     def __init__(self, config_path, tarball_path):
         self._config = open(config_path, 'r').read()
         # TODO(aaron-prindle) use fast image format instead of tarball
@@ -77,8 +76,7 @@ class BuilderTestCase():
     def CreatePackageBase(self):
         with self._base_image.GetDockerImage():
             return self._builder.CreatePackageBase(
-                self._base_image.GetDockerImage(),
-                self._cash)
+                self._base_image.GetDockerImage(), self._cash)
 
     def GetCacheEntries(self):
         return len(self._cash._registry._registry)
@@ -92,7 +90,6 @@ class BuilderTestCase():
 
 
 class PythonTest(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         current_dir = os.path.dirname(__file__)
@@ -105,16 +102,12 @@ class PythonTest(unittest.TestCase):
     def setUp(self):
         self._tmpdir = tempfile.mkdtemp()
         self.cache = test_util.MockHybridRegistry(
-            'fake.gcr.io/google-appengine',
-            self._tmpdir)
+            'fake.gcr.io/google-appengine', self._tmpdir)
         self.ctx = context.Memory()
         self.ctx.AddFile("app.py", _APP)
         self.ctx.AddFile('requirements.txt', _REQUIREMENTS_TXT)
-        self.test_case = BuilderTestCase(
-                builder.Python,
-                self.ctx,
-                self.cache,
-                self.base_image)
+        self.test_case = BuilderTestCase(builder.Python, self.ctx, self.cache,
+                                         self.base_image)
 
     def tearDown(self):
         shutil.rmtree(self._tmpdir)
@@ -125,7 +118,8 @@ class PythonTest(unittest.TestCase):
         self.assertEqual(1, self.test_case.GetCacheEntries())
         for k in self.test_case.GetCacheMap():
             self.assertEqual(
-                str(k).startswith("fake.gcr.io/google-appengine/python-requirements-cache"),
+                str(k).startswith(
+                    "fake.gcr.io/google-appengine/python-requirements-cache"),
                 True)
 
         self.test_case.CreatePackageBase()
@@ -133,7 +127,8 @@ class PythonTest(unittest.TestCase):
         self.assertEqual(1, len(self.test_case.GetCacheMap()))
         for k in self.test_case.GetCacheMap():
             self.assertEqual(
-                str(k).startswith("fake.gcr.io/google-appengine/python-requirements-cache"),
+                str(k).startswith(
+                    "fake.gcr.io/google-appengine/python-requirements-cache"),
                 True)
 
     def test_create_package_base_ttl_written(self):
@@ -141,21 +136,20 @@ class PythonTest(unittest.TestCase):
         self.assertNotEqual(_creation_time(base), "1970-01-01T00:00:00Z")
         last_created = _timestamp_to_time(_creation_time(base))
         now = datetime.datetime.now()
-        self.assertTrue(
-            last_created > now - datetime.timedelta(
-                                                minutes=10))
+        self.assertTrue(last_created > now - datetime.timedelta(days=2))
 
     # TODO(aaron-prindle) add test to check expired/unexpired logic for TTL
 
+
 def _creation_time(image):
     cfg = json.loads(image.config_file())
+    print cfg
     return cfg['created']
 
+
 def _timestamp_to_time(dt_str):
-    dt, _, us = dt_str.partition(".")
-    dt = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
-    us = int(us.rstrip("Z"), 10)
-    return dt + datetime.timedelta(microseconds=us)
+    return datetime.datetime.strptime(dt_str, "%Y-%m-%d")
+
 
 if __name__ == '__main__':
     unittest.main()

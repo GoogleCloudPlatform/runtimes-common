@@ -29,8 +29,7 @@ from ftl.common import builder
 _PYTHON_NAMESPACE = 'python-requirements-cache'
 _REQUIREMENTS_TXT = 'requirements.txt'
 _DEFAULT_TTL_WEEKS = 1
-
-# _DEFAULT_ENTRYPOINT = 'node server.js'
+_VENV_DIR = '/env'
 
 
 class Python(builder.JustApp):
@@ -56,7 +55,9 @@ class Python(builder.JustApp):
         if not descriptor:
             logging.info('No package descriptor found. No packages installed.')
         overrides = metadata.Overrides(
-            creation_time=datetime.datetime.now().isoformat())
+            creation_time=str(datetime.datetime.now().strftime("%Y-%m-%d")))
+        print datetime.datetime.now().strftime("%Y-%m-%d")
+        # TODO(aaron-prindle) currently if no requirements.txt, this fails here
         checksum = hashlib.sha256(descriptor_contents).hexdigest()
         if use_cache:
             hit = cache.Get(base_image, _PYTHON_NAMESPACE, checksum)
@@ -92,11 +93,9 @@ class Python(builder.JustApp):
             return dep_image
 
     def _gen_package_tar(self, descriptor, descriptor_contents):
-        # python2.7 packages installed w/ pip default to /usr/lib/python2.7
-        # /usr/lib/python2.7/dist-packages
         tmp = tempfile.mkdtemp()
-        # TODO(aaron-prindle) make the python version detected from the base image
-        app_dir = os.path.join(tmp, 'usr', 'lib', 'python2.7', 'dist-packages')
+
+        app_dir = os.path.join(tmp, _VENV_DIR)
         os.makedirs(app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
@@ -104,17 +103,35 @@ class Python(builder.JustApp):
             f.write(descriptor_contents)
 
         tar_path = tempfile.mktemp()
-        #TODO(aaron-prindle) verify check_gcp_build substitute not needed
+        # TODO(aaron-prindle) verify check_gcp_build substitute not needed
+        logging.info('Starting venv creation ...')
+
+        # TODO(aaron-prindle) add support for different python versions
         subprocess.check_call(
-            ['pip', 'install', '-r', 'requirements.txt', '--target', app_dir],
+            ['virtualenv', '--no-download', _VENV_DIR, '-p', 'python3.6'],
             cwd=app_dir)
+        os.environ['VIRTUAL_ENV'] = _VENV_DIR
+        os.environ['PATH'] += ':'+_VENV_DIR+"/bin"
+        logging.info('Finished venv creation ...')
+
+        logging.info('Starting pip install ...')
+        subprocess.check_call(
+            ['pip', 'install', '-r', 'requirements.txt'],
+            cwd=app_dir)
+        logging.info('Finished pip install.')
+
+        logging.info('Starting to tar pip packages...')
         subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
+        logging.info('Finished generating tarfile for pip packages...')
 
         # We need the sha of the unzipped and zipped tarball.
         # So for performance, tar, sha, zip, sha.
         # We use gzip for performance instead of python's zip.
         sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
+
+        logging.info('Starting to gzip npm package tarfile...')
         subprocess.check_call(['gzip', tar_path])
+        logging.info('Finished generating gzip npm package tarfile.')
         return open(os.path.join(tmp, tar_path + '.gz'), 'rb').read(), sha
 
 
@@ -142,7 +159,4 @@ def _creation_time(image):
 
 
 def _timestamp_to_time(dt_str):
-    dt, _, us = dt_str.partition(".")
-    dt = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
-    us = int(us.rstrip("Z"), 10)
-    return dt + datetime.timedelta(microseconds=us)
+    return datetime.datetime.strptime(dt_str, "%Y-%m-%d")

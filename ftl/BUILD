@@ -8,7 +8,6 @@ load(
     "@io_bazel_rules_docker//docker:docker.bzl",
     "docker_build",
 )
-
 load(
     "@io_bazel_rules_docker//docker:docker.bzl",
     "docker_build",
@@ -155,18 +154,16 @@ py_library(
 py_test(
     name = "python_builder_test",
     srcs = ["python/builder_test.py"],
+    data =
+        glob(
+            ["python/testdata/**"],
+        ),
     main = "python/builder_test.py",
     deps = [
         ":python_lib",
         "//testing/lib:containerregistry_mock_lib",
         "@mock//:mock",
     ],
-    data = [
-        ":python/testdata/base_image/distroless-python2.7-latest.tar.gz",
-        ":python/testdata/base_image/config_file",
-        ":python/testdata/python_app/app.py",
-        ":python/testdata/python_app/requirements.txt",
-    ]
 )
 
 # The python base image sets a default CMD, which causes issues if you run our image with no CMD.
