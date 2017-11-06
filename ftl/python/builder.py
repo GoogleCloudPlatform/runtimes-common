@@ -92,11 +92,8 @@ class Python(builder.JustApp):
             return dep_image
 
     def _gen_package_tar(self, descriptor, descriptor_contents):
-        # We want the node_modules directory rooted at /app/node_modules in
-        # the final image.
-        # So we build a hierarchy like:
-        # /$tmp/app/node_modules
-        # And use the -C flag to tar to root the tarball at /$tmp.
+        # python2.7 packages installed w/ pip default to /usr/lib/python2.7
+        # /usr/lib/python2.7/dist-packages
         tmp = tempfile.mkdtemp()
         # TODO(aaron-prindle) make the python version detected from the base image
         app_dir = os.path.join(tmp, 'usr', 'lib', 'python2.7', 'dist-packages')
@@ -107,7 +104,7 @@ class Python(builder.JustApp):
             f.write(descriptor_contents)
 
         tar_path = tempfile.mktemp()
-        # check_gcp_build(json.loads(self._ctx.GetFile(_REQUIREMENTS_TXT)), app_dir)
+        #TODO(aaron-prindle) verify check_gcp_build substitute not needed
         subprocess.check_call(
             ['pip', 'install', '-r', 'requirements.txt', '--target', app_dir],
             cwd=app_dir)

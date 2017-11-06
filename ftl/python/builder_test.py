@@ -12,68 +12,150 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+import mock
 import os
 import unittest
-import tarfile
-import cStringIO
-import mock
-import httplib2
+import shutil
 import tempfile
-import hashlib
+import datetime
 
 from containerregistry.client.v2_2 import docker_image
 
 from ftl.common import context
-from ftl.common import cache
+from ftl.common import test_util
 from ftl.python import builder
+
+_REQUIREMENTS_TXT = """
+Flask==0.7.2
+"""
+
+_APP = """
+import os
+from flask import Flask
+app = Flask(__name__)
+
+
+@app.route("/")
+def hello():
+    return "Hello from Python!"
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
+"""
+
+
+class TarDockerImage():
+
+    def __init__(self, config_path, tarball_path):
+        self._config = open(config_path, 'r').read()
+        # TODO(aaron-prindle) use fast image format instead of tarball
+        self._docker_image = docker_image.FromDisk(self._config,
+                                                   zip([], []), tarball_path)
+
+    def GetConfig(self):
+        return self._config
+
+    def GetDockerImage(self):
+        return self._docker_image
+
+
+class BuilderTestCase():
+    def __init__(self, builder_fxn, ctx, cash, base_image):
+        self._ctx = ctx
+        self._builder = builder_fxn(ctx)
+
+        # Mock out the calls to NPM for speed.
+        self._builder._gen_package_tar = mock.Mock()
+        self._builder._gen_package_tar.return_value = ('layer', 'sha')
+
+        self._cash = cash
+        self._base_image = base_image
+
+    def CreatePackageBase(self):
+        with self._base_image.GetDockerImage():
+            return self._builder.CreatePackageBase(
+                self._base_image.GetDockerImage(),
+                self._cash)
+
+    def GetCacheEntries(self):
+        return len(self._cash._registry._registry)
+
+    def GetCacheMap(self):
+        return self._cash._registry._registry
+
+    def GetCacheEntryByStringKey(self, key):
+        # cast key to docker_tag
+        return self._cash._registry.getImage(key)
 
 
 class PythonTest(unittest.TestCase):
-    def test_create_package_base_uncached(self):
-        b = builder.Python(None)
-        current_dir = os.path.dirname(__file__)
-        base_config_path = os.path.join(current_dir,
-                                        "testdata/base_image/config_file")
-        with open(base_config_path, 'r') as reader:
-            base_config = reader.read()
-        ctx = context.Workspace(
-            os.path.join(current_dir, "testdata/python_app"))
-        with builder.Python(ctx) as b:
-            fast_dir = "testdata/base_image/fast"
-            # TODO(aaron-prindle) issues traversing fast_dir w/ bazel 'data', fix list creations
-            sha_list = []
-            for i in range(10):
-                sha_list.append(
-                    os.path.join(fast_dir, "00" + str(i) + ".sha256"))
-            tar_list = []
-            for i in range(10):
-                sha_list.append(
-                    os.path.join(fast_dir, "00" + str(i) + ".tar.gz"))
-            with docker_image.FromDisk(base_config,
-                                       zip(sha_list, tar_list)) as base_image:
-                tmp = tempfile.mkdtemp()
-                cash = cache.MockHybridRegistry('fake.gcr.io/google-appengine',
-                                                tmp)
-                with b.CreatePackageBase(base_image, cash) as python_app_layer:
-                    # check that the python_app_layer image was added to the cache
-                    self.assertEqual(1, len(cash.GetMap()))
-                    for k in cash.GetMap():
-                        self.assertEqual(
-                            str(k).startswith(
-                                "fake.gcr.io/google-appengine/python-requirements-cache"
-                            ), True)
-                cash.ResetCacheMiss()
-                with b.CreatePackageBase(base_image, cash) as python_app_layer:
-                    # check that the python_app_layer image was added to the cache
-                    self.assertEqual(1, len(cash.GetMap()))
-                    for k in cash.GetMap():
-                        self.assertEqual(
-                            str(k).startswith(
-                                "fake.gcr.io/google-appengine/python-requirements-cache"
-                            ), True)
-                    # check that no additional cache misses occur on rebuild
-                    self.assertEqual(0, cash.GetCacheMiss())
 
+    @classmethod
+    def setUpClass(cls):
+        current_dir = os.path.dirname(__file__)
+        cls.base_image = TarDockerImage(
+            os.path.join(current_dir, "testdata/base_image/config_file"),
+            os.path.join(
+                current_dir,
+                "testdata/base_image/distroless-python2.7-latest.tar.gz"))
+
+    def setUp(self):
+        self._tmpdir = tempfile.mkdtemp()
+        self.cache = test_util.MockHybridRegistry(
+            'fake.gcr.io/google-appengine',
+            self._tmpdir)
+        self.ctx = context.Memory()
+        self.ctx.AddFile("app.py", _APP)
+        self.ctx.AddFile('requirements.txt', _REQUIREMENTS_TXT)
+        self.test_case = BuilderTestCase(
+                builder.Python,
+                self.ctx,
+                self.cache,
+                self.base_image)
+
+    def tearDown(self):
+        shutil.rmtree(self._tmpdir)
+
+    def test_create_package_base_cache(self):
+        self.test_case.CreatePackageBase()
+        # check that image was added to the cache
+        self.assertEqual(1, self.test_case.GetCacheEntries())
+        for k in self.test_case.GetCacheMap():
+            self.assertEqual(
+                str(k).startswith("fake.gcr.io/google-appengine/python-requirements-cache"),
+                True)
+
+        self.test_case.CreatePackageBase()
+        # check that image was added to the cache
+        self.assertEqual(1, len(self.test_case.GetCacheMap()))
+        for k in self.test_case.GetCacheMap():
+            self.assertEqual(
+                str(k).startswith("fake.gcr.io/google-appengine/python-requirements-cache"),
+                True)
+
+    def test_create_package_base_ttl_written(self):
+        base = self.test_case.CreatePackageBase()
+        self.assertNotEqual(_creation_time(base), "1970-01-01T00:00:00Z")
+        last_created = _timestamp_to_time(_creation_time(base))
+        now = datetime.datetime.now()
+        self.assertTrue(
+            last_created > now - datetime.timedelta(
+                                                minutes=10))
+
+    # TODO(aaron-prindle) add test to check expired/unexpired logic for TTL
+
+def _creation_time(image):
+    cfg = json.loads(image.config_file())
+    return cfg['created']
+
+def _timestamp_to_time(dt_str):
+    dt, _, us = dt_str.partition(".")
+    dt = datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
+    us = int(us.rstrip("Z"), 10)
+    return dt + datetime.timedelta(microseconds=us)
 
 if __name__ == '__main__':
     unittest.main()
