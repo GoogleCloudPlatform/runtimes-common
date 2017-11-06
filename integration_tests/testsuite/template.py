@@ -27,16 +27,6 @@ spec:
       containers:
       - name: {service_name}
         image: {test_image}
-        resources:
-          requests:
-            cpu: 100m
-            memory: "512Mi"
-          limits:
-            cpu: 200m
-            memory: "1024Mi"
-        env:
-        - name: HEAP_SIZE_RATIO
-          value: "50"
         ports:
         - containerPort: 8080
 
