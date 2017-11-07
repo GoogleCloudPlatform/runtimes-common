@@ -18,10 +18,12 @@ import datetime
 import time
 import os
 import uuid
+import logging
 from google.cloud import bigquery
 
 DATASET_NAME = 'ftl_benchmark'
 TABLE_NAME = 'ftl_benchmark'
+PROJECT_NAME = 'priya_wadhwa'
 
 parser = argparse.ArgumentParser(
     description='Run FTL node benchmarks.')
@@ -40,34 +42,33 @@ parser.add_argument(
 parser.add_argument(
     '--benchmark', action='store', help=('The size of the app.'))
 
-def _record_build_times_to_bigquery(build_times, bechmark):
+def _record_build_times_to_bigquery(build_times, benchmark):
     current_date = datetime.datetime.now()
 
     for build_time in build_times:
         row = [(current_date, benchmark, build_time)]
-        project = "priya-wadhwa"
-        logging.debug('Fetching bigquery client for project %s', project)
-        client = bigquery.Client(project=project)
+        logging.debug('Fetching bigquery client for project')
+        client = bigquery.Client(project=PROJECT_NAME)
+
         dataset = client.dataset(DATASET_NAME)
-        logging.debug('Writing bigquery data to table %s in dataset %s',
-                    TABLE_NAME, dataset)
-        table = bigquery.Table(name=TABLE_NAME, dataset=dataset)
-        table.reload()
-        return table.insert_data(row)
+        table = dataset.table(TABLE_NAME)
+
+        print(table.getDatasetId())
+
 
 def main():
     args = parser.parse_args()
     build_times = []
     for _ in range(2):
         start_time = time.time()
-        subprocess.check_call(['./ftl/node_builder',
-                              '--base', args.base,
-                              '--name', args.name,
-                              '--directory', args.directory, 
-                              '--no-cache'])
+        # subprocess.check_call(['./ftl/node_builder',
+        #                       '--base', args.base,
+        #                       '--name', args.name,
+        #                       '--directory', args.directory, 
+        #                       '--no-cache'])
         build_time = round(time.time() - start_time, 2)
         build_times.append(build_time)
-        _record_build_times_to_bigquery(build_times, args.benchmark)
+    _record_build_times_to_bigquery(build_times, args.benchmark)
         
 if __name__ == '__main__':
     main()

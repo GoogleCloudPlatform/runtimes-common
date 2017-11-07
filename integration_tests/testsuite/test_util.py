@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import binascii
-import datetime
 import json
 import logging
 import os
@@ -23,47 +22,23 @@ import random
 import requests
 from retrying import retry
 import string
-import subprocess
-import sys
+from subprocess import Popen, PIPE, check_output, CalledProcessError
 import google.auth
 
+import constants
+
 requests.packages.urllib3.disable_warnings()
-
-LOGNAME_LENGTH = 16
-
-LOGGING_PREFIX = 'GCP_INTEGRATION_TEST_'
-
-DEFAULT_TIMEOUT = 30  # seconds
-
-ROOT_ENDPOINT = '/'
-ROOT_EXPECTED_OUTPUT = 'Hello World!'
-
-STANDARD_LOGGING_ENDPOINT = '/logging_standard'
-CUSTOM_LOGGING_ENDPOINT = '/logging_custom'
-MONITORING_ENDPOINT = '/monitoring'
-EXCEPTION_ENDPOINT = '/exception'
-CUSTOM_ENDPOINT = '/custom'
-
-METRIC_PREFIX = 'custom.googleapis.com/{0}'
-METRIC_TIMEOUT = 60  # seconds
-
-# subset of levels found at
-# https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity
-SEVERITIES = [
-    'WARNING',
-    'ERROR',
-    'CRITICAL'
-]
 
 
 def _generate_name():
     name = ''.join(random.choice(string.ascii_uppercase +
-                   string.ascii_lowercase) for i in range(LOGNAME_LENGTH))
+                   string.ascii_lowercase)
+                   for i in range(constants.LOGNAME_LENGTH))
     return name
 
 
-def _generate_hex_token():
-    return binascii.b2a_hex(os.urandom(16))
+def _generate_hex_token(num_bytes):
+    return binascii.b2a_hex(os.urandom(num_bytes))
 
 
 def _generate_int64_token():
@@ -72,17 +47,17 @@ def _generate_int64_token():
 
 def generate_logging_payloads():
     payloads = []
-    for s in SEVERITIES:
+    for s in constants.SEVERITIES:
         payloads.append({
             'log_name': _generate_name(),
-            'token': LOGGING_PREFIX + _generate_hex_token(),
+            'token': constants.LOGGING_PREFIX + _generate_hex_token(16),
             'level': s
             })
     return payloads
 
 
 def generate_metrics_payload():
-    data = {'name': METRIC_PREFIX.format(_generate_name()),
+    data = {'name': constants.METRIC_PREFIX.format(_generate_name()),
             'token': _generate_int64_token()}
     return data
 
@@ -92,7 +67,7 @@ def generate_exception_payload():
     return data
 
 
-def get(url, timeout=DEFAULT_TIMEOUT):
+def get(url, timeout=constants.DEFAULT_TIMEOUT):
     logging.info('Making GET request to url {0}'.format(url))
     try:
         response = requests.get(url)
@@ -107,7 +82,7 @@ def get(url, timeout=DEFAULT_TIMEOUT):
         return None, 1
 
 
-def post(url, payload, timeout=DEFAULT_TIMEOUT):
+def post(url, payload, timeout=constants.DEFAULT_TIMEOUT):
     try:
         headers = {'Content-Type': 'application/json'}
         response = requests.post(url,
@@ -142,8 +117,7 @@ def project_id():
 
 
 def generate_version():
-    return 'integration-{0}'.format(
-        datetime.datetime.now().strftime('%Y%m%d%H%m%S'))
+    return 'integration-{0}'.format(_generate_hex_token(8))
 
 
 @retry(wait_fixed=10000, stop_max_attempt_number=4)
@@ -153,9 +127,65 @@ def retrieve_url_for_version(version):
         url_command = ['gcloud', 'app', 'versions', 'describe',
                        version, '--service',
                        'default', '--format=json']
-        app_dict = json.loads(subprocess.check_output(url_command))
+        app_dict = json.loads(check_output(url_command))
         return app_dict.get('versionUrl')
-    except (subprocess.CalledProcessError, ValueError, KeyError) as e:
-        logging.warn('Error encountered when retrieving app URL! %s', e)
-        sys.exit(1)
+    except (CalledProcessError, ValueError, KeyError) as e:
+        logging.error('Error encountered when retrieving app URL! %s', e)
+        raise
     raise Exception('Unable to contact deployed application!')
+
+
+def generate_gke_image_name():
+    return 'gcr.io/{project}/{image}'.format(
+        project=project_id(),
+        image=_generate_hex_token(8)
+    )
+
+
+def generate_gke_service_name():
+    return 'gcp-integration-test-{0}'.format(_generate_hex_token(8))
+
+
+def generate_namespace():
+    return 'int-test-{0}'.format(_generate_hex_token(8))
+
+
+@retry(wait_exponential_multiplier=1000, wait_exponential_max=32000,
+       stop_max_attempt_number=12)
+def get_external_ip_for_cluster(service_name, namespace):
+    logging.info('Waiting for deployment external IP...')
+    ip_command = ['kubectl', 'get', 'services', service_name,
+                  '--namespace', namespace, '--output=json']
+    service = json.loads(execute_command(ip_command))
+    ip = service['status']['loadBalancer']['ingress'][0]['ip']
+    return 'http://{0}:80'.format(ip)
+
+
+def get_environment(base_url):
+    env_url = base_url + constants.ENVIRONMENT_ENDPOINT
+    env, resp = get(env_url)
+    if not env:
+        logging.error('Error when retrieving environment from application')
+        logging.error('Defaulting to GAE')
+        return constants.GAE
+    return env
+
+
+def execute_command(command, print_output=False, stdin=None):
+    logging.debug(command)
+    proc = Popen(command, shell=False, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+
+    if stdin:
+        output, err = proc.communicate(stdin)
+    else:
+        output, err = proc.communicate()
+    exitCode = proc.returncode
+
+    if exitCode != 0:
+        raise Exception(err)
+
+    logging.debug(output)
+    if print_output:
+        logging.info(output)
+
+    return output

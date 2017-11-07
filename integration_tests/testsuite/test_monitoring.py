@@ -22,12 +22,13 @@ import time
 
 import google.cloud.monitoring
 
+import constants
 import test_util
 
 
 class TestMonitoring(unittest.TestCase):
     def __init__(self, url, methodName='runTest'):
-        self._url = urlparse.urljoin(url, test_util.MONITORING_ENDPOINT)
+        self._url = urlparse.urljoin(url, constants.MONITORING_ENDPOINT)
         super(TestMonitoring, self).__init__()
 
     def runTest(self):
@@ -37,7 +38,7 @@ class TestMonitoring(unittest.TestCase):
 
         try:
             _, response_code = test_util.post(self._url, payload,
-                                              test_util.METRIC_TIMEOUT)
+                                              constants.METRIC_TIMEOUT)
             self.assertEquals(response_code, 0,
                               'Error encountered inside sample application!')
 

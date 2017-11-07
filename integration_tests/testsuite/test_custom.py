@@ -21,6 +21,7 @@ import requests
 import unittest
 import urlparse
 
+import constants
 import test_util
 
 
@@ -38,7 +39,7 @@ class TestCustom(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
         self._base_url = url
-        self._url = urlparse.urljoin(url, test_util.CUSTOM_ENDPOINT)
+        self._url = urlparse.urljoin(url, constants.CUSTOM_ENDPOINT)
         unittest.TestCase.__init__(self)
 
     def runTest(self):
