@@ -163,8 +163,8 @@ def get_external_ip_for_cluster(service_name, namespace):
 
 def get_environment(base_url):
     env_url = base_url + constants.ENVIRONMENT_ENDPOINT
-    env, resp = get(env_url)
-    if not env:
+    env, resp_code = get(env_url)
+    if not env or resp_code:
         logging.error('Error when retrieving environment from application')
         logging.error('Defaulting to GAE')
         return constants.GAE
