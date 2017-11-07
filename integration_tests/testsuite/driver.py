@@ -19,6 +19,7 @@ import logging
 import sys
 import unittest
 
+import constants
 import deploy_app
 import test_custom
 import test_exception
@@ -26,7 +27,6 @@ import test_logging_standard
 import test_logging_custom
 import test_monitoring
 import test_root
-import test_util
 
 
 def _main():
@@ -67,6 +67,12 @@ def _main():
     parser.add_argument('--yaml', '-y',
                         help='optional path to app.yaml file',
                         required=False)
+    parser.add_argument('--environment', '-e',
+                        help='environment to deploy sample application '
+                        '(GAE, GKE)',
+                        required=False,
+                        choices=constants.ENVS,
+                        default=constants.GAE)
     args = parser.parse_args()
 
     if args.verbose:
@@ -83,16 +89,27 @@ def _main():
             logging.error('Please specify at least one application to deploy.')
             sys.exit(1)
 
-        logging.debug('Deploying app!')
-        version = deploy_app.deploy_app(args.image, args.builder,
-                                        args.directory, args.yaml)
+        logging.debug('Deploying app to %s', args.environment)
+        try:
+            (version_or_namespace,
+             url) = deploy_app.deploy_app(appdir=args.directory,
+                                          environment=args.environment,
+                                          base_image=args.image,
+                                          builder_image=args.builder,
+                                          yaml=args.yaml)
+        except Exception as e:
+            logging.error('Application not successfully deployed: %s', e)
+            sys.exit(1)
 
-    application_url = args.url or test_util.retrieve_url_for_version(version)
+    application_url = args.url or url
 
     code = _test_app(application_url, args)
 
     if not args.url:
-        deploy_app.stop_app(version)
+        if args.environment == constants.GAE:
+            deploy_app.stop_version(version_or_namespace)
+        elif args.environment == constants.GKE:
+            deploy_app.stop_deployment(version_or_namespace)
 
     return code
 

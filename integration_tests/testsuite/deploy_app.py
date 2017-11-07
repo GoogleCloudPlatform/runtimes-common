@@ -15,24 +15,28 @@
 # limitations under the License.
 
 import datetime
+import json
 import logging
 import os
 from retrying import retry
 import subprocess
-import sys
 import test_util
 import time
 
 from google.cloud import bigquery
+
+import constants
+import template
 
 DATASET_NAME = 'cloudperf'
 DEPLOY_LATENCY_PROJECT_ENV = 'DEPLOY_LATENCY_PROJECT'
 TABLE_NAME = 'deploy_latency'
 
 
-def _cleanup(appdir):
+def _cleanup_files(appdir):
     try:
         os.remove(os.path.join(appdir, 'Dockerfile'))
+        os.remove(os.path.join(appdir, 'test.yaml'))
     except Exception:
         pass
 
@@ -76,17 +80,68 @@ def _record_latency_to_bigquery(deploy_latency, language, is_xrt):
 def deploy_app_and_record_latency(appdir, language, is_xrt):
     start_time = time.time()
 
-    version = deploy_app(None, None, appdir, None)
+    version, url = deploy_app(appdir=appdir, environment=constants.GAE)
 
     # Latency is in seconds round up to 2 decimals
     deploy_latency = round(time.time() - start_time, 2)
 
     # Store the deploy latency data to bigquery
     _record_latency_to_bigquery(deploy_latency, language, is_xrt)
-    return version
+    return version, url
 
 
-def deploy_app(base_image, builder_image, appdir, yaml):
+def deploy_app_gae(yaml):
+    logging.debug('Starting deploy to GAE')
+
+    deployed_version = test_util.generate_version()
+
+    # TODO: once sdk driver is published, use it here
+    deploy_command = ['gcloud', 'app', 'deploy', '--no-promote',
+                      '--version', deployed_version, '-q']
+    if yaml:
+        logging.info(yaml)
+        deploy_command.append(yaml)
+
+    test_util.execute_command(deploy_command, True)
+    return (deployed_version,
+            test_util.retrieve_url_for_version(deployed_version))
+
+
+def deploy_app_gke(yaml):
+    logging.debug('Starting deploy to GKE')
+
+    image_name = test_util.generate_gke_image_name()
+    service_name = test_util.generate_gke_service_name()
+    namespace = test_util.generate_namespace()
+
+    build_command = ['docker', 'build', '-t', image_name, '.']
+    test_util.execute_command(build_command, True)
+
+    push_command = ['gcloud', 'docker', '--', 'push', image_name]
+    test_util.execute_command(push_command, True)
+
+    # This command updates the kubeconfig file with credentials for the given
+    # GKE cluster. Essentially, points kubectl to our preconfigured cluster.
+    cred_command = ['gcloud', 'container', 'clusters',
+                    'get-credentials', constants.CLUSTER_NAME]
+    test_util.execute_command(cred_command, True)
+
+    namespace_command = ['kubectl', 'create', 'namespace', namespace]
+    test_util.execute_command(namespace_command, True)
+
+    deploy_command = ['kubectl', 'apply', '-f', '-',
+                      '--namespace', namespace]
+    test_util.execute_command(deploy_command, True,
+                              template.GKE_TEMPLATE.format(
+                                  service_name=service_name,
+                                  test_image=image_name))
+
+    return namespace, test_util.get_external_ip_for_cluster(service_name,
+                                                            namespace)
+
+
+def deploy_app(appdir, environment, base_image=None,
+               builder_image=None, yaml=None):
     try:
         if yaml:
             # convert yaml to absolute path before changing directory
@@ -102,37 +157,58 @@ def deploy_app(base_image, builder_image, appdir, yaml):
         if builder_image:
             _set_builder_image(builder_image)
 
-        deployed_version = test_util.generate_version()
+        if environment == constants.GAE:
+            return deploy_app_gae(yaml)
+        elif environment == constants.GKE:
+            return deploy_app_gke(yaml)
+        else:
+            raise Exception('Invalid environment provided: %s', environment)
 
-        # TODO: once sdk driver is published, use it here
-        deploy_command = ['gcloud', 'app', 'deploy', '--no-promote',
-                          '--version', deployed_version, '-q']
-        if yaml:
-            logging.info(yaml)
-            deploy_command.append(yaml)
-
-        subprocess.check_output(deploy_command)
-
-        return deployed_version
     except subprocess.CalledProcessError as cpe:
         logging.error('Error encountered when deploying application! %s',
                       cpe.output)
-        sys.exit(1)
-
+        raise
+    except Exception as e:
+        logging.error('Error encountered when deploying application! %s', e)
+        raise
     finally:
-        _cleanup(appdir)
+        _cleanup_files(appdir)
         os.chdir(owd)
 
 
 @retry(wait_fixed=4000, stop_max_attempt_number=8)
-def stop_app(deployed_version):
-    logging.debug('Removing application version %s', deployed_version)
+def stop_version(version):
+    logging.debug('Removing application version %s', version)
     try:
-        delete_command = ['gcloud', 'app', 'services', 'delete', 'default',
-                          '--version', deployed_version, '-q']
+        delete_command = ['gcloud', 'app', 'services', 'delete',
+                          'default', '--version', version, '-q']
 
         subprocess.check_output(delete_command)
     except subprocess.CalledProcessError as cpe:
         logging.error('Error encountered when deleting app version! %s',
                       cpe.output)
-        raise cpe
+        raise
+
+
+@retry(wait_fixed=4000, stop_max_attempt_number=8)
+def stop_deployment(namespace):
+    logging.debug('Removing namespace %s', namespace)
+    try:
+        service_command = ['kubectl', 'get', 'services', '--namespace',
+                           namespace, '--output=json']
+        output = test_util.execute_command(service_command, True)
+        logging.info(output)
+        services = json.loads(output)['items']
+        for service in services:
+            name = service['metadata']['name']
+            delete_service_cmd = ['kubectl', 'delete', 'service', name,
+                                  '--namespace', namespace]
+            test_util.execute_command(delete_service_cmd, True)
+        delete_command = ['kubectl', 'delete', 'namespace', namespace]
+        test_util.execute_command(delete_command, True)
+    except subprocess.CalledProcessError as cpe:
+        logging.error('Error encountered when deleting namespace! '
+                      'Manual cleanup may be necessary. %s', cpe.output)
+    except Exception as e:
+        logging.error('Error encountered when deleting services! '
+                      'Manual cleanup may be necessary. %s', e)

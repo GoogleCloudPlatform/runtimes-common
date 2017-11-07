@@ -21,13 +21,15 @@ from retrying import retry
 from google.cloud.logging import DESCENDING
 import google.cloud.logging
 
+import constants
 import test_util
 
 
 class TestStandardLogging(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
-        self._url = url + test_util.STANDARD_LOGGING_ENDPOINT
+        self._base_url = url
+        self._url = url + constants.STANDARD_LOGGING_ENDPOINT
         super(TestStandardLogging, self).__init__()
 
     def runTest(self):
@@ -50,12 +52,18 @@ class TestStandardLogging(unittest.TestCase):
                          'token is {1}, '
                          'level is {2}'.format(log_name, token, level))
 
-            project_id = test_util.project_id()
-            FILTER = 'logName = projects/{0}/logs/{1} ' \
-                     'AND textPayload:"{2}"'.format(project_id,
-                                                    log_name,
-                                                    token)
-
+            environment = test_util.get_environment(self._base_url)
+            if environment == constants.GAE:
+                project_id = test_util.project_id()
+                FILTER = 'logName = projects/{0}/logs/{1} ' \
+                         'AND textPayload:"{2}"'.format(project_id,
+                                                        log_name,
+                                                        token)
+            else:
+                FILTER = 'resource.type="container" ' \
+                         'AND resource.labels.cluster_name="{0}" ' \
+                         'AND textPayload:"{1}"'.format(constants.CLUSTER_NAME,
+                                                        token)
             logging.info('logging filter: {0}'.format(FILTER))
             self.assertTrue(self._read_log(client, token, FILTER),
                             'Log entry not found for posted token!')

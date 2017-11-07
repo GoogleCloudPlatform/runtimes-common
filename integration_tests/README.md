@@ -139,6 +139,31 @@ The driver will then enter two phases for each test:
 * The Execution: the driver will make sequential requests to each of the specified paths and store the results.
 * The Validation: the results of the executions will be asserted using the provided specification.
 
+One final requirement for the test driver is that it exposes the cloud environment where it is deployed to the test driver. This allows the driver to dynamically test different scenarios depending on the environment (e.g. log location). **The test application must expose its cloud environment at http://<application_url>/environment!** Tests will not function properly otherwise.
+
+At this URL, the application should return the cloud environment where it itself is deployed, in the form of a string. Valid return values in the response are:
+
+* `'GAE'`
+* `'GKE'`
+
+There are a few ways to retrieve this information from within the deployed application. A generally accepted way is to check for GAE-specific environment variables on the host; these are always set by GAE upon deploy, so if they don't exist we know we're not on GAE, and can assume we're deployed in a GKE cluster.
+
+For example, the implementation in the python application:
+
+```
+_APPENGINE_FLEXIBLE_ENV_VM = 'GAE_APPENGINE_HOSTNAME'
+"""Environment variable set in App Engine when vm:true is set."""
+
+_APPENGINE_FLEXIBLE_ENV_FLEX = 'GAE_INSTANCE'
+"""Environment variable set in App Engine when env:flex is set."""
+
+...
+
+return (_APPENGINE_FLEXIBLE_ENV_VM in os.environ or
+        _APPENGINE_FLEXIBLE_ENV_FLEX in os.environ), 200
+```
+
+
 #### The Execution phase
 The execution can be configured using the field `steps`. This field contains an array of `Step`, where each `Step` represent a request 
 and an associated configuration, a `Step` is defined using the following schema:

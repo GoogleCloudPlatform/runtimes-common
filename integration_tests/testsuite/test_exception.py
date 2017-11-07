@@ -18,13 +18,14 @@ import logging
 import unittest
 import urlparse
 
+import constants
 import test_util
 
 
 class TestException(unittest.TestCase):
 
     def __init__(self, url, methodName='runTest'):
-        self._url = urlparse.urljoin(url, test_util.EXCEPTION_ENDPOINT)
+        self._url = urlparse.urljoin(url, constants.EXCEPTION_ENDPOINT)
         super(TestException, self).__init__()
 
     def runTest(self):
