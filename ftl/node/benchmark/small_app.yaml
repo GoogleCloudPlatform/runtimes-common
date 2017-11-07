@@ -1,0 +1,13 @@
+steps:
+# Build node ftl image with bazel
+  - name:  'gcr.io/cloud-builders/bazel'
+    args: ['run','//ftl:node_builder_image', '--', '--norun']
+# Clone git repo
+  - name:  'gcr.io/cloud-builders/git'
+    args: ['clone','https://github.com/KevinGaudin/monsterid.js.git']
+# Run ftl 10 times
+  - name:  'bazel/ftl:node_builder_image'
+    args: ['--base', 'gcr.io/google-appengine/nodejs:latest',
+           '--name', 'gcr.io/ftl-node-test/benchmark-small-app:latest',
+           '--directory', '/workspace/monsterid.js',
+           '--no-cache']

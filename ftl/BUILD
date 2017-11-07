@@ -74,7 +74,7 @@ py_test(
 
 py_library(
     name = "node_lib",
-    srcs = glob(["node/*.py"]),
+    srcs = glob(["node/**/*.py"]),
     deps = [":ftl_lib"],
 )
 
@@ -122,6 +122,25 @@ py_image(
     srcs = [":node_lib"],
     base = ":node_builder_base",
     main = "node/main.py",
+    deps = [
+        "@containerregistry",
+    ],
+)
+
+py_binary(
+    name = "node_benchmark",
+    srcs = [":node_lib", ":node_builder"],
+    main = "node/benchmark/main.py",
+    deps = [
+        "@containerregistry",
+    ],
+)
+
+py_image(
+    name = "node_benchmark_image",
+    srcs = [":node_lib", ":node_builder"],
+    base = ":node_builder_base",
+    main = "node/benchmark/main.py",
     deps = [
         "@containerregistry",
     ],
