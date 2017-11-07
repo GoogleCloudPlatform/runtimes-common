@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import binascii
-import datetime
 import json
 import logging
 import os
@@ -118,8 +117,7 @@ def project_id():
 
 
 def generate_version():
-    return 'integration-{0}'.format(
-        datetime.datetime.now().strftime('%Y%m%d%H%m%S'))
+    return 'integration-{0}'.format(_generate_hex_token(8))
 
 
 @retry(wait_fixed=10000, stop_max_attempt_number=4)
