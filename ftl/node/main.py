@@ -46,13 +46,20 @@ parser = argparse.ArgumentParser(
     description='Construct node images from source.')
 
 parser.add_argument(
-    '--base', action='store', help=('The name of the docker base image.'))
+    '--base',
+    action='store',
+    required=True,
+    help=('The name of the docker base image.'))
 
 parser.add_argument(
-    '--name', action='store', help=('The name of the docker image to push.'))
+    '--name',
+    required=True,
+    action='store',
+    help=('The name of the docker image to push.'))
 
 parser.add_argument(
     '--directory',
+    required=True,
     action='store',
     help='The path where the application data sits.')
 
