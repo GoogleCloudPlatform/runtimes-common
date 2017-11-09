@@ -22,7 +22,9 @@ from containerregistry.client.v2_2 import append
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
 from containerregistry.client.v2_2 import save
+from containerregistry.tools import patched
 from containerregistry.transport import transport_pool
+
 
 import httplib2
 import logging
@@ -46,13 +48,20 @@ parser = argparse.ArgumentParser(
     description='Construct node images from source.')
 
 parser.add_argument(
-    '--base', action='store', help=('The name of the docker base image.'))
+    '--base',
+    action='store',
+    required=True,
+    help=('The name of the docker base image.'))
 
 parser.add_argument(
-    '--name', action='store', help=('The name of the docker image to push.'))
+    '--name',
+    required=True,
+    action='store',
+    help=('The name of the docker image to push.'))
 
 parser.add_argument(
     '--directory',
+    required=True,
     action='store',
     help='The path where the application data sits.')
 
@@ -136,4 +145,5 @@ def main(args):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    with patched.Httplib2():
+        main(sys.argv[1:])
