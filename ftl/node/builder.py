@@ -107,7 +107,7 @@ class Node(builder.JustApp):
             ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
         logging.info('Starting npm install ...')
         subprocess.check_call(
-            ['npm', 'install', '--production', '--no-cache'], cwd=app_dir)
+            ['npm', 'install', '--production'], cwd=app_dir)
         logging.info('Finished npm install.')
 
         logging.info('Starting to tar npm packages...')
