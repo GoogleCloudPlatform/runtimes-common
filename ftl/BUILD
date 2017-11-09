@@ -107,7 +107,9 @@ docker_build(
     ],
 )
 
-py_binary(
+load("@subpar//:subpar.bzl", "par_binary")
+
+par_binary(
     name = "node_builder",
     srcs = [":node_lib"],
     main = "node/main.py",
