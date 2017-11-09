@@ -115,3 +115,22 @@ docker_pull(
     registry = "gcr.io",
     repository = "distroless/base"
 )
+
+git_repository(
+    name = "io_bazel_rules_python",
+    remote = "https://github.com/bazelbuild/rules_python.git",
+    commit = "979fca9ac17ffdb5f715854d6100f7d29dd17875",
+)
+
+# Only needed for PIP support:
+load("@io_bazel_rules_python//python:pip.bzl", "pip_repositories", "pip_import")
+
+pip_repositories()
+
+pip_import(
+   name = "ftl_benchmark_deps",
+   requirements = "//ftl/node/benchmark:requirements.txt",
+)
+
+load("@ftl_benchmark_deps//:requirements.bzl", "pip_install")
+pip_install()

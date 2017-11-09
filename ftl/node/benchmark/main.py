@@ -22,8 +22,9 @@ import logging
 from google.cloud import bigquery
 
 DATASET_NAME = 'ftl_benchmark'
-TABLE_NAME = 'ftl_benchmark'
-PROJECT_NAME = 'priya_wadhwa'
+TABLE_NAME = 'ftl_benchmark_timestamp'
+PROJECT_NAME = 'priya-wadhwa'
+NUM_ITERATIONS = 1
 
 parser = argparse.ArgumentParser(
     description='Run FTL node benchmarks.')
@@ -42,33 +43,42 @@ parser.add_argument(
 parser.add_argument(
     '--benchmark', action='store', help=('The size of the app.'))
 
+
 def _record_build_times_to_bigquery(build_times, benchmark):
     current_date = datetime.datetime.now()
+    client = bigquery.Client(project=PROJECT_NAME)
 
-    for build_time in build_times:
-        row = [(current_date, benchmark, build_time)]
-        logging.debug('Fetching bigquery client for project')
-        client = bigquery.Client(project=PROJECT_NAME)
+    dataset_ref = client.dataset(DATASET_NAME)
+    table_ref = dataset_ref.table(TABLE_NAME)
+    table = client.get_table(table_ref)
 
-        dataset = client.dataset(DATASET_NAME)
-        table = dataset.table(TABLE_NAME)
+    print('Adding build time data to bigquery table')
+    rows = [(current_date, benchmark, build_time) for build_time in build_times]
+    client.create_rows(table, rows)
 
-        print(table.getDatasetId())
 
+def _print_data_in_table():
+    client = bigquery.Client(project=PROJECT_NAME)
+    dataset_ref = client.dataset(DATASET_NAME)
+    table_ref = dataset_ref.table(TABLE_NAME)
+    table = client.get_table(table_ref)
+    for row in client.list_rows(table):  # API request
+        print(row)
 
 def main():
     args = parser.parse_args()
     build_times = []
-    for _ in range(2):
+    for _ in range(NUM_ITERATIONS):
         start_time = time.time()
-        # subprocess.check_call(['./ftl/node_builder',
-        #                       '--base', args.base,
-        #                       '--name', args.name,
-        #                       '--directory', args.directory, 
-        #                       '--no-cache'])
+        subprocess.check_call(['./ftl/node_builder',
+                              '--base', args.base,
+                              '--name', args.name,
+                              '--directory', args.directory, 
+                              '--no-cache'])
         build_time = round(time.time() - start_time, 2)
         build_times.append(build_time)
     _record_build_times_to_bigquery(build_times, args.benchmark)
+    _print_data_in_table()
         
 if __name__ == '__main__':
     main()
