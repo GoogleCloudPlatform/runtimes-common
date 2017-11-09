@@ -4,7 +4,9 @@ import os
 import yaml
 
 # Add directories for new tests here.
-TEST_DIRS = ['gcp_build_test', 'packages_test', 'packages_lock_test']
+TEST_DIRS = [
+    'gcp_build_test', 'packages_test', 'packages_lock_test', 'destination_test'
+]
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
              '6195641f5a5a14c63c7945262066270842150ddb')
@@ -30,25 +32,31 @@ def main():
     }
 
     # Generate a set of steps for each test and add them.
-    for test in ['gcp_build_test', 'packages_test', 'packages_lock_test']:
+    test_map = {}
+    for test in [
+            'gcp_build_test', 'packages_test', 'packages_lock_test',
+            'destination_test'
+    ]:
+        test_map[test] = [
+            '--base', _NODE_BASE,
+            '--name', 'gcr.io/ftl-node-test/%s-image:latest' % test,
+            '--directory', os.path.join(_TEST_DIR, test),
+            '--no-cache'
+        ]
+    test_map['destination_test'].extend(['--destination', '/alternative-app'])
+    for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += run_test_steps(
-            _NODE_BASE,
-            '%s-image' % test,
-            test)
+            'gcr.io/ftl-node-test/%s-image:latest' % test, test, args)
 
     print yaml.dump(cloudbuild_yaml)
 
 
-def run_test_steps(base, name, directory):
-    full_name = 'gcr.io/ftl-node-test/%s:latest' % name
+def run_test_steps(full_name, directory, args):
     return [
         # First build the image
         {
             'name': 'bazel/ftl:node_builder_image',
-            'args': ['--base', base,
-                     '--name', full_name,
-                     '--directory', os.path.join(_TEST_DIR, directory),
-                     '--no-cache']
+            'args': args
         },
         # Then pull it from the registry
         {
@@ -57,11 +65,12 @@ def run_test_steps(base, name, directory):
         },
         # Then test it.
         {
-            'name': _ST_IMAGE,
-            'args': ['/go_default_test',
-                     '-image', full_name,
-                     os.path.join(_TEST_DIR, directory,
-                                  'structure_test.yaml')]
+            'name':
+            _ST_IMAGE,
+            'args': [
+                '/go_default_test', '-image', full_name,
+                os.path.join(_TEST_DIR, directory, 'structure_test.yaml')
+            ]
         }
     ]
 
