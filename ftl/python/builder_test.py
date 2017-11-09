@@ -143,12 +143,12 @@ class PythonTest(unittest.TestCase):
 
 def _creation_time(image):
     cfg = json.loads(image.config_file())
-    print cfg
-    return cfg['created']
+    return cfg.get('created')
 
 
 def _timestamp_to_time(dt_str):
-    return datetime.datetime.strptime(dt_str, "%Y-%m-%d")
+    dt = dt_str.rstrip("Z")
+    return datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
 
 
 if __name__ == '__main__':

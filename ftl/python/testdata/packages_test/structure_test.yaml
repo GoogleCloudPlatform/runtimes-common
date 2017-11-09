@@ -1,6 +1,6 @@
 schemaVersion: '2.0.0'
 fileExistenceTests:
 - name: 'flask dependency'
-  path: '/usr/lib/python2.7/flask'
+  path: '/env/bin/flask'
   shouldExist: true
-  isDirectory: true
+  isDirectory: false
