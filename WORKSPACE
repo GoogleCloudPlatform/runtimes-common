@@ -116,8 +116,3 @@ docker_pull(
     repository = "distroless/base"
 )
 
-git_repository(
-    name = "io_bazel_rules_python",
-    remote = "https://github.com/bazelbuild/rules_python.git",
-    commit = "979fca9ac17ffdb5f715854d6100f7d29dd17875",
-)
