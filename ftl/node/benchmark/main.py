@@ -83,15 +83,6 @@ def main():
                                 "binary.runfiles/__main__/ftl/"
                                 "node_builder.par")
 
-        print(node_builder_path)
-        print(os.path.isfile(node_builder_path))
-        print('/workspace/ftl/node_builder.par')
-        print(os.path.isfile('/workspace/ftl/node_builder.par'))
-        print(subprocess.check_output(["find", ".", "-name", "node_builder.par"]))
-        print(os.getcwd())
-        print(subprocess.check_output(["cd", "..", "&&", "find", ".", "-name", "node_builder.par"]))
-
-
         subprocess.check_call([node_builder_path,
                               '--base', args.base,
                                '--name', args.name,

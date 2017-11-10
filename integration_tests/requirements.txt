@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-google-cloud-bigquery==0.27.0
-google-cloud-logging==1.3.0
-google-cloud-monitoring==0.27.0
-google-cloud-error-reporting==0.27.0
+google-cloud-bigquery==0.28.0
+google-cloud-core==0.28.0
+google-cloud-logging==1.4.0
+google-cloud-monitoring==0.28.0
+google-cloud-error-reporting==0.28.0
 retrying==1.3.3
