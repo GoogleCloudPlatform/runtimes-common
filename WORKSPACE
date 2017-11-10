@@ -85,7 +85,7 @@ exports_files(["docker-credential-gcr"])""",
 
 git_repository(
     name = "base_images_docker",
-    commit = "22223b6005ea9ddc39ea1f0dbdf97505473192c6",
+    commit = "ac87be384d4e321a14aa9c11b3383a0f374511d3",
     remote = "https://github.com/GoogleCloudPlatform/base-images-docker.git",
 )
 
@@ -121,16 +121,3 @@ git_repository(
     remote = "https://github.com/bazelbuild/rules_python.git",
     commit = "979fca9ac17ffdb5f715854d6100f7d29dd17875",
 )
-
-# Only needed for PIP support:
-load("@io_bazel_rules_python//python:pip.bzl", "pip_repositories", "pip_import")
-
-pip_repositories()
-
-pip_import(
-   name = "ftl_benchmark_deps",
-   requirements = "//ftl/node/benchmark:requirements.txt",
-)
-
-load("@ftl_benchmark_deps//:requirements.bzl", "pip_install")
-pip_install()

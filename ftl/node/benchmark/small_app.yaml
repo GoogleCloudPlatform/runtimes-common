@@ -1,10 +1,7 @@
 steps:
 # Build modified bazel image with pip and wheel installed
-  - name:  'gcr.io/cloud-builders/docker'
-    args: ['build','-t', 'bazel/image/modified', '/workspace/ftl/node/benchmark']
-# Build node ftl image with bazel
-  - name:  'bazel/image/modified'
-    args: ['run','//ftl/node/benchmark:node_benchmark_image', '--', '--norun']
+  - name:  'gcr.io/cloud-builders/bazel'
+    args: ['run','ftl/node/benchmark:node_benchmark_image', '--', '--norun']
 # Clone git repo
   - name:  'gcr.io/cloud-builders/git'
     args: ['clone','https://github.com/KevinGaudin/monsterid.js.git']
@@ -13,4 +10,4 @@ steps:
     args: ['--base', 'gcr.io/google-appengine/nodejs:latest',
            '--name', 'gcr.io/ftl-node-test/benchmark-small-app:latest',
            '--directory', '/workspace/monsterid.js',
-           '--benchmark', 'KevinGaudin/monsterid.js']
+           '--repo', 'KevinGaudin/monsterid.js']

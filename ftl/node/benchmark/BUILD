@@ -9,7 +9,7 @@ load(
     "@io_bazel_rules_docker//docker:docker.bzl",
     "docker_build",
 )
-exports_files(["requirements.txt"])
+exports_files(["requirements.txt", "Dockerfile"])
 
 py_library(
     name = "benchmark_lib",
@@ -18,23 +18,41 @@ py_library(
 
 py_binary(
     name = "node_benchmark",
-    srcs = ["//ftl:node_lib", "//ftl:node_builder", ":benchmark_lib"],
+    srcs = ["//ftl:node_lib", ":benchmark_lib"],
     main = "ftl/node/benchmark/main.py",
     deps = [
         "@containerregistry",
     ],
+    data = ["//ftl:node_builder.par"]
 )
-load("@ftl_benchmark_deps//:requirements.bzl", "requirement")
 
+load("@base_images_docker//dockerfile_build:dockerfile_build.bzl", "dockerfile_build")
+
+dockerfile_build(
+    name = "ftl_benchmark_base",
+    base = "@python_base//image",
+    dockerfile = "//ftl/node/benchmark:Dockerfile",
+)
+
+docker_build(
+    name = "node_benchmark_base",
+    base = ":ftl_benchmark_base",
+    cmd = [""],
+    entrypoint = "",
+    tars = [
+        "//ftl:cred_helper.tar",
+        "//ftl:default_creds.tar",
+    ],
+)
 
 py_image(
     name = "node_benchmark_image",
-    srcs = ["//ftl:node_lib", "//ftl:node_builder", ":benchmark_lib"],
-    base = "//ftl:node_builder_base",
+    srcs = ["//ftl:node_lib", ":benchmark_lib"],
+    base = ":node_benchmark_base",
     main = "ftl/node/benchmark/main.py",
     deps = [
         "@containerregistry",
-        requirement("google-cloud-bigquery"),
     ],
+    data = ["//ftl:node_builder.par"],
 )
 
