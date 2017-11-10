@@ -77,7 +77,10 @@ def main():
     for _ in range(NUM_ITERATIONS):
         start_time = time.time()
 
+        # Path for the binary
         node_builder_path = 'ftl/node_builder.par'
+
+        # Path for the image
         if not os.path.isfile(node_builder_path):
             node_builder_path = ("./ftl/node/benchmark/node_benchmark_image."
                                 "binary.runfiles/__main__/ftl/"
