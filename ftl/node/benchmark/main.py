@@ -17,13 +17,12 @@ import argparse
 import datetime
 import time
 import os
-import uuid
 import logging
 from google.cloud import bigquery
 
 DATASET_NAME = 'ftl_benchmark'
-TABLE_NAME = 'ftl_benchmark_timestamp'
-PROJECT_NAME = 'priya-wadhwa'
+TABLE_NAME = 'ftl_benchmark'
+PROJECT_NAME = 'ftl-node-test'
 NUM_ITERATIONS = 1
 
 parser = argparse.ArgumentParser(
@@ -41,19 +40,20 @@ parser.add_argument(
     help='The path where the application data sits.')
 
 parser.add_argument(
-    '--benchmark', action='store', help=('The size of the app.'))
+    '--repo', action='store', help=('The repo being tested on.'))
 
 
-def _record_build_times_to_bigquery(build_times, benchmark):
+def _record_build_times_to_bigquery(build_times, repo):
     current_date = datetime.datetime.now()
+    logging.info('Retrieving bigquery client')
     client = bigquery.Client(project=PROJECT_NAME)
 
     dataset_ref = client.dataset(DATASET_NAME)
     table_ref = dataset_ref.table(TABLE_NAME)
     table = client.get_table(table_ref)
 
-    print('Adding build time data to bigquery table')
-    rows = [(current_date, benchmark, build_time) for build_time in build_times]
+    logging.info('Adding build time data to bigquery table')
+    rows = [(current_date, repo, build_time) for build_time in build_times]
     client.create_rows(table, rows)
 
 
@@ -65,20 +65,44 @@ def _print_data_in_table():
     for row in client.list_rows(table):  # API request
         print(row)
 
+
 def main():
     args = parser.parse_args()
+    logging.getLogger().setLevel("NOTSET")
+    logging.basicConfig(
+        format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
+        datefmt='%Y-%m-%d,%H:%M:%S')
     build_times = []
+    logging.info('Beginning building node images')
     for _ in range(NUM_ITERATIONS):
         start_time = time.time()
-        subprocess.check_call(['./ftl/node_builder',
+
+        node_builder_path = 'ftl/node_builder.par'
+        if not os.path.isfile(node_builder_path):
+            node_builder_path = ("./ftl/node/benchmark/node_benchmark_image."
+                                "binary.runfiles/__main__/ftl/"
+                                "node_builder.par")
+
+        print(node_builder_path)
+        print(os.path.isfile(node_builder_path))
+        print('/workspace/ftl/node_builder.par')
+        print(os.path.isfile('/workspace/ftl/node_builder.par'))
+        print(subprocess.check_output(["find", ".", "-name", "node_builder.par"]))
+        print(os.getcwd())
+        print(subprocess.check_output(["cd", "..", "&&", "find", ".", "-name", "node_builder.par"]))
+
+
+        subprocess.check_call([node_builder_path,
                               '--base', args.base,
-                              '--name', args.name,
-                              '--directory', args.directory, 
-                              '--no-cache'])
+                               '--name', args.name,
+                               '--directory', args.directory,
+                               '--no-cache'])
         build_time = round(time.time() - start_time, 2)
         build_times.append(build_time)
-    _record_build_times_to_bigquery(build_times, args.benchmark)
+    logging.info('Beginning recording build times to bigquery')
+    _record_build_times_to_bigquery(build_times, args.repo)
     _print_data_in_table()
-        
+
+
 if __name__ == '__main__':
     main()
