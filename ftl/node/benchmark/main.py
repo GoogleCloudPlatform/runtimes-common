@@ -23,7 +23,7 @@ from google.cloud import bigquery
 DATASET_NAME = 'ftl_benchmark'
 TABLE_NAME = 'ftl_benchmark'
 PROJECT_NAME = 'ftl-node-test'
-NUM_ITERATIONS = 1
+NUM_ITERATIONS = 10
 
 parser = argparse.ArgumentParser(
     description='Run FTL node benchmarks.')
@@ -55,15 +55,7 @@ def _record_build_times_to_bigquery(build_times, repo):
     logging.info('Adding build time data to bigquery table')
     rows = [(current_date, repo, build_time) for build_time in build_times]
     client.create_rows(table, rows)
-
-
-def _print_data_in_table():
-    client = bigquery.Client(project=PROJECT_NAME)
-    dataset_ref = client.dataset(DATASET_NAME)
-    table_ref = dataset_ref.table(TABLE_NAME)
-    table = client.get_table(table_ref)
-    for row in client.list_rows(table):  # API request
-        print(row)
+    logging.info('Finished adding build time data to bigquery table')
 
 
 def main():
@@ -77,14 +69,16 @@ def main():
     for _ in range(NUM_ITERATIONS):
         start_time = time.time()
 
-        # Path for the binary
+        # For the binary
         node_builder_path = 'ftl/node_builder.par'
-
-        # Path for the image
+        # For the image
         if not os.path.isfile(node_builder_path):
             node_builder_path = ("./ftl/node/benchmark/node_benchmark_image."
                                 "binary.runfiles/__main__/ftl/"
                                 "node_builder.par")
+        # For container builder
+        if not os.path.isfile(node_builder_path):
+            node_builder_path = 'bazel-bin/ftl/node_builder.par'
 
         subprocess.check_call([node_builder_path,
                               '--base', args.base,
@@ -95,7 +89,6 @@ def main():
         build_times.append(build_time)
     logging.info('Beginning recording build times to bigquery')
     _record_build_times_to_bigquery(build_times, args.repo)
-    _print_data_in_table()
 
 
 if __name__ == '__main__':

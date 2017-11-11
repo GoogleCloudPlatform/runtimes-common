@@ -53,6 +53,5 @@ py_image(
     deps = [
         "@containerregistry",
     ],
-    data = ["//ftl:node_builder.par"],
 )
 
