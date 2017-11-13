@@ -76,7 +76,7 @@ class Node(builder.JustApp):
             logging.info('Skipping checking cache for dependency layer %s'
                          % checksum)
 
-        layer, sha = self._gen_package_tar(descriptor, descriptor_contents)
+        layer, sha = self._gen_package_tar()
 
         with append.Layer(
           base_image, layer, diff_id=sha, overrides=overrides) as dep_image:
@@ -87,7 +87,7 @@ class Node(builder.JustApp):
                 logging.info('Skipping storing layer %s in cache.', sha)
             return dep_image
 
-    def _gen_package_tar(self, descriptor, descriptor_contents):
+    def _gen_package_tar(self):
         # We want the node_modules directory rooted at /app/node_modules in
         # the final image.
         # So we build a hierarchy like:
@@ -98,8 +98,10 @@ class Node(builder.JustApp):
         os.mkdir(app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
-        with open(os.path.join(app_dir, descriptor), 'w') as f:
-            f.write(descriptor_contents)
+        for f in [_PACKAGE_LOCK, _PACKAGE_JSON]:
+            if self._ctx.Contains(f):
+                with open(os.path.join(app_dir, f), 'w') as w:
+                    w.write(self._ctx.GetFile(f))
 
         tar_path = tempfile.mktemp()
         check_gcp_build(json.loads(self._ctx.GetFile(_PACKAGE_JSON)), app_dir)
