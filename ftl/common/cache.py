@@ -65,16 +65,20 @@ class Registry(Base):
     checksum. For example: gcr.io/$repo/$namespace:$checksum
     """
 
-    def __init__(self, repo, creds, transport, threads=1, mount=None):
+    def __init__(self, repo, creds, transport,
+                 cache_version=None, threads=1, mount=None):
         super(Registry, self).__init__()
         self._repo = repo
         self._creds = creds
         self._transport = transport
+        self._cache_version = cache_version
         self._threads = threads
         self._mount = mount or []
 
     def _tag(self, base_image, namespace, checksum):
         fingerprint = '%s %s' % (base_image.digest(), checksum)
+        if self._cache_version:
+            fingerprint += ' ' + self._cache_version
         return docker_name.Tag('{base}/{namespace}:{tag}'.format(
             base=str(self._repo),
             namespace=namespace,

@@ -94,6 +94,10 @@ parser.add_argument(
     choices=_LEVEL_MAP.keys())
 
 
+# Version string used to bust caches.
+_NODE_CACHE_VERSION = 'v1'
+
+
 def main(args):
     args = parser.parse_args(args)
     logging.getLogger().setLevel(_LEVEL_MAP[args.verbosity])
@@ -114,6 +118,7 @@ def main(args):
         target_image.as_repository(),
         target_creds,
         transport,
+        cache_version=_NODE_CACHE_VERSION,
         threads=_THREADS,
         mount=[base_name])
     bldr = builder.From(ctx)
