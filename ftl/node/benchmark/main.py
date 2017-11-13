@@ -42,7 +42,7 @@ parser.add_argument(
     '--iterations',
     action='store',
     type=int,
-    help='The path where the application data sits.')
+    help='Number of times to build the image')
 
 parser.add_argument(
     '--description', action='store',
