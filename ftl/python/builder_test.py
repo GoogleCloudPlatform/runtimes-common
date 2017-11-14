@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import json
-import mock
 import os
 import unittest
 import shutil
@@ -27,7 +26,7 @@ from ftl.common import test_util
 from ftl.python import builder
 
 _REQUIREMENTS_TXT = """
-Flask==0.7.2
+Flask==0.12.0
 """
 
 _APP = """
@@ -47,53 +46,11 @@ if __name__ == "__main__":
 """
 
 
-class TarDockerImage():
-    def __init__(self, config_path, tarball_path):
-        self._config = open(config_path, 'r').read()
-        # TODO(aaron-prindle) use fast image format instead of tarball
-        self._docker_image = docker_image.FromDisk(self._config,
-                                                   zip([], []), tarball_path)
-
-    def GetConfig(self):
-        return self._config
-
-    def GetDockerImage(self):
-        return self._docker_image
-
-
-class BuilderTestCase():
-    def __init__(self, builder_fxn, ctx, cash, base_image):
-        self._ctx = ctx
-        self._builder = builder_fxn(ctx)
-
-        # Mock out the calls to NPM for speed.
-        self._builder._gen_package_tar = mock.Mock()
-        self._builder._gen_package_tar.return_value = ('layer', 'sha')
-
-        self._cash = cash
-        self._base_image = base_image
-
-    def CreatePackageBase(self):
-        with self._base_image.GetDockerImage():
-            return self._builder.CreatePackageBase(
-                self._base_image.GetDockerImage(), self._cash)
-
-    def GetCacheEntries(self):
-        return len(self._cash._registry._registry)
-
-    def GetCacheMap(self):
-        return self._cash._registry._registry
-
-    def GetCacheEntryByStringKey(self, key):
-        # cast key to docker_tag
-        return self._cash._registry.getImage(key)
-
-
 class PythonTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         current_dir = os.path.dirname(__file__)
-        cls.base_image = TarDockerImage(
+        cls.base_image = test_util.TarDockerImage(
             os.path.join(current_dir, "testdata/base_image/config_file"),
             os.path.join(
                 current_dir,
@@ -106,30 +63,16 @@ class PythonTest(unittest.TestCase):
         self.ctx = context.Memory()
         self.ctx.AddFile("app.py", _APP)
         self.ctx.AddFile('requirements.txt', _REQUIREMENTS_TXT)
-        self.test_case = BuilderTestCase(builder.Python, self.ctx, self.cache,
-                                         self.base_image)
+        self.test_case = test_util.BuilderTestCase(builder.Python, self.ctx,
+                                                   self.cache, self.base_image)
 
     def tearDown(self):
         shutil.rmtree(self._tmpdir)
 
-    def test_create_package_base_cache(self):
-        self.test_case.CreatePackageBase()
+    def test_create_package_base_image(self):
         # check that image was added to the cache
-        self.assertEqual(1, self.test_case.GetCacheEntries())
-        for k in self.test_case.GetCacheMap():
-            self.assertEqual(
-                str(k).startswith(
-                    "fake.gcr.io/google-appengine/python-requirements-cache"),
-                True)
-
-        self.test_case.CreatePackageBase()
-        # check that image was added to the cache
-        self.assertEqual(1, len(self.test_case.GetCacheMap()))
-        for k in self.test_case.GetCacheMap():
-            self.assertEqual(
-                str(k).startswith(
-                    "fake.gcr.io/google-appengine/python-requirements-cache"),
-                True)
+        self.assertIsInstance(self.test_case.CreatePackageBase(),
+                              docker_image.DockerImage)
 
     def test_create_package_base_ttl_written(self):
         base = self.test_case.CreatePackageBase()

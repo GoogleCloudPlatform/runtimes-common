@@ -38,10 +38,9 @@ def main():
             'destination_test'
     ]:
         test_map[test] = [
-            '--base', _NODE_BASE,
-            '--name', 'gcr.io/ftl-node-test/%s-image:latest' % test,
-            '--directory', os.path.join(_TEST_DIR, test),
-            '--no-cache'
+            '--base', _NODE_BASE, '--name',
+            'gcr.io/ftl-node-test/%s-image:latest' % test, '--directory',
+            os.path.join(_TEST_DIR, test), '--no-cache'
         ]
     test_map['destination_test'].extend(['--destination', '/alternative-app'])
     for test, args in test_map.iteritems():

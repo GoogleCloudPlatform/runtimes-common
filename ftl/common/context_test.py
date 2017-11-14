@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Unit test for context.py"""
 
 import os
@@ -23,7 +22,6 @@ import context
 
 
 class WorkspaceTest(unittest.TestCase):
-
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp()
         self.workspace = context.Workspace(self.tmp_dir)

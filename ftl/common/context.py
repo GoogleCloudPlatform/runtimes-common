@@ -1,4 +1,3 @@
-
 # Copyright 2017 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """This package defines the interface for accessing the build context."""
 
 import abc
@@ -24,6 +22,7 @@ class Base(object):
 
     It provides methods used by builders for accessing app files.
     """
+
     # __enter__ and __exit__ allow use as a context manager.
     def __enter__(self):
         """Initialize the context."""
