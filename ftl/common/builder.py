@@ -14,11 +14,11 @@
 
 import abc
 import cStringIO
-import gzip
 import hashlib
 import os
 import tarfile
 import logging
+import subprocess
 
 
 class Base(object):
@@ -65,21 +65,23 @@ class JustApp(Base):
     def BuildAppLayer(self):
         """Override."""
         buf = cStringIO.StringIO()
-        logging.info('Starting to generate tarfile from context...')
+        logging.info('Starting to generate app layer tarfile from context...')
         with tarfile.open(fileobj=buf, mode='w') as out:
             for name in self._ctx.ListFiles():
                 content = self._ctx.GetFile(name)
                 info = tarfile.TarInfo(os.path.join('app', name))
                 info.size = len(content)
                 out.addfile(info, fileobj=cStringIO.StringIO(content))
-        logging.info('Finished generating tarfile from context.')
+        logging.info('Finished generating app layer tarfile from context.')
 
         tar = buf.getvalue()
         sha = 'sha256:' + hashlib.sha256(tar).hexdigest()
 
-        gz = cStringIO.StringIO()
-        logging.info('Starting to gzip tarfile...')
-        with gzip.GzipFile(fileobj=gz, mode='w', compresslevel=1) as f:
-            f.write(tar)
+        logging.info('Starting to gzip app layer tarfile...')
+        gzip_process = subprocess.Popen(['gzip', '-f'],
+                                        stdout=subprocess.PIPE,
+                                        stdin=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
+        gz = gzip_process.communicate(input=tar)[0]
         logging.info('Finished gzipping tarfile.')
-        return gz.getvalue(), sha
+        return gz, sha
