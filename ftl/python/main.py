@@ -84,6 +84,9 @@ parser.add_argument(
     action='store',
     choices=_LEVEL_MAP.keys())
 
+# Version string used to bust caches.
+_PYTHON_CACHE_VERSION = 'v1'
+
 
 def main(args):
     args = parser.parse_args(args)
@@ -105,6 +108,7 @@ def main(args):
         target_image.as_repository(),
         target_creds,
         transport,
+        cache_version=_PYTHON_CACHE_VERSION,
         threads=_THREADS,
         mount=[base_name])
     bldr = builder.From(ctx)
