@@ -23,5 +23,9 @@ echo "Running unit tests..."
 
 echo "Running integration tests..."
 # Generate the integration test yaml and pass it to cloud build via stdin.
-python ftl/ftl_node_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 .
+python ftl/ftl_node_integration_tests_yaml.py --test gcp_build_test | gcloud container builds submit --config /dev/fd/0 .
+python ftl/ftl_node_integration_tests_yaml.py --test packages_test | gcloud container builds submit --config /dev/fd/0 .
+python ftl/ftl_node_integration_tests_yaml.py --test packages_lock_test | gcloud container builds submit --config /dev/fd/0 .
+python ftl/ftl_node_integration_tests_yaml.py --test destination_test | gcloud container builds submit --config /dev/fd/0 .
+
 gcloud container builds submit --config ftl/ftl_python_integration_tests.yaml .
