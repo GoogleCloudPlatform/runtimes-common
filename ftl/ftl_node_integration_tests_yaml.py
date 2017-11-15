@@ -1,7 +1,19 @@
 """A script to generate a cloudbuild yaml."""
 
+import sys
 import os
 import yaml
+import argparse
+
+parser = argparse.ArgumentParser(
+    description='Construct ftl node integration tests yaml.')
+parser.add_argument(
+    '--test',
+    dest='test_option',
+    action='store',
+    default=None,
+    help='The test to generate the yaml for')
+
 
 # Add directories for new tests here.
 TEST_DIRS = [
@@ -14,8 +26,8 @@ _TEST_DIR = '/workspace/ftl/node/testdata'
 _NODE_BASE = 'gcr.io/google-appengine/nodejs:latest'
 
 
-def main():
-
+def main(args):
+    main_args = parser.parse_args(args)
     cloudbuild_yaml = {
         'steps': [
             # We need to chmod in some cases for permissions.
@@ -44,9 +56,10 @@ def main():
             '--no-cache'
         ]
     test_map['destination_test'].extend(['--destination', '/alternative-app'])
-    for test, args in test_map.iteritems():
-        cloudbuild_yaml['steps'] += run_test_steps(
-            'gcr.io/ftl-node-test/%s-image:latest' % test, test, args)
+    for test, test_args in test_map.iteritems():
+        if test == main_args.test_option:
+            cloudbuild_yaml['steps'] += run_test_steps(
+                'gcr.io/ftl-node-test/%s-image:latest' % test, test, test_args)
 
     print yaml.dump(cloudbuild_yaml)
 
@@ -76,4 +89,5 @@ def run_test_steps(full_name, directory, args):
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
+
