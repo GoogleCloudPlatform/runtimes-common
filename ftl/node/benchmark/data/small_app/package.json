@@ -3,9 +3,6 @@
     "description": "Hello World test app",
     "version": "0.0.1",
     "private": true,
-    "scripts": {
-      "gcp-build": "echo 'Hello world!' > hello.txt"
-    },
     "dependencies": {
       "express": "3.x"
     },

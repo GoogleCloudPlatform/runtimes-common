@@ -8,6 +8,10 @@ load(
     "@io_bazel_rules_docker//docker:docker.bzl",
     "docker_build",
 )
+load(
+    "@io_bazel_rules_docker//docker:docker.bzl",
+    "docker_build",
+)
 
 py_library(
     name = "ftl_lib",
@@ -138,5 +142,52 @@ py_test(
         ":node_lib",
         "//testing/lib:containerregistry_mock_lib",
         "@mock//:mock",
+    ],
+)
+
+py_library(
+    name = "python_lib",
+    srcs = glob(["python/*.py"]),
+    deps = [":ftl_lib"],
+)
+
+py_test(
+    name = "python_builder_test",
+    srcs = ["python/builder_test.py"],
+    data =
+        glob(
+            ["python/testdata/**"],
+        ),
+    main = "python/builder_test.py",
+    deps = [
+        ":python_lib",
+        "//testing/lib:containerregistry_mock_lib",
+        "@mock//:mock",
+    ],
+)
+
+# The python base image sets a default CMD, which causes issues if you run our image with no CMD.
+# So, reset it to [""] before building our py_image.
+docker_build(
+    name = "python_builder_base",
+    base = "@python_base//image",
+    cmd = [""],
+    entrypoint = "",
+)
+
+py_binary(
+    name = "python_builder",
+    srcs = [":python_lib"],
+    main = "python/main.py",
+    deps = ["@containerregistry"],
+)
+
+py_image(
+    name = "python_builder_image",
+    srcs = [":python_lib"],
+    base = ":python_builder_base",
+    main = "python/main.py",
+    deps = [
+        "@containerregistry",
     ],
 )
