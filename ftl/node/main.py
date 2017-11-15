@@ -25,7 +25,6 @@ from containerregistry.client.v2_2 import save
 from containerregistry.tools import patched
 from containerregistry.transport import transport_pool
 
-
 import httplib2
 import logging
 
@@ -86,6 +85,14 @@ parser.add_argument(
           instead of pushing to registry')
 
 parser.add_argument(
+    '--destination',
+    dest='destination_path',
+    action='store',
+    default='/app',
+    help='The base path that the node_modules will be installed in the \
+    final image')
+
+parser.add_argument(
     "-v",
     "--verbosity",
     default="NOTSET",
@@ -128,7 +135,8 @@ def main(args):
         # Create (or pull from cache) the base image with the
         # package descriptor installation overlaid.
         logging.info('Generating dependency layer...')
-        with bldr.CreatePackageBase(base_image, cash, args.cache) as deps:
+        with bldr.CreatePackageBase(base_image, cash, args.cache,
+                                    args.destination_path) as deps:
             # Construct the application layer from the context.
             logging.info('Generating app layer...')
             app_layer, diff_id = bldr.BuildAppLayer()
@@ -137,7 +145,7 @@ def main(args):
                     with tarfile.open(name=args.output_path, mode='w') as tar:
                         save.tarball(target_image, app_image, tar)
                     logging.info("{0} tarball located at {1}".format(
-                                 str(target_image), args.output_path))
+                        str(target_image), args.output_path))
                     return
                 with docker_session.Push(
                         target_image,

@@ -41,7 +41,11 @@ class Node(builder.JustApp):
         """Override."""
         return self
 
-    def CreatePackageBase(self, base_image, cache, use_cache=True):
+    def CreatePackageBase(self,
+                          base_image,
+                          cache,
+                          use_cache=True,
+                          destination_path='/app'):
         """Override."""
         # Figure out if we need to override entrypoint.
         # Save the overrides for later to avoid adding an extra layer.
@@ -73,13 +77,13 @@ class Node(builder.JustApp):
             else:
                 logging.info('No cached dependency layer for %s' % checksum)
         else:
-            logging.info('Skipping checking cache for dependency layer %s'
-                         % checksum)
+            logging.info(
+                'Skipping checking cache for dependency layer %s' % checksum)
 
-        layer, sha = self._gen_package_tar()
-
+        layer, sha = self._gen_package_tar(destination_path)
         with append.Layer(
-          base_image, layer, diff_id=sha, overrides=overrides) as dep_image:
+                base_image, layer, diff_id=sha,
+                overrides=overrides) as dep_image:
             if use_cache:
                 logging.info('Storing layer %s in cache.', sha)
                 cache.Store(base_image, _NODE_NAMESPACE, checksum, dep_image)
@@ -87,15 +91,15 @@ class Node(builder.JustApp):
                 logging.info('Skipping storing layer %s in cache.', sha)
             return dep_image
 
-    def _gen_package_tar(self):
-        # We want the node_modules directory rooted at /app/node_modules in
-        # the final image.
+    def _gen_package_tar(self, destination_path):
+        # We want the node_modules directory rooted at:
+        # $destination_path/node_modules in the final image.
         # So we build a hierarchy like:
-        # /$tmp/app/node_modules
+        # /$tmp/$destination_path/node_modules
         # And use the -C flag to tar to root the tarball at /$tmp.
         tmp = tempfile.mkdtemp()
-        app_dir = os.path.join(tmp, 'app')
-        os.mkdir(app_dir)
+        app_dir = os.path.join(tmp, destination_path.strip("/"))
+        os.makedirs(app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
         for f in [_PACKAGE_LOCK, _PACKAGE_JSON]:
@@ -108,8 +112,7 @@ class Node(builder.JustApp):
         subprocess.check_call(
             ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
         logging.info('Starting npm install ...')
-        subprocess.check_call(
-            ['npm', 'install', '--production'], cwd=app_dir)
+        subprocess.check_call(['npm', 'install', '--production'], cwd=app_dir)
         logging.info('Finished npm install.')
 
         logging.info('Starting to tar npm packages...')
