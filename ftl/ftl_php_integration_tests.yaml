@@ -1,0 +1,22 @@
+steps:
+  # It's unclear why we need this, but bazel appears to need it sometimes.
+  - name: 'l.gcr.io/google/debian8:latest'
+    args: ['chmod', 'a+rx', '-R', '/workspace']
+#Build php ftl image with bazel
+  - name:  'gcr.io/cloud-builders/bazel'
+    args: ['run','//ftl:php_builder_image', '--', '--norun']
+#Pull structure tests image
+  - name:  'gcr.io/cloud-builders/docker'
+    args: ['pull', 'gcr.io/gcp-runtimes/structure-test:6195641f5a5a14c63c7945262066270842150ddb']
+# 1. Test packages are installed correctly
+  # Build python image
+  - name:  'bazel/ftl:php_builder_image'
+    args: ['--base', 'gcr.io/google-appengine/php:latest',
+           '--name', 'gcr.io/ftl-node-test/php-packages-test:latest',
+           '--directory', 'ftl/php/testdata/packages_test/']
+  # Pull docker image into local daemon
+  - name:  'gcr.io/cloud-builders/docker'
+    args: ['pull', 'gcr.io/ftl-node-test/php-packages-test:latest']
+  # Run structure tests image
+  - name:  'gcr.io/gcp-runtimes/structure-test:6195641f5a5a14c63c7945262066270842150ddb'
+    args: ['/go_default_test', '-image', 'gcr.io/ftl-node-test/php-packages-test:latest', '/workspace/ftl/php/testdata/packages_test/structure_test.yaml']
