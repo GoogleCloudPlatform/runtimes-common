@@ -85,7 +85,7 @@ exports_files(["docker-credential-gcr"])""",
 
 git_repository(
     name = "base_images_docker",
-    commit = "22223b6005ea9ddc39ea1f0dbdf97505473192c6",
+    commit = "ac87be384d4e321a14aa9c11b3383a0f374511d3",
     remote = "https://github.com/GoogleCloudPlatform/base-images-docker.git",
 )
 
@@ -115,3 +115,4 @@ docker_pull(
     registry = "gcr.io",
     repository = "distroless/base"
 )
+
