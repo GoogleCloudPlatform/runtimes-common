@@ -28,8 +28,8 @@ class NodeTest(mock_registry_test_base.MockRegistryTestBase):
         with docker_image.FromTarball('ftl/node_builder_base.tar') as img:
             self.registry.setImage('fake.gcr.io/base/image:initial', img)
 
-        with docker_image.FromRegistry('fake.gcr.io/base/image:initial'
-                                       ) as img:
+        with docker_image.FromRegistry(
+                'fake.gcr.io/base/image:initial') as img:
             self.registry.setImage('fake.gcr.io/base/image:appended', img)
 
         self.AssertPushed(self.registry, 'fake.gcr.io/base/image:initial')
@@ -38,8 +38,10 @@ class NodeTest(mock_registry_test_base.MockRegistryTestBase):
         append_layer_mock.return_value = self.registry.getImage(
             'fake.gcr.io/base/image:appended')
 
-        args = ["--base=fake.gcr.io/base/image:initial",
-                "--name=fake.gcr.io/base/image:latest", "--directory= "]
+        args = [
+            "--base=fake.gcr.io/base/image:initial",
+            "--name=fake.gcr.io/base/image:latest", "--directory= "
+        ]
 
         main.main(args)
 

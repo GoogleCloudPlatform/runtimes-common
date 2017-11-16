@@ -23,7 +23,6 @@ import context
 
 
 class JustAppTest(unittest.TestCase):
-
     def test_create_package_base(self):
         # JustApp doesn't create a package base.
         b = builder.JustApp(None)
