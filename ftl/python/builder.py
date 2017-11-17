@@ -18,7 +18,6 @@ import os
 import subprocess
 import tempfile
 import logging
-import json
 import datetime
 
 from containerregistry.client.v2_2 import append
@@ -28,64 +27,35 @@ from ftl.common import builder
 
 _PYTHON_NAMESPACE = 'python-requirements-cache'
 _REQUIREMENTS_TXT = 'requirements.txt'
-_DEFAULT_TTL_WEEKS = 1
 
 
 class Python(builder.JustApp):
     def __init__(self, ctx):
-        self._overrides = None
+        self.descriptor_files = [_REQUIREMENTS_TXT]
+        self.namespace = _PYTHON_NAMESPACE
         super(Python, self).__init__(ctx)
 
     def __enter__(self):
         """Override."""
         return self
 
-    def CreatePackageBase(self, base_image, cache, use_cache=True):
-        """Override."""
-        # Figure out if we need to override entrypoint.
-        # Save the overrides for later to avoid adding an extra layer.
-        descriptor = None
-        if self._ctx.Contains(_REQUIREMENTS_TXT):
-            descriptor = _REQUIREMENTS_TXT
-            descriptor_contents = self._ctx.GetFile(_REQUIREMENTS_TXT)
-
-        if not descriptor:
-            logging.info('No requirements.txt found.  No packages installed.')
-            return base_image
-        overrides = metadata.Overrides(
+    def _generate_overrides(self):
+        return metadata.Overrides(
             creation_time=str(datetime.date.today()) + "T00:00:00Z")
-        checksum = hashlib.sha256(descriptor_contents).hexdigest()
-        if use_cache:
-            hit = cache.Get(base_image, _PYTHON_NAMESPACE, checksum)
-            if hit:
-                logging.info('Found cached dependency layer for %s' % checksum)
-                last_created = _timestamp_to_time(_creation_time(hit))
-                now = datetime.datetime.now()
-                if last_created > now - datetime.timedelta(
-                        seconds=_DEFAULT_TTL_WEEKS):
-                    return hit
-                else:
-                    logging.info('TTL expired for cached image, rebuilding %s'
-                                 % checksum)
-            else:
-                logging.info('No cached dependency layer for %s' % checksum)
-        else:
-            logging.info(
-                'Skipping checking cache for dependency layer %s' % checksum)
 
-        layer, sha = self._gen_package_tar(descriptor, descriptor_contents)
+    def CreatePackageBase(self, base_image, cache):
+        """Override."""
+        overrides = self._generate_overrides()
+
+        layer, sha = self._gen_package_tar()
+        logging.info('Generated layer with sha: %s', sha)
 
         with append.Layer(
                 base_image, layer, diff_id=sha,
                 overrides=overrides) as dep_image:
-            if use_cache:
-                logging.info('Storing layer %s in cache.', sha)
-                cache.Store(base_image, _PYTHON_NAMESPACE, checksum, dep_image)
-            else:
-                logging.info('Skipping storing layer %s in cache.', sha)
             return dep_image
 
-    def _gen_package_tar(self, descriptor, descriptor_contents):
+    def _gen_package_tar(self):
         tmp_app = tempfile.mkdtemp()
         tmp_venv = tempfile.mkdtemp()
 
@@ -95,8 +65,10 @@ class Python(builder.JustApp):
         os.makedirs(venv_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
-        with open(os.path.join(tmp_app, descriptor), 'w') as f:
-            f.write(descriptor_contents)
+        for f in self.descriptor_files:
+            # if self._ctx.Contains(f):
+            with open(os.path.join(tmp_app, f), 'w') as w:
+                w.write(self._ctx.GetFile(f))
 
         tar_path = tempfile.mktemp()
         logging.info('Starting venv creation ...')
@@ -135,14 +107,3 @@ class Python(builder.JustApp):
 
 def From(ctx):
     return Python(ctx)
-
-
-def _creation_time(image):
-    logging.info(image.config_file())
-    cfg = json.loads(image.config_file())
-    return cfg.get('created')
-
-
-def _timestamp_to_time(dt_str):
-    dt = dt_str.rstrip("Z")
-    return datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")

@@ -34,16 +34,6 @@ class Base(object):
         self._ctx = ctx
 
     @abc.abstractmethod
-    def CreatePackageBase(self, base_image, cache):
-        """Create an image exists with the packages on this base.
-        Args:
-          base_image: docker_name.Tag, the base image on which we install pkgs.
-          cache: cache.Base, a cache into which artifacts may be read/written.
-        Returns:
-          a v2_2.docker_image.DockerImage of the above.
-        """
-
-    @abc.abstractmethod
     def BuildAppLayer(self):
         """Synthesizes the application layer from the context.
         Returns:

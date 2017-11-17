@@ -85,7 +85,7 @@ exports_files(["docker-credential-gcr"])""",
 
 git_repository(
     name = "base_images_docker",
-    commit = "22223b6005ea9ddc39ea1f0dbdf97505473192c6",
+    commit = "ac87be384d4e321a14aa9c11b3383a0f374511d3",
     remote = "https://github.com/GoogleCloudPlatform/base-images-docker.git",
 )
 
@@ -115,10 +115,9 @@ docker_pull(
     registry = "gcr.io",
     repository = "distroless/base"
 )
-
 docker_pull(
     name = "php_base",
-    digest = "sha256:6031994f79e144b13119d4b1c4b91e7546d7d7ddd1a9ff77c2ccc74411fb2ce9",
+    digest = "sha256:00615f95e12ff45015387ca851912785720d9dd4f0eeb19a4404297d6d498305",
     registry = "gcr.io",
-    repository = "google-appengine/php"
+    repository = "gae-runtimes/php72_app_builder"
 )

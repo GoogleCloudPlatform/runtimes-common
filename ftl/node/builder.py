@@ -19,6 +19,7 @@ import subprocess
 import tempfile
 import logging
 import json
+import datetime
 
 from containerregistry.client.v2_2 import append
 from containerregistry.transform.v2_2 import metadata
@@ -34,68 +35,44 @@ _DEFAULT_ENTRYPOINT = 'node server.js'
 
 class Node(builder.JustApp):
     def __init__(self, ctx):
-        self._overrides = None
+        self.descriptor_files = [_PACKAGE_LOCK, _PACKAGE_JSON]
+        self.namespace = _NODE_NAMESPACE
         super(Node, self).__init__(ctx)
 
     def __enter__(self):
         """Override."""
         return self
 
-    def CreatePackageBase(self, base_image, cache, use_cache=True):
-        """Override."""
-        # Figure out if we need to override entrypoint.
-        # Save the overrides for later to avoid adding an extra layer.
+    def _generate_overrides(self):
         pj_contents = {}
         if self._ctx.Contains(_PACKAGE_JSON):
             pj_contents = json.loads(self._ctx.GetFile(_PACKAGE_JSON))
         entrypoint = parse_entrypoint(pj_contents)
-        overrides = metadata.Overrides(entrypoint=entrypoint)
+        return metadata.Overrides(
+            creation_time=str(datetime.date.today()) + "T00:00:00Z",
+            entrypoint=entrypoint)
 
-        descriptor = None
-        for f in [_PACKAGE_LOCK, _PACKAGE_JSON]:
-            if self._ctx.Contains(f):
-                descriptor = f
-                descriptor_contents = self._ctx.GetFile(f)
-                break
+    def CreatePackageBase(self, base_image, cache, destination_path="/app"):
+        """Override."""
+        overrides = self._generate_overrides()
 
-        if not descriptor:
-            logging.info('No package descriptor found. No packages installed.')
-
-            # Add the overrides now.
-            return append.Layer(base_image, tar_gz=None, overrides=overrides)
-
-        checksum = hashlib.sha256(descriptor_contents).hexdigest()
-        if use_cache:
-            hit = cache.Get(base_image, _NODE_NAMESPACE, checksum)
-            if hit:
-                logging.info('Found cached dependency layer for %s' % checksum)
-                return hit
-            else:
-                logging.info('No cached dependency layer for %s' % checksum)
-        else:
-            logging.info('Skipping checking cache for dependency layer %s'
-                         % checksum)
-
-        layer, sha = self._gen_package_tar()
+        layer, sha = self._gen_package_tar(destination_path)
+        logging.info('Generated layer with sha: %s', sha)
 
         with append.Layer(
-          base_image, layer, diff_id=sha, overrides=overrides) as dep_image:
-            if use_cache:
-                logging.info('Storing layer %s in cache.', sha)
-                cache.Store(base_image, _NODE_NAMESPACE, checksum, dep_image)
-            else:
-                logging.info('Skipping storing layer %s in cache.', sha)
+                base_image, layer, diff_id=sha,
+                overrides=overrides) as dep_image:
             return dep_image
 
-    def _gen_package_tar(self):
-        # We want the node_modules directory rooted at /app/node_modules in
-        # the final image.
+    def _gen_package_tar(self, destination_path):
+        # We want the node_modules directory rooted at:
+        # $destination_path/node_modules in the final image.
         # So we build a hierarchy like:
-        # /$tmp/app/node_modules
+        # /$tmp/$destination_path/node_modules
         # And use the -C flag to tar to root the tarball at /$tmp.
         tmp = tempfile.mkdtemp()
-        app_dir = os.path.join(tmp, 'app')
-        os.mkdir(app_dir)
+        app_dir = os.path.join(tmp, destination_path.strip("/"))
+        os.makedirs(app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
         for f in [_PACKAGE_LOCK, _PACKAGE_JSON]:
@@ -108,8 +85,7 @@ class Node(builder.JustApp):
         subprocess.check_call(
             ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
         logging.info('Starting npm install ...')
-        subprocess.check_call(
-            ['npm', 'install', '--production'], cwd=app_dir)
+        subprocess.check_call(['npm', 'install', '--production'], cwd=app_dir)
         logging.info('Finished npm install.')
 
         logging.info('Starting to tar npm packages...')

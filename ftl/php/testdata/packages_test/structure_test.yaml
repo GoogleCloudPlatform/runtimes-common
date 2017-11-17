@@ -1,6 +1,6 @@
 schemaVersion: '2.0.0'
 fileExistenceTests:
 - name: 'silex dependency'
-  path: '/app/vendor/silex'
+  path: '/workspace/app/vendor/silex'
   shouldExist: true
   isDirectory: true

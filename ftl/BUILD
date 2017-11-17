@@ -102,7 +102,7 @@ pkg_tar(
 # So, reset it to [""] before building our py_image.
 docker_build(
     name = "node_builder_base",
-    base = "@base_images_docker//reproducible/ubuntu:node_8_5_0_ubuntu_16_0_4_build",
+    base = "@base_images_docker//node/reproducible:node_8_5_0_ubuntu_16_0_4_build",
     cmd = [""],
     entrypoint = "",
     tars = [
@@ -200,11 +200,14 @@ py_library(
     deps = [":ftl_lib"],
 )
 
-py_binary(
+par_binary(
     name = "php_builder",
     srcs = [":php_lib"],
     main = "php/main.py",
-    deps = ["@containerregistry"],
+    deps = [
+        "//testing/lib:containerregistry_mock_lib",
+        "@containerregistry",
+    ],
 )
 
 py_test(

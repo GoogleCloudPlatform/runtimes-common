@@ -13,6 +13,7 @@
 # limitations under the License.
 """This package defines the utilities for testing FTL objects."""
 
+import mock
 import hashlib
 import logging
 import os
@@ -22,6 +23,48 @@ from testing.lib import mock_registry
 
 from containerregistry.client import docker_name
 from containerregistry.client.v2_2 import docker_image
+
+
+class TarDockerImage():
+    def __init__(self, config_path, tarball_path):
+        self._config = open(config_path, 'r').read()
+        # TODO(aaron-prindle) use fast image format instead of tarball
+        self._docker_image = docker_image.FromDisk(self._config,
+                                                   zip([], []), tarball_path)
+
+    def GetConfig(self):
+        return self._config
+
+    def GetDockerImage(self):
+        return self._docker_image
+
+
+class BuilderTestCase():
+    def __init__(self, builder_fxn, ctx, cash, base_image):
+        self._ctx = ctx
+        self._builder = builder_fxn(ctx)
+
+        # Mock out the calls to NPM for speed.
+        self._builder._gen_package_tar = mock.Mock()
+        self._builder._gen_package_tar.return_value = ('layer', 'sha')
+
+        self._cash = cash
+        self._base_image = base_image
+
+    def CreatePackageBase(self):
+        with self._base_image.GetDockerImage():
+            return self._builder.CreatePackageBase(
+                self._base_image.GetDockerImage(), self._cash)
+
+    def GetCacheEntries(self):
+        return len(self._cash._registry._registry)
+
+    def GetCacheMap(self):
+        return self._cash._registry._registry
+
+    def GetCacheEntryByStringKey(self, key):
+        # cast key to docker_tag
+        return self._cash._registry.getImage(key)
 
 
 class MockHybridRegistry(cache.Base):

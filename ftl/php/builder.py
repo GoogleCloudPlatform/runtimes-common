@@ -18,8 +18,10 @@ import os
 import subprocess
 import tempfile
 import logging
+import datetime
 
 from containerregistry.client.v2_2 import append
+from containerregistry.transform.v2_2 import metadata
 
 from ftl.common import builder
 
@@ -30,60 +32,38 @@ _COMPOSER_JSON = 'composer.json'
 
 class PHP(builder.JustApp):
     def __init__(self, ctx):
-        self._overrides = None
+        self.descriptor_files = [_COMPOSER_LOCK, _COMPOSER_JSON]
+        self.namespace = _PHP_NAMESPACE
         super(PHP, self).__init__(ctx)
 
     def __enter__(self):
         """Override."""
         return self
 
-    def CreatePackageBase(self, base_image, cache, use_cache=True):
+    def _generate_overrides(self):
+        return metadata.Overrides(
+            creation_time=str(datetime.date.today()) + "T00:00:00Z")
+
+    def CreatePackageBase(self, base_image, cache,
+                          destination_path="/workspace/app"):
         """Override."""
-
-        descriptor = None
-        for f in [_COMPOSER_LOCK, _COMPOSER_JSON]:
-            if self._ctx.Contains(f):
-                descriptor = f
-                descriptor_contents = self._ctx.GetFile(f)
-                break
-
-        if not descriptor:
-            logging.info('No package descriptor found. No packages installed.')
-
-            return append.Layer(base_image, tar_gz=None)
-
-        checksum = hashlib.sha256(descriptor_contents).hexdigest()
-        if use_cache:
-            hit = cache.Get(base_image, _PHP_NAMESPACE, checksum)
-            if hit:
-                logging.info('Found cached dependency layer for %s' % checksum)
-                return hit
-            else:
-                logging.info('No cached dependency layer for %s' % checksum)
-        else:
-            logging.info('Skipping checking cache for dependency layer %s'
-                         % checksum)
-
-        layer, sha = self._gen_package_tar()
+        overrides = self._generate_overrides()
+        layer, sha = self._gen_package_tar(destination_path)
+        logging.info('Generated layer with sha: %s', sha)
 
         with append.Layer(
-          base_image, layer, diff_id=sha) as dep_image:
-            if use_cache:
-                logging.info('Storing layer %s in cache.', sha)
-                cache.Store(base_image, _PHP_NAMESPACE, checksum, dep_image)
-            else:
-                logging.info('Skipping storing layer %s in cache.', sha)
+                base_image, layer, diff_id=sha,
+                overrides=overrides) as dep_image:
             return dep_image
 
-    def _gen_package_tar(self):
+    def _gen_package_tar(self, destination_path):
         # Create temp directory to write package descriptor to
-
         tmp = tempfile.mkdtemp()
-        app_dir = os.path.join(tmp, 'app')
-        os.mkdir(app_dir)
+        app_dir = os.path.join(tmp, destination_path.strip("/"))
+        os.makedirs(app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
-        for f in [_COMPOSER_LOCK, _COMPOSER_JSON]:
+        for f in self.descriptor_files:
             if self._ctx.Contains(f):
                 with open(os.path.join(app_dir, f), 'w') as w:
                     w.write(self._ctx.GetFile(f))

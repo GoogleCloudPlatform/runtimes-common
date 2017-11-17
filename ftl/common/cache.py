@@ -65,8 +65,13 @@ class Registry(Base):
     checksum. For example: gcr.io/$repo/$namespace:$checksum
     """
 
-    def __init__(self, repo, creds, transport,
-                 cache_version=None, threads=1, mount=None):
+    def __init__(self,
+                 repo,
+                 creds,
+                 transport,
+                 cache_version=None,
+                 threads=1,
+                 mount=None):
         super(Registry, self).__init__()
         self._repo = repo
         self._creds = creds

@@ -102,9 +102,16 @@ def deploy_app_gae(yaml):
         logging.info(yaml)
         deploy_command.append(yaml)
 
-    test_util.execute_command(deploy_command, True)
-    return (deployed_version,
-            test_util.retrieve_url_for_version(deployed_version))
+    try:
+        test_util.execute_command(deploy_command, True)
+        return (deployed_version,
+                test_util.retrieve_url_for_version(deployed_version))
+    except subprocess.CalledProcessError as e:
+        try:
+            stop_version(deployed_version)
+        except Exception:
+            pass
+        raise e
 
 
 def deploy_app_gke(yaml):
@@ -131,13 +138,21 @@ def deploy_app_gke(yaml):
 
     deploy_command = ['kubectl', 'apply', '-f', '-',
                       '--namespace', namespace]
-    test_util.execute_command(deploy_command, True,
-                              template.GKE_TEMPLATE.format(
-                                  service_name=service_name,
-                                  test_image=image_name))
 
-    return namespace, test_util.get_external_ip_for_cluster(service_name,
-                                                            namespace)
+    try:
+        test_util.execute_command(deploy_command, True,
+                                  template.GKE_TEMPLATE.format(
+                                    service_name=service_name,
+                                    test_image=image_name))
+
+        return namespace, test_util.get_external_ip_for_cluster(service_name,
+                                                                namespace)
+    except subprocess.CalledProcessError as e:
+        try:
+            stop_deployment(namespace)
+        except Exception:
+            pass
+        raise e
 
 
 def deploy_app(appdir, environment, base_image=None,
