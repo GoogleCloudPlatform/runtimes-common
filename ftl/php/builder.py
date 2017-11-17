@@ -84,7 +84,8 @@ class PHP(builder.JustApp):
         sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
 
         logging.info('Starting to gzip composer package tarfile...')
-        subprocess.check_call(['gzip', tar_path])
+        # After benchmarking, compression level 1 was the fastest
+        subprocess.check_call(['gzip', tar_path, '-1'])
         logging.info('Finished generating gzip composer package tarfile.')
         return open(os.path.join(tmp, tar_path + '.gz'), 'rb').read(), sha
 
