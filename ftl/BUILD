@@ -191,3 +191,53 @@ py_image(
         "@containerregistry",
     ],
 )
+
+# PHP
+
+py_library(
+    name = "php_lib",
+    srcs = glob(["php/*.py"]),
+    deps = [":ftl_lib"],
+)
+
+par_binary(
+    name = "php_builder",
+    srcs = [":php_lib"],
+    main = "php/main.py",
+    deps = [
+        "//testing/lib:containerregistry_mock_lib",
+        "@containerregistry",
+    ],
+)
+
+py_test(
+    name = "php_builder_test",
+    srcs = ["php/builder_test.py"],
+    data =
+        glob(
+            ["php/testdata/**"],
+        ),
+    main = "php/builder_test.py",
+    deps = [
+        ":php_lib",
+        "//testing/lib:containerregistry_mock_lib",
+        "@mock//:mock",
+    ],
+)
+
+docker_build(
+    name = "php_builder_base",
+    base = "@php_base//image",
+    cmd = [""],
+    entrypoint = "",
+)
+
+py_image(
+    name = "php_builder_image",
+    srcs = [":php_lib"],
+    base = ":php_builder_base",
+    main = "php/main.py",
+    deps = [
+        "@containerregistry",
+    ],
+)
