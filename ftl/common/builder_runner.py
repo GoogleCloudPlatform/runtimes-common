@@ -108,11 +108,11 @@ class BuilderRunner():
                 # TODO(aaron-prindle) make this better, prob pass args to bldr
                 if self.args.destination_path:
                     deps_image = self.builder.CreatePackageBase(
-                        self.args.base, self.args.cache,
+                        self.args.base,
                         self.args.destination_path)
                 else:
                     deps_image = self.builder.CreatePackageBase(
-                        self.args.base, self.args.cache)
+                        self.args.base)
                 self.StoreDepsImage(deps_image, checksum)
             # Construct the application layer from the context.
             logging.info('Generating app layer...')

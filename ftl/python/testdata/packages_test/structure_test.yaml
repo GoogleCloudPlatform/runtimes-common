@@ -1,6 +1,6 @@
 schemaVersion: '2.0.0'
 fileExistenceTests:
-- name: 'flask dependency'
-  path: '/env/bin/flask'
+- name: 'flask wheel dependency'
+  path: '/env/wheel/Flask-0.12-py2.py3-none-any.whl'
   shouldExist: true
   isDirectory: false

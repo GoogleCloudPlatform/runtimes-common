@@ -33,6 +33,7 @@ class Python(builder.JustApp):
     def __init__(self, ctx):
         self.descriptor_files = [_REQUIREMENTS_TXT]
         self.namespace = _PYTHON_NAMESPACE
+        self.ctx = ctx
         super(Python, self).__init__(ctx)
 
     def __enter__(self):
@@ -43,11 +44,32 @@ class Python(builder.JustApp):
         return metadata.Overrides(
             creation_time=str(datetime.date.today()) + "T00:00:00Z")
 
-    def CreatePackageBase(self, base_image, cache):
+    def CreatePackageBase(self, base_image):
+        """Override."""
+        descriptor = None
+        for f in self.descriptor_files:
+            if self.ctx.Contains(f):
+                descriptor = f
+                descriptor_contents = self.ctx.GetFile(descriptor)
+                logging.info(descriptor_contents)
+                for pkg_txt in descriptor_contents.splitlines():
+                    if len(pkg_txt) <= 1 or pkg_txt[0] == '#':
+                        continue
+                    logging.info("passing: " + pkg_txt + "to CreatePackageBaseHelper")
+                    base_image = self.CreatePackageBaseHelper(base_image,
+                    pkg_txt)
+
+        if not descriptor:
+            logging.info('No package descriptor found. No packages installed.')
+            return None
+
+        return base_image
+
+    def CreatePackageBaseHelper(self, base_image, pkg_txt=None):
         """Override."""
         overrides = self._generate_overrides()
 
-        layer, sha = self._gen_package_tar()
+        layer, sha = self._gen_package_tar(pkg_txt)
         logging.info('Generated layer with sha: %s', sha)
 
         with append.Layer(
@@ -55,14 +77,15 @@ class Python(builder.JustApp):
                 overrides=overrides) as dep_image:
             return dep_image
 
-    def _gen_package_tar(self):
+    def _gen_package_tar(self, pkg_txt):
         tmp_app = tempfile.mkdtemp()
         tmp_venv = tempfile.mkdtemp()
 
         tmp_app = os.path.join(tmp_app, 'app')
         venv_dir = os.path.join(tmp_venv, 'env')
+        wheel_dir = os.path.join(tmp_venv, 'env', 'wheel')
         os.makedirs(tmp_app)
-        os.makedirs(venv_dir)
+        os.makedirs(wheel_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
         for f in self.descriptor_files:
@@ -84,10 +107,19 @@ class Python(builder.JustApp):
         my_env = os.environ.copy()
         my_env.pop('PYTHONPATH', None)
 
-        subprocess.check_call(
-            ['pip', 'install', '-r', 'requirements.txt'],
-            cwd=tmp_app,
-            env=my_env)
+        args = ['pip', 'wheel',
+            '-w', wheel_dir,
+            '-r', "/dev/stdin"]
+
+        logging.info("pip requirements input: " + pkg_txt)
+        pipe1 = subprocess.Popen(args,
+                                stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE,
+                                env=my_env,
+                                cwd=tmp_app)
+        result = pipe1.communicate(input=pkg_txt)[0]
+        logging.info("pip output: " + str(result))
         logging.info('Finished pip install.')
 
         logging.info('Starting to tar pip packages...')
@@ -102,8 +134,12 @@ class Python(builder.JustApp):
         logging.info('Starting to gzip pip package tarfile...')
         subprocess.check_call(['gzip', tar_path])
         logging.info('Finished generating gzip pip package tarfile.')
+
+        self._cleanup()
         return open(os.path.join(tmp_venv, tar_path + '.gz'), 'rb').read(), sha
 
+    def _cleanup(self):
+        subprocess.check_call(['rm', '-rf', '/env'])
 
 def From(ctx):
     return Python(ctx)

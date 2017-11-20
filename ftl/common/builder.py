@@ -55,7 +55,7 @@ class JustApp(Base):
     def __init__(self, ctx):
         super(JustApp, self).__init__(ctx)
 
-    def CreatePackageBase(self, base_image, cache):
+    def CreatePackageBase(self, base_image):
         """Override."""
         # JustApp doesn't install anything, it just appends
         # the application layer, so return the base image as
