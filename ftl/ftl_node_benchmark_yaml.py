@@ -32,9 +32,12 @@ def main():
             },
             # Build the FTL image from source and load it into the daemon.
             {
-                'name': 'gcr.io/cloud-builders/bazel',
-                'args': ['run', '//ftl/node/benchmark:node_benchmark_image',
-                         '--', '--norun'],
+                'name':
+                'gcr.io/cloud-builders/bazel',
+                'args': [
+                    'run', '//ftl/node/benchmark:node_benchmark_image', '--',
+                    '--norun'
+                ],
             },
             # Build the node builder par file
             {
@@ -56,12 +59,14 @@ def benchmark_step(iterations, app_dir):
     return [
         # First build the image
         {
-            'name': 'bazel/ftl/node/benchmark:node_benchmark_image',
-            'args': ['--base', _NODE_BASE,
-                     '--name', name,
-                     '--directory', os.path.join(_DATA_DIR + app_dir),
-                     '--description', app_dir,
-                     '--iterations', str(iterations)]
+            'name':
+            'bazel/ftl/node/benchmark:node_benchmark_image',
+            'args': [
+                '--base', _NODE_BASE, '--name', name, '--directory',
+                os.path.join(_DATA_DIR + app_dir), '--description', app_dir,
+                '--iterations',
+                str(iterations)
+            ]
         }
     ]
 
