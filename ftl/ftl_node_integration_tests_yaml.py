@@ -21,12 +21,15 @@ def main():
             # We need to chmod in some cases for permissions.
             {
                 'name': 'ubuntu',
-                'args': ['chmod', 'a+rx', '-R', '/workspace']
+                'args': ['chmod', 'a+rx', '-R', '/workspace'],
+                'id': 'chmod',
             },
             # Build the FTL image from source and load it into the daemon.
             {
                 'name': 'gcr.io/cloud-builders/bazel',
                 'args': ['run', '//ftl:node_builder_image', '--', '--norun'],
+                'id': 'build-builder',
+                'waitFor': 'chmod',
             },
         ]
     }
@@ -55,12 +58,16 @@ def run_test_steps(full_name, directory, args):
         # First build the image
         {
             'name': 'bazel/ftl:node_builder_image',
-            'args': args
+            'args': args,
+            'waitFor': 'build-builder',
+            'id': 'build-image-%s' % full_name,
         },
         # Then pull it from the registry
         {
             'name': 'gcr.io/cloud-builders/docker',
-            'args': ['pull', full_name]
+            'args': ['pull', full_name],
+            'id': 'pull-image-%s' % full_name,
+            'waitFor': 'build-image-%s' % full_name,
         },
         # Then test it.
         {
@@ -69,7 +76,9 @@ def run_test_steps(full_name, directory, args):
             'args': [
                 '/go_default_test', '-image', full_name,
                 os.path.join(_TEST_DIR, directory, 'structure_test.yaml')
-            ]
+            ],
+            'waitFor': 'pull-image-%s' % full_name,
+            'id': 'test-image%s' % full_name
         }
     ]
 
