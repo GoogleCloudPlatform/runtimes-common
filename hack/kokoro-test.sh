@@ -26,13 +26,13 @@ echo "Running integration tests..."
 # Run these in parallel.
 declare -a pids=()
 # Generate the integration test yaml and pass it to cloud build via stdin.
-python ftl/ftl_node_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 . > node.log &
+python ftl/integration_tests/ftl_node_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 . > node.log &
 pids+=($!)
 
-python ftl/ftl_php_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 . > php.log &
+python ftl/integration_tests/ftl_php_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 . > php.log &
 pids+=($!)
 
-gcloud container builds submit --config ftl/ftl_python_integration_tests.yaml . > python.log &
+gcloud container builds submit --config ftl/integration_tests/ftl_python_integration_tests.yaml . > python.log &
 pids+=($!)
 
 # Wait for them to finish, and check the exit codes.
