@@ -52,7 +52,7 @@ class Node(builder.JustApp):
             creation_time=str(datetime.date.today()) + "T00:00:00Z",
             entrypoint=entrypoint)
 
-    def CreatePackageBase(self, base_image, cache, destination_path="/app"):
+    def CreatePackageBase(self, base_image, destination_path="/app"):
         """Override."""
         overrides = self._generate_overrides()
 
