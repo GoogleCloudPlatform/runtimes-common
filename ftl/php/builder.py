@@ -69,6 +69,8 @@ class PHP(builder.JustApp):
                     w.write(self._ctx.GetFile(f))
 
         tar_path = tempfile.mktemp()
+        subprocess.check_call(
+            ['rm', '-rf', os.path.join(app_dir, 'vendor')])
         logging.info('Starting composer install ...')
         subprocess.check_call(
             ['composer', 'install', '--no-dev', '--no-scripts'], cwd=app_dir)
