@@ -28,6 +28,7 @@ import httplib2
 import logging
 import hashlib
 
+from ftl.common import args as ftl_args
 from ftl.common import cache
 from ftl.common import context
 
@@ -106,13 +107,8 @@ class BuilderRunner():
             deps_image = self.GetCachedDepsImage(checksum)
             if not deps_image:
                 # TODO(aaron-prindle) make this better, prob pass args to bldr
-                if self.args.destination_path:
-                    deps_image = self.builder.CreatePackageBase(
-                        self.args.base, self.args.cache,
-                        self.args.destination_path)
-                else:
-                    deps_image = self.builder.CreatePackageBase(
-                        self.args.base, self.args.cache)
+                extracted = _args_extractor(vars(self.args))
+                deps_image = self.builder.CreatePackageBase(**extracted)
                 self.StoreDepsImage(deps_image, checksum)
             # Construct the application layer from the context.
             logging.info('Generating app layer...')
@@ -145,3 +141,12 @@ def _creation_time(image):
 def _timestamp_to_time(dt_str):
     dt = dt_str.rstrip("Z")
     return datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
+
+
+def _args_extractor(args):
+    extracted = {}
+    extracted['base'] = args['base']
+    for flg in ftl_args.node_flgs + ftl_args.php_flgs:
+        if flg in args and args[flg] is not None:
+            extracted[flg] = args[flg]
+    return extracted

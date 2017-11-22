@@ -33,6 +33,7 @@ addons:
 
 install:
   - go get -u github.com/bazelbuild/buildifier/buildifier
+  - pip install wheel
 
 script:
 - ./test.sh

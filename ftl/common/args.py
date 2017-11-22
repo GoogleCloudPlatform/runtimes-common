@@ -14,9 +14,12 @@
 """This package defines the shared cli args for ftl binaries."""
 
 from ftl.common import logger
+import argparse
 
 
-def init_args(parser):
+def base_parser():
+    parser = argparse.ArgumentParser()
+
     parser.add_argument(
         '--base',
         action='store',
@@ -62,3 +65,29 @@ def init_args(parser):
         nargs="?",
         action='store',
         choices=logger.LEVEL_MAP.keys())
+    return parser
+
+
+node_flgs = ['destination_path']
+php_flgs = ['destination_path']
+
+
+def extra_args(parser, opt_list):
+    opt_dict = {
+        'destination_path': [
+            '--destination', {
+                "dest":
+                'destination_path',
+                "action":
+                'store',
+                "default":
+                None,
+                "help":
+                'The base path that the node_modules will be installed in the \
+                        final image'
+            }
+        ],
+    }
+    for opt in opt_list:
+        arg_vars = opt_dict[opt]
+        parser.add_argument(arg_vars[0], **arg_vars[1])

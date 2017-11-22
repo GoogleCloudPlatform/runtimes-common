@@ -28,7 +28,7 @@ class JustAppTest(unittest.TestCase):
         b = builder.JustApp(None)
         base_img = mock.MagicMock()
 
-        self.assertEquals(b.CreatePackageBase(base_img, None), base_img)
+        self.assertEquals(b.CreatePackageBase(base_img), base_img)
 
     def test_build_app_layer(self):
         # All the files in the context should be added to the layer.

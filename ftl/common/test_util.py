@@ -54,7 +54,7 @@ class BuilderTestCase():
     def CreatePackageBase(self):
         with self._base_image.GetDockerImage():
             return self._builder.CreatePackageBase(
-                self._base_image.GetDockerImage(), self._cash)
+                self._base_image.GetDockerImage())
 
     def GetCacheEntries(self):
         return len(self._cash._registry._registry)
