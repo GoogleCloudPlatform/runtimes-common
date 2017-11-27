@@ -21,7 +21,7 @@ import logging
 from google.cloud import bigquery
 
 DATASET_NAME = 'ftl_benchmark'
-TABLE_NAME = 'ftl_php_zip_benchmark'
+TABLE_NAME = 'ftl_php_benchmark'
 PROJECT_NAME = 'ftl-node-test'
 
 parser = argparse.ArgumentParser(

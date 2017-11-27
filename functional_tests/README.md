@@ -146,10 +146,10 @@ This arugment can be specified multiple times.
 
 # Development
 
-`examples/build-and-run/cloudbuild.yaml` conveniently builds this image and run
+`examples/build-and-test/cloudbuild.yaml` conveniently builds this image and run
 the test in one build session. This is suitable for the development of this
 image. Use the following command, from the main directory, to run a test build:
 
 ``` shell
-gcloud container builds submit --config examples/build-and-run/cloudbuild.yaml .
+gcloud container builds submit --config examples/build-and-test/cloudbuild.yaml .
 ```

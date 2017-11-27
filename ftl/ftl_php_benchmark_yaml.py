@@ -6,11 +6,11 @@ import argparse
 
 # Add directories for new tests here.
 APP_DIRS = ['small_app', 'medium_app', 'large_app']
-_DATA_DIR = '/workspace/ftl/node/benchmark/data/'
-_NODE_BASE = 'gcr.io/google-appengine/nodejs:latest'
+_DATA_DIR = '/workspace/ftl/php/benchmark/data/'
+_PHP_BASE = 'gcr.io/gae-runtimes/php72_app_builder:latest'
 
 parser = argparse.ArgumentParser(
-    description='Generate cloudbuild yaml for FTL benchmarking.')
+    description='Generate cloudbuild yaml for FTL PHP benchmarking.')
 
 parser.add_argument(
     '--iterations',
@@ -35,14 +35,14 @@ def main():
                 'name':
                 'gcr.io/cloud-builders/bazel',
                 'args': [
-                    'run', '//ftl/node/benchmark:node_benchmark_image', '--',
+                    'run', '//ftl/php/benchmark:php_benchmark_image', '--',
                     '--norun'
                 ],
             },
-            # Build the node builder par file
+            # Build the php builder par file
             {
                 'name': 'gcr.io/cloud-builders/bazel',
-                'args': ['build', 'ftl:node_builder.par']
+                'args': ['build', 'ftl:php_builder.par']
             },
         ]
     }
@@ -55,14 +55,14 @@ def main():
 
 
 def benchmark_step(iterations, app_dir):
-    name = 'gcr.io/ftl-node-test/benchmark_%s:latest' % app_dir
+    name = 'gcr.io/ftl-node-test/benchmark_php_%s:latest' % app_dir
     return [
         # First build the image
         {
             'name':
-            'bazel/ftl/node/benchmark:node_benchmark_image',
+            'bazel/ftl/php/benchmark:php_benchmark_image',
             'args': [
-                '--base', _NODE_BASE, '--name', name, '--directory',
+                '--base', _PHP_BASE, '--name', name, '--directory',
                 os.path.join(_DATA_DIR + app_dir), '--description', app_dir,
                 '--iterations',
                 str(iterations)
