@@ -32,7 +32,7 @@ pids+=($!)
 python ftl/integration_tests/ftl_php_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 . > php.log &
 pids+=($!)
 
-gcloud container builds submit --config ftl/integration_tests/ftl_python_integration_tests.yaml . > python.log &
+python ftl/integration_tests/ftl_python_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 . > python.log &
 pids+=($!)
 
 # Wait for them to finish, and check the exit codes.
