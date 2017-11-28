@@ -24,24 +24,18 @@ from ftl.common import builder_runner
 
 from ftl.node import builder as node_builder
 
-parser = argparse.ArgumentParser(
-    description='Construct node images from source.')
-
-args.init_args(parser)
-parser.add_argument(
-    '--destination',
-    dest='destination_path',
-    action='store',
-    default='/app',
-    help='The base path that the node_modules will be installed in the \
-    final image')
+parser = args.base_parser()
+node_parser = argparse.ArgumentParser(
+    add_help=False,
+    parents=[parser], description='Construct node images from source.')
+args.extra_args(node_parser, args.node_flgs)
 
 # Version string used to bust caches.
 _NODE_CACHE_VERSION = 'v1'
 
 
 def main(args):
-    args = parser.parse_args(args)
+    args = node_parser.parse_args(args)
     logger.setup_logging(args)
     node_ftl = builder_runner.BuilderRunner(args, node_builder,
                                             _NODE_CACHE_VERSION)

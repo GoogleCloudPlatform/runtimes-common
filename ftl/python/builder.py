@@ -43,7 +43,7 @@ class Python(builder.JustApp):
         return metadata.Overrides(
             creation_time=str(datetime.date.today()) + "T00:00:00Z")
 
-    def CreatePackageBase(self, base_image, cache):
+    def CreatePackageBase(self, base):
         """Override."""
         overrides = self._generate_overrides()
 
@@ -51,7 +51,7 @@ class Python(builder.JustApp):
         logging.info('Generated layer with sha: %s', sha)
 
         with append.Layer(
-                base_image, layer, diff_id=sha,
+                base, layer, diff_id=sha,
                 overrides=overrides) as dep_image:
             return dep_image
 

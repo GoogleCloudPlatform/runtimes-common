@@ -24,25 +24,17 @@ from ftl.common import builder_runner
 
 from ftl.python import builder as python_builder
 
-parser = argparse.ArgumentParser(
-    description='Construct python images from source.')
-
-args.init_args(parser)
-# TODO(aaron-prindle) remove this once arg passing solution discovered
-parser.add_argument(
-    '--destination',
-    dest='destination_path',
-    action='store',
-    default=None,
-    help='The base path that the node_modules will be installed in the \
-    final image')
+parser = args.base_parser()
+python_parser = argparse.ArgumentParser(
+    add_help=False,
+    parents=[parser], description='Construct python images from source.')
 
 # Version string used to bust caches.
 _PYTHON_CACHE_VERSION = 'v1'
 
 
 def main(args):
-    args = parser.parse_args(args)
+    args = python_parser.parse_args(args)
     logger.setup_logging(args)
     python_ftl = builder_runner.BuilderRunner(args, python_builder,
                                               _PYTHON_CACHE_VERSION)

@@ -24,26 +24,18 @@ from ftl.common import builder_runner
 
 from ftl.php import builder as php_builder
 
-
-parser = argparse.ArgumentParser(
-    description='Construct PHP images from source.')
-
-args.init_args(parser)
-
-parser.add_argument(
-    '--destination',
-    dest='destination_path',
-    action='store',
-    default=None,
-    help='The base path that vendor will be installed in the \
-    final image')
+parser = args.base_parser()
+php_parser = argparse.ArgumentParser(
+    add_help=False,
+    parents=[parser], description='Construct php images from source.')
+args.extra_args(php_parser, args.php_flgs)
 
 # Version string used to bust caches.
 _PHP_CACHE_VERSION = 'v1'
 
 
 def main(args):
-    args = parser.parse_args(args)
+    args = php_parser.parse_args(args)
     logger.setup_logging(args)
     php_ftl = builder_runner.BuilderRunner(args, php_builder,
                                            _PHP_CACHE_VERSION)
