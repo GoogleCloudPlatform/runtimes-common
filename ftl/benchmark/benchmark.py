@@ -31,6 +31,7 @@ class Benchmark():
         self._dataset = args.dataset
         self._table = args.table
         self._runtime = runtime
+        self._gen_files = args.gen_files
 
     def _record_build_times_to_bigquery(self, build_times):
         current_date = datetime.datetime.now()
@@ -57,6 +58,10 @@ class Benchmark():
             format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
             datefmt='%Y-%m-%d,%H:%M:%S')
         build_times = []
+        for i in range(self._gen_files):
+            file_name = os.path.join(self._directory, 'app_file_%d' % i)
+            with open(file_name, 'wb') as fout:
+                fout.write(os.urandom(1024))
         logging.info('Beginning building {0} images'.format(self._runtime))
         for _ in range(self._iterations):
             try:

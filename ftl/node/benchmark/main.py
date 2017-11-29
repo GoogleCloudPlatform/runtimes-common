@@ -19,6 +19,7 @@ from ftl.benchmark import benchmark
 
 
 _RUNTIME = "node"
+parser = argparse.ArgumentParser(description='Run FTL node benchmarks.')
 
 parser = args.base_parser()
 node_parser = argparse.ArgumentParser(

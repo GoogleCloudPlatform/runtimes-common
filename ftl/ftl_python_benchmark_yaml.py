@@ -5,7 +5,12 @@ import yaml
 import argparse
 
 # Add directories for new tests here.
-APP_DIRS = ['small_app', 'medium_app', 'large_app']
+DEP_TESTS = ['small_app', 'medium_app', 'large_app']
+APP_SIZE_TESTS = {
+    'scratch_small': '5',
+    'scratch_medium': '500',
+    'scratch_large': '50000'
+}
 _DATA_DIR = '/workspace/ftl/python/benchmark/data/'
 _PYTHON_BASE = 'gcr.io/google-appengine/python:latest'
 
@@ -19,9 +24,26 @@ parser.add_argument(
     default=5,
     help='Number of times to build the image.')
 
+parser.add_argument(
+    '--dep-test',
+    dest='dep_test',
+    action='store_true',
+    default=False,
+    help='Flag to enable to dependency test for the benchmark.')
+
+parser.add_argument(
+    '--app-size-test',
+    dest='app_size_test',
+    action='store_true',
+    default=False,
+    help='Flag to enable the app size test for the benchmark.')
+
 
 def main():
     args = parser.parse_args()
+    if not (args.dep_test and args.app_size):
+        args.dep_test = True
+        args.app_size = True
 
     cloudbuild_yaml = {
         'steps': [
@@ -35,8 +57,7 @@ def main():
                 'name':
                 'gcr.io/cloud-builders/bazel',
                 'args': [
-                    'run',
-                    '//ftl/python/benchmark:python_benchmark_image',
+                    'run', '//ftl/python/benchmark:python_benchmark_image',
                     '--', '--norun'
                 ],
             },
@@ -49,13 +70,21 @@ def main():
     }
 
     # Generate a set of steps for each test and add them.
-    for app_dir in APP_DIRS:
-        cloudbuild_yaml['steps'] += benchmark_step(args.iterations, app_dir)
+    if args.dep_test:
+        for app_dir in DEP_TESTS:
+            cloudbuild_yaml['steps'] += dependency_test_step(
+                app_dir, args.iterations)
+
+    # Generate a set of steps for each test and add them.
+    if args.app_size_test:
+        for app_dir in APP_SIZE_TESTS:
+            cloudbuild_yaml['steps'] += app_size_test_step(
+                app_dir, args.iterations, APP_SIZE_TESTS[app_dir])
 
     print yaml.dump(cloudbuild_yaml)
 
 
-def benchmark_step(iterations, app_dir):
+def dependency_test_step(app_dir, iterations):
     name = 'gcr.io/ftl-node-test/benchmark_%s:latest' % app_dir
     return [
         # First build the image
@@ -65,8 +94,23 @@ def benchmark_step(iterations, app_dir):
             'args': [
                 '--base', _PYTHON_BASE, '--name', name, '--directory',
                 os.path.join(_DATA_DIR + app_dir), '--description', app_dir,
-                '--iterations',
-                str(iterations)
+                '--iterations', str(iterations)
+            ]
+        }
+    ]
+
+
+def app_size_test_step(app_dir, iterations, gen_files):
+    name = 'gcr.io/ftl-node-test/benchmark_%s:latest' % app_dir
+    return [
+        # First build the image
+        {
+            'name':
+            'bazel/ftl/python/benchmark:python_benchmark_image',
+            'args': [
+                '--base', _PYTHON_BASE, '--name', name, '--directory',
+                os.path.join(_DATA_DIR + app_dir), '--description', app_dir,
+                '--iterations', str(iterations), '--gen_files', gen_files
             ]
         }
     ]
