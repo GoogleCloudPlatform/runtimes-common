@@ -25,6 +25,7 @@ from containerregistry.client.v2_2 import append
 from containerregistry.transform.v2_2 import metadata
 
 from ftl.common import builder
+from ftl.common import ftl_util
 
 _NODE_NAMESPACE = 'node-package-lock-cache'
 _PACKAGE_LOCK = 'package-lock.json'
@@ -84,22 +85,20 @@ class Node(builder.JustApp):
         check_gcp_build(json.loads(self._ctx.GetFile(_PACKAGE_JSON)), app_dir)
         subprocess.check_call(
             ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
-        logging.info('Starting npm install ...')
-        subprocess.check_call(['npm', 'install', '--production'], cwd=app_dir)
-        logging.info('Finished npm install.')
+        with ftl_util.Timing("npm_install"):
+            subprocess.check_call(
+                ['npm', 'install', '--production'], cwd=app_dir)
 
-        logging.info('Starting to tar npm packages...')
-        subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
-        logging.info('Finished generating tarfile for npm packages.')
+        with ftl_util.Timing("tar_npm_packages"):
+            subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
 
         # We need the sha of the unzipped and zipped tarball.
         # So for performance, tar, sha, zip, sha.
         # We use gzip for performance instead of python's zip.
         sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
 
-        logging.info('Starting to gzip npm package tarfile...')
-        subprocess.check_call(['gzip', tar_path])
-        logging.info('Finished generating gzip npm package tarfile.')
+        with ftl_util.Timing("gzip_npm_tar"):
+            subprocess.check_call(['gzip', tar_path])
         return open(os.path.join(tmp, tar_path + '.gz'), 'rb').read(), sha
 
 
