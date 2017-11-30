@@ -1,18 +1,26 @@
 {
-    "autoload": {
-      "psr-4": {
-        "Google\\Cloud\\Samples\\Bookshelf\\": ["src", "test/lib"]
+  "name": "google/cloud-storage",
+  "description": "Cloud Storage Client for PHP",
+  "license": "Apache-2.0",
+  "minimum-stability": "stable",
+  "require": {
+      "google/cloud-core": "^1.0"
+  },
+  "suggest": {
+      "phpseclib/phpseclib": "May be used in place of OpenSSL for creating signed Cloud Storage URLs. Please require version ^2.",
+      "google/cloud-pubsub": "May be used to register a topic to receive bucket notifications."
+  },
+  "extra": {
+      "component": {
+          "id": "cloud-storage",
+          "target": "GoogleCloudPlatform/google-cloud-php-storage.git",
+          "path": "src/Storage",
+          "entry": "StorageClient.php"
       }
-    },
-    "require": {
-      "php": ">=5.5"
-    },
-    "require-dev": {
-      "behat/mink": "^1.7",
-      "behat/mink-goutte-driver": "^1.2",
-      "phpunit/phpunit": "~4",
-      "symfony/browser-kit": "^3.0",
-      "symfony/http-kernel": "^3.0",
-      "google/cloud-tools": "^0.6"
-    }
+  },
+  "autoload": {
+      "psr-4": {
+          "Google\\Cloud\\Storage\\": ""
+      }
+  }
 }
