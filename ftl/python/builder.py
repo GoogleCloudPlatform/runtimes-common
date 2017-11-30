@@ -24,6 +24,7 @@ from containerregistry.client.v2_2 import append
 from containerregistry.transform.v2_2 import metadata
 
 from ftl.common import builder
+from ftl.common import ftl_util
 
 _PYTHON_NAMESPACE = 'python-requirements-cache'
 _REQUIREMENTS_TXT = 'requirements.txt'
@@ -100,18 +101,16 @@ class Python(builder.JustApp):
 
     def _gen_package_tar(self, pkg_dir):
         tar_path = tempfile.mktemp()
-        logging.info('Starting to tar pip packages...')
-        subprocess.check_call(['tar', '-C', pkg_dir, '-cf', tar_path, '.'])
-        logging.info('Finished generating tarfile for pip packages...')
+        with ftl_util.Timing("tar_pip_package"):
+            subprocess.check_call(['tar', '-C', pkg_dir, '-cf', tar_path, '.'])
 
         # We need the sha of the unzipped and zipped tarball.pkg_dir
         # So for performance, tar, sha, zip, sha.
         # We use gzip for performance instead of python's zip.
         sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
 
-        logging.info('Starting to gzip pip package tarfile...')
-        subprocess.check_call(['gzip', tar_path])
-        logging.info('Finished generating gzip pip package tarfile.')
+        with ftl_util.Timing("gzip_pip_package"):
+            subprocess.check_call(['gzip', tar_path])
         return open(os.path.join(pkg_dir, tar_path + '.gz'), 'rb').read(), sha
 
     def _gen_pip_env(self):
@@ -131,19 +130,23 @@ class Python(builder.JustApp):
                     w.write(self._ctx.GetFile(f))
 
     def _setup_venv(self, py_version):
-        logging.info('Starting venv creation ...')
-        subprocess.check_call(
-            ['virtualenv', '--no-download', self._venv_dir, '-p', py_version],
-            cwd=self._tmp_app)
-        logging.info('Finished venv creation')
+        with ftl_util.Timing("create_virtualenv"):
+            subprocess.check_call(
+                [
+                    'virtualenv', '--no-download', self._venv_dir, '-p',
+                    py_version
+                ],
+                cwd=self._tmp_app)
 
     def _pip_install(self):
-        logging.info('Startin pip install')
-        subprocess.check_call(
-            ['pip', 'wheel', '-w', self._wheel_dir, '-r', 'requirements.txt'],
-            cwd=self._tmp_app,
-            env=self._gen_pip_env())
-        logging.info('Finished pip install.')
+        with ftl_util.Timing("pip_install_wheels"):
+            subprocess.check_call(
+                [
+                    'pip', 'wheel', '-w', self._wheel_dir, '-r',
+                    'requirements.txt'
+                ],
+                cwd=self._tmp_app,
+                env=self._gen_pip_env())
 
     def _resolve_whls(self):
         return [

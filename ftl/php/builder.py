@@ -24,6 +24,7 @@ from containerregistry.client.v2_2 import append
 from containerregistry.transform.v2_2 import metadata
 
 from ftl.common import builder
+from ftl.common import ftl_util
 
 _PHP_NAMESPACE = 'php-composer-lock-cache'
 _COMPOSER_LOCK = 'composer.lock'
@@ -71,24 +72,22 @@ class PHP(builder.JustApp):
         tar_path = tempfile.mktemp()
         subprocess.check_call(
             ['rm', '-rf', os.path.join(app_dir, 'vendor')])
-        logging.info('Starting composer install ...')
-        subprocess.check_call(
-            ['composer', 'install', '--no-dev', '--no-scripts'], cwd=app_dir)
-        logging.info('Finished composer install.')
 
-        logging.info('Starting to tar composer packages...')
-        subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
-        logging.info('Finished generating tarfile for composer packages.')
+        with ftl_util.Timing("composer_install"):
+            subprocess.check_call(
+                ['composer', 'install', '--no-dev', '--no-scripts'],
+                cwd=app_dir)
+
+        with ftl_util.Timing("tar_composer_packages"):
+            subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
 
         # We need the sha of the unzipped and zipped tarball.
         # So for performance, tar, sha, zip, sha.
         # We use gzip for performance instead of python's zip.
         sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
 
-        logging.info('Starting to gzip composer package tarfile...')
-        # After benchmarking, compression level 1 was the fastest
-        subprocess.check_call(['gzip', tar_path, '-1'])
-        logging.info('Finished generating gzip composer package tarfile.')
+        with ftl_util.Timing("gzip_composer_tar"):
+            subprocess.check_call(['gzip', tar_path, '-1'])
         return open(os.path.join(tmp, tar_path + '.gz'), 'rb').read(), sha
 
 
