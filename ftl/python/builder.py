@@ -56,12 +56,12 @@ class Python(builder.JustApp):
         return metadata.Overrides(
             creation_time=str(datetime.date.today()) + "T00:00:00Z", env=env)
 
-    def CreatePackageBase(self, base, py_version='python2.7'):
+    def CreatePackageBase(self, base, python_version='python2.7'):
         """Override."""
         package_base = base
 
         self._setup_app_dir(self._tmp_app)
-        self._setup_venv(py_version)
+        self._setup_venv(python_version)
         layer, sha = self._gen_package_tar(
             os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
         package_base = append.Layer(
@@ -129,12 +129,12 @@ class Python(builder.JustApp):
                 with open(os.path.join(app_dir, f), 'w') as w:
                     w.write(self._ctx.GetFile(f))
 
-    def _setup_venv(self, py_version):
+    def _setup_venv(self, python_version):
         with ftl_util.Timing("create_virtualenv"):
             subprocess.check_call(
                 [
                     'virtualenv', '--no-download', self._venv_dir, '-p',
-                    py_version
+                    python_version
                 ],
                 cwd=self._tmp_app)
 
