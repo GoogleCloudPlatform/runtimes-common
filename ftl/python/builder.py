@@ -27,74 +27,84 @@ from ftl.common import builder
 
 _PYTHON_NAMESPACE = 'python-requirements-cache'
 _REQUIREMENTS_TXT = 'requirements.txt'
+_VENV_DIR = 'env'
+_TMP_APP = 'app'
+_WHEEL_DIR = 'wheel'
 
 
 class Python(builder.JustApp):
     def __init__(self, ctx):
         self.descriptor_files = [_REQUIREMENTS_TXT]
         self.namespace = _PYTHON_NAMESPACE
+        self.ctx = ctx
+        self._tmp_app = self._gen_tmp_dir(_TMP_APP)
+        self._venv_dir = self._gen_tmp_dir(_VENV_DIR)
+        self._wheel_dir = self._gen_tmp_dir(_WHEEL_DIR)
         super(Python, self).__init__(ctx)
 
     def __enter__(self):
         """Override."""
         return self
 
-    def _generate_overrides(self):
+    def _generate_overrides(self, set_path):
+        env = {
+            "VIRTUAL_ENV": "/env",
+        }
+        if set_path:
+            env['PATH'] = '/env/bin:$PATH'
         return metadata.Overrides(
-            creation_time=str(datetime.date.today()) + "T00:00:00Z")
+            creation_time=str(datetime.date.today()) + "T00:00:00Z", env=env)
 
-    def CreatePackageBase(self, base):
+    def CreatePackageBase(self, base, py_version='python2.7'):
         """Override."""
-        overrides = self._generate_overrides()
+        package_base = base
 
-        layer, sha = self._gen_package_tar()
-        logging.info('Generated layer with sha: %s', sha)
+        self._setup_app_dir(self._tmp_app)
+        self._setup_venv(py_version)
+        layer, sha = self._gen_package_tar(
+            os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
+        package_base = append.Layer(
+            package_base,
+            layer,
+            diff_id=sha,
+            overrides=self._generate_overrides(True))
 
-        with append.Layer(
-                base, layer, diff_id=sha,
-                overrides=overrides) as dep_image:
-            return dep_image
+        self._pip_install()
+        whls = self._resolve_whls()
+        pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
+        logging.info("pkg_dirs" + str(pkg_dirs))
+        for pkg_dir in pkg_dirs:
+            layer, sha = self._gen_package_tar(pkg_dir)
+            logging.info('Generated layer with sha: %s', sha)
+            package_base = append.Layer(
+                package_base,
+                layer,
+                diff_id=sha,
+                overrides=self._generate_overrides(False))
+        return package_base
 
-    def _gen_package_tar(self):
-        tmp_app = tempfile.mkdtemp()
-        tmp_venv = tempfile.mkdtemp()
+    def _gen_dirs(self, dirs):
+        tmp_dir = tempfile.mkdtemp()
+        dir_map = {}
+        for dir in dirs:
+            dir_name = os.path.join(tmp_dir, dir)
+            dir_map[dir] = dir_name
+            os.mkdir(dir_name)
+        return dir_map
 
-        tmp_app = os.path.join(tmp_app, 'app')
-        venv_dir = os.path.join(tmp_venv, 'env')
-        os.makedirs(tmp_app)
-        os.makedirs(venv_dir)
+    def _gen_tmp_dir(self, dirr):
+        tmp_dir = tempfile.mkdtemp()
+        dir_name = os.path.join(tmp_dir, dirr)
+        os.mkdir(dir_name)
+        return dir_name
 
-        # Copy out the relevant package descriptors to a tempdir.
-        for f in self.descriptor_files:
-            # if self._ctx.Contains(f):
-            with open(os.path.join(tmp_app, f), 'w') as w:
-                w.write(self._ctx.GetFile(f))
-
+    def _gen_package_tar(self, pkg_dir):
         tar_path = tempfile.mktemp()
-        logging.info('Starting venv creation ...')
-
-        # TODO(aaron-prindle) add support for different python versions
-        subprocess.check_call(
-            ['virtualenv', '--no-download', venv_dir, '-p', 'python3.6'],
-            cwd=tmp_app)
-        os.environ['VIRTUAL_ENV'] = venv_dir
-        os.environ['PATH'] = venv_dir + "/bin" + ":" + os.environ['PATH']
-        # bazel adds its own PYTHONPATH to the env
-        # which must be removed for the pip calls to work properly
-        my_env = os.environ.copy()
-        my_env.pop('PYTHONPATH', None)
-
-        subprocess.check_call(
-            ['pip', 'install', '-r', 'requirements.txt'],
-            cwd=tmp_app,
-            env=my_env)
-        logging.info('Finished pip install.')
-
         logging.info('Starting to tar pip packages...')
-        subprocess.check_call(['tar', '-C', tmp_venv, '-cf', tar_path, '.'])
+        subprocess.check_call(['tar', '-C', pkg_dir, '-cf', tar_path, '.'])
         logging.info('Finished generating tarfile for pip packages...')
 
-        # We need the sha of the unzipped and zipped tarball.
+        # We need the sha of the unzipped and zipped tarball.pkg_dir
         # So for performance, tar, sha, zip, sha.
         # We use gzip for performance instead of python's zip.
         sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
@@ -102,7 +112,53 @@ class Python(builder.JustApp):
         logging.info('Starting to gzip pip package tarfile...')
         subprocess.check_call(['gzip', tar_path])
         logging.info('Finished generating gzip pip package tarfile.')
-        return open(os.path.join(tmp_venv, tar_path + '.gz'), 'rb').read(), sha
+        return open(os.path.join(pkg_dir, tar_path + '.gz'), 'rb').read(), sha
+
+    def _gen_pip_env(self):
+        pip_env = os.environ.copy()
+        # bazel adds its own PYTHONPATH to the env
+        # which must be removed for the pip calls to work properly
+        del pip_env['PYTHONPATH']
+        pip_env['VIRTUAL_ENV'] = self._venv_dir
+        pip_env['PATH'] = self._venv_dir + "/bin" + ":" + os.environ['PATH']
+        return pip_env
+
+    def _setup_app_dir(self, app_dir):
+        # Copy out the relevant package descriptors to a tempdir.
+        for f in self.descriptor_files:
+            if self._ctx.Contains(f):
+                with open(os.path.join(app_dir, f), 'w') as w:
+                    w.write(self._ctx.GetFile(f))
+
+    def _setup_venv(self, py_version):
+        logging.info('Starting venv creation ...')
+        subprocess.check_call(
+            ['virtualenv', '--no-download', self._venv_dir, '-p', py_version],
+            cwd=self._tmp_app)
+        logging.info('Finished venv creation')
+
+    def _pip_install(self):
+        logging.info('Startin pip install')
+        subprocess.check_call(
+            ['pip', 'wheel', '-w', self._wheel_dir, '-r', 'requirements.txt'],
+            cwd=self._tmp_app,
+            env=self._gen_pip_env())
+        logging.info('Finished pip install.')
+
+    def _resolve_whls(self):
+        return [
+            os.path.join(self._wheel_dir, f)
+            for f in os.listdir(self._wheel_dir)
+        ]
+
+    def _whl_to_fslayer(self, whl):
+        tmp_dir = tempfile.mkdtemp()
+        pkg_dir = os.path.join(tmp_dir, 'env')
+        os.makedirs(pkg_dir)
+        subprocess.check_call(
+            ['pip', 'install', '--prefix', pkg_dir, whl],
+            env=self._gen_pip_env())
+        return tmp_dir
 
 
 def From(ctx):

@@ -17,6 +17,7 @@ import mock
 import hashlib
 import logging
 import os
+import tempfile
 
 from ftl.common import cache
 from testing.lib import mock_registry
@@ -44,7 +45,12 @@ class BuilderTestCase():
         self._ctx = ctx
         self._builder = builder_fxn(ctx)
 
-        # Mock out the calls to NPM for speed.
+        self._builder._setup_venv = mock.Mock()
+        self._builder._pip_install = mock.Mock()
+        self._builder._whl_to_fslayer = mock.Mock()
+        self._builder._whl_to_fslayer.return_value = tempfile.mkdtemp()
+
+        # Mock out the calls to package managers for speed.
         self._builder._gen_package_tar = mock.Mock()
         self._builder._gen_package_tar.return_value = ('layer', 'sha')
 
