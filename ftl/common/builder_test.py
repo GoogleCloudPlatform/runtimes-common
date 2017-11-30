@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import cStringIO
-import mock
 import os
 import unittest
 import tarfile
@@ -23,13 +22,6 @@ import context
 
 
 class JustAppTest(unittest.TestCase):
-    def test_create_package_base(self):
-        # JustApp doesn't create a package base.
-        b = builder.JustApp(None)
-        base_img = mock.MagicMock()
-
-        self.assertEquals(b.CreatePackageBase(base_img), base_img)
-
     def test_build_app_layer(self):
         # All the files in the context should be added to the layer.
 
@@ -43,7 +35,9 @@ class JustAppTest(unittest.TestCase):
             ctx.AddFile(p, f)
 
         b = builder.JustApp(ctx)
-        app_layer, _ = b.BuildAppLayer('srv')
+        app = b.AppLayer(b._ctx)
+        app.BuildLayer()
+        app_layer = app.GetImage().blob("")
         stream = cStringIO.StringIO(app_layer)
         with tarfile.open(fileobj=stream, mode='r:gz') as tf:
             self.assertEqual(len(tf.getnames()), len(files))

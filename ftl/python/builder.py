@@ -16,122 +16,118 @@
 import os
 import subprocess
 import tempfile
-import logging
 import datetime
-
-from containerregistry.client.v2_2 import append
-from containerregistry.transform.v2_2 import metadata
 
 from ftl.common import builder
 from ftl.common import ftl_util
+from ftl.common import single_layer_image
+from ftl.common import tar_to_dockerimage
 
-_PYTHON_NAMESPACE = 'python-requirements-cache'
-_REQUIREMENTS_TXT = 'requirements.txt'
 _VENV_DIR = 'env'
-_TMP_APP = 'srv'
 _WHEEL_DIR = 'wheel'
+_THREADS = 32
+_REQUIREMENTS_TXT = 'requirements.txt'
+_PYTHON_NAMESPACE = 'python-requirements-cache'
 
 
-class Python(builder.JustApp):
-    def __init__(self, ctx):
-        self.descriptor_files = [_REQUIREMENTS_TXT]
-        self.namespace = _PYTHON_NAMESPACE
-        self.ctx = ctx
-        self._tmp_app = self._gen_tmp_dir(_TMP_APP)
-        self._venv_dir = self._gen_tmp_dir(_VENV_DIR)
-        self._wheel_dir = self._gen_tmp_dir(_WHEEL_DIR)
-        super(Python, self).__init__(ctx)
+def _generate_overrides(set_path):
+    env = {
+        "VIRTUAL_ENV": "/env",
+    }
+    if set_path:
+        env['PATH'] = '/env/bin:$PATH'
+    overrides_dct = {
+        "creation_time": str(datetime.date.today()) + "T00:00:00Z",
+        "env": env
+    }
+    return overrides_dct
 
-    def __enter__(self):
-        """Override."""
-        return self
 
-    def _generate_overrides(self, set_path):
-        env = {
-            "VIRTUAL_ENV": "/env",
-        }
-        if set_path:
-            env['PATH'] = '/env/bin:$PATH'
-        return metadata.Overrides(
-            creation_time=str(datetime.date.today()) + "T00:00:00Z", env=env)
+class Python(builder.RuntimeBase):
+    def __init__(self, ctx, args, cache_version_str):
+        super(Python, self).__init__(ctx, _PYTHON_NAMESPACE, args,
+                                     cache_version_str, [_REQUIREMENTS_TXT])
+        self._venv_dir = ftl_util.gen_tmp_dir(_VENV_DIR)
+        self._wheel_dir = ftl_util.gen_tmp_dir(_WHEEL_DIR)
 
-    def CreatePackageBase(self, base, python_version='python2.7'):
-        """Override."""
-        package_base = base
+    def Build(self):
+        lyr_imgs = []
+        lyr_imgs.append(self._base)
+        if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
 
-        self._setup_app_dir(self._tmp_app)
-        self._setup_venv(python_version)
-        layer, sha = ftl_util.zip_dir_to_layer_sha(
-            os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
-        package_base = append.Layer(
-            package_base,
-            layer,
-            diff_id=sha,
-            overrides=self._generate_overrides(True))
+            interpreter = self.InterpreterLayer(self._venv_dir,
+                                                self._args.python_version)
+            cached_int_img = self._cash.GetAndCheckTTL(
+                self._base, self._namespace, interpreter.GetCacheKey())
+            if cached_int_img is not None:
+                interpreter.SetImage(cached_int_img)
+            else:
+                interpreter.BuildLayer()
+                self._cash.Store(self._base, self._namespace,
+                                 interpreter.GetCacheKey(),
+                                 interpreter.GetImage())
+            lyr_imgs.append(interpreter)
 
-        self._pip_install()
-        whls = self._resolve_whls()
-        pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
-        logging.info("pkg_dirs" + str(pkg_dirs))
-        for pkg_dir in pkg_dirs:
-            layer, sha = ftl_util.zip_dir_to_layer_sha(pkg_dir)
-            logging.info('Generated layer with sha: %s', sha)
-            package_base = append.Layer(
-                package_base,
-                layer,
-                diff_id=sha,
-                overrides=self._generate_overrides(False))
-        return package_base
+            pkg_descriptor = ftl_util.descriptor_parser(
+                self._descriptor_files, self._ctx)
+            self._pip_install(pkg_descriptor)
 
-    def _gen_dirs(self, dirs):
-        tmp_dir = tempfile.mkdtemp()
-        dir_map = {}
-        for dir in dirs:
-            dir_name = os.path.join(tmp_dir, dir)
-            dir_map[dir] = dir_name
-            os.mkdir(dir_name)
-        return dir_map
+            whls = self._resolve_whls()
+            pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
 
-    def _gen_tmp_dir(self, dirr):
-        tmp_dir = tempfile.mkdtemp()
-        dir_name = os.path.join(tmp_dir, dirr)
-        os.mkdir(dir_name)
-        return dir_name
+            for whl_pkg_dir in pkg_dirs:
+                pkg = self.PackageLayer(self._ctx, self._descriptor_files,
+                                        whl_pkg_dir, interpreter)
+                cached_pkg_img = self._cash.GetAndCheckTTL(
+                    self._base, self._namespace, pkg.GetCacheKey())
+                if cached_pkg_img is not None:
+                    pkg.SetImage(cached_pkg_img)
+                else:
+                    pkg.BuildLayer()
+                    self._cash.Store(self._base, self._namespace,
+                                     pkg.GetCacheKey(), pkg.GetImage())
+                lyr_imgs.append(pkg)
 
-    def _gen_pip_env(self):
-        pip_env = os.environ.copy()
-        # bazel adds its own PYTHONPATH to the env
-        # which must be removed for the pip calls to work properly
-        del pip_env['PYTHONPATH']
-        pip_env['VIRTUAL_ENV'] = self._venv_dir
-        pip_env['PATH'] = self._venv_dir + "/bin" + ":" + os.environ['PATH']
-        return pip_env
+        app = self.AppLayer(self._ctx)
+        app.BuildLayer()
+        lyr_imgs.append(app)
+        ftl_image = self.AppendLayersIntoImage(lyr_imgs)
+        self.StoreImage(ftl_image)
 
-    def _setup_app_dir(self, app_dir):
-        # Copy out the relevant package descriptors to a tempdir.
-        for f in self.descriptor_files:
-            if self._ctx.Contains(f):
-                with open(os.path.join(app_dir, f), 'w') as w:
-                    w.write(self._ctx.GetFile(f))
+    class InterpreterLayer(single_layer_image.CacheLayer):
+        def __init__(self, venv_dir, python_version):
+            super(Python.InterpreterLayer, self).__init__()
+            self._venv_dir = venv_dir
+            self._python_version = python_version
 
-    def _setup_venv(self, python_version):
-        with ftl_util.Timing("create_virtualenv"):
-            subprocess.check_call(
-                [
+        def GetCacheKeyRaw(self):
+            return self._python_version
+
+        def BuildLayer(self):
+            self._setup_venv(self._python_version)
+            lyr, sha = ftl_util.zip_dir_to_layer_sha(
+                os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
+            self._img = tar_to_dockerimage.FromFSImage(
+                lyr, _generate_overrides(True))
+
+        def _setup_venv(self, python_version):
+            with ftl_util.Timing("create_virtualenv"):
+                subprocess.check_call([
                     'virtualenv', '--no-download', self._venv_dir, '-p',
                     python_version
-                ],
-                cwd=self._tmp_app)
+                ])
 
-    def _pip_install(self):
+    def _pip_install(self, pkg_txt):
         with ftl_util.Timing("pip_install_wheels"):
-            subprocess.check_call(
-                [
-                    'pip', 'wheel', '-w', self._wheel_dir, '-r',
-                    'requirements.txt'
-                ],
-                cwd=self._tmp_app,
-                env=self._gen_pip_env())
+            args = ['pip', 'wheel', '-w', self._wheel_dir, '-r', "/dev/stdin"]
+
+            pipe1 = subprocess.Popen(
+                args,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=self._gen_pip_env(), )
+            pipe1.communicate(input=pkg_txt)[0]
 
     def _resolve_whls(self):
         return [
@@ -148,6 +144,30 @@ class Python(builder.JustApp):
             env=self._gen_pip_env())
         return tmp_dir
 
+    def _gen_pip_env(self):
+        pip_env = os.environ.copy()
+        # bazel adds its own PYTHONPATH to the env
+        # which must be removed for the pip calls to work properly
+        del pip_env['PYTHONPATH']
+        pip_env['VIRTUAL_ENV'] = self._venv_dir
+        pip_env['PATH'] = self._venv_dir + "/bin" + ":" + os.environ['PATH']
+        return pip_env
 
-def From(ctx):
-    return Python(ctx)
+    class PackageLayer(single_layer_image.CacheLayer):
+        def __init__(self, ctx, descriptor_files, pkg_dir, dep_img_lyr):
+            super(Python.PackageLayer, self).__init__()
+            self._ctx = ctx
+            self._pkg_dir = pkg_dir
+            self._descriptor_files = descriptor_files
+            self._dep_img_lyr = dep_img_lyr
+
+        def GetCacheKeyRaw(self):
+            descriptor_contents = ftl_util.descriptor_parser(
+                self._descriptor_files, self._ctx)
+            return "%s %s" % (descriptor_contents,
+                              self._dep_img_lyr.GetCacheKeyRaw())
+
+        def BuildLayer(self):
+            lyr, sha = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
+            self._img = tar_to_dockerimage.FromFSImage(
+                lyr, _generate_overrides(False))

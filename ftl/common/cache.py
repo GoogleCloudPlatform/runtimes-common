@@ -16,10 +16,15 @@
 import abc
 import hashlib
 import logging
+import datetime
 
 from containerregistry.client import docker_name
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
+
+from ftl.common import ftl_util
+
+_DEFAULT_TTL_WEEKS = 1
 
 
 class Base(object):
@@ -37,23 +42,23 @@ class Base(object):
         """Cleanup the context."""
 
     @abc.abstractmethod
-    def Get(self, base_image, namespace, checksum):
+    def Get(self, base_image, namespace, cache_key):
         """Lookup a cached image.
         Args:
           base_image: the docker_image.Image on which things are based.
           namespace: a namespace for this cache.
-          checksum: the checksum of the package descriptor atop our base.
+          cache_key: the cache_key of the package descriptor atop our base.
         Returns:
           the docker_image.Image of the cache hit, or None.
         """
 
     @abc.abstractmethod
-    def Store(self, base_image, namespace, checksum, value):
+    def Store(self, base_image, namespace, cache_key, value):
         """Lookup a cached image.
         Args:
           base_image: the docker_image.Image on which things are based.
           namespace: a namespace for this cache.
-          checksum: the checksum of the package descriptor atop our base.
+          cache_key: the cache_key of the package descriptor atop our base.
           value: the docker_image.Image to store into the cache.
         """
 
@@ -62,7 +67,7 @@ class Registry(Base):
     """Registry is a cache implementation that stores layers in a registry.
 
     It stores layers under a 'namespace', with a tag derived from the layer
-    checksum. For example: gcr.io/$repo/$namespace:$checksum
+    cache_key. For example: gcr.io/$repo/$namespace:$cache_key
     """
 
     def __init__(self,
@@ -80,8 +85,8 @@ class Registry(Base):
         self._threads = threads
         self._mount = mount or []
 
-    def _tag(self, base_image, namespace, checksum):
-        fingerprint = '%s %s' % (base_image.digest(), checksum)
+    def _tag(self, base_image, namespace, cache_key):
+        fingerprint = '%s %s' % (base_image.digest(), cache_key)
         if self._cache_version:
             fingerprint += ' ' + self._cache_version
         return docker_name.Tag('{base}/{namespace}:{tag}'.format(
@@ -89,8 +94,8 @@ class Registry(Base):
             namespace=namespace,
             tag=hashlib.sha256(fingerprint).hexdigest()))
 
-    def Get(self, base_image, namespace, checksum):
-        entry = self._tag(base_image, namespace, checksum)
+    def Get(self, base_image, namespace, cache_key):
+        entry = self._tag(base_image, namespace, cache_key)
         with docker_image.FromRegistry(entry, self._creds,
                                        self._transport) as img:
             if img.exists():
@@ -99,8 +104,25 @@ class Registry(Base):
             logging.info('No cached base image found for entry: %s.' % entry)
         return None
 
-    def Store(self, base_image, namespace, checksum, value):
-        entry = self._tag(base_image, namespace, checksum)
+    def GetAndCheckTTL(self, base, namespace, cache_key):
+        hit = self.Get(base, namespace, cache_key)
+        if hit:
+            logging.info('Found cached dependency layer for %s' % cache_key)
+            last_created = ftl_util.timestamp_to_time(
+                ftl_util.creation_time(hit))
+            now = datetime.datetime.now()
+            if last_created > now - datetime.timedelta(
+                    weeks=_DEFAULT_TTL_WEEKS):
+                return hit
+            else:
+                logging.info(
+                    'TTL expired for cached image, rebuilding %s' % cache_key)
+        else:
+            logging.info('No cached dependency layer for %s' % cache_key)
+        return None
+
+    def Store(self, base_image, namespace, cache_key, value):
+        entry = self._tag(base_image, namespace, cache_key)
         with docker_session.Push(
                 entry,
                 self._creds,
