@@ -4,7 +4,6 @@ load(
     "@io_bazel_rules_docker//python:image.bzl",
     "py_image",
 )
-load("@base_images_docker//dockerfile_build:dockerfile_build.bzl", "dockerfile_build")
 
 exports_files([
     "Dockerfile",
@@ -13,4 +12,17 @@ exports_files([
 py_library(
     name = "benchmark_lib",
     srcs = glob(["*.py"]),
+)
+
+py_test(
+    name = "benchmark_test",
+    srcs = [
+        ":benchmark_lib",
+        "//ftl:ftl_lib",
+    ],
+    data = [
+        "//ftl/node/benchmark:node_benchmark",
+        "//ftl/php/benchmark:php_benchmark",
+    ],
+    main = "benchmark_test.py",
 )

@@ -13,32 +13,54 @@
 # limitations under the License.
 
 import argparse
-from ftl.benchmark import args
+import sys
+from ftl.common import args
 from ftl.benchmark import benchmark
 
 
-DATASET_NAME = 'ftl_benchmark'
-TABLE_NAME = 'ftl_php_benchmark'
-PROJECT_NAME = 'ftl-node-test'
-RUNTIME = "php"
+_RUNTIME = "php"
 
 parser = args.base_parser()
 php_parser = argparse.ArgumentParser(
     add_help=False,
     parents=[parser], description='Run php benchmark.')
 
+php_parser.add_argument(
+    '--iterations',
+    action='store',
+    type=int,
+    default=5,
+    help='Number of times to build the image')
 
-def main():
-    args = php_parser.parse_args()
-    b = benchmark.Benchmark(
-        args,
-        PROJECT_NAME,
-        DATASET_NAME,
-        TABLE_NAME,
-        RUNTIME
-    )
+php_parser.add_argument(
+    '--description',
+    action='store',
+    help=('Description of the app being benchmarked.'))
+
+php_parser.add_argument(
+        '--project',
+        action='store',
+        default='ftl-node-test',
+        help='Bigquery project build times should be stored in')
+
+php_parser.add_argument(
+        '--dataset',
+        action='store',
+        default='ftl_benchmark',
+        help='Bigquery dataset build times should be stored in')
+
+php_parser.add_argument(
+        '--table',
+        action='store',
+        default='ftl_php_benchmark',
+        help='Bigquery table build times should be stored in')
+
+
+def main(args):
+    args = php_parser.parse_args(args)
+    b = benchmark.Benchmark(args, _RUNTIME)
     b.run_benchmarks()
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

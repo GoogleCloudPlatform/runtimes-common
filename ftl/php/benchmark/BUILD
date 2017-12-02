@@ -14,6 +14,7 @@ py_binary(
     data = ["//ftl:php_builder.par"],
     main = "main.py",
     deps = [
+        "//ftl:ftl_lib",
         "@containerregistry",
     ],
 )
@@ -35,6 +36,7 @@ py_image(
     base = ":benchmark_base",
     main = "main.py",
     deps = [
+        "//ftl:ftl_lib",
         "@containerregistry",
     ],
 )

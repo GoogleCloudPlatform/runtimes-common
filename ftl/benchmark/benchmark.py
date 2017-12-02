@@ -21,15 +21,15 @@ from google.cloud import bigquery
 
 
 class Benchmark():
-    def __init__(self, args, project, dataset, table, runtime):
+    def __init__(self, args, runtime):
         self._base = args.base
         self._name = args.name
         self._directory = args.directory
         self._iterations = args.iterations
         self._description = args.description
-        self._project = project
-        self._dataset = dataset
-        self._table = table
+        self._project = args.project
+        self._dataset = args.dataset
+        self._table = args.table
         self._runtime = runtime
 
     def _record_build_times_to_bigquery(self, build_times):
@@ -59,25 +59,29 @@ class Benchmark():
         build_times = []
         logging.info('Beginning building {0} images'.format(self._runtime))
         for _ in range(self._iterations):
-            start_time = time.time()
+            try:
+                start_time = time.time()
 
-            # For the binary
-            builder_path = 'ftl/{0}_builder.par'.format(self._runtime)
+                # For the binary
+                builder_path = 'ftl/{0}_builder.par'.format(self._runtime)
 
-            # For container builder
-            if not os.path.isfile(builder_path):
-                builder_path = 'bazel-bin/ftl/{0}_builder.par'.format(
-                                    self._runtime)
+                # For container builder
+                if not os.path.isfile(builder_path):
+                    builder_path = 'bazel-bin/ftl/{0}_builder.par'.format(
+                                        self._runtime)
 
-            cmd = subprocess.Popen([builder_path,
-                                   '--base', self._base,
-                                    '--name', self._name,
-                                    '--directory', self._directory,
-                                    '--no-cache'], stderr=subprocess.PIPE)
-            _, output = cmd.communicate()
+                cmd = subprocess.Popen([builder_path,
+                                        '--base', self._base,
+                                        '--name', self._name,
+                                        '--directory', self._directory,
+                                        '--no-cache'], stderr=subprocess.PIPE)
+                _, output = cmd.communicate()
 
-            build_time = round(time.time() - start_time, 2)
-            build_times.append((build_time, output))
-
+                build_time = round(time.time() - start_time, 2)
+                build_times.append((build_time, output))
+            except OSError:
+                raise OSError("""Benchmarking assumes either ftl/{0}_builder.par
+                    or bazel-bin/ftl/{0}_builder.par
+                    exists""".format(self._runtime))
         logging.info('Beginning recording build times to bigquery')
         self._record_build_times_to_bigquery(build_times)
