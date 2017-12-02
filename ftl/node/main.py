@@ -27,7 +27,8 @@ from ftl.node import builder as node_builder
 parser = args.base_parser()
 node_parser = argparse.ArgumentParser(
     add_help=False,
-    parents=[parser], description='Construct node images from source.')
+    parents=[parser],
+    description='Construct node images from source.')
 args.extra_args(node_parser, args.node_flgs)
 
 # Version string used to bust caches.

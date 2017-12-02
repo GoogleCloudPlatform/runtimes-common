@@ -13,7 +13,6 @@
 # limitations under the License.
 """This package defines the interface for orchestrating image builds."""
 
-import hashlib
 import os
 import subprocess
 import tempfile
@@ -61,8 +60,7 @@ class Node(builder.JustApp):
         logging.info('Generated layer with sha: %s', sha)
 
         with append.Layer(
-                base, layer, diff_id=sha,
-                overrides=overrides) as dep_image:
+                base, layer, diff_id=sha, overrides=overrides) as dep_image:
             return dep_image
 
     def _gen_package_tar(self, destination_path):
@@ -71,8 +69,8 @@ class Node(builder.JustApp):
         # So we build a hierarchy like:
         # /$tmp/$destination_path/node_modules
         # And use the -C flag to tar to root the tarball at /$tmp.
-        tmp = tempfile.mkdtemp()
-        app_dir = os.path.join(tmp, destination_path.strip("/"))
+        pkg_dir = tempfile.mkdtemp()
+        app_dir = os.path.join(pkg_dir, destination_path.strip("/"))
         os.makedirs(app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
@@ -81,7 +79,6 @@ class Node(builder.JustApp):
                 with open(os.path.join(app_dir, f), 'w') as w:
                     w.write(self._ctx.GetFile(f))
 
-        tar_path = tempfile.mktemp()
         check_gcp_build(json.loads(self._ctx.GetFile(_PACKAGE_JSON)), app_dir)
         subprocess.check_call(
             ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
@@ -89,17 +86,7 @@ class Node(builder.JustApp):
             subprocess.check_call(
                 ['npm', 'install', '--production'], cwd=app_dir)
 
-        with ftl_util.Timing("tar_npm_packages"):
-            subprocess.check_call(['tar', '-C', tmp, '-cf', tar_path, '.'])
-
-        # We need the sha of the unzipped and zipped tarball.
-        # So for performance, tar, sha, zip, sha.
-        # We use gzip for performance instead of python's zip.
-        sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
-
-        with ftl_util.Timing("gzip_npm_tar"):
-            subprocess.check_call(['gzip', tar_path])
-        return open(os.path.join(tmp, tar_path + '.gz'), 'rb').read(), sha
+        return ftl_util.folder_to_layer_sha(pkg_dir, "npm")
 
 
 def check_gcp_build(package_json, app_dir):

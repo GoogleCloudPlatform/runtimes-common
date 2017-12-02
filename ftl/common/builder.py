@@ -78,10 +78,11 @@ class JustApp(Base):
         sha = 'sha256:' + hashlib.sha256(tar).hexdigest()
 
         logging.info('Starting to gzip app layer tarfile...')
-        gzip_process = subprocess.Popen(['gzip', '-f'],
-                                        stdout=subprocess.PIPE,
-                                        stdin=subprocess.PIPE,
-                                        stderr=subprocess.PIPE)
+        gzip_process = subprocess.Popen(
+            ['gzip', '-f'],
+            stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE,
+            stderr=subprocess.PIPE)
         gz = gzip_process.communicate(input=tar)[0]
         logging.info('Finished gzipping tarfile.')
         return gz, sha
