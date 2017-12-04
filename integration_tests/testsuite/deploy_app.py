@@ -74,8 +74,8 @@ def _record_latency_to_bigquery(deploy_latency, language, is_xrt):
                   TABLE_NAME, dataset)
     table_ref = bigquery.TableReference(dataset_ref=dataset,
                                         table_id=TABLE_NAME)
-    client.get_table(table_ref)
-    return client.create_rows(table_ref, row)
+    table = client.get_table(table_ref)
+    return client.create_rows(table, row)
 
 
 def deploy_app_and_record_latency(appdir, language, is_xrt):
