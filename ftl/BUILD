@@ -21,7 +21,7 @@ py_library(
     ]),
     deps = [
         "@containerregistry",
-        "@httplib2//:httplib2",
+        "@httplib2",
     ],
 )
 
@@ -30,7 +30,7 @@ py_library(
     srcs = ["common/test_util.py"],
     deps = [
         "//testing/lib:containerregistry_mock_lib",
-        "@mock//:mock",
+        "@mock",
     ],
 )
 
@@ -39,7 +39,7 @@ py_test(
     srcs = ["common/context_test.py"],
     deps = [
         ":ftl_lib",
-        "@mock//:mock",
+        "@mock",
     ],
 )
 
@@ -48,7 +48,7 @@ py_test(
     srcs = ["common/builder_test.py"],
     deps = [
         ":ftl_lib",
-        "@mock//:mock",
+        "@mock",
     ],
 )
 
@@ -58,7 +58,7 @@ py_test(
     deps = [
         ":ftl_lib",
         "//testing/lib:containerregistry_mock_lib",
-        "@mock//:mock",
+        "@mock",
     ],
 )
 
@@ -141,7 +141,7 @@ py_test(
     deps = [
         ":node_lib",
         "//testing/lib:containerregistry_mock_lib",
-        "@mock//:mock",
+        "@mock",
     ],
 )
 
@@ -162,7 +162,7 @@ py_test(
     deps = [
         ":python_lib",
         "//testing/lib:containerregistry_mock_lib",
-        "@mock//:mock",
+        "@mock",
     ],
 )
 
@@ -221,7 +221,7 @@ py_test(
     deps = [
         ":php_lib",
         "//testing/lib:containerregistry_mock_lib",
-        "@mock//:mock",
+        "@mock",
     ],
 )
 
