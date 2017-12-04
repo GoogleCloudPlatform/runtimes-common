@@ -73,7 +73,7 @@ class PHP(builder.JustApp):
                 ['composer', 'install', '--no-dev', '--no-scripts'],
                 cwd=app_dir)
 
-        return ftl_util.folder_to_layer_sha(pkg_dir, "composer")
+        return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 
 
 def From(ctx):

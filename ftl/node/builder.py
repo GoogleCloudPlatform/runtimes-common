@@ -86,7 +86,7 @@ class Node(builder.JustApp):
             subprocess.check_call(
                 ['npm', 'install', '--production'], cwd=app_dir)
 
-        return ftl_util.folder_to_layer_sha(pkg_dir, "npm")
+        return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 
 
 def check_gcp_build(package_json, app_dir):

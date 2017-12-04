@@ -61,8 +61,8 @@ class Python(builder.JustApp):
 
         self._setup_app_dir(self._tmp_app)
         self._setup_venv(python_version)
-        layer, sha = ftl_util.folder_to_layer_sha(
-            os.path.abspath(os.path.join(self._venv_dir, os.pardir)), "pip")
+        layer, sha = ftl_util.zip_dir_to_layer_sha(
+            os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
         package_base = append.Layer(
             package_base,
             layer,
@@ -74,7 +74,7 @@ class Python(builder.JustApp):
         pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
         logging.info("pkg_dirs" + str(pkg_dirs))
         for pkg_dir in pkg_dirs:
-            layer, sha = ftl_util.folder_to_layer_sha(pkg_dir, "pip")
+            layer, sha = ftl_util.zip_dir_to_layer_sha(pkg_dir)
             logging.info('Generated layer with sha: %s', sha)
             package_base = append.Layer(
                 package_base,

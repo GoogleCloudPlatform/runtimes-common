@@ -33,9 +33,9 @@ class Timing(object):
         logging.info('%s took %d seconds', self.descriptor, end - self.start)
 
 
-def folder_to_layer_sha(pkg_dir, pkg_mngr_name):
+def zip_dir_to_layer_sha(pkg_dir):
     tar_path = tempfile.mktemp()
-    with Timing("tar_%s_package" % pkg_mngr_name):
+    with Timing("tar_runtime_package"):
         subprocess.check_call(['tar', '-C', pkg_dir, '-cf', tar_path, '.'])
 
     # We need the sha of the unzipped and zipped tarball.
@@ -43,6 +43,6 @@ def folder_to_layer_sha(pkg_dir, pkg_mngr_name):
     # We use gzip for performance instead of python's zip.
     sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
 
-    with Timing("gzip_%s_tar" % pkg_mngr_name):
+    with Timing("gzip_runtime_tar"):
         subprocess.check_call(['gzip', tar_path, '-1'])
     return open(os.path.join(pkg_dir, tar_path + '.gz'), 'rb').read(), sha
