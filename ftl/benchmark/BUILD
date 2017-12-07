@@ -23,6 +23,7 @@ py_test(
     data = [
         "//ftl/node/benchmark:node_benchmark",
         "//ftl/php/benchmark:php_benchmark",
+        "//ftl/python/benchmark:python_benchmark",
     ],
     main = "benchmark_test.py",
 )

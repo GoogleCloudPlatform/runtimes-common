@@ -175,7 +175,7 @@ docker_build(
     entrypoint = "",
 )
 
-py_binary(
+par_binary(
     name = "python_builder",
     srcs = [":python_lib"],
     main = "python/main.py",

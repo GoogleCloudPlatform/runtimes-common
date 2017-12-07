@@ -14,6 +14,7 @@
 
 from ftl.node.benchmark import main as node_main
 from ftl.php.benchmark import main as php_main
+from ftl.python.benchmark import main as python_main
 import unittest
 from mock import patch
 
@@ -36,6 +37,16 @@ class BenchmarkTest(unittest.TestCase):
             '--base', 'gcr.io/google-appengine/nodejs:latest',
             '--name', 'gcr.io/ftl-node-test/benchmark-node-test:test',
             '--directory', 'ftl/node/benchmark/data/small_app',
+            '--iterations', '1',
+        ])
+        assert bigquery_mock.called
+
+    @patch('google.cloud.bigquery.Client.create_rows')
+    def testPythonBenchmark(self, bigquery_mock):
+        python_main.main([
+            '--base', 'gcr.io/google-appengine/python:latest',
+            '--name', 'gcr.io/ftl-node-test/benchmark-python-test:test',
+            '--directory', 'ftl/python/benchmark/data/small_app',
             '--iterations', '1',
         ])
         assert bigquery_mock.called
