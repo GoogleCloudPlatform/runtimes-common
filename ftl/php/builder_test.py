@@ -24,7 +24,6 @@ from ftl.common import context
 from ftl.common import test_util
 from ftl.php import builder
 
-
 _COMPOSER_JSON = json.loads("""
 {
   "name": "hello-world",
@@ -67,21 +66,18 @@ return $app;
 
 
 class PHPTest(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         current_dir = os.path.dirname(__file__)
         cls.base_image = test_util.TarDockerImage(
             os.path.join(current_dir, "testdata/base_image/config_file"),
-            os.path.join(
-                current_dir,
-                "testdata/base_image/distroless-base-latest.tar.gz"))
+            os.path.join(current_dir,
+                         "testdata/base_image/distroless-base-latest.tar.gz"))
 
     def setUp(self):
         self._tmpdir = tempfile.mkdtemp()
         self.cache = test_util.MockHybridRegistry(
-            'fake.gcr.io/google-appengine',
-            self._tmpdir)
+            'fake.gcr.io/google-appengine', self._tmpdir)
         self.ctx = context.Memory()
         self.ctx.AddFile("app.php", _APP)
         self.ctx.AddFile('composer.json', _COMPOSER_JSON_TEXT)
