@@ -14,8 +14,9 @@
 
 import argparse
 import sys
-from ftl.common import args
+from ftl.benchmark import args
 from ftl.benchmark import benchmark
+
 
 _RUNTIME = "node"
 
@@ -23,30 +24,6 @@ parser = args.base_parser()
 node_parser = argparse.ArgumentParser(
     add_help=False,
     parents=[parser], description='Run node benchmark.')
-
-node_parser.add_argument(
-    '--iterations',
-    action='store',
-    type=int,
-    default=5,
-    help='Number of times to build the image')
-
-node_parser.add_argument(
-    '--description',
-    action='store',
-    help=('Description of the app being benchmarked.'))
-
-node_parser.add_argument(
-        '--project',
-        action='store',
-        default='ftl-node-test',
-        help='Bigquery project build times should be stored in')
-
-node_parser.add_argument(
-        '--dataset',
-        action='store',
-        default='ftl_benchmark',
-        help='Bigquery dataset build times should be stored in')
 
 node_parser.add_argument(
         '--table',

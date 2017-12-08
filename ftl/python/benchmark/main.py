@@ -14,7 +14,7 @@
 
 import argparse
 import sys
-from ftl.common import args
+from ftl.benchmark import args
 from ftl.benchmark import benchmark
 
 
@@ -24,30 +24,6 @@ parser = args.base_parser()
 python_parser = argparse.ArgumentParser(
     add_help=False,
     parents=[parser], description='Run python benchmark.')
-
-python_parser.add_argument(
-    '--iterations',
-    action='store',
-    type=int,
-    default=5,
-    help='Number of times to build the image')
-
-python_parser.add_argument(
-    '--description',
-    action='store',
-    help=('Description of the app being benchmarked.'))
-
-python_parser.add_argument(
-        '--project',
-        action='store',
-        default='ftl-node-test',
-        help='Bigquery project build times should be stored in')
-
-python_parser.add_argument(
-        '--dataset',
-        action='store',
-        default='ftl_benchmark',
-        help='Bigquery dataset build times should be stored in')
 
 python_parser.add_argument(
         '--table',
