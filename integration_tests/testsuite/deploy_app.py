@@ -72,9 +72,10 @@ def _record_latency_to_bigquery(deploy_latency, language, is_xrt):
     dataset = client.dataset(DATASET_NAME)
     logging.debug('Writing bigquery data to table %s in dataset %s',
                   TABLE_NAME, dataset)
-    table = bigquery.Table(name=TABLE_NAME, dataset=dataset)
-    table.reload()
-    return table.insert_data(row)
+    table_ref = bigquery.TableReference(dataset_ref=dataset,
+                                        table_id=TABLE_NAME)
+    table = client.get_table(table_ref)
+    return client.create_rows(table, row)
 
 
 def deploy_app_and_record_latency(appdir, language, is_xrt):
@@ -85,8 +86,12 @@ def deploy_app_and_record_latency(appdir, language, is_xrt):
     # Latency is in seconds round up to 2 decimals
     deploy_latency = round(time.time() - start_time, 2)
 
-    # Store the deploy latency data to bigquery
-    _record_latency_to_bigquery(deploy_latency, language, is_xrt)
+    try:
+        # Store the deploy latency data to bigquery
+        _record_latency_to_bigquery(deploy_latency, language, is_xrt)
+    except Exception as e:
+        # log error, but ignore and try and cleanup version anyway
+        logging.error("Error writing latency to bigquery: %s", e)
     return version, url
 
 

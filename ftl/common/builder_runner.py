@@ -146,7 +146,7 @@ def _timestamp_to_time(dt_str):
 def _args_extractor(args):
     extracted = {}
     extracted['base'] = args['base']
-    for flg in ftl_args.node_flgs + ftl_args.php_flgs:
+    for flg in ftl_args.node_flgs + ftl_args.php_flgs + ftl_args.python_flgs:
         if flg in args and args[flg] is not None:
             extracted[flg] = args[flg]
     return extracted

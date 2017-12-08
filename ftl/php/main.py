@@ -27,7 +27,8 @@ from ftl.php import builder as php_builder
 parser = args.base_parser()
 php_parser = argparse.ArgumentParser(
     add_help=False,
-    parents=[parser], description='Construct php images from source.')
+    parents=[parser],
+    description='Construct php images from source.')
 args.extra_args(php_parser, args.php_flgs)
 
 # Version string used to bust caches.

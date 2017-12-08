@@ -13,7 +13,6 @@
 # limitations under the License.
 """This package defines the interface for orchestrating image builds."""
 
-import hashlib
 import os
 import subprocess
 import tempfile
@@ -56,13 +55,13 @@ class Python(builder.JustApp):
         return metadata.Overrides(
             creation_time=str(datetime.date.today()) + "T00:00:00Z", env=env)
 
-    def CreatePackageBase(self, base, py_version='python2.7'):
+    def CreatePackageBase(self, base, python_version='python2.7'):
         """Override."""
         package_base = base
 
         self._setup_app_dir(self._tmp_app)
-        self._setup_venv(py_version)
-        layer, sha = self._gen_package_tar(
+        self._setup_venv(python_version)
+        layer, sha = ftl_util.zip_dir_to_layer_sha(
             os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
         package_base = append.Layer(
             package_base,
@@ -75,7 +74,7 @@ class Python(builder.JustApp):
         pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
         logging.info("pkg_dirs" + str(pkg_dirs))
         for pkg_dir in pkg_dirs:
-            layer, sha = self._gen_package_tar(pkg_dir)
+            layer, sha = ftl_util.zip_dir_to_layer_sha(pkg_dir)
             logging.info('Generated layer with sha: %s', sha)
             package_base = append.Layer(
                 package_base,
@@ -99,20 +98,6 @@ class Python(builder.JustApp):
         os.mkdir(dir_name)
         return dir_name
 
-    def _gen_package_tar(self, pkg_dir):
-        tar_path = tempfile.mktemp()
-        with ftl_util.Timing("tar_pip_package"):
-            subprocess.check_call(['tar', '-C', pkg_dir, '-cf', tar_path, '.'])
-
-        # We need the sha of the unzipped and zipped tarball.pkg_dir
-        # So for performance, tar, sha, zip, sha.
-        # We use gzip for performance instead of python's zip.
-        sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
-
-        with ftl_util.Timing("gzip_pip_package"):
-            subprocess.check_call(['gzip', tar_path])
-        return open(os.path.join(pkg_dir, tar_path + '.gz'), 'rb').read(), sha
-
     def _gen_pip_env(self):
         pip_env = os.environ.copy()
         # bazel adds its own PYTHONPATH to the env
@@ -129,12 +114,12 @@ class Python(builder.JustApp):
                 with open(os.path.join(app_dir, f), 'w') as w:
                     w.write(self._ctx.GetFile(f))
 
-    def _setup_venv(self, py_version):
+    def _setup_venv(self, python_version):
         with ftl_util.Timing("create_virtualenv"):
             subprocess.check_call(
                 [
                     'virtualenv', '--no-download', self._venv_dir, '-p',
-                    py_version
+                    python_version
                 ],
                 cwd=self._tmp_app)
 
