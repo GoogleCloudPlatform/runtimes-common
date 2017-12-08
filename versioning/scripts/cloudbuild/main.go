@@ -32,10 +32,17 @@ type cloudBuildOptions struct {
 
 	// Optional timeout duration. If not specified, the Cloud Builder default timeout is used.
 	TimeoutSeconds int
+
+	// Optional parallel build. If specified, images can be build on bigger machines in parallel.
+	EnableParallel bool
+
+	// Forces parallel build. If specified, images are build on bigger machines in parallel. Overrides EnableParallel.
+	ForceParallel bool
 }
 
 // TODO(huyhg): Replace "gcr.io/$PROJECT_ID/functional_test" with gcp-runtimes one.
 const cloudBuildTemplateString = `steps:
+{{- $parallel := .Parallel }}
 {{- if .RequireNewTags }}
 # Check if tags exist.
 {{- range .Images }}
@@ -54,6 +61,10 @@ const cloudBuildTemplateString = `steps:
       - 'build'
       - '--tag={{ .Tag }}'
       - '{{ .Directory }}'
+{{- if (eq $parallel true) }}
+    waitFor: ['-']
+    id: 'image-{{ .Tag }}'
+{{- end }}
 {{- end }}
 
 {{- range $imageIndex, $image := .ImageBuilds }}
@@ -84,21 +95,34 @@ const cloudBuildTemplateString = `steps:
       - '--verbose'
       - '--vars'
       - 'IMAGE={{ $primary }}'
+      - '--vars'
+      - 'UNIQUE={{ $imageIndex }}-{{ $testIndex }}'
       - '--test_spec'
       - '{{ $test }}'
+{{- if (eq $parallel true) }}
+    waitFor: ['image-{{ $primary }}']
+    id: 'test-{{ $primary }}-{{ $testIndex }}'
+{{- end }}
 {{- end }}
 
 {{- end }}
 
 # Add alias tags
-{{- range .ImageBuilds }}
-{{- $primary := .Tag }}
+{{- range $imageIndex, $image := .ImageBuilds }}
+{{- $primary := $image.Tag }}
 {{- range .Aliases }}
   - name: gcr.io/cloud-builders/docker
     args:
       - 'tag'
       - '{{ $primary }}'
       - '{{ . }}'
+{{- if (eq $parallel true) }}
+    waitFor:
+      - 'image-{{ $primary }}'
+{{- range $testIndex, $test := $image.FunctionalTests }}
+      - 'test-{{ $primary }}-{{ $testIndex }}'
+{{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 
@@ -110,7 +134,13 @@ images:
 {{- if not (eq .TimeoutSeconds 0) }}
 
 timeout: {{ .TimeoutSeconds }}s
-{{- end }}`
+{{- end }}
+
+{{- if (eq $parallel true) }}
+options:
+  machineType: 'N1_HIGHCPU_32'
+{{- end }}
+`
 
 const testsDir = "tests"
 const functionalTestsDir = "tests/functional_tests"
@@ -129,9 +159,23 @@ type imageBuildTemplateData struct {
 
 type cloudBuildTemplateData struct {
 	RequireNewTags bool
+	Parallel       bool
 	ImageBuilds    []imageBuildTemplateData
 	AllImages      []string
 	TimeoutSeconds int
+}
+
+func parallelize(
+	options cloudBuildOptions,
+	numberOfVersions int,
+	numberOfTests int) bool {
+	if options.ForceParallel {
+		return true
+	}
+	if !options.EnableParallel {
+		return false
+	}
+	return numberOfVersions > 1 || numberOfTests > 1
 }
 
 func newCloudBuildTemplateData(
@@ -181,6 +225,7 @@ func newCloudBuildTemplateData(
 	}
 
 	data.TimeoutSeconds = options.TimeoutSeconds
+	data.Parallel = parallelize(options, len(spec.Versions), len(functionalTests))
 	return data
 }
 
@@ -251,6 +296,8 @@ func main() {
 	newTagsPtr := flag.Bool("new_tags", false, "Require that image tags do not already exist.")
 	firstTagOnly := flag.Bool("first_tag", false, "Build only the first per version.")
 	timeoutPtr := flag.Int("timeout", 0, "Timeout in seconds. If not set, the default Cloud Build timeout is used.")
+	enableParallel := flag.Bool("enable_parallel", false, "Enable parallel build and bigger VM")
+	forceParallel := flag.Bool("force_parallel", false, "Force parallel build and bigger VM")
 	flag.Parse()
 
 	if *registryPtr == "" {
@@ -265,9 +312,8 @@ func main() {
 	if *dirsPtr != "" {
 		dirs = strings.Split(*dirsPtr, ",")
 	}
-
 	spec := versions.LoadVersions("versions.yaml")
-	options := cloudBuildOptions{dirs, *testsPtr, *newTagsPtr, *firstTagOnly, *timeoutPtr}
+	options := cloudBuildOptions{dirs, *testsPtr, *newTagsPtr, *firstTagOnly, *timeoutPtr, *enableParallel, *forceParallel}
 	result := renderCloudBuildConfig(*registryPtr, spec, options)
 	fmt.Println(result)
 }
