@@ -12,93 +12,54 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import subprocess
 import argparse
-import datetime
-import time
-import os
-import logging
-from google.cloud import bigquery
+import sys
+from ftl.common import args
+from ftl.benchmark import benchmark
 
-DATASET_NAME = 'ftl_benchmark'
-TABLE_NAME = 'ftl_benchmark'
-PROJECT_NAME = 'ftl-node-test'
+_RUNTIME = "node"
 
-parser = argparse.ArgumentParser(
-    description='Run FTL node benchmarks.')
+parser = args.base_parser()
+node_parser = argparse.ArgumentParser(
+    add_help=False,
+    parents=[parser], description='Run node benchmark.')
 
-parser.add_argument(
-    '--base', action='store', help=('The name of the docker base image.'))
-
-parser.add_argument(
-    '--name', action='store', help=('The name of the docker image to push.'))
-
-parser.add_argument(
-    '--directory',
-    action='store',
-    help='The path where the application data sits.')
-
-parser.add_argument(
+node_parser.add_argument(
     '--iterations',
     action='store',
     type=int,
+    default=5,
     help='Number of times to build the image')
 
-parser.add_argument(
-    '--description', action='store',
+node_parser.add_argument(
+    '--description',
+    action='store',
     help=('Description of the app being benchmarked.'))
 
+node_parser.add_argument(
+        '--project',
+        action='store',
+        default='ftl-node-test',
+        help='Bigquery project build times should be stored in')
 
-def _record_build_times_to_bigquery(build_times, description):
-    current_date = datetime.datetime.now()
-    logging.info('Retrieving bigquery client')
-    client = bigquery.Client(project=PROJECT_NAME)
+node_parser.add_argument(
+        '--dataset',
+        action='store',
+        default='ftl_benchmark',
+        help='Bigquery dataset build times should be stored in')
 
-    dataset_ref = client.dataset(DATASET_NAME)
-    table_ref = dataset_ref.table(TABLE_NAME)
-    table = client.get_table(table_ref)
-
-    logging.info('Adding build time data to bigquery table')
-    rows = [(current_date, description, bt[0], bt[1]) for bt in build_times]
-    client.create_rows(table, rows)
-    logging.info('Finished adding build time data to bigquery table')
+node_parser.add_argument(
+        '--table',
+        action='store',
+        default='ftl_benchmark',
+        help='Bigquery table build times should be stored in')
 
 
-def main():
-    args = parser.parse_args()
-    logging.getLogger().setLevel("NOTSET")
-    logging.basicConfig(
-        format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
-        datefmt='%Y-%m-%d,%H:%M:%S')
-    build_times = []
-    logging.info('Beginning building node images')
-    for _ in range(args.iterations):
-        start_time = time.time()
-
-        # For the binary
-        node_builder_path = 'ftl/node_builder.par'
-        # For the image
-        if not os.path.isfile(node_builder_path):
-            node_builder_path = ("./ftl/node/benchmark/node_benchmark_image."
-                                 "binary.runfiles/__main__/ftl/"
-                                 "node_builder.par")
-        # For container builder
-        if not os.path.isfile(node_builder_path):
-            node_builder_path = 'bazel-bin/ftl/node_builder.par'
-
-        cmd = subprocess.Popen([node_builder_path,
-                                '--base', args.base,
-                                '--name', args.name,
-                                '--directory', args.directory,
-                                '--no-cache'], stderr=subprocess.PIPE)
-        _, output = cmd.communicate()
-
-        build_time = round(time.time() - start_time, 2)
-        build_times.append((build_time, output))
-
-    logging.info('Beginning recording build times to bigquery')
-    _record_build_times_to_bigquery(build_times, args.description)
+def main(args):
+    args = node_parser.parse_args(args)
+    b = benchmark.Benchmark(args, _RUNTIME)
+    b.run_benchmarks()
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

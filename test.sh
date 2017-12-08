@@ -9,6 +9,6 @@ flake8 .
 
 echo "Running tests..."
 bazel test --test_output=errors reconciletags:reconciletags_test
-bazel test --test_output=errors ftl/... --deleted_packages=ftl/node/benchmark,ftl/php/benchmark
+bazel test --test_output=errors ftl/... --deleted_packages=ftl/node/benchmark,ftl/php/benchmark,ftl/benchmark
 bazel test --test_output=errors testing/lib:mock_registry_tests
 cd runtime_builders && py.test test_manifest.py && cd ..
