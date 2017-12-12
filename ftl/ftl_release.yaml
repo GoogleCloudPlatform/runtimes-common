@@ -8,6 +8,9 @@ steps:
     args: ['build','//ftl:node_builder.par']
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', 'bazel-bin/ftl/node_builder.par', 'gs://gcp-container-tools/ftl/node/${COMMIT_SHA}/ftl.par']
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', 'gs://gcp-container-tools/ftl/node/${COMMIT_SHA}/ftl.par', 'gs://gcp-container-tools/ftl/node/latest/ftl.par']
+
 # PHP
   - name: 'gcr.io/cloud-builders/bazel'
     args: ['run','//ftl:php_builder_image', '--', '--norun']
@@ -18,5 +21,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', 'bazel-bin/ftl/php_builder.par', 'gs://gcp-container-tools/ftl/php/${COMMIT_SHA}/ftl.par']
   - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', 'gs://gcp-container-tools/ftl/php/${COMMIT_SHA}/ftl.par', 'gs://gcp-container-tools/ftl/php/latest/ftl.par']
+  - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', 'gs://gcp-container-tools/ftl/php/${COMMIT_SHA}/*', 'gs://gcp-container-tools/ftl/php/latest/']
-images: ['gcr.io/gcp-runtimes/ftl_node_8_5_0_ubuntu_16_0_4_build', 'gcr.io/gcp-runtimes/ftl_php_build'] 
+images: ['gcr.io/gcp-runtimes/ftl_node_8_5_0_ubuntu_16_0_4_build', 'gcr.io/gcp-runtimes/ftl_php_build']
