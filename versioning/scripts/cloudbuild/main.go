@@ -61,7 +61,7 @@ const cloudBuildTemplateString = `steps:
       - 'build'
       - '--tag={{ .Tag }}'
       - '{{ .Directory }}'
-{{- if (eq $parallel true) }}
+{{- if $parallel }}
     waitFor: ['-']
     id: 'image-{{ .Tag }}'
 {{- end }}
@@ -99,7 +99,7 @@ const cloudBuildTemplateString = `steps:
       - 'UNIQUE={{ $imageIndex }}-{{ $testIndex }}'
       - '--test_spec'
       - '{{ $test }}'
-{{- if (eq $parallel true) }}
+{{- if $parallel }}
     waitFor: ['image-{{ $primary }}']
     id: 'test-{{ $primary }}-{{ $testIndex }}'
 {{- end }}
@@ -116,7 +116,7 @@ const cloudBuildTemplateString = `steps:
       - 'tag'
       - '{{ $primary }}'
       - '{{ . }}'
-{{- if (eq $parallel true) }}
+{{- if $parallel }}
     waitFor:
       - 'image-{{ $primary }}'
 {{- range $testIndex, $test := $image.FunctionalTests }}
@@ -136,7 +136,7 @@ images:
 timeout: {{ .TimeoutSeconds }}s
 {{- end }}
 
-{{- if (eq $parallel true) }}
+{{- if $parallel }}
 options:
   machineType: 'N1_HIGHCPU_32'
 {{- end }}
@@ -165,10 +165,8 @@ type cloudBuildTemplateData struct {
 	TimeoutSeconds int
 }
 
-func parallelize(
-	options cloudBuildOptions,
-	numberOfVersions int,
-	numberOfTests int) bool {
+func shouldParallelize(
+	options cloudBuildOptions, numberOfVersions int, numberOfTests int) bool {
 	if options.ForceParallel {
 		return true
 	}
@@ -225,7 +223,7 @@ func newCloudBuildTemplateData(
 	}
 
 	data.TimeoutSeconds = options.TimeoutSeconds
-	data.Parallel = parallelize(options, len(spec.Versions), len(functionalTests))
+	data.Parallel = shouldParallelize(options, len(spec.Versions), len(functionalTests))
 	return data
 }
 
