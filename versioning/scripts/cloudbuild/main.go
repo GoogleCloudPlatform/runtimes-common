@@ -165,7 +165,7 @@ type cloudBuildTemplateData struct {
 	TimeoutSeconds int
 }
 
-func shouldParallelize( options cloudBuildOptions, numberOfVersions int, numberOfTests int) bool {
+func shouldParallelize(options cloudBuildOptions, numberOfVersions int, numberOfTests int) bool {
 	if options.ForceParallel {
 		return true
 	}
