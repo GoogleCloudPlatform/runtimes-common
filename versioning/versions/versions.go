@@ -12,12 +12,13 @@ import (
 )
 
 type Package struct {
-	Version string
-	Major   string
-	Gpg     string
-	Sha1    string
-	Sha256  string
-	Md5     string
+	Version      string
+	Major        string
+	Gpg          string
+	Sha1         string
+	Sha256       string
+	Md5          string
+	RetryCommand string
 }
 
 type Version struct {
@@ -31,7 +32,9 @@ type Version struct {
 }
 
 type Spec struct {
-	Versions []Version
+	Versions   []Version
+	Extensions []string
+	Config     map[string]string
 }
 
 func LoadVersions(path string) Spec {
@@ -45,9 +48,7 @@ func LoadVersions(path string) Spec {
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
-
 	validateUniqueTags(spec)
-
 	return spec
 }
 
@@ -62,4 +63,13 @@ func validateUniqueTags(spec Spec) {
 			repoTags[repoTag] = true
 		}
 	}
+}
+
+func (spec *Spec) CheckExtension(s string) bool {
+	for _, b := range spec.Extensions {
+		if b == s {
+			return true
+		}
+	}
+	return false
 }

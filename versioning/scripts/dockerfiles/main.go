@@ -15,12 +15,53 @@ import (
 	"text/template"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/versioning/versions"
+	"strconv"
 )
+
+type Format struct {
+	Indent string
+	Count  int
+}
+
+func parseSpecToFormat(c map[string]string) Format {
+	fIndent := " "
+	fCount := 4
+	if val, ok := c["template_retry_intendt_type"]; ok {
+		fIndent = val
+	}
+	if val, ok := c["template_retry_intendt_length"]; ok {
+		count, err := strconv.Atoi(val)
+		check(err)
+		fCount = count
+	}
+	return Format{Indent: fIndent, Count: fCount}
+}
+
+func (f Format) indent(s string) string {
+	temp := strings.Split(s, "\n")
+	str := ""
+	for index, line := range temp {
+		if index > 0 {
+			str = str + "\n"
+		}
+		trimmed := strings.TrimSpace(line)
+		diff := len(line) - len(trimmed)
+		prefix := strings.Repeat(f.Indent, diff*f.Count)
+		str = str + prefix + trimmed
+	}
+	return str
+}
 
 func renderDockerfile(version versions.Version, tmpl template.Template) []byte {
 	var result bytes.Buffer
 	tmpl.Execute(&result, version)
 	return result.Bytes()
+}
+
+func renderRetry(pack versions.Package, tmpl template.Template) string {
+	var result bytes.Buffer
+	tmpl.Execute(&result, pack)
+	return string(result.Bytes())
 }
 
 func writeDockerfile(version versions.Version, data []byte) {
@@ -170,6 +211,25 @@ func check(e error) {
 	}
 }
 
+const templateFrom = `FROM {{ .From }}
+`
+
+const templateRetry = `found='' && \
+ for server in \
+  pool.sks-keyservers.net \
+  na.pool.sks-keyservers.net \
+  eu.pool.sks-keyservers.net \
+  oc.pool.sks-keyservers.net \
+  ha.pool.sks-keyservers.net \
+  hkp://p80.pool.sks-keyservers.net:80 \
+  hkp://keyserver.ubuntu.com:80 \
+  pgp.mit.edu \
+ ; do \
+  {{ $.RetryCommand }} \
+   && found=yes && break; \
+ done; \
+ test -n "$found"`
+
 func main() {
 	templateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template and any other files to copy over")
 	verifyPtr := flag.Bool("verify_only", false, "Verify dockerfiles")
@@ -182,7 +242,24 @@ func main() {
 	templateData, err := ioutil.ReadFile(templatePath)
 	templateString := string(templateData)
 	check(err)
-
+	if spec.CheckExtension("TEMPLATE_FROM") {
+		templateString = templateFrom + templateString
+	}
+	if spec.CheckExtension("TEMPLATE_RETRY") {
+		templateFormat := parseSpecToFormat(spec.Config)
+		retryTmpl, err := template.
+			New("retryTemplate").
+			Parse(templateFormat.indent(templateRetry))
+		check(err)
+		for index, element := range spec.Versions {
+			for pName, pValues := range element.Packages {
+				if pValues.RetryCommand != "" {
+					pValues.RetryCommand = renderRetry(pValues, *retryTmpl)
+					spec.Versions[index].Packages[pName] = pValues
+				}
+			}
+		}
+	}
 	tmpl, err := template.
 		New("dockerfileTemplate").
 		Parse(templateString)
