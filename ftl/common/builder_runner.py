@@ -72,7 +72,8 @@ class BuilderRunner():
             # TODO(aaron-prindle) verify this makes sense to use None
             # as sentinel for no descriptor and to handle this here
             return self.args.base
-
+        if not self.args.cache:
+            return None
         hit = self.cash.Get(self.args.base, self.builder.namespace, checksum)
         if hit:
             logging.info('Found cached dependency layer for %s' % checksum)
@@ -89,7 +90,7 @@ class BuilderRunner():
         return None
 
     def StoreDepsImage(self, dep_image, checksum):
-        if self.args.cache:
+        if self.args.upload:
             logging.info('Storing layer cash.')
             self.cash.Store(self.args.base, self.builder.namespace, checksum,
                             dep_image)

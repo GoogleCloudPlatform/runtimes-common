@@ -42,14 +42,27 @@ def base_parser():
         '--no-cache',
         dest='cache',
         action='store_false',
-        help='Do not use cache during build.')
+        help='Do not check cache during build.')
 
     parser.add_argument(
         '--cache',
         dest='cache',
         default=True,
         action='store_true',
-        help='Use cache during build (default).')
+        help='Check cache during build (default).')
+
+    parser.add_argument(
+        '--no-upload',
+        dest='upload',
+        action='store_false',
+        help='Do not upload to cache during build.')
+
+    parser.add_argument(
+        '--upload',
+        dest='upload',
+        default=True,
+        action='store_true',
+        help='Upload to cache during build (default).')
 
     parser.add_argument(
         '--output-path',
