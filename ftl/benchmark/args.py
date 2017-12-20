@@ -43,4 +43,11 @@ def base_parser():
         default='ftl_benchmark',
         help='Bigquery dataset build times should be stored in')
 
+    parser.add_argument(
+        '--gen_files',
+        action='store',
+        type=int,
+        default=0,
+        help=('Number of app files to generate for test'))
+
     return parser
