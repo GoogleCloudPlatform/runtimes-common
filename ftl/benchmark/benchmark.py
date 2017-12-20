@@ -69,12 +69,18 @@ class Benchmark():
                 if not os.path.isfile(builder_path):
                     builder_path = 'bazel-bin/ftl/{0}_builder.par'.format(
                                         self._runtime)
-
+                if self._directory.endswith('add_pkg'):
+                    cmd = subprocess.Popen([builder_path,
+                                            '--base', self._base,
+                                            '--name', self._name,
+                                            '--directory', self._directory],
+                                            stderr=subprocess.PIPE)
                 cmd = subprocess.Popen([builder_path,
                                         '--base', self._base,
                                         '--name', self._name,
                                         '--directory', self._directory,
-                                        '--no-cache'], stderr=subprocess.PIPE)
+                                        '--no-cache'],
+                                        stderr=subprocess.PIPE)
                 _, output = cmd.communicate()
 
                 build_time = round(time.time() - start_time, 2)

@@ -5,7 +5,8 @@ import yaml
 import argparse
 
 # Add directories for new tests here.
-APP_DIRS = ['small_app', 'medium_app', 'large_app']
+APP_DIRS = ['small_app', 'medium_app', 'large_app'
+    'small_app_add_pkg', 'medium_app_add_pkg', 'large_app_add_pkg']
 _DATA_DIR = '/workspace/ftl/php/benchmark/data/'
 _PHP_BASE = 'gcr.io/gae-runtimes/php72_app_builder:latest'
 
