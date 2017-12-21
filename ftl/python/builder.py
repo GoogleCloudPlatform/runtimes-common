@@ -28,7 +28,7 @@ from ftl.common import ftl_util
 _PYTHON_NAMESPACE = 'python-requirements-cache'
 _REQUIREMENTS_TXT = 'requirements.txt'
 _VENV_DIR = 'env'
-_TMP_APP = 'app'
+_TMP_APP = 'srv'
 _WHEEL_DIR = 'wheel'
 
 

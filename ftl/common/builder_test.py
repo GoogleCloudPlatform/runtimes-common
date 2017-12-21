@@ -43,12 +43,12 @@ class JustAppTest(unittest.TestCase):
             ctx.AddFile(p, f)
 
         b = builder.JustApp(ctx)
-        app_layer, _ = b.BuildAppLayer()
+        app_layer, _ = b.BuildAppLayer('srv')
         stream = cStringIO.StringIO(app_layer)
         with tarfile.open(fileobj=stream, mode='r:gz') as tf:
             self.assertEqual(len(tf.getnames()), len(files))
             for p, f in files.iteritems():
-                tar_path = os.path.join('app', p)
+                tar_path = os.path.join('srv', p)
                 self.assertEquals(tf.extractfile(tar_path).read(), f)
 
 

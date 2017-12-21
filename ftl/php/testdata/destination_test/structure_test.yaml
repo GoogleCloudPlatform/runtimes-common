@@ -4,3 +4,7 @@ fileExistenceTests:
   path: '/alternative-app/vendor/silex'
   shouldExist: true
   isDirectory: true
+- name: 'application file'
+  path: '/alternative-app/app.php'
+  shouldExist: true
+  isDirectory: false

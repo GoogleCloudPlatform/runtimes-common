@@ -113,7 +113,8 @@ class BuilderRunner():
                 self.StoreDepsImage(deps_image, checksum)
             # Construct the application layer from the context.
             logging.info('Generating app layer...')
-            app_layer, diff_id = self.builder.BuildAppLayer()
+            app_layer, diff_id = self.builder.BuildAppLayer(
+                self.args.destination_path)
             with append.Layer(
                     deps_image, app_layer, diff_id=diff_id) as app_image:
                 if self.args.output_path:
@@ -147,6 +148,8 @@ def _timestamp_to_time(dt_str):
 def _args_extractor(args):
     extracted = {}
     extracted['base'] = args['base']
+    if args['destination_path'] is not None:
+        extracted['destination_path'] = args['destination_path']
     for flg in ftl_args.node_flgs + ftl_args.php_flgs + ftl_args.python_flgs:
         if flg in args and args[flg] is not None:
             extracted[flg] = args[flg]
