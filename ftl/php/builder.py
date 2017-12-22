@@ -44,7 +44,7 @@ class PHP(builder.JustApp):
         return metadata.Overrides(
             creation_time=str(datetime.date.today()) + "T00:00:00Z")
 
-    def CreatePackageBase(self, base, destination_path="/workspace/app"):
+    def CreatePackageBase(self, base, destination_path="srv"):
         """Override."""
         overrides = self._generate_overrides()
         layer, sha = self._gen_package_tar(destination_path)

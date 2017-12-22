@@ -34,7 +34,7 @@ class Base(object):
         self._ctx = ctx
 
     @abc.abstractmethod
-    def BuildAppLayer(self):
+    def BuildAppLayer(self, destination_path):
         """Synthesizes the application layer from the context.
         Returns:
           a raw string of the layer's .tar.gz
@@ -62,14 +62,17 @@ class JustApp(Base):
         # our package base.
         return base_image
 
-    def BuildAppLayer(self):
+    def BuildAppLayer(self, destination_path='srv'):
         """Override."""
+        if destination_path is None:
+            destination_path = 'srv'
         buf = cStringIO.StringIO()
         logging.info('Starting to generate app layer tarfile from context...')
         with tarfile.open(fileobj=buf, mode='w') as out:
             for name in self._ctx.ListFiles():
                 content = self._ctx.GetFile(name)
-                info = tarfile.TarInfo(os.path.join('app', name))
+                info = tarfile.TarInfo(
+                    os.path.join(destination_path.strip("/"), name))
                 info.size = len(content)
                 out.addfile(info, fileobj=cStringIO.StringIO(content))
         logging.info('Finished generating app layer tarfile from context.')

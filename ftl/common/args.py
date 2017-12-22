@@ -78,25 +78,24 @@ def base_parser():
         nargs="?",
         action='store',
         choices=logger.LEVEL_MAP.keys())
+
+    parser.add_argument(
+        '--destination',
+        dest='destination_path',
+        action='store',
+        default=None,
+        help='The base path that the node_modules will be \
+        installed in the final image')
     return parser
 
 
-node_flgs = ['destination_path']
-php_flgs = ['destination_path']
+node_flgs = []
+php_flgs = []
 python_flgs = ['python_version']
 
 
 def extra_args(parser, opt_list):
     opt_dict = {
-        'destination_path': [
-            '--destination', {
-                "dest": 'destination_path',
-                "action": 'store',
-                "default": None,
-                "help": 'The base path that the node_modules will be \
-                installed in the final image'
-            }
-        ],
         'python_version': [
             '--python-version', {
                 "dest": 'python_version',

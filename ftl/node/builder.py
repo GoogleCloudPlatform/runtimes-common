@@ -52,10 +52,9 @@ class Node(builder.JustApp):
             creation_time=str(datetime.date.today()) + "T00:00:00Z",
             entrypoint=entrypoint)
 
-    def CreatePackageBase(self, base, destination_path="/app"):
+    def CreatePackageBase(self, base, destination_path="srv"):
         """Override."""
         overrides = self._generate_overrides()
-
         layer, sha = self._gen_package_tar(destination_path)
         logging.info('Generated layer with sha: %s', sha)
 
