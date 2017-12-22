@@ -117,7 +117,7 @@ docker_pull(
 )
 docker_pull(
     name = "php_base",
-    digest = "sha256:00615f95e12ff45015387ca851912785720d9dd4f0eeb19a4404297d6d498305",
+    digest = "sha256:b4a1f5de8156f30ea1a6e6f84afb7ea79013a57d0cae4a530d4806df4a04a1e3",
     registry = "gcr.io",
     repository = "gae-runtimes/php72_app_builder"
 )
