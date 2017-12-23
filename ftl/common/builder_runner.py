@@ -46,8 +46,13 @@ class BuilderRunner():
         self.target_creds = docker_creds.DefaultKeychain.Resolve(
             self.target_image)
         self.ctx = context.Workspace(args.directory)
+
+        cache_repo = args.cache_repository
+        if not cache_repo:
+            cache_repo = self.target_image.as_repository()
+
         self.cash = cache.Registry(
-            self.target_image.as_repository(),
+            cache_repo,
             self.target_creds,
             self.transport,
             cache_version=cache_version_str,
@@ -76,11 +81,12 @@ class BuilderRunner():
             return None
         hit = self.cash.Get(self.args.base, self.builder.namespace, checksum)
         if hit:
-            logging.info('Found cached dependency layer for %s' % checksum)
+            logging.info('Found cached dependency layer %s for %s',
+                         hit, checksum)
             last_created = _timestamp_to_time(_creation_time(hit))
             now = datetime.datetime.now()
             if last_created > now - datetime.timedelta(
-                    seconds=_DEFAULT_TTL_WEEKS):
+                    weeks=_DEFAULT_TTL_WEEKS):
                 return hit
             else:
                 logging.info(

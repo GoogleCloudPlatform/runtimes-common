@@ -39,6 +39,12 @@ def base_parser():
         help='The path where the application data sits.')
 
     parser.add_argument(
+        '--cache-repository',
+        action='store',
+        required=False,
+        help=('The name of the repository to use as the root for the cache.'))
+
+    parser.add_argument(
         '--no-cache',
         dest='cache',
         action='store_false',
