@@ -41,7 +41,8 @@ def main(cli_args):
     php_ftl = php_builder.PHP(
         context.Workspace(builder_args.directory),
         builder_args,
-        _PHP_CACHE_VERSION, )
+        _PHP_CACHE_VERSION,
+    )
     php_ftl.Build()
 
 

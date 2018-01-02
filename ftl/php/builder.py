@@ -17,6 +17,7 @@ import os
 import subprocess
 import tempfile
 import datetime
+import json
 
 from ftl.common import builder
 from ftl.common import ftl_util
@@ -33,27 +34,38 @@ class PHP(builder.RuntimeBase):
         super(PHP, self).__init__(ctx, _PHP_NAMESPACE, args, cache_version_str,
                                   [_COMPOSER_LOCK, _COMPOSER_JSON])
 
+    def _parse_composer_pkgs(self):
+        descriptor_contents = ftl_util.descriptor_parser(
+            self._descriptor_files, self._ctx)
+        composer_json = json.loads(descriptor_contents)
+        pkgs = []
+        for k, v in composer_json['require'].iteritems():
+            pkgs.append(k + ' ' + v)
+        return pkgs
+
     def Build(self):
         lyr_imgs = []
         lyr_imgs.append(self._base)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
-            pkg = self.PackageLayer(self._ctx, self._descriptor_files, None,
-                                    self._args.destination_path)
-            cached_pkg_img = None
-            if self._args.cache:
-                with ftl_util.Timing("checking cached pkg layer"):
-                    cached_pkg_img = self._cash.GetAndCheckTTL(
-                        self._base, self._namespace, pkg.GetCacheKey())
-            if cached_pkg_img is not None:
-                pkg.SetImage(cached_pkg_img)
-            else:
-                with ftl_util.Timing("building pkg layer"):
-                    pkg.BuildLayer()
+            pkgs = self._parse_composer_pkgs()
+            for pkg_txt in pkgs:
+                pkg = self.PackageLayer(self._ctx, self._descriptor_files,
+                                        pkg_txt, self._args.destination_path)
+                cached_pkg_img = None
                 if self._args.cache:
-                    with ftl_util.Timing("uploading pkg layer"):
-                        self._cash.Store(self._base, self._namespace,
-                                         pkg.GetCacheKey(), pkg.GetImage())
-            lyr_imgs.append(pkg)
+                    with ftl_util.Timing("checking cached pkg layer"):
+                        cached_pkg_img = self._cash.GetAndCheckTTL(
+                            self._base, self._namespace, pkg.GetCacheKey())
+                if cached_pkg_img is not None:
+                    pkg.SetImage(cached_pkg_img)
+                else:
+                    with ftl_util.Timing("building pkg layer"):
+                        pkg.BuildLayer()
+                    if self._args.cache:
+                        with ftl_util.Timing("uploading pkg layer"):
+                            self._cash.Store(self._base, self._namespace,
+                                             pkg.GetCacheKey(), pkg.GetImage())
+                lyr_imgs.append(pkg)
 
         app = self.AppLayer(self._ctx, self._args.destination_path)
         with ftl_util.Timing("builder app layer"):
@@ -81,10 +93,10 @@ class PHP(builder.RuntimeBase):
             """Override."""
             blob, u_blob = self._gen_composer_install_tar(
                 self._pkg_descriptor, self._destination_path)
-            self._img = tar_to_dockerimage.FromFSImage(blob, u_blob, {
-                "creation_time":
-                str(datetime.date.today()) + "T00:00:00Z"
-            })
+            self._img = tar_to_dockerimage.FromFSImage(
+                blob, u_blob, {
+                    "creation_time": str(datetime.date.today()) + "T00:00:00Z"
+                })
 
         def _gen_composer_install_tar(self, pkg_descriptor, destination_path):
             # Create temp directory to write package descriptor to
@@ -93,8 +105,9 @@ class PHP(builder.RuntimeBase):
             os.makedirs(app_dir)
 
             # Copy out the relevant package descriptors to a tempdir.
-            ftl_util.descriptor_copy(self._ctx, self._descriptor_files,
-                                     app_dir)
+            if pkg_descriptor is None:
+                ftl_util.descriptor_copy(self._ctx, self._descriptor_files,
+                                         app_dir)
 
             subprocess.check_call(
                 ['rm', '-rf', os.path.join(app_dir, 'vendor')])
@@ -105,10 +118,10 @@ class PHP(builder.RuntimeBase):
                         ['composer', 'install', '--no-dev', '--no-scripts'],
                         cwd=app_dir)
                 else:
+                    pkg, version = pkg_descriptor.split(' ')
                     subprocess.check_call(
-                        [
-                            'composer', 'install', '--no-dev', '--no-scripts',
-                            pkg_descriptor
-                        ],
+                        ['composer', 'require',
+                         str(pkg),
+                         str(version)],
                         cwd=app_dir)
             return ftl_util.zip_dir_to_layer_sha(pkg_dir)
