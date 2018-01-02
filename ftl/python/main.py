@@ -21,6 +21,8 @@ from containerregistry.tools import patched
 from ftl.common import args
 from ftl.common import logger
 from ftl.common import context
+from ftl.common import ftl_util
+
 from ftl.python import builder as python_builder
 
 parser = args.base_parser()
@@ -37,11 +39,14 @@ _PYTHON_CACHE_VERSION = 'v1'
 def main(cli_args):
     builder_args = python_parser.parse_args(cli_args)
     logger.setup_logging(builder_args)
-    python_ftl = python_builder.Python(
-        context.Workspace(builder_args.directory),
-        builder_args,
-        _PYTHON_CACHE_VERSION, )
-    python_ftl.Build()
+    with ftl_util.Timing("full build"):
+        with ftl_util.Timing("builder initialization"):
+            python_ftl = python_builder.Python(
+                context.Workspace(builder_args.directory),
+                builder_args,
+                _PYTHON_CACHE_VERSION, )
+        with ftl_util.Timing("build process for FTL image"):
+            python_ftl.Build()
 
 
 if __name__ == '__main__':
