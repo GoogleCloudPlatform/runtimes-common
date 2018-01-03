@@ -16,7 +16,6 @@
 import os
 import subprocess
 import tempfile
-import logging
 import datetime
 
 from ftl.common import builder
@@ -72,10 +71,9 @@ class PHP(builder.RuntimeBase):
 
         def BuildLayer(self):
             """Override."""
-            lyr, sha = self._gen_composer_install_tar(self._pkg_descriptor,
-                                                      self._destination_path)
-            logging.info('Generated layer with sha: %s', sha)
-            self._img = tar_to_dockerimage.FromFSImage(lyr, {
+            blob, u_blob = self._gen_composer_install_tar(
+                self._pkg_descriptor, self._destination_path)
+            self._img = tar_to_dockerimage.FromFSImage(blob, u_blob, {
                 "creation_time":
                 str(datetime.date.today()) + "T00:00:00Z"
             })

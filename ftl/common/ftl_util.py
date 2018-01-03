@@ -16,7 +16,6 @@ import os
 import time
 import logging
 import subprocess
-import hashlib
 import tempfile
 import datetime
 import json
@@ -50,14 +49,11 @@ def zip_dir_to_layer_sha(pkg_dir):
     with Timing("tar_runtime_package"):
         subprocess.check_call(['tar', '-C', pkg_dir, '-cf', tar_path, '.'])
 
-    # We need the sha of the unzipped and zipped tarball.
-    # So for performance, tar, sha, zip, sha.
+    u_blob = open(tar_path, 'r').read()
     # We use gzip for performance instead of python's zip.
-    sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
-
     with Timing("gzip_runtime_tar"):
         subprocess.check_call(['gzip', tar_path, '-1'])
-    return open(os.path.join(pkg_dir, tar_path + '.gz'), 'rb').read(), sha
+    return open(os.path.join(pkg_dir, tar_path + '.gz'), 'rb').read(), u_blob
 
 
 def has_pkg_descriptor(descriptor_files, ctx):

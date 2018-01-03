@@ -105,10 +105,10 @@ class Python(builder.RuntimeBase):
 
         def BuildLayer(self):
             self._setup_venv(self._python_version)
-            lyr, sha = ftl_util.zip_dir_to_layer_sha(
+            blob, u_blob = ftl_util.zip_dir_to_layer_sha(
                 os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
             self._img = tar_to_dockerimage.FromFSImage(
-                lyr, _generate_overrides(True))
+                blob, u_blob, _generate_overrides(True))
 
         def _setup_venv(self, python_version):
             with ftl_util.Timing("create_virtualenv"):
@@ -168,6 +168,6 @@ class Python(builder.RuntimeBase):
                               self._dep_img_lyr.GetCacheKeyRaw())
 
         def BuildLayer(self):
-            lyr, sha = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
+            blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
             self._img = tar_to_dockerimage.FromFSImage(
-                lyr, _generate_overrides(False))
+                blob, u_blob, _generate_overrides(False))

@@ -13,9 +13,7 @@
 # limitations under the License.
 """This package provides DockerImage for examining docker_build outputs."""
 
-import cStringIO
 import json
-import gzip
 
 from containerregistry.client.v2_2 import docker_digest
 from containerregistry.client.v2_2 import docker_image
@@ -26,9 +24,9 @@ from containerregistry.transform.v2_2 import metadata as v2_2_metadata
 class FromFSImage(docker_image.DockerImage):
     """Interface for implementations that interact with Docker images."""
 
-    def __init__(self, blob, overrides=None):
-        #   self._uncompressed_blob = uncompressed_blob
+    def __init__(self, blob, uncompressed_blob, overrides=None):
         self._blob = blob
+        self._uncompressed_blob = uncompressed_blob
         self._overrides = overrides
 
     def fs_layers(self):
@@ -125,11 +123,7 @@ class FromFSImage(docker_image.DockerImage):
 
     def uncompressed_blob(self, digest):
         """Same as blob() but uncompressed."""
-        zipped = self.blob(digest)
-        buf = cStringIO.StringIO(zipped)
-        f = gzip.GzipFile(mode='rb', fileobj=buf)
-        unzipped = f.read()
-        return unzipped
+        return self._uncompressed_blob
 
     def _diff_id_to_digest(self, diff_id):
         for (this_digest, this_diff_id) in zip(self.fs_layers(),

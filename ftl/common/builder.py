@@ -100,7 +100,7 @@ class JustApp(Base):
                 stderr=subprocess.PIPE)
             gz = gzip_process.communicate(input=tar)[0]
             logging.info('Finished gzipping tarfile.')
-            self._img = tar_to_dockerimage.FromFSImage(gz)
+            self._img = tar_to_dockerimage.FromFSImage(gz, tar)
 
 
 class RuntimeBase(JustApp):

@@ -16,7 +16,6 @@
 import os
 import subprocess
 import tempfile
-import logging
 import json
 import datetime
 
@@ -75,11 +74,10 @@ class Node(builder.RuntimeBase):
 
         def BuildLayer(self):
             """Override."""
-            lyr, sha = self._gen_npm_install_tar(self._pkg_descriptor,
-                                                 self._destination_path)
-            logging.info('Generated layer with sha: %s', sha)
+            blob, u_blob = self._gen_npm_install_tar(self._pkg_descriptor,
+                                                     self._destination_path)
             self._img = tar_to_dockerimage.FromFSImage(
-                lyr, self._generate_overrides())
+                blob, u_blob, self._generate_overrides())
 
         def _gen_npm_install_tar(self, pkg_descriptor, destination_path):
             # Create temp directory to write package descriptor to
