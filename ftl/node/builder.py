@@ -60,7 +60,7 @@ class Node(builder.RuntimeBase):
         ftl_image = self.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)
 
-    class PackageLayer(single_layer_image.CacheLayer):
+    class PackageLayer(single_layer_image.CacheableLayer):
         def __init__(self, ctx, descriptor_files, pkg_descriptor,
                      destination_path):
             super(Node.PackageLayer, self).__init__()

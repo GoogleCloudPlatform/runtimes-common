@@ -21,18 +21,13 @@ import tempfile
 import datetime
 import json
 
-_DEFAULT_TTL_WEEKS = 1
-
-_DEFAULT_OVERRIDES = [
-    "author", "created_by", "layers", "architecture", "operating_system",
-    "rootfs", "created", "config", "os", "history"
-]
+_OVERRIDES = ["creation_time", "entrypoint", "env"]
 
 
 def CfgDctToOverrides(config_dct):
     output = {}
     for k, v in config_dct.iteritems():
-        if k not in _DEFAULT_OVERRIDES:
+        if k in _OVERRIDES:
             output[k] = v
     return output
 

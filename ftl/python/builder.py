@@ -94,7 +94,7 @@ class Python(builder.RuntimeBase):
         ftl_image = self.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)
 
-    class InterpreterLayer(single_layer_image.CacheLayer):
+    class InterpreterLayer(single_layer_image.CacheableLayer):
         def __init__(self, venv_dir, python_version):
             super(Python.InterpreterLayer, self).__init__()
             self._venv_dir = venv_dir
@@ -153,7 +153,7 @@ class Python(builder.RuntimeBase):
         pip_env['PATH'] = self._venv_dir + "/bin" + ":" + os.environ['PATH']
         return pip_env
 
-    class PackageLayer(single_layer_image.CacheLayer):
+    class PackageLayer(single_layer_image.CacheableLayer):
         def __init__(self, ctx, descriptor_files, pkg_dir, dep_img_lyr):
             super(Python.PackageLayer, self).__init__()
             self._ctx = ctx

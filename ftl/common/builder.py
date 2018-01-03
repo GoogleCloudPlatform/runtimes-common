@@ -40,7 +40,7 @@ _THREADS = 32
 
 class Base(object):
     """Base is an abstract base class representing a container builder.
-    It provides methods for generating a dependency layer and an application
+    It provides methods for generating runtime layers and an application
     layer.
     """
 
@@ -51,14 +51,12 @@ class Base(object):
 
     @abc.abstractmethod
     def Build(self):
-        """Synthesizes the application layer from the context.
-        Returns:
-          a raw string of the layer's .tar.gz
+        """Build method encapsulates all layer building and image creation.
         """
 
 
 class JustApp(Base):
-    """JustApp is an implementation of a builder that only generates an
+    """JustApp is an implementation of a builder that has logic to build an
     application layer.
     """
 
@@ -67,12 +65,10 @@ class JustApp(Base):
 
     def Build(self):
         """Override."""
-        # JustApp doesn't build anything, it just appends
-        # the application layer, so return the base image as
-        # our package base.
+        # this can't be abstract as it is instantiated in tests
         return
 
-    class AppLayer(single_layer_image.CacheLayer):
+    class AppLayer(single_layer_image.BaseLayer):
         def __init__(self, ctx, destination_path='srv'):
             self._ctx = ctx
             self._destination_path = destination_path
@@ -108,10 +104,10 @@ class JustApp(Base):
 
 
 class RuntimeBase(JustApp):
-    """Base is an abstract base class representing a container builder.
+    """RuntimeBase is an abstract base class representing a container builder
+    for runtime applications with dependencies.
 
-    It provides methods for generating a dependency layer and an application
-    layer.
+    It provides methods for generating appending layers and caching images
     """
 
     def __init__(self, ctx, namespace, args, cache_version_str,

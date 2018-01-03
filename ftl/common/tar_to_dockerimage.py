@@ -105,9 +105,6 @@ class FromFSImage(docker_image.DockerImage):
         }
         if self._overrides is not None:
             output.update(self._overrides)
-        # BELOW ISN'T WORKING, CHANGING TO PASS DICT FROM BUILDLAYERS
-        # if self._overrides is not None:
-        #     output = v2_2_metadata.Override(output, self._overrides)
 
         return json.dumps(output, sort_keys=True)
 

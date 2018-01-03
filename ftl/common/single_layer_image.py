@@ -17,8 +17,6 @@ import abc
 
 from containerregistry.client.v2_2 import docker_digest
 
-_DEFAULT_TTL_WEEKS = 1
-
 
 class BaseLayer(object):
     """BaseLayer is an abstract base class representing a container layer.
@@ -43,22 +41,28 @@ class BaseLayer(object):
 
     @abc.abstractmethod
     def BuildLayer(self):
-        """Synthesizes the application layer from the context.
-        Returns:
-          a raw string of the layer's .tar.gz
+        """Synthesizes the application layer.
+        Modifies:
+          self._img
         """
 
 
-class CacheLayer(BaseLayer):
+class CacheableLayer(BaseLayer):
+
+    __metaclass__ = abc.ABCMeta  # For enforcing that methods are overriden.
+
     @abc.abstractmethod
     def GetCacheKeyRaw(self):
-        """Synthesizes the application layer from the context.
-        Returns:
-          a raw string of the layer's .tar.gz
         """
-
-    def BuildLayer(self):
-        pass
-
+        Returns:
+          the raw value for the cache key (not hashed)
+        """
     def GetCacheKey(self):
         return docker_digest.SHA256(self.GetCacheKeyRaw())
+
+    @abc.abstractmethod
+    def BuildLayer(self):
+        """Synthesizes the application layer.
+        Modifies:
+          self._img
+        """
