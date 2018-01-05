@@ -22,6 +22,8 @@ from ftl.common import args
 from ftl.common import logger
 from ftl.common import context
 
+from ftl.common import ftl_util
+
 from ftl.node import builder as node_builder
 
 parser = args.base_parser()
@@ -38,10 +40,12 @@ _NODE_CACHE_VERSION = 'v1'
 def main(cli_args):
     builder_args = node_parser.parse_args(cli_args)
     logger.setup_logging(builder_args)
-    node_ftl = node_builder.Node(
-        context.Workspace(builder_args.directory), builder_args,
-        _NODE_CACHE_VERSION)
-    node_ftl.Build()
+    with ftl_util.Timing("builder initialization"):
+        node_ftl = node_builder.Node(
+            context.Workspace(builder_args.directory), builder_args,
+            _NODE_CACHE_VERSION)
+    with ftl_util.Timing("build process for FTL image"):
+        node_ftl.Build()
 
 
 if __name__ == '__main__':
