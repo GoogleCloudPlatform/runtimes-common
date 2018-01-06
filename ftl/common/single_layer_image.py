@@ -57,6 +57,7 @@ class CacheableLayer(BaseLayer):
         Returns:
           the raw value for the cache key (not hashed)
         """
+
     def GetCacheKey(self):
         return docker_digest.SHA256(self.GetCacheKeyRaw())
 

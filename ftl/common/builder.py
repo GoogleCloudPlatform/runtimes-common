@@ -28,7 +28,6 @@ from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
 from containerregistry.client.v2_2 import save
 from containerregistry.transport import transport_pool
-from containerregistry.transform.v2_2 import metadata
 
 from ftl.common import cache
 from ftl.common import ftl_util
@@ -144,10 +143,9 @@ class RuntimeBase(JustApp):
                 continue
             img = lyr_img.GetImage()
             diff_id = img.diff_ids()[0]
-            lyr = img.blob(diff_id)
-            overrides_dct = ftl_util.CfgDctToOverrides(
+            lyr = img.blob(img._diff_id_to_digest(diff_id))
+            overrides = ftl_util.CfgDctToOverrides(
                 json.loads(img.config_file()))
-            overrides = metadata.Overrides(**overrides_dct)
 
             result_image = append.Layer(
                 result_image, lyr, diff_id=diff_id, overrides=overrides)
@@ -162,13 +160,14 @@ class RuntimeBase(JustApp):
                 logging.info("{0} tarball located at {1}".format(
                     str(self._target_image), self._args.output_path))
             return
-        with ftl_util.Timing("pushing_image_to_docker_registry"):
-            with docker_session.Push(
-                    self._target_image,
-                    self._target_creds,
-                    self._transport,
-                    threads=_THREADS,
-                    mount=[self._base_name]) as session:
-                logging.info('Pushing final image...')
-                session.upload(result_image)
-            return
+        if self._args.upload:
+            with ftl_util.Timing("pushing_image_to_docker_registry"):
+                with docker_session.Push(
+                        self._target_image,
+                        self._target_creds,
+                        self._transport,
+                        threads=_THREADS,
+                        mount=[self._base_name]) as session:
+                    logging.info('Pushing final image...')
+                    session.upload(result_image)
+                return

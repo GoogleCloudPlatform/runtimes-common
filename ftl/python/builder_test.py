@@ -17,8 +17,6 @@ import datetime
 import mock
 import json
 
-from containerregistry.transform.v2_2 import metadata as metadata
-
 from ftl.common import context
 from ftl.common import ftl_util
 from ftl.python import builder
@@ -66,9 +64,8 @@ class PythonTest(unittest.TestCase):
         interpreter = self.builder.InterpreterLayer(
             self.builder._venv_dir, self.builder._args.python_version)
         interpreter.BuildLayer()
-        overrides_dct = ftl_util.CfgDctToOverrides(
+        overrides = ftl_util.CfgDctToOverrides(
             json.loads(interpreter.GetImage().config_file()))
-        overrides = metadata.Overrides(**overrides_dct)
 
         self.assertNotEqual(overrides.creation_time, "1970-01-01T00:00:00Z")
         last_created = ftl_util.timestamp_to_time(overrides.creation_time)

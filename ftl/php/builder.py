@@ -39,22 +39,30 @@ class PHP(builder.RuntimeBase):
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             pkg = self.PackageLayer(self._ctx, self._descriptor_files, None,
                                     self._args.destination_path)
-            cached_pkg_img = self._cash.GetAndCheckTTL(self._base,
-                                                       self._namespace,
-                                                       pkg.GetCacheKey())
+            cached_pkg_img = None
+            if self._args.cache:
+                with ftl_util.Timing("checking cached pkg layer"):
+                    cached_pkg_img = self._cash.GetAndCheckTTL(
+                        self._base, self._namespace, pkg.GetCacheKey())
             if cached_pkg_img is not None:
                 pkg.SetImage(cached_pkg_img)
             else:
-                pkg.BuildLayer()
-                self._cash.Store(self._base, self._namespace,
-                                 pkg.GetCacheKey(), pkg.GetImage())
+                with ftl_util.Timing("building pkg layer"):
+                    pkg.BuildLayer()
+                if self._args.cache:
+                    with ftl_util.Timing("uploading pkg layer"):
+                        self._cash.Store(self._base, self._namespace,
+                                         pkg.GetCacheKey(), pkg.GetImage())
             lyr_imgs.append(pkg)
 
         app = self.AppLayer(self._ctx, self._args.destination_path)
-        app.BuildLayer()
+        with ftl_util.Timing("builder app layer"):
+            app.BuildLayer()
         lyr_imgs.append(app)
-        ftl_image = self.AppendLayersIntoImage(lyr_imgs)
-        self.StoreImage(ftl_image)
+        with ftl_util.Timing("stitching lyrs into final image"):
+            ftl_image = self.AppendLayersIntoImage(lyr_imgs)
+        with ftl_util.Timing("uploading final image"):
+            self.StoreImage(ftl_image)
 
     class PackageLayer(single_layer_image.CacheableLayer):
         def __init__(self, ctx, descriptor_files, pkg_descriptor,
@@ -74,7 +82,7 @@ class PHP(builder.RuntimeBase):
             blob, u_blob = self._gen_composer_install_tar(
                 self._pkg_descriptor, self._destination_path)
             self._img = tar_to_dockerimage.FromFSImage(blob, u_blob, {
-                "creation_time":
+                "created":
                 str(datetime.date.today()) + "T00:00:00Z"
             })
 

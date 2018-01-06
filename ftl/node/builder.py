@@ -42,17 +42,20 @@ class Node(builder.RuntimeBase):
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             pkg = self.PackageLayer(self._ctx, self._descriptor_files, None,
                                     self._args.destination_path)
-            cached_pkg_img = self._cash.GetAndCheckTTL(self._base,
-                                                       self._namespace,
-                                                       pkg.GetCacheKey())
+            cached_pkg_img = None
+            if self._args.cache:
+                with ftl_util.Timing("checking cached pkg layer"):
+                    cached_pkg_img = self._cash.GetAndCheckTTL(
+                        self._base, self._namespace, pkg.GetCacheKey())
             if cached_pkg_img is not None:
                 pkg.SetImage(cached_pkg_img)
             else:
                 with ftl_util.Timing("building pkg layer"):
                     pkg.BuildLayer()
-                with ftl_util.Timing("uploading pkg layer"):
-                    self._cash.Store(self._base, self._namespace,
-                                    pkg.GetCacheKey(), pkg.GetImage())
+                if self._args.cache:
+                    with ftl_util.Timing("uploading pkg layer"):
+                        self._cash.Store(self._base, self._namespace,
+                                         pkg.GetCacheKey(), pkg.GetImage())
             lyr_imgs.append(pkg)
 
         app = self.AppLayer(self._ctx, self._args.destination_path)
@@ -116,7 +119,7 @@ class Node(builder.RuntimeBase):
                 pj_contents = json.loads(self._ctx.GetFile(_PACKAGE_JSON))
             entrypoint = self._parse_entrypoint(pj_contents)
             overrides_dct = {
-                "creation_time": str(datetime.date.today()) + "T00:00:00Z",
+                "created": str(datetime.date.today()) + "T00:00:00Z",
                 "entrypoint": entrypoint
             }
             return overrides_dct
