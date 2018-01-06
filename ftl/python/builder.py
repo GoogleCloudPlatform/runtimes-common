@@ -37,7 +37,7 @@ def _generate_overrides(set_path):
     if set_path:
         env['PATH'] = '/env/bin:$PATH'
     overrides_dct = {
-        "creation_time": str(datetime.date.today()) + "T00:00:00Z",
+        "created": str(datetime.date.today()) + "T00:00:00Z",
         "env": env
     }
     return overrides_dct
@@ -57,35 +57,50 @@ class Python(builder.RuntimeBase):
 
             interpreter = self.InterpreterLayer(self._venv_dir,
                                                 self._args.python_version)
-            cached_int_img = self._cash.GetAndCheckTTL(
-                self._base, self._namespace, interpreter.GetCacheKey())
+            cached_int_img = None
+            if self._args.cache:
+                with ftl_util.Timing("checking cached int layer"):
+                    cached_int_img = self._cash.GetAndCheckTTL(
+                        self._base, self._namespace, interpreter.GetCacheKey())
             if cached_int_img is not None:
                 interpreter.SetImage(cached_int_img)
             else:
-                interpreter.BuildLayer()
-                self._cash.Store(self._base, self._namespace,
-                                 interpreter.GetCacheKey(),
-                                 interpreter.GetImage())
+                with ftl_util.Timing("building int layer"):
+                    interpreter.BuildLayer()
+                if self._args.cache:
+                    with ftl_util.Timing("uploading int layer"):
+                        self._cash.Store(self._base, self._namespace,
+                                         interpreter.GetCacheKey(),
+                                         interpreter.GetImage())
             lyr_imgs.append(interpreter)
 
             pkg_descriptor = ftl_util.descriptor_parser(
                 self._descriptor_files, self._ctx)
-            self._pip_install(pkg_descriptor)
 
-            whls = self._resolve_whls()
-            pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
+            with ftl_util.Timing("installing pip packages"):
+                self._pip_install(pkg_descriptor)
+
+            with ftl_util.Timing("resolving whl paths"):
+                whls = self._resolve_whls()
+                pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
 
             for whl_pkg_dir in pkg_dirs:
                 pkg = self.PackageLayer(self._ctx, self._descriptor_files,
                                         whl_pkg_dir, interpreter)
-                cached_pkg_img = self._cash.GetAndCheckTTL(
-                    self._base, self._namespace, pkg.GetCacheKey())
+                cached_pkg_img = None
+                if self._args.cache:
+                    with ftl_util.Timing("checking cached pkg layer"):
+                        cached_pkg_img = self._cash.GetAndCheckTTL(
+                            self._base, self._namespace, pkg.GetCacheKey())
                 if cached_pkg_img is not None:
                     pkg.SetImage(cached_pkg_img)
                 else:
-                    pkg.BuildLayer()
-                    self._cash.Store(self._base, self._namespace,
-                                     pkg.GetCacheKey(), pkg.GetImage())
+                    with ftl_util.Timing("building pkg layer"):
+                        pkg.BuildLayer()
+                    if self._args.cache:
+                        with ftl_util.Timing("uploading pkg layer"):
+                            self._cash.Store(self._base, self._namespace,
+                                             pkg.GetCacheKey(), pkg.GetImage())
                 lyr_imgs.append(pkg)
 
         app = self.AppLayer(self._ctx)

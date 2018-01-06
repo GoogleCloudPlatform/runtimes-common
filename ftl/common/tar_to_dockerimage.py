@@ -26,8 +26,18 @@ class FromFSImage(docker_image.DockerImage):
 
     def __init__(self, blob, uncompressed_blob, overrides=None):
         self._blob = blob
+        self._blob_digest = None
         self._uncompressed_blob = uncompressed_blob
+        self._uncompressed_blob_diff_id = None
         self._overrides = overrides
+        self._manifest = None
+        self._config_file = None
+
+    def _get_uncompressed_blob_diff_id(self):
+        if self._uncompressed_blob_diff_id is None:
+            self._uncompressed_blob_diff_id = docker_digest.SHA256(
+                self._uncompressed_blob)
+        return self._uncompressed_blob_diff_id
 
     def fs_layers(self):
         """The ordered collection of filesystem layers that
@@ -65,46 +75,50 @@ class FromFSImage(docker_image.DockerImage):
         Returns:
           The raw json manifest
         """
-        content = self.config_file().encode('utf-8')
-        return json.dumps(
-            {
-                'schemaVersion':
-                2,
-                'mediaType':
-                docker_http.MANIFEST_SCHEMA2_MIME,
-                'config': {
-                    'mediaType': docker_http.CONFIG_JSON_MIME,
-                    'size': len(content),
-                    'digest': docker_digest.SHA256(content)
+        if self._manifest is None:
+            content = self.config_file().encode('utf-8')
+            self._manifest = json.dumps(
+                {
+                    'schemaVersion':
+                    2,
+                    'mediaType':
+                    docker_http.MANIFEST_SCHEMA2_MIME,
+                    'config': {
+                        'mediaType': docker_http.CONFIG_JSON_MIME,
+                        'size': len(content),
+                        'digest': docker_digest.SHA256(content)
+                    },
+                    'layers': [{
+                        'mediaType': docker_http.LAYER_MIME,
+                        'size': self.blob_size(""),
+                        'digest': docker_digest.SHA256(self.blob(""))
+                    }]
                 },
-                'layers': [{
-                    'mediaType': docker_http.LAYER_MIME,
-                    'size': self.blob_size(""),
-                    'digest': docker_digest.SHA256(self.blob(""))
-                }]
-            },
-            sort_keys=True)
+                sort_keys=True)
+        return self._manifest
 
     def config_file(self):
         """The raw blob string of the config file."""
-        _PROCESSOR_ARCHITECTURE = 'amd64'
-        _OPERATING_SYSTEM = 'linux'
+        if self._config_file is None:
+            _PROCESSOR_ARCHITECTURE = 'amd64'
+            _OPERATING_SYSTEM = 'linux'
 
-        output = v2_2_metadata.Override(
-            json.loads('{}'),
-            v2_2_metadata.Overrides(
-                author='Bazel',
-                created_by='bazel build ...',
-                layers=[docker_digest.SHA256(self.uncompressed_blob(""))], ),
-            architecture=_PROCESSOR_ARCHITECTURE,
-            operating_system=_OPERATING_SYSTEM)
-        output['rootfs'] = {
-            'diff_ids': [docker_digest.SHA256(self.uncompressed_blob(""))]
-        }
-        if self._overrides is not None:
-            output.update(self._overrides)
-
-        return json.dumps(output, sort_keys=True)
+            output = v2_2_metadata.Override(
+                json.loads('{}'),
+                v2_2_metadata.Overrides(
+                    author='Bazel',
+                    created_by='bazel build ...',
+                    layers=[self._get_uncompressed_blob_diff_id()],
+                ),
+                architecture=_PROCESSOR_ARCHITECTURE,
+                operating_system=_OPERATING_SYSTEM)
+            output['rootfs'] = {
+                'diff_ids': [self._get_uncompressed_blob_diff_id()]
+            }
+            if self._overrides is not None:
+                output.update(self._overrides)
+            self._config_file = json.dumps(output, sort_keys=True)
+        return self._config_file
 
     def blob_size(self, digest):
         """The byte size of the raw blob."""

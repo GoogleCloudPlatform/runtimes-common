@@ -20,15 +20,29 @@ import tempfile
 import datetime
 import json
 
-_OVERRIDES = ["creation_time", "entrypoint", "env"]
+from containerregistry.transform.v2_2 import metadata
+
+# This is a 'whitelist' of values to pass from the
+# config_file of a DockerImage to an Overrides object
+_OVERRIDES_VALUES = ['created', 'entrypoint', 'env']
 
 
 def CfgDctToOverrides(config_dct):
-    output = {}
+    """
+    Takes a dct of config values and runs them through
+    the whitelist
+    """
+    overrides_dct = {}
     for k, v in config_dct.iteritems():
-        if k in _OVERRIDES:
-            output[k] = v
-    return output
+        if k in _OVERRIDES_VALUES:
+            if k == 'created':
+                # this key change is made as the key is
+                # 'creation_time' in an Overrides object
+                # but 'created' in the config_file
+                overrides_dct['creation_time'] = v
+            else:
+                overrides_dct[k] = v
+    return metadata.Overrides(**overrides_dct)
 
 
 class Timing(object):
