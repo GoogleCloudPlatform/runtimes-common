@@ -108,8 +108,7 @@ class FromFSImage(docker_image.DockerImage):
                 v2_2_metadata.Overrides(
                     author='Bazel',
                     created_by='bazel build ...',
-                    layers=[self._get_uncompressed_blob_diff_id()],
-                ),
+                    layers=[self._get_uncompressed_blob_diff_id()], ),
                 architecture=_PROCESSOR_ARCHITECTURE,
                 operating_system=_OPERATING_SYSTEM)
             output['rootfs'] = {

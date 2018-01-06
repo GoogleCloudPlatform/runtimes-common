@@ -22,10 +22,10 @@ import json
 
 from containerregistry.transform.v2_2 import metadata
 
+
 # This is a 'whitelist' of values to pass from the
 # config_file of a DockerImage to an Overrides object
 _OVERRIDES_VALUES = ['created', 'entrypoint', 'env']
-
 
 def CfgDctToOverrides(config_dct):
     """
