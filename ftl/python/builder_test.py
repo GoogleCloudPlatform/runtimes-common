@@ -67,8 +67,8 @@ class PythonTest(unittest.TestCase):
         overrides = ftl_util.CfgDctToOverrides(
             json.loads(interpreter.GetImage().config_file()))
 
-        self.assertNotEqual(overrides.creation_time, "1970-01-01T00:00:00Z")
-        last_created = ftl_util.timestamp_to_time(overrides.creation_time)
+        self.assertNotEqual(overrides_dct['created'], "1970-01-01T00:00:00Z")
+        last_created = ftl_util.timestamp_to_time(overrides_dct['created'])
         now = datetime.datetime.now()
         self.assertTrue(last_created > now - datetime.timedelta(days=2))
 
