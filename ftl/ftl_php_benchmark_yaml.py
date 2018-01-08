@@ -94,7 +94,8 @@ def dependency_test_step(app_dir, iterations):
             'args': [
                 '--base', _PHP_BASE, '--name', name, '--directory',
                 os.path.join(_DATA_DIR + app_dir), '--description', app_dir,
-                '--iterations', str(iterations)
+                '--iterations',
+                str(iterations)
             ]
         }
     ]
@@ -110,7 +111,8 @@ def app_size_test_step(app_dir, iterations, gen_files):
             'args': [
                 '--base', _PHP_BASE, '--name', name, '--directory',
                 os.path.join(_DATA_DIR + app_dir), '--description', app_dir,
-                '--iterations', str(iterations), '--gen_files', gen_files
+                '--iterations',
+                str(iterations), '--gen_files', gen_files
             ]
         }
     ]

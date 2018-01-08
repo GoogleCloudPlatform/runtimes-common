@@ -133,18 +133,6 @@ py_image(
     ],
 )
 
-py_test(
-    name = "node_main_test",
-    srcs = ["node/main_test.py"],
-    data = [":node_builder_base.tar"],
-    main = "node/main_test.py",
-    deps = [
-        ":node_lib",
-        "//testing/lib:containerregistry_mock_lib",
-        "@mock",
-    ],
-)
-
 py_library(
     name = "python_lib",
     srcs = glob(["python/*.py"]),

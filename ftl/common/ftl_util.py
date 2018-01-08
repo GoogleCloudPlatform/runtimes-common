@@ -16,8 +16,33 @@ import os
 import time
 import logging
 import subprocess
-import hashlib
 import tempfile
+import datetime
+import json
+
+from containerregistry.transform.v2_2 import metadata
+
+# This is a 'whitelist' of values to pass from the
+# config_file of a DockerImage to an Overrides object
+_OVERRIDES_VALUES = ['created', 'entrypoint', 'env']
+
+
+def CfgDctToOverrides(config_dct):
+    """
+    Takes a dct of config values and runs them through
+    the whitelist
+    """
+    overrides_dct = {}
+    for k, v in config_dct.iteritems():
+        if k in _OVERRIDES_VALUES:
+            if k == 'created':
+                # this key change is made as the key is
+                # 'creation_time' in an Overrides object
+                # but 'created' in the config_file
+                overrides_dct['creation_time'] = v
+            else:
+                overrides_dct[k] = v
+    return metadata.Overrides(**overrides_dct)
 
 
 class Timing(object):
@@ -38,11 +63,53 @@ def zip_dir_to_layer_sha(pkg_dir):
     with Timing("tar_runtime_package"):
         subprocess.check_call(['tar', '-C', pkg_dir, '-cf', tar_path, '.'])
 
-    # We need the sha of the unzipped and zipped tarball.
-    # So for performance, tar, sha, zip, sha.
+    u_blob = open(tar_path, 'r').read()
     # We use gzip for performance instead of python's zip.
-    sha = 'sha256:' + hashlib.sha256(open(tar_path).read()).hexdigest()
-
     with Timing("gzip_runtime_tar"):
         subprocess.check_call(['gzip', tar_path, '-1'])
-    return open(os.path.join(pkg_dir, tar_path + '.gz'), 'rb').read(), sha
+    return open(os.path.join(pkg_dir, tar_path + '.gz'), 'rb').read(), u_blob
+
+
+def has_pkg_descriptor(descriptor_files, ctx):
+    for f in descriptor_files:
+        if ctx.Contains(f):
+            return True
+    return False
+
+
+def descriptor_parser(descriptor_files, ctx):
+    descriptor = None
+    for f in descriptor_files:
+        if ctx.Contains(f):
+            descriptor = f
+            descriptor_contents = ctx.GetFile(descriptor)
+            break
+    if not descriptor:
+        logging.info('No package descriptor found. No packages installed.')
+        return None
+    return descriptor_contents
+
+
+def descriptor_copy(ctx, descriptor_files, app_dir):
+    for f in descriptor_files:
+        if ctx.Contains(f):
+            with open(os.path.join(app_dir, f), 'w') as w:
+                w.write(ctx.GetFile(f))
+
+
+def gen_tmp_dir(dirr):
+    tmp_dir = tempfile.mkdtemp()
+    dir_name = os.path.join(tmp_dir, dirr)
+    os.mkdir(dir_name)
+    return dir_name
+
+
+def creation_time(image):
+    logging.info(image.config_file())
+    cfg = json.loads(image.config_file())
+    return cfg.get('created')
+
+
+def timestamp_to_time(dt_str):
+    dt = dt_str.rstrip("Z")
+    return datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")

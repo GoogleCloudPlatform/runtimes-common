@@ -89,8 +89,8 @@ def base_parser():
         '--destination',
         dest='destination_path',
         action='store',
-        default=None,
-        help='The base path that the node_modules will be \
+        default='srv',
+        help='The base path that the app and dependency files will be \
         installed in the final image')
     return parser
 
@@ -104,14 +104,17 @@ def extra_args(parser, opt_list):
     opt_dict = {
         'python_version': [
             '--python-version', {
-                "dest": 'python_version',
-                "action": 'store',
-                "default": 'python2.7',
-                "help": 'The python version to use, formatted as pythonX.X \
+                "dest":
+                'python_version',
+                "action":
+                'store',
+                "default":
+                "python2.7",
+                "help":
+                'The python version to use, formatted as pythonX.X \
                 (ex: python2.7)'
             }
         ],
-
     }
     for opt in opt_list:
         arg_vars = opt_dict[opt]

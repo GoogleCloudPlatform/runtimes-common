@@ -13,15 +13,11 @@
 # limitations under the License.
 
 import json
-import os
 import unittest
-import shutil
 import tempfile
-
-from containerregistry.client.v2_2 import docker_image
+import mock
 
 from ftl.common import context
-from ftl.common import test_util
 from ftl.php import builder
 
 _COMPOSER_JSON = json.loads("""
@@ -66,30 +62,32 @@ return $app;
 
 
 class PHPTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        current_dir = os.path.dirname(__file__)
-        cls.base_image = test_util.TarDockerImage(
-            os.path.join(current_dir, "testdata/base_image/config_file"),
-            os.path.join(current_dir,
-                         "testdata/base_image/distroless-base-latest.tar.gz"))
-
-    def setUp(self):
+    @mock.patch('containerregistry.client.v2_2.docker_image.FromRegistry')
+    def setUp(self, mock_from):
+        mock_from.return_value.__enter__.return_value = None
         self._tmpdir = tempfile.mkdtemp()
-        self.cache = test_util.MockHybridRegistry(
-            'fake.gcr.io/google-appengine', self._tmpdir)
         self.ctx = context.Memory()
         self.ctx.AddFile("app.php", _APP)
-        self.ctx.AddFile('composer.json', _COMPOSER_JSON_TEXT)
-        self.test_case = test_util.BuilderTestCase(builder.PHP, self.ctx,
-                                                   self.cache, self.base_image)
+        args = mock.Mock()
+        args.name = 'gcr.io/test/test:latest'
+        args.base = 'gcr.io/google-appengine/php:latest'
+        self.builder = builder.PHP(self.ctx, args, "")
 
-    def tearDown(self):
-        shutil.rmtree(self._tmpdir)
+        # Mock out the calls to package managers for speed.
+        self.builder.PackageLayer._gen_composer_install_tar = mock.Mock()
+        self.builder.PackageLayer._gen_composer_install_tar.return_value = (
+            'layer', 'sha')
 
-    def test_create_package_base_image(self):
-        self.assertIsInstance(self.test_case.CreatePackageBase(),
-                              docker_image.DockerImage)
+    def test_create_package_base_no_descriptor(self):
+        self.assertFalse(self.ctx.Contains('composer.json'))
+        self.assertFalse(self.ctx.Contains('composer-lock.json'))
+
+        pkg = self.builder.PackageLayer(self.builder._ctx, None,
+                                        self.builder._descriptor_files, "/app")
+        pkg.BuildLayer()
+        lyr = pkg.GetImage().blob("")
+
+        self.assertIsInstance(lyr, str)
 
 
 if __name__ == '__main__':

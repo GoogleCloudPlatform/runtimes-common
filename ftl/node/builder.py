@@ -16,105 +16,136 @@
 import os
 import subprocess
 import tempfile
-import logging
 import json
 import datetime
 
-from containerregistry.client.v2_2 import append
-from containerregistry.transform.v2_2 import metadata
-
 from ftl.common import builder
 from ftl.common import ftl_util
+from ftl.common import single_layer_image
+from ftl.common import tar_to_dockerimage
 
 _NODE_NAMESPACE = 'node-package-lock-cache'
 _PACKAGE_LOCK = 'package-lock.json'
 _PACKAGE_JSON = 'package.json'
-
 _DEFAULT_ENTRYPOINT = 'node server.js'
 
 
-class Node(builder.JustApp):
-    def __init__(self, ctx):
-        self.descriptor_files = [_PACKAGE_LOCK, _PACKAGE_JSON]
-        self.namespace = _NODE_NAMESPACE
-        super(Node, self).__init__(ctx)
+class Node(builder.RuntimeBase):
+    def __init__(self, ctx, args, cache_version_str):
+        super(Node,
+              self).__init__(ctx, _NODE_NAMESPACE, args, cache_version_str,
+                             [_PACKAGE_LOCK, _PACKAGE_JSON])
 
-    def __enter__(self):
-        """Override."""
-        return self
+    def Build(self):
+        lyr_imgs = []
+        lyr_imgs.append(self._base)
+        if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
+            pkg = self.PackageLayer(self._ctx, self._descriptor_files, None,
+                                    self._args.destination_path)
+            cached_pkg_img = None
+            if self._args.cache:
+                with ftl_util.Timing("checking cached pkg layer"):
+                    cached_pkg_img = self._cash.GetAndCheckTTL(
+                        self._base, self._namespace, pkg.GetCacheKey())
+            if cached_pkg_img is not None:
+                pkg.SetImage(cached_pkg_img)
+            else:
+                with ftl_util.Timing("building pkg layer"):
+                    pkg.BuildLayer()
+                if self._args.cache:
+                    with ftl_util.Timing("uploading pkg layer"):
+                        self._cash.Store(self._base, self._namespace,
+                                         pkg.GetCacheKey(), pkg.GetImage())
+            lyr_imgs.append(pkg)
 
-    def _generate_overrides(self):
-        pj_contents = {}
-        if self._ctx.Contains(_PACKAGE_JSON):
-            pj_contents = json.loads(self._ctx.GetFile(_PACKAGE_JSON))
-        entrypoint = parse_entrypoint(pj_contents)
-        return metadata.Overrides(
-            creation_time=str(datetime.date.today()) + "T00:00:00Z",
-            entrypoint=entrypoint)
+        app = self.AppLayer(self._ctx, self._args.destination_path)
+        with ftl_util.Timing("builder app layer"):
+            app.BuildLayer()
+        lyr_imgs.append(app)
+        with ftl_util.Timing("stitching lyrs into final image"):
+            ftl_image = self.AppendLayersIntoImage(lyr_imgs)
+        with ftl_util.Timing("uploading final image"):
+            self.StoreImage(ftl_image)
 
-    def CreatePackageBase(self, base, destination_path="srv"):
-        """Override."""
-        overrides = self._generate_overrides()
-        layer, sha = self._gen_package_tar(destination_path)
-        logging.info('Generated layer with sha: %s', sha)
+    class PackageLayer(single_layer_image.CacheableLayer):
+        def __init__(self, ctx, descriptor_files, pkg_descriptor,
+                     destination_path):
+            super(Node.PackageLayer, self).__init__()
+            self._ctx = ctx
+            self._descriptor_files = descriptor_files
+            self._pkg_descriptor = pkg_descriptor
+            self._destination_path = destination_path
 
-        with append.Layer(
-                base, layer, diff_id=sha, overrides=overrides) as dep_image:
-            return dep_image
+        def GetCacheKeyRaw(self):
+            return ftl_util.descriptor_parser(self._descriptor_files,
+                                              self._ctx)
 
-    def _gen_package_tar(self, destination_path):
-        # We want the node_modules directory rooted at:
-        # $destination_path/node_modules in the final image.
-        # So we build a hierarchy like:
-        # /$tmp/$destination_path/node_modules
-        # And use the -C flag to tar to root the tarball at /$tmp.
-        pkg_dir = tempfile.mkdtemp()
-        app_dir = os.path.join(pkg_dir, destination_path.strip("/"))
-        os.makedirs(app_dir)
+        def BuildLayer(self):
+            """Override."""
+            blob, u_blob = self._gen_npm_install_tar(self._pkg_descriptor,
+                                                     self._destination_path)
+            self._img = tar_to_dockerimage.FromFSImage(
+                blob, u_blob, self._generate_overrides())
 
-        # Copy out the relevant package descriptors to a tempdir.
-        for f in [_PACKAGE_LOCK, _PACKAGE_JSON]:
-            if self._ctx.Contains(f):
-                with open(os.path.join(app_dir, f), 'w') as w:
-                    w.write(self._ctx.GetFile(f))
+        def _gen_npm_install_tar(self, pkg_descriptor, destination_path):
+            # Create temp directory to write package descriptor to
+            pkg_dir = tempfile.mkdtemp()
+            app_dir = os.path.join(pkg_dir, destination_path.strip("/"))
+            os.makedirs(app_dir)
 
-        check_gcp_build(json.loads(self._ctx.GetFile(_PACKAGE_JSON)), app_dir)
-        subprocess.check_call(
-            ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
-        with ftl_util.Timing("npm_install"):
+            # Copy out the relevant package descriptors to a tempdir.
+            ftl_util.descriptor_copy(self._ctx, self._descriptor_files,
+                                     app_dir)
+
+            self._check_gcp_build(
+                json.loads(self._ctx.GetFile(_PACKAGE_JSON)), app_dir)
             subprocess.check_call(
-                ['npm', 'install', '--production'], cwd=app_dir)
+                ['rm', '-rf',
+                 os.path.join(app_dir, 'node_modules')])
+            with ftl_util.Timing("npm_install"):
+                if pkg_descriptor is None:
+                    subprocess.check_call(
+                        ['npm', 'install', '--production'], cwd=app_dir)
+                else:
+                    subprocess.check_call(
+                        ['npm', 'install', '--production', pkg_descriptor],
+                        cwd=app_dir)
 
-        return ftl_util.zip_dir_to_layer_sha(pkg_dir)
+            return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 
+        def _generate_overrides(self):
+            pj_contents = {}
+            if self._ctx.Contains(_PACKAGE_JSON):
+                pj_contents = json.loads(self._ctx.GetFile(_PACKAGE_JSON))
+            entrypoint = self._parse_entrypoint(pj_contents)
+            overrides_dct = {
+                "created": str(datetime.date.today()) + "T00:00:00Z",
+                "entrypoint": entrypoint
+            }
+            return overrides_dct
 
-def check_gcp_build(package_json, app_dir):
-    scripts = package_json.get('scripts', {})
-    gcp_build = scripts.get('gcp-build')
+        def _check_gcp_build(self, package_json, app_dir):
+            scripts = package_json.get('scripts', {})
+            gcp_build = scripts.get('gcp-build')
 
-    if not gcp_build:
-        return
+            if not gcp_build:
+                return
 
-    env = os.environ.copy()
-    env["NODE_ENV"] = "development"
-    subprocess.check_call(['npm', 'install'], cwd=app_dir, env=env)
-    subprocess.check_call(
-        ['npm', 'run-script', 'gcp-build'], cwd=app_dir, env=env)
+            env = os.environ.copy()
+            env["NODE_ENV"] = "development"
+            subprocess.check_call(['npm', 'install'], cwd=app_dir, env=env)
+            subprocess.check_call(
+                ['npm', 'run-script', 'gcp-build'], cwd=app_dir, env=env)
 
+        def _parse_entrypoint(self, package_json):
+            entrypoint = []
 
-def From(ctx):
-    return Node(ctx)
+            scripts = package_json.get('scripts', {})
+            start = scripts.get('start', _DEFAULT_ENTRYPOINT)
+            prestart = scripts.get('prestart')
 
-
-def parse_entrypoint(package_json):
-    entrypoint = []
-
-    scripts = package_json.get('scripts', {})
-    start = scripts.get('start', _DEFAULT_ENTRYPOINT)
-    prestart = scripts.get('prestart')
-
-    if prestart:
-        entrypoint = '%s && %s' % (prestart, start)
-    else:
-        entrypoint = start
-    return ['sh', '-c', entrypoint]
+            if prestart:
+                entrypoint = '%s && %s' % (prestart, start)
+            else:
+                entrypoint = start
+            return ['sh', '-c', entrypoint]
