@@ -99,7 +99,7 @@ class JustApp(Base):
                 stderr=subprocess.PIPE)
             gz = gzip_process.communicate(input=tar)[0]
             logging.info('Finished gzipping tarfile.')
-            self._img = tar_to_dockerimage.FromFSImage(gz, tar)
+            self._img = tar_to_dockerimage.FromFSImage([gz], [tar])
 
 
 class RuntimeBase(JustApp):
@@ -142,13 +142,14 @@ class RuntimeBase(JustApp):
                 result_image = lyr_img
                 continue
             img = lyr_img.GetImage()
-            diff_id = img.diff_ids()[0]
-            lyr = img.blob(img._diff_id_to_digest(diff_id))
-            overrides = ftl_util.CfgDctToOverrides(
-                json.loads(img.config_file()))
+            diff_ids = img.diff_ids()
+            for diff_id in diff_ids:
+                lyr = img.blob(img._diff_id_to_digest(diff_id))
+                overrides = ftl_util.CfgDctToOverrides(
+                    json.loads(img.config_file()))
 
-            result_image = append.Layer(
-                result_image, lyr, diff_id=diff_id, overrides=overrides)
+                result_image = append.Layer(
+                    result_image, lyr, diff_id=diff_id, overrides=overrides)
         return result_image
 
     def StoreImage(self, result_image):

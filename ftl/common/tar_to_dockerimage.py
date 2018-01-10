@@ -24,20 +24,34 @@ from containerregistry.transform.v2_2 import metadata as v2_2_metadata
 class FromFSImage(docker_image.DockerImage):
     """Interface for implementations that interact with Docker images."""
 
-    def __init__(self, blob, uncompressed_blob, overrides=None):
-        self._blob = blob
-        self._blob_digest = None
-        self._uncompressed_blob = uncompressed_blob
-        self._uncompressed_blob_diff_id = None
+    def __init__(self, blob_lst, u_layer_lst, overrides=None):
+        digest_to_blob, digest_to_u_blob = self._gen_digest_to_blob_and_u_blob(
+            blob_lst, u_layer_lst)
+        self._digest_to_blob = digest_to_blob
+        self._digest_to_u_blob = digest_to_u_blob
+        self._diff_id_to_u_layer = self._gen_diff_id_to_u_layer(u_layer_lst)
         self._overrides = overrides
         self._manifest = None
         self._config_file = None
 
-    def _get_uncompressed_blob_diff_id(self):
-        if self._uncompressed_blob_diff_id is None:
-            self._uncompressed_blob_diff_id = docker_digest.SHA256(
-                self._uncompressed_blob)
-        return self._uncompressed_blob_diff_id
+    def GetFirstBlob(self):
+        for digest in self._digest_to_blob:
+            return self._digest_to_blob[digest]
+
+    def _gen_digest_to_blob_and_u_blob(self, blob_lst, u_layer_lst):
+        digest_to_blob = {}
+        digest_to_u_blob = {}
+        for blob, u_layer in zip(blob_lst, u_layer_lst):
+            digest = docker_digest.SHA256(blob)
+            digest_to_blob[digest] = blob
+            digest_to_u_blob[digest] = u_layer
+        return digest_to_blob, digest_to_u_blob
+
+    def _gen_diff_id_to_u_layer(self, u_layer_lst):
+        diff_id_to_u_layer = {}
+        for u_layer in u_layer_lst:
+            diff_id_to_u_layer[docker_digest.SHA256(u_layer)] = u_layer
+        return diff_id_to_u_layer
 
     def fs_layers(self):
         """The ordered collection of filesystem layers that
@@ -90,9 +104,9 @@ class FromFSImage(docker_image.DockerImage):
                     },
                     'layers': [{
                         'mediaType': docker_http.LAYER_MIME,
-                        'size': self.blob_size(""),
-                        'digest': docker_digest.SHA256(self.blob(""))
-                    }]
+                        'size': self.blob_size(digest),
+                        'digest': digest
+                    } for digest in self._digest_to_blob]
                 },
                 sort_keys=True)
         return self._manifest
@@ -108,12 +122,12 @@ class FromFSImage(docker_image.DockerImage):
                 v2_2_metadata.Overrides(
                     author='Bazel',
                     created_by='bazel build ...',
-                    layers=[self._get_uncompressed_blob_diff_id()],
-                ),
+                    # layers=[self._get_uncompressed_blob_diff_id()],
+                    layers=[k for k in self._diff_id_to_u_layer]),
                 architecture=_PROCESSOR_ARCHITECTURE,
                 operating_system=_OPERATING_SYSTEM)
             output['rootfs'] = {
-                'diff_ids': [self._get_uncompressed_blob_diff_id()]
+                'diff_ids': [k for k in self._diff_id_to_u_layer]
             }
             if self._overrides is not None:
                 output.update(self._overrides)
@@ -133,11 +147,11 @@ class FromFSImage(docker_image.DockerImage):
         Returns:
           The raw blob string of the layer.
         """
-        return self._blob
+        return self._digest_to_blob[digest]
 
     def uncompressed_blob(self, digest):
         """Same as blob() but uncompressed."""
-        return self._uncompressed_blob
+        return self._digest_to_u_blob[digest]
 
     def _diff_id_to_digest(self, diff_id):
         for (this_digest, this_diff_id) in zip(self.fs_layers(),
@@ -161,7 +175,8 @@ class FromFSImage(docker_image.DockerImage):
 
     def uncompressed_layer(self, diff_id):
         """Same as layer() but uncompressed."""
-        return self.uncompressed_blob(self._diff_id_to_digest(diff_id))
+        return self._diff_id_to_u_layer[diff_id]
+        # return self.uncompressed_blob(self._diff_id_to_digest(diff_id))
 
     def __enter__(self):
         """Open the image for reading."""

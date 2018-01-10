@@ -81,7 +81,7 @@ class PHP(builder.RuntimeBase):
             """Override."""
             blob, u_blob = self._gen_composer_install_tar(
                 self._pkg_descriptor, self._destination_path)
-            self._img = tar_to_dockerimage.FromFSImage(blob, u_blob, {
+            self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], {
                 "created":
                 str(datetime.date.today()) + "T00:00:00Z"
             })

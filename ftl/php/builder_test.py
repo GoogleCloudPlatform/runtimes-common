@@ -85,7 +85,7 @@ class PHPTest(unittest.TestCase):
         pkg = self.builder.PackageLayer(self.builder._ctx, None,
                                         self.builder._descriptor_files, "/app")
         pkg.BuildLayer()
-        lyr = pkg.GetImage().blob("")
+        lyr = pkg.GetImage().GetFirstBlob()
 
         self.assertIsInstance(lyr, str)
 
