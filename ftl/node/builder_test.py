@@ -78,7 +78,7 @@ class NodeTest(unittest.TestCase):
                                         self.builder._descriptor_files, "/app")
         pkg.BuildLayer()
         config = json.loads(pkg.GetImage().config_file())
-        self.assertIsInstance(pkg.GetImage().blob(""), str)
+        self.assertIsInstance(pkg.GetImage().GetFirstBlob(), str)
         self.assertEqual(config['entrypoint'], ['sh', '-c', 'node server.js'])
 
     @mock.patch('ftl.common.tar_to_dockerimage.FromFSImage.uncompressed_blob')

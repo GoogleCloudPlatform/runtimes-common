@@ -85,7 +85,7 @@ class Node(builder.RuntimeBase):
             blob, u_blob = self._gen_npm_install_tar(self._pkg_descriptor,
                                                      self._destination_path)
             self._img = tar_to_dockerimage.FromFSImage(
-                blob, u_blob, self._generate_overrides())
+                [blob], [u_blob], self._generate_overrides())
 
         def _gen_npm_install_tar(self, pkg_descriptor, destination_path):
             # Create temp directory to write package descriptor to
