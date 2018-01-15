@@ -1,0 +1,4 @@
+runtime: test
+
+runtime_config:
+  ppas: ['ppa:webupd8team/java']

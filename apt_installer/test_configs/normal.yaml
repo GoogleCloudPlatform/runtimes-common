@@ -1,0 +1,5 @@
+runtime: test
+
+runtime_config:
+  packages: ['ruby', 'nodejs']
+  ppas: ['ppa:webupd8team/java']

@@ -1,0 +1,4 @@
+runtime: test
+
+runtime_config:
+  packages: ['ruby', 'nodejs']

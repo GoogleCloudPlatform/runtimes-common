@@ -1,4 +1,8 @@
 steps:
+  - name: gcr.io/nick-cloudbuild/sample_builder
+    args: ['-v', '1']
+  - name: gcr.io/nick-cloudbuild/apt-installer
+    args: ['--yaml', 'app.yaml', '--dockerfile', 'Dockerfile']
   - name: gcr.io/cloud-builders/docker:latest
     args: ['build', '--tag=${_IMAGE}', '.']
     id: BUILD

@@ -1,0 +1,5 @@
+runtime: custom
+
+runtime_config:
+  ppas: ['ppa:webupd8team/java']
+  packages: ['sl=3.03-17', 'nodejs']

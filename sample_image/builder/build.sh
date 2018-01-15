@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Copyright 2017 Google Inc. All rights reserved.
 
@@ -24,4 +24,4 @@ if [ -z "$IMAGE" ]; then
   usage
 fi
 
-gcloud container builds submit . --config=cloudbuild.yaml --substitutions "_IMAGE=${IMAGE}"
+gcloud container builds submit . --config cloudbuild.yaml --substitutions=_IMAGE="$IMAGE"
