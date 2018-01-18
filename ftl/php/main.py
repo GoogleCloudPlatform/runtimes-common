@@ -21,6 +21,7 @@ from containerregistry.tools import patched
 from ftl.common import args
 from ftl.common import logger
 from ftl.common import context
+from ftl.common import ftl_util
 
 from ftl.php import builder as php_builder
 
@@ -38,11 +39,13 @@ _PHP_CACHE_VERSION = 'v1'
 def main(cli_args):
     builder_args = php_parser.parse_args(cli_args)
     logger.setup_logging(builder_args)
-    php_ftl = php_builder.PHP(
-        context.Workspace(builder_args.directory),
-        builder_args,
-        _PHP_CACHE_VERSION, )
-    php_ftl.Build()
+    with ftl_util.Timing("full build"):
+        with ftl_util.Timing("builder initialization"):
+            php_ftl = php_builder.PHP(
+                context.Workspace(builder_args.directory), builder_args,
+                _PHP_CACHE_VERSION)
+        with ftl_util.Timing("build process for FTL image"):
+            php_ftl.Build()
 
 
 if __name__ == '__main__':
