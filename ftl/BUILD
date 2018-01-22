@@ -161,6 +161,10 @@ docker_build(
     base = "@python_base//image",
     cmd = [""],
     entrypoint = "",
+    tars = [
+        ":cred_helper.tar",
+        ":default_creds.tar",
+    ],
 )
 
 par_binary(
@@ -218,6 +222,10 @@ docker_build(
     base = "@php_base//image",
     cmd = [""],
     entrypoint = "",
+    tars = [
+        ":cred_helper.tar",
+        ":default_creds.tar",
+    ],
 )
 
 py_image(
