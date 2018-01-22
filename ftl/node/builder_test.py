@@ -75,11 +75,13 @@ class NodeTest(unittest.TestCase):
         self.assertFalse(self.ctx.Contains('package-lock.json'))
 
         pkg = self.builder.PackageLayer(self.builder._ctx, None,
-                                        self.builder._descriptor_files, "/app")
+                                        self.builder._descriptor_files, "/app",
+                                        None)
         pkg.BuildLayer()
         config = json.loads(pkg.GetImage().config_file())
         self.assertIsInstance(pkg.GetImage().GetFirstBlob(), str)
-        self.assertEqual(config['entrypoint'], ['sh', '-c', 'node server.js'])
+        self.assertEqual(config['config']['Entrypoint'],
+                         ['sh', '-c', 'node server.js'])
 
     @mock.patch('ftl.common.tar_to_dockerimage.FromFSImage.uncompressed_blob')
     def test_package_layer_entrypoint(self, mock_from):
@@ -89,10 +91,12 @@ class NodeTest(unittest.TestCase):
         self.ctx.AddFile('package.json', json.dumps(pj))
 
         pkg = self.builder.PackageLayer(self.builder._ctx, None,
-                                        self.builder._descriptor_files, "/app")
+                                        self.builder._descriptor_files, "/app",
+                                        None)
         pkg.BuildLayer()
         config = json.loads(pkg.GetImage().config_file())
-        self.assertEqual(config['entrypoint'], ['sh', '-c', 'foo bar'])
+        self.assertEqual(config['config']['Entrypoint'],
+                         ['sh', '-c', 'foo bar'])
 
     @mock.patch('ftl.common.tar_to_dockerimage.FromFSImage.uncompressed_blob')
     def test_create_package_base_no_entrypoint(self, mock_from):
@@ -100,10 +104,12 @@ class NodeTest(unittest.TestCase):
         self.ctx.AddFile('package.json', _PACKAGE_JSON_TEXT)
 
         pkg = self.builder.PackageLayer(self.builder._ctx, None,
-                                        self.builder._descriptor_files, "/app")
+                                        self.builder._descriptor_files, "/app",
+                                        None)
         pkg.BuildLayer()
         config = json.loads(pkg.GetImage().config_file())
-        self.assertEqual(config['entrypoint'], ['sh', '-c', 'node server.js'])
+        self.assertEqual(config['config']['Entrypoint'],
+                         ['sh', '-c', 'node server.js'])
 
     @mock.patch('ftl.common.tar_to_dockerimage.FromFSImage.uncompressed_blob')
     def test_create_package_base_prestart(self, mock_from):
@@ -113,10 +119,12 @@ class NodeTest(unittest.TestCase):
         self.ctx.AddFile('package.json', json.dumps(pj))
 
         pkg = self.builder.PackageLayer(self.builder._ctx, None,
-                                        self.builder._descriptor_files, "/app")
+                                        self.builder._descriptor_files, "/app",
+                                        None)
         pkg.BuildLayer()
         config = json.loads(pkg.GetImage().config_file())
-        self.assertEqual(config['entrypoint'], ['sh', '-c', 'foo bar && baz'])
+        self.assertEqual(config['config']['Entrypoint'],
+                         ['sh', '-c', 'foo bar && baz'])
 
 
 if __name__ == '__main__':

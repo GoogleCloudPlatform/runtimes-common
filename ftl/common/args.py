@@ -92,6 +92,12 @@ def base_parser():
         default='srv',
         help='The base path that the app and dependency files will be \
         installed in the final image')
+    parser.add_argument(
+        '--entrypoint',
+        dest='entrypoint',
+        action='store',
+        default=None,
+        help='The entrypoint for the dockerimage')
     return parser
 
 

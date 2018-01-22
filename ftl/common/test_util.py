@@ -20,8 +20,8 @@ class FromFSImage():
     def __init__(self, config_path, tarball_path):
         self._config = open(config_path, 'r').read()
         # TODO(aaron-prindle) use fast image format instead of tarball
-        self._docker_image = docker_image.FromDisk(self._config,
-                                                   zip([], []), tarball_path)
+        self._docker_image = docker_image.FromDisk(self._config, zip([], []),
+                                                   tarball_path)
 
     def GetConfig(self):
         return self._config

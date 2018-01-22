@@ -113,6 +113,8 @@ class RuntimeBase(JustApp):
                  descriptor_files):
         super(RuntimeBase, self).__init__(ctx)
         self._namespace = namespace
+        if args.entrypoint:
+            args.entrypoint = args.entrypoint.split(" ")
         self._args = args
         self._base_name = docker_name.Tag(self._args.base)
         self._base_creds = docker_creds.DefaultKeychain.Resolve(

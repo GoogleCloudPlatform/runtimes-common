@@ -62,7 +62,8 @@ class PythonTest(unittest.TestCase):
 
     def test_build_interpreter_layer_ttl_written(self):
         interpreter = self.builder.InterpreterLayer(
-            self.builder._venv_dir, self.builder._args.python_version)
+            self.builder._venv_dir, self.builder._args.python_version,
+            None)
         interpreter.BuildLayer()
         overrides = ftl_util.CfgDctToOverrides(
             json.loads(interpreter.GetImage().config_file()))

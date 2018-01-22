@@ -8,7 +8,7 @@ import util
 
 # Add directories for new tests here.
 TEST_DIRS = [
-    'packages_test', 'destination_test'
+    'packages_test', 'destination_test', 'entrypoint_test'
 ]
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
@@ -39,6 +39,7 @@ def main():
             os.path.join(_TEST_DIR, test), '--no-cache'
         ]
     test_map['destination_test'].extend(['--destination', '/alternative-app'])
+    test_map['entrypoint_test'].extend(['--entrypoint', '/bin/echo'])
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(
             'php_builder_image',
