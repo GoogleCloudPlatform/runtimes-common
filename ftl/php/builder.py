@@ -53,7 +53,8 @@ class PHP(builder.RuntimeBase):
                 pkgs = [None]
             for pkg_txt in pkgs:
                 pkg = self.PackageLayer(self._ctx, self._descriptor_files,
-                                        pkg_txt, self._args.destination_path)
+                                        pkg_txt, self._args.destination_path,
+                                        self._args.entrypoint)
                 cached_pkg_img = None
                 if self._args.cache:
                     with ftl_util.Timing("checking cached pkg layer"):
@@ -81,12 +82,13 @@ class PHP(builder.RuntimeBase):
 
     class PackageLayer(single_layer_image.CacheableLayer):
         def __init__(self, ctx, descriptor_files, pkg_descriptor,
-                     destination_path):
+                     destination_path, entrypoint):
             super(PHP.PackageLayer, self).__init__()
             self._ctx = ctx
             self._descriptor_files = descriptor_files
             self._pkg_descriptor = pkg_descriptor
             self._destination_path = destination_path
+            self._entrypoint = entrypoint
 
         def GetCacheKeyRaw(self):
             if self._pkg_descriptor is not None:
@@ -100,10 +102,13 @@ class PHP(builder.RuntimeBase):
             """Override."""
             blob, u_blob = self._gen_composer_install_tar(
                 self._pkg_descriptor, self._destination_path)
+            overrides_dct = {
+                    'created': str(datetime.date.today()) + "T00:00:00Z"
+                }
+            if self._entrypoint:
+                overrides_dct['Entrypoint'] = self._entrypoint
             self._img = tar_to_dockerimage.FromFSImage(
-                [blob], [u_blob], {
-                    "created": str(datetime.date.today()) + "T00:00:00Z"
-                })
+                [blob], [u_blob], overrides_dct)
 
         def _gen_composer_install_tar(self, pkg_descriptor, destination_path):
             # Create temp directory to write package descriptor to

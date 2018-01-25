@@ -24,7 +24,7 @@ from containerregistry.transform.v2_2 import metadata
 
 # This is a 'whitelist' of values to pass from the
 # config_file of a DockerImage to an Overrides object
-_OVERRIDES_VALUES = ['created', 'entrypoint', 'env']
+# _OVERRIDES_VALUES = ['created', 'Entrypoint', 'Env']
 
 
 def CfgDctToOverrides(config_dct):
@@ -34,14 +34,22 @@ def CfgDctToOverrides(config_dct):
     """
     overrides_dct = {}
     for k, v in config_dct.iteritems():
-        if k in _OVERRIDES_VALUES:
-            if k == 'created':
-                # this key change is made as the key is
-                # 'creation_time' in an Overrides object
-                # but 'created' in the config_file
-                overrides_dct['creation_time'] = v
-            else:
-                overrides_dct[k] = v
+        if k == 'created':
+            # this key change is made as the key is
+            # 'creation_time' in an Overrides object
+            # but 'created' in the config_file
+            overrides_dct['creation_time'] = v
+    for k, v in config_dct['config'].iteritems():
+        if k == 'Entrypoint':
+            # this key change is made as the key is
+            # 'entrypoint' in an Overrides object
+            # but 'Entrypoint' in the config_file
+            overrides_dct['entrypoint'] = v
+        elif k == 'Env':
+            # this key change is made as the key is
+            # 'env' in an Overrides object
+            # but 'Env' in the config_file
+            overrides_dct['env'] = v
     return metadata.Overrides(**overrides_dct)
 
 

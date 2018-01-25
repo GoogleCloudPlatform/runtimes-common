@@ -24,7 +24,7 @@ from containerregistry.transform.v2_2 import metadata as v2_2_metadata
 class FromFSImage(docker_image.DockerImage):
     """Interface for implementations that interact with Docker images."""
 
-    def __init__(self, blob_lst, u_layer_lst, overrides=None):
+    def __init__(self, blob_lst, u_layer_lst, overrides={}):
         digest_to_blob, digest_to_u_blob = self._gen_digest_to_blob_and_u_blob(
             blob_lst, u_layer_lst)
         self._digest_to_blob = digest_to_blob
@@ -117,19 +117,28 @@ class FromFSImage(docker_image.DockerImage):
             _PROCESSOR_ARCHITECTURE = 'amd64'
             _OPERATING_SYSTEM = 'linux'
 
+            entrypoint = []
+            if 'Entrypoint' in self._overrides:
+                entrypoint = self._overrides['Entrypoint']
+                self._overrides.pop('Entrypoint', None)
+            env = {}
+            if 'Env' in self._overrides:
+                entrypoint = self._overrides['Env']
+                self._overrides.pop('Env', None)
             output = v2_2_metadata.Override(
                 json.loads('{}'),
                 v2_2_metadata.Overrides(
                     author='Bazel',
                     created_by='bazel build ...',
-                    # layers=[self._get_uncompressed_blob_diff_id()],
-                    layers=[k for k in self._diff_id_to_u_layer]),
+                    layers=[k for k in self._diff_id_to_u_layer],
+                    entrypoint=entrypoint,
+                    env=env),
                 architecture=_PROCESSOR_ARCHITECTURE,
                 operating_system=_OPERATING_SYSTEM)
             output['rootfs'] = {
                 'diff_ids': [k for k in self._diff_id_to_u_layer]
             }
-            if self._overrides is not None:
+            if len(self._overrides) > 0:
                 output.update(self._overrides)
             self._config_file = json.dumps(output, sort_keys=True)
         return self._config_file
