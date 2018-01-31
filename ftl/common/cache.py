@@ -53,8 +53,8 @@ class Base(object):
         """
 
     @abc.abstractmethod
-    def Store(self, base_image, namespace, cache_key, value):
-        """Lookup a cached image.
+    def Set(self, base_image, namespace, cache_key, value):
+        """Set an entry in the cache.
         Args:
           base_image: the docker_image.Image on which things are based.
           namespace: a namespace for this cache.
@@ -95,33 +95,41 @@ class Registry(Base):
             tag=hashlib.sha256(fingerprint).hexdigest()))
 
     def Get(self, base_image, namespace, cache_key):
+        """Attempt to retrieve value from cache."""
+        logging.debug("Checking cache for base %s, namespace %s, cache_key %s",
+                      base_image, namespace, cache_key)
+        hit = self.getEntry(base_image, namespace, cache_key)
+        if hit:
+            logging.info('Found cached dependency layer for %s' % cache_key)
+            if self.checkTTL(hit):
+                return hit
+            else:
+                logging.info('TTL expired for cached image, rebuilding %s'
+                             % cache_key)
+        else:
+            logging.info('No cached dependency layer for %s' % cache_key)
+
+    def getEntry(self, base_image, namespace, cache_key):
+        """Retrieve value from cache."""
         entry = self._tag(base_image, namespace, cache_key)
+        logging.debug("Checking cache for entry %s", entry)
         with docker_image.FromRegistry(entry, self._creds,
                                        self._transport) as img:
             if img.exists():
                 logging.info('Found cached base image: %s.' % entry)
                 return img
             logging.info('No cached base image found for entry: %s.' % entry)
-        return None
 
-    def GetAndCheckTTL(self, base, namespace, cache_key):
-        hit = self.Get(base, namespace, cache_key)
-        if hit:
-            logging.info('Found cached dependency layer for %s' % cache_key)
-            last_created = ftl_util.timestamp_to_time(
-                ftl_util.creation_time(hit))
-            now = datetime.datetime.now()
-            if last_created > now - datetime.timedelta(
-                    weeks=_DEFAULT_TTL_WEEKS):
-                return hit
-            else:
-                logging.info(
-                    'TTL expired for cached image, rebuilding %s' % cache_key)
-        else:
-            logging.info('No cached dependency layer for %s' % cache_key)
-        return None
+    def checkTTL(self, entry):
+        """Check TTL of cache entry.
+        Return whether or not the entry is expired."""
+        last_created = ftl_util.timestamp_to_time(
+                ftl_util.creation_time(entry))
+        now = datetime.datetime.now()
+        return last_created > now - datetime.timedelta(
+                weeks=_DEFAULT_TTL_WEEKS)
 
-    def Store(self, base_image, namespace, cache_key, value):
+    def Set(self, base_image, namespace, cache_key, value):
         entry = self._tag(base_image, namespace, cache_key)
         with docker_session.Push(
                 entry,

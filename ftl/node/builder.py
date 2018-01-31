@@ -46,7 +46,7 @@ class Node(builder.RuntimeBase):
             cached_pkg_img = None
             if self._args.cache:
                 with ftl_util.Timing("checking cached pkg layer"):
-                    cached_pkg_img = self._cash.GetAndCheckTTL(
+                    cached_pkg_img = self._cache.Get(
                         self._base, self._namespace, pkg.GetCacheKey())
             if cached_pkg_img is not None:
                 pkg.SetImage(cached_pkg_img)
@@ -55,8 +55,8 @@ class Node(builder.RuntimeBase):
                     pkg.BuildLayer()
                 if self._args.cache:
                     with ftl_util.Timing("uploading pkg layer"):
-                        self._cash.Store(self._base, self._namespace,
-                                         pkg.GetCacheKey(), pkg.GetImage())
+                        self._cache.Set(self._base, self._namespace,
+                                        pkg.GetCacheKey(), pkg.GetImage())
             lyr_imgs.append(pkg)
 
         app = self.AppLayer(self._ctx, self._args.destination_path)
