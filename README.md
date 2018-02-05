@@ -30,3 +30,5 @@ Please install this before sending any commits via:
 
 ```shell
 ln -s $(pwd)/hack/hooks/* .git/hooks/
+
+test
