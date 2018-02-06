@@ -54,7 +54,7 @@ class Python(builder.RuntimeBase):
 
     def Build(self):
         lyr_imgs = []
-        lyr_imgs.append(self._base)
+        lyr_imgs.append(self._base_image)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
 
             interpreter = self.InterpreterLayer(self._venv_dir,
@@ -63,8 +63,7 @@ class Python(builder.RuntimeBase):
             cached_int_img = None
             if self._args.cache:
                 with ftl_util.Timing("checking cached int layer"):
-                    cached_int_img = self._cache.Get(
-                        self._base, self._namespace, interpreter.GetCacheKey())
+                    cached_int_img = self._cache.Get(interpreter.GetCacheKey())
             if cached_int_img is not None:
                 interpreter.SetImage(cached_int_img)
             else:
@@ -72,8 +71,7 @@ class Python(builder.RuntimeBase):
                     interpreter.BuildLayer()
                 if self._args.cache:
                     with ftl_util.Timing("uploading int layer"):
-                        self._cache.Set(self._base, self._namespace,
-                                        interpreter.GetCacheKey(),
+                        self._cache.Set(interpreter.GetCacheKey(),
                                         interpreter.GetImage())
             lyr_imgs.append(interpreter)
 
@@ -94,8 +92,7 @@ class Python(builder.RuntimeBase):
                 cached_pkg_img = None
                 if self._args.cache:
                     with ftl_util.Timing("checking cached pkg layer"):
-                        cached_pkg_img = self._cache.Get(
-                            self._base, self._namespace, pkg.GetCacheKey())
+                        cached_pkg_img = self._cache.Get(pkg.GetCacheKey())
                 if cached_pkg_img is not None:
                     pkg.SetImage(cached_pkg_img)
                 else:
@@ -103,8 +100,7 @@ class Python(builder.RuntimeBase):
                         pkg.BuildLayer()
                     if self._args.cache:
                         with ftl_util.Timing("uploading pkg layer"):
-                            self._cache.Set(self._base, self._namespace,
-                                            pkg.GetCacheKey(), pkg.GetImage())
+                            self._cache.Set(pkg.GetCacheKey(), pkg.GetImage())
                 lyr_imgs.append(pkg)
 
         app = self.AppLayer(self._ctx)

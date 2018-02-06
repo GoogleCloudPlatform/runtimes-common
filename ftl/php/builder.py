@@ -45,7 +45,7 @@ class PHP(builder.RuntimeBase):
 
     def Build(self):
         lyr_imgs = []
-        lyr_imgs.append(self._base)
+        lyr_imgs.append(self._base_image)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             pkgs = self._parse_composer_pkgs()
             # if there are 42 or more packages, revert to using phase 1
@@ -58,8 +58,7 @@ class PHP(builder.RuntimeBase):
                 cached_pkg_img = None
                 if self._args.cache:
                     with ftl_util.Timing("checking cached pkg layer"):
-                        cached_pkg_img = self._cache.Get(
-                            self._base, self._namespace, pkg.GetCacheKey())
+                        cached_pkg_img = self._cache.Get(pkg.GetCacheKey())
                 if cached_pkg_img is not None:
                     pkg.SetImage(cached_pkg_img)
                 else:
@@ -67,8 +66,7 @@ class PHP(builder.RuntimeBase):
                         pkg.BuildLayer()
                     if self._args.cache:
                         with ftl_util.Timing("uploading pkg layer"):
-                            self._cache.Set(self._base, self._namespace,
-                                            pkg.GetCacheKey(), pkg.GetImage())
+                            self._cache.Set(pkg.GetCacheKey(), pkg.GetImage())
                 lyr_imgs.append(pkg)
 
         app = self.AppLayer(self._ctx, self._args.destination_path)

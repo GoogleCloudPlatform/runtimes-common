@@ -42,22 +42,20 @@ class Base(object):
         """Cleanup the context."""
 
     @abc.abstractmethod
-    def Get(self, base_image, namespace, cache_key):
+    def Get(self, cache_key):
         """Lookup a cached image.
         Args:
           base_image: the docker_image.Image on which things are based.
-          namespace: a namespace for this cache.
           cache_key: the cache_key of the package descriptor atop our base.
         Returns:
           the docker_image.Image of the cache hit, or None.
         """
 
     @abc.abstractmethod
-    def Set(self, base_image, namespace, cache_key, value):
+    def Set(self, cache_key, value):
         """Set an entry in the cache.
         Args:
           base_image: the docker_image.Image on which things are based.
-          namespace: a namespace for this cache.
           cache_key: the cache_key of the package descriptor atop our base.
           value: the docker_image.Image to store into the cache.
         """
@@ -72,6 +70,8 @@ class Registry(Base):
 
     def __init__(self,
                  repo,
+                 base_image,
+                 namespace,
                  creds,
                  transport,
                  cache_version=None,
@@ -79,29 +79,30 @@ class Registry(Base):
                  mount=None):
         super(Registry, self).__init__()
         self._repo = repo
+        self._base_image = base_image
+        self._namespace = namespace
         self._creds = creds
         self._transport = transport
         self._cache_version = cache_version
         self._threads = threads
         self._mount = mount or []
 
-    def _tag(self, base_image, namespace, cache_key):
-        fingerprint = '%s %s' % (base_image.digest(), cache_key)
+    def _tag(self, cache_key, repo=None):
+        fingerprint = '%s %s' % (self._base_image.digest(), cache_key)
         if self._cache_version:
             fingerprint += ' ' + self._cache_version
-        return docker_name.Tag('{base}/{namespace}:{tag}'.format(
-            base=str(self._repo),
-            namespace=namespace,
+        return docker_name.Tag('{repo}/{namespace}:{tag}'.format(
+            repo=repo or str(self._repo),
+            namespace=self._namespace,
             tag=hashlib.sha256(fingerprint).hexdigest()))
 
-    def Get(self, base_image, namespace, cache_key):
+    def Get(self, cache_key):
         """Attempt to retrieve value from cache."""
-        logging.debug("Checking cache for base %s, namespace %s, cache_key %s",
-                      base_image, namespace, cache_key)
-        hit = self.getEntry(base_image, namespace, cache_key)
+        logging.debug('Checking cache for cache_key %s', cache_key)
+        hit = self._getEntry(cache_key)
         if hit:
             logging.info('Found cached dependency layer for %s' % cache_key)
-            if self.checkTTL(hit):
+            if Registry.checkTTL(hit):
                 return hit
             else:
                 logging.info('TTL expired for cached image, rebuilding %s'
@@ -109,28 +110,16 @@ class Registry(Base):
         else:
             logging.info('No cached dependency layer for %s' % cache_key)
 
-    def getEntry(self, base_image, namespace, cache_key):
+    def _getEntry(self, cache_key):
         """Retrieve value from cache."""
-        entry = self._tag(base_image, namespace, cache_key)
-        logging.debug("Checking cache for entry %s", entry)
-        with docker_image.FromRegistry(entry, self._creds,
-                                       self._transport) as img:
-            if img.exists():
-                logging.info('Found cached base image: %s.' % entry)
-                return img
-            logging.info('No cached base image found for entry: %s.' % entry)
+        key = self._tag(cache_key)
+        entry = Registry.getEntryFromCreds(key, self._creds, self._transport)
+        if not entry:
+            logging.info('Cache miss on local cache for %s', key)
+        return entry
 
-    def checkTTL(self, entry):
-        """Check TTL of cache entry.
-        Return whether or not the entry is expired."""
-        last_created = ftl_util.timestamp_to_time(
-                ftl_util.creation_time(entry))
-        now = datetime.datetime.now()
-        return last_created > now - datetime.timedelta(
-                weeks=_DEFAULT_TTL_WEEKS)
-
-    def Set(self, base_image, namespace, cache_key, value):
-        entry = self._tag(base_image, namespace, cache_key)
+    def Set(self, cache_key, value):
+        entry = self._tag(cache_key)
         with docker_session.Push(
                 entry,
                 self._creds,
@@ -138,3 +127,23 @@ class Registry(Base):
                 threads=self._threads,
                 mount=self._mount) as session:
             session.upload(value)
+
+    @staticmethod
+    def getEntryFromCreds(entry, creds, transport):
+        """Given a cache entry and a set of credentials authenticated
+        to a cache registry, check if the entry exists in the cache."""
+        with docker_image.FromRegistry(entry, creds, transport) as img:
+            if img.exists():
+                logging.info('Found cached base image: %s.' % entry)
+                return img
+            logging.info('No cached base image found for entry: %s.' % entry)
+
+    @staticmethod
+    def checkTTL(entry):
+        """Check TTL of cache entry.
+        Return whether or not the entry is expired."""
+        last_created = ftl_util.timestamp_to_time(
+                ftl_util.creation_time(entry))
+        now = datetime.datetime.now()
+        return last_created > now - datetime.timedelta(
+                weeks=_DEFAULT_TTL_WEEKS)

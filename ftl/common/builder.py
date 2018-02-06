@@ -123,16 +123,18 @@ class RuntimeBase(JustApp):
         self._target_creds = docker_creds.DefaultKeychain.Resolve(
             self._target_image)
         self._transport = transport_pool.Http(httplib2.Http, size=_THREADS)
+        self._base_image = docker_image.FromRegistry(
+            self._base_name, self._base_creds, self._transport)
+        self._base_image.__enter__()
         self._cache = cache.Registry(
             repo=self._target_image.as_repository(),
+            namespace=self._namespace,
+            base_image=self._base_image,
             creds=self._target_creds,
             transport=self._transport,
             cache_version=cache_version_str,
             threads=_THREADS,
             mount=[self._base_name])
-        self._base = docker_image.FromRegistry(
-            self._base_name, self._base_creds, self._transport)
-        self._base.__enter__()
         self._descriptor_files = descriptor_files
 
     def Build(self):
