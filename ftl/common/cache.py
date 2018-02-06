@@ -26,6 +26,11 @@ from ftl.common import ftl_util
 
 _DEFAULT_TTL_WEEKS = 1
 
+_GLOBAL_CACHE_REGISTRY = 'gcr.io/ftl-global-cache'
+
+# TODO(nkubala): enable feature flag for global cache
+_USE_GLOBAL_CACHE = False
+
 
 class Base(object):
     """Base is an abstract base class representing a layer cache.
@@ -82,6 +87,10 @@ class Registry(Base):
         self._base_image = base_image
         self._namespace = namespace
         self._creds = creds
+        _reg_name = '{base}/{namespace}'.format(base=_GLOBAL_CACHE_REGISTRY,
+                                                namespace=self._namespace)
+        _global_reg = docker_name.Registry(_reg_name)
+        self._global_creds = docker_creds.DefaultKeychain.Resolve(_global_reg)
         self._transport = transport
         self._cache_version = cache_version
         self._threads = threads
@@ -112,6 +121,25 @@ class Registry(Base):
 
     def _getEntry(self, cache_key):
         """Retrieve value from cache."""
+        # check global cache first
+        img = self._getGlobalEntry(cache_key)
+        if img:
+            return img
+        # if we get a global cache miss, check the local cache
+        return self._getLocalEntry(cache_key)
+
+    def _getGlobalEntry(self, cache_key):
+        if _USE_GLOBAL_CACHE:
+            key = self._tag(cache_key, _GLOBAL_CACHE_REGISTRY)
+            entry = Registry.getEntryFromCreds(key, self._global_creds,
+                                               self._transport)
+            if not entry:
+                # TODO(nkubala): standardize this log message so we can
+                # crawl cloudbuild logs for cache misses
+                logging.info('Cache miss on global cache for %s', key)
+            return entry
+
+    def _getLocalEntry(self, cache_key):
         key = self._tag(cache_key)
         entry = Registry.getEntryFromCreds(key, self._creds, self._transport)
         if not entry:
