@@ -67,7 +67,7 @@ class Timing(object):
 
 
 def zip_dir_to_layer_sha(pkg_dir):
-    tar_path = tempfile.mktemp()
+    tar_path = tempfile.mktemp(suffix=".tar")
     with Timing("tar_runtime_package"):
         subprocess.check_call(['tar', '-C', pkg_dir, '-cf', tar_path, '.'])
 
