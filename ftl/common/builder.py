@@ -123,10 +123,10 @@ class RuntimeBase(JustApp):
         self._target_creds = docker_creds.DefaultKeychain.Resolve(
             self._target_image)
         self._transport = transport_pool.Http(httplib2.Http, size=_THREADS)
-        self._cash = cache.Registry(
-            self._target_image.as_repository(),
-            self._target_creds,
-            self._transport,
+        self._cache = cache.Registry(
+            repo=self._target_image.as_repository(),
+            creds=self._target_creds,
+            transport=self._transport,
             cache_version=cache_version_str,
             threads=_THREADS,
             mount=[self._base_name])
