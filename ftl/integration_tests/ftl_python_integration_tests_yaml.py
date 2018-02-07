@@ -26,7 +26,6 @@ def main():
             'name': 'gcr.io/cloud-builders/bazel',
             'args': ['run', '//ftl:python_builder_image', '--', '--norun'],
             'id': 'build-builder',
-            'waitFor': [cloudbuild_yaml['steps'][0]['id']],
         },
     )
 

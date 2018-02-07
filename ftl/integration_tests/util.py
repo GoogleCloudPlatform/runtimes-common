@@ -28,7 +28,6 @@ def run_test_steps(builder_name, full_name, directory, args):
         {
             'name': 'bazel/ftl:%s' % builder_name,
             'args': args,
-            'waitFor': ['build-builder'],
             'id': 'build-image-%s' % full_name,
         },
         # Then pull it from the registry
@@ -36,7 +35,6 @@ def run_test_steps(builder_name, full_name, directory, args):
             'name': 'gcr.io/cloud-builders/docker',
             'args': ['pull', full_name],
             'id': 'pull-image-%s' % full_name,
-            'waitFor': ['build-image-%s' % full_name],
         },
         # Then test it.
         {
@@ -46,7 +44,6 @@ def run_test_steps(builder_name, full_name, directory, args):
                 '/go_default_test', '-image', full_name,
                 os.path.join(directory, 'structure_test.yaml')
             ],
-            'waitFor': ['pull-image-%s' % full_name],
             'id': 'test-image%s' % full_name
         }
     ]
