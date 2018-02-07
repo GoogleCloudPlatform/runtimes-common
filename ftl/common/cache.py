@@ -19,6 +19,7 @@ import logging
 import datetime
 
 from containerregistry.client import docker_name
+from containerregistry.client import docker_creds
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
 
@@ -27,9 +28,6 @@ from ftl.common import ftl_util
 _DEFAULT_TTL_WEEKS = 1
 
 _GLOBAL_CACHE_REGISTRY = 'gcr.io/ftl-global-cache'
-
-# TODO(nkubala): enable feature flag for global cache
-_USE_GLOBAL_CACHE = False
 
 
 class Base(object):
@@ -81,7 +79,8 @@ class Registry(Base):
                  transport,
                  cache_version=None,
                  threads=1,
-                 mount=None):
+                 mount=None,
+                 use_global=False):
         super(Registry, self).__init__()
         self._repo = repo
         self._base_image = base_image
@@ -89,8 +88,11 @@ class Registry(Base):
         self._creds = creds
         _reg_name = '{base}/{namespace}'.format(base=_GLOBAL_CACHE_REGISTRY,
                                                 namespace=self._namespace)
-        _global_reg = docker_name.Registry(_reg_name)
-        self._global_creds = docker_creds.DefaultKeychain.Resolve(_global_reg)
+        # TODO(nkubala): default this to true to point builds to global cache
+        self._use_global = use_global
+        if use_global:
+            _reg = docker_name.Registry(_reg_name)
+            self._global_creds = docker_creds.DefaultKeychain.Resolve(_reg)
         self._transport = transport
         self._cache_version = cache_version
         self._threads = threads
@@ -129,7 +131,7 @@ class Registry(Base):
         return self._getLocalEntry(cache_key)
 
     def _getGlobalEntry(self, cache_key):
-        if _USE_GLOBAL_CACHE:
+        if self._use_global:
             key = self._tag(cache_key, _GLOBAL_CACHE_REGISTRY)
             entry = Registry.getEntryFromCreds(key, self._global_creds,
                                                self._transport)
