@@ -52,6 +52,7 @@ class PythonTest(unittest.TestCase):
         args.name = 'gcr.io/test/test:latest'
         args.base = 'gcr.io/google-appengine/python:latest'
         args.python_version = 'python2.7'
+        args.tar_base_image_path = None
         self.builder = builder.Python(self.ctx, args, "")
         self.builder._pip_install = mock.Mock()
 

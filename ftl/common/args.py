@@ -19,12 +19,18 @@ import argparse
 
 def base_parser():
     parser = argparse.ArgumentParser()
-
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
         '--base',
         action='store',
-        required=True,
         help=('The name of the docker base image.'))
+
+    group.add_argument(
+        '--tar_base_image_path',
+        dest='tar_base_image_path',
+        action='store',
+        default=None,
+        help='The tar path for the base dockerimage for the FTL build')
 
     parser.add_argument(
         '--name',

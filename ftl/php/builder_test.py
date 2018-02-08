@@ -71,6 +71,7 @@ class PHPTest(unittest.TestCase):
         args = mock.Mock()
         args.name = 'gcr.io/test/test:latest'
         args.base = 'gcr.io/google-appengine/php:latest'
+        args.tar_base_image_path = None
         self.builder = builder.PHP(self.ctx, args, "")
 
         # Mock out the calls to package managers for speed.
