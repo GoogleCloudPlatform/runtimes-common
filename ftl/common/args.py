@@ -105,6 +105,12 @@ def base_parser():
         action='store',
         default=None,
         help='The entrypoint for the dockerimage')
+    parser.add_argument(
+        '--exposed_ports',
+        dest='exposed_ports',
+        action='store',
+        default=None,
+        help='The port to expose for the dockerimage')
     return parser
 
 

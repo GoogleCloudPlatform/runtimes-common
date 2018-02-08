@@ -42,7 +42,7 @@ class Node(builder.RuntimeBase):
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             pkg = self.PackageLayer(self._ctx, self._descriptor_files, None,
                                     self._args.destination_path,
-                                    self._args.entrypoint)
+                                    self._args.exposed_ports)
             cached_pkg_img = None
             if self._args.cache:
                 with ftl_util.Timing("checking cached pkg layer"):
@@ -57,7 +57,9 @@ class Node(builder.RuntimeBase):
                         self._cache.Set(pkg.GetCacheKey(), pkg.GetImage())
             lyr_imgs.append(pkg)
 
-        app = self.AppLayer(self._ctx, self._args.destination_path)
+        app = self.AppLayer(self._ctx, self._args.destination_path,
+                            self._args.entrypoint,
+                            self._args.exposed_ports)
         with ftl_util.Timing("builder app layer"):
             app.BuildLayer()
         lyr_imgs.append(app)
@@ -68,13 +70,13 @@ class Node(builder.RuntimeBase):
 
     class PackageLayer(single_layer_image.CacheableLayer):
         def __init__(self, ctx, descriptor_files, pkg_descriptor,
-                     destination_path, entrypoint):
+                     destination_path, exposed_ports):
             super(Node.PackageLayer, self).__init__()
             self._ctx = ctx
             self._descriptor_files = descriptor_files
             self._pkg_descriptor = pkg_descriptor
             self._destination_path = destination_path
-            self._entrypoint = entrypoint
+            self._exposed_ports = exposed_ports
 
         def GetCacheKeyRaw(self):
             return ftl_util.descriptor_parser(self._descriptor_files,
@@ -117,12 +119,10 @@ class Node(builder.RuntimeBase):
             pj_contents = {}
             if self._ctx.Contains(_PACKAGE_JSON):
                 pj_contents = json.loads(self._ctx.GetFile(_PACKAGE_JSON))
-            entrypoint = self._entrypoint
-            if not entrypoint:
-                entrypoint = self._parse_entrypoint(pj_contents)
+            entrypoint = self._parse_entrypoint(pj_contents)
             overrides_dct = {
                 'created': str(datetime.date.today()) + "T00:00:00Z",
-                'Entrypoint': entrypoint
+                'Entrypoint': entrypoint,
             }
             return overrides_dct
 

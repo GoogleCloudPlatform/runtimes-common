@@ -20,6 +20,7 @@ import logging
 import subprocess
 import httplib2
 import json
+import datetime
 
 from containerregistry.client import docker_creds
 from containerregistry.client import docker_name
@@ -68,9 +69,12 @@ class JustApp(Base):
         return
 
     class AppLayer(single_layer_image.BaseLayer):
-        def __init__(self, ctx, destination_path='srv'):
+        def __init__(self, ctx, destination_path='srv', entrypoint=None,
+                     exposed_ports=None):
             self._ctx = ctx
             self._destination_path = destination_path
+            self._entrypoint = entrypoint
+            self._exposed_ports = exposed_ports
 
         def GetCacheKeyRaw(self):
             return None
@@ -98,8 +102,16 @@ class JustApp(Base):
                 stdin=subprocess.PIPE,
                 stderr=subprocess.PIPE)
             gz = gzip_process.communicate(input=tar)[0]
+            overrides_dct = {
+                    'created': str(datetime.date.today()) + "T00:00:00Z"
+                }
+            if self._entrypoint:
+                overrides_dct['Entrypoint'] = self._entrypoint
+            if self._exposed_ports:
+                overrides_dct['ExposedPorts'] = self._exposed_ports
             logging.info('Finished gzipping tarfile.')
-            self._img = tar_to_dockerimage.FromFSImage([gz], [tar])
+            self._img = tar_to_dockerimage.FromFSImage([gz], [tar],
+                                                       overrides_dct)
 
 
 class RuntimeBase(JustApp):
@@ -115,6 +127,8 @@ class RuntimeBase(JustApp):
         self._namespace = namespace
         if args.entrypoint:
             args.entrypoint = args.entrypoint.split(" ")
+        if args.exposed_ports:
+            args.exposed_ports = args.exposed_ports.split(" ")
         self._args = args
         self._base_name = docker_name.Tag(self._args.base)
         self._base_creds = docker_creds.DefaultKeychain.Resolve(

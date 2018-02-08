@@ -30,7 +30,7 @@ _REQUIREMENTS_TXT = 'requirements.txt'
 _PYTHON_NAMESPACE = 'python-requirements-cache'
 
 
-def _generate_overrides(set_path, entrypoint):
+def _generate_overrides(set_path):
     env = {
         "VIRTUAL_ENV": "/env",
     }
@@ -40,8 +40,6 @@ def _generate_overrides(set_path, entrypoint):
         "created": str(datetime.date.today()) + "T00:00:00Z",
         "env": env
     }
-    if entrypoint:
-        overrides_dct['Entrypoint'] = entrypoint
     return overrides_dct
 
 
@@ -58,8 +56,7 @@ class Python(builder.RuntimeBase):
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
 
             interpreter = self.InterpreterLayer(self._venv_dir,
-                                                self._args.python_version,
-                                                self._args.entrypoint)
+                                                self._args.python_version)
             cached_int_img = None
             if self._args.cache:
                 with ftl_util.Timing("checking cached int layer"):
@@ -87,8 +84,7 @@ class Python(builder.RuntimeBase):
 
             for whl_pkg_dir in pkg_dirs:
                 pkg = self.PackageLayer(self._ctx, self._descriptor_files,
-                                        whl_pkg_dir, interpreter,
-                                        self._args.entrypoint)
+                                        whl_pkg_dir, interpreter)
                 cached_pkg_img = None
                 if self._args.cache:
                     with ftl_util.Timing("checking cached pkg layer"):
@@ -103,18 +99,19 @@ class Python(builder.RuntimeBase):
                             self._cache.Set(pkg.GetCacheKey(), pkg.GetImage())
                 lyr_imgs.append(pkg)
 
-        app = self.AppLayer(self._ctx)
+        app = self.AppLayer(self._ctx, self._args.destination_path,
+                            self._args.entrypoint,
+                            self._args.exposed_ports)
         app.BuildLayer()
         lyr_imgs.append(app)
         ftl_image = self.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)
 
     class InterpreterLayer(single_layer_image.CacheableLayer):
-        def __init__(self, venv_dir, python_version, entrypoint):
+        def __init__(self, venv_dir, python_version):
             super(Python.InterpreterLayer, self).__init__()
             self._venv_dir = venv_dir
             self._python_version = python_version
-            self._entrypoint = entrypoint
 
         def GetCacheKeyRaw(self):
             return self._python_version
@@ -124,7 +121,7 @@ class Python(builder.RuntimeBase):
             blob, u_blob = ftl_util.zip_dir_to_layer_sha(
                 os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
             self._img = tar_to_dockerimage.FromFSImage(
-                [blob], [u_blob], _generate_overrides(True, self._entrypoint))
+                [blob], [u_blob], _generate_overrides(True))
 
         def _setup_venv(self, python_version):
             with ftl_util.Timing("create_virtualenv"):
@@ -170,14 +167,12 @@ class Python(builder.RuntimeBase):
         return pip_env
 
     class PackageLayer(single_layer_image.CacheableLayer):
-        def __init__(self, ctx, descriptor_files, pkg_dir, dep_img_lyr,
-                     entrypoint):
+        def __init__(self, ctx, descriptor_files, pkg_dir, dep_img_lyr):
             super(Python.PackageLayer, self).__init__()
             self._ctx = ctx
             self._pkg_dir = pkg_dir
             self._descriptor_files = descriptor_files
             self._dep_img_lyr = dep_img_lyr
-            self._entrypoint = entrypoint
 
         def GetCacheKeyRaw(self):
             descriptor_contents = ftl_util.descriptor_parser(
@@ -188,4 +183,4 @@ class Python(builder.RuntimeBase):
         def BuildLayer(self):
             blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
             self._img = tar_to_dockerimage.FromFSImage(
-                [blob], [u_blob], _generate_overrides(False, self._entrypoint))
+                [blob], [u_blob], _generate_overrides(False))
