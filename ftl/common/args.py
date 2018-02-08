@@ -58,6 +58,13 @@ def base_parser():
         help='Check cache during build (default).')
 
     parser.add_argument(
+        '--global-cache',
+        dest='global_cache',
+        default=False,
+        action='store_true',
+        help='Use global cache')
+
+    parser.add_argument(
         '--no-upload',
         dest='upload',
         action='store_false',

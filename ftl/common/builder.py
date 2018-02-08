@@ -134,7 +134,8 @@ class RuntimeBase(JustApp):
             transport=self._transport,
             cache_version=cache_version_str,
             threads=_THREADS,
-            mount=[self._base_name])
+            mount=[self._base_name],
+            use_global=self._args.global_cache)
         self._descriptor_files = descriptor_files
 
     def Build(self):

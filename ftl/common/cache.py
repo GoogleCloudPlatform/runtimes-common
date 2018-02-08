@@ -19,12 +19,15 @@ import logging
 import datetime
 
 from containerregistry.client import docker_name
+from containerregistry.client import docker_creds
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
 
 from ftl.common import ftl_util
 
 _DEFAULT_TTL_WEEKS = 1
+
+_GLOBAL_CACHE_REGISTRY = 'gcr.io/ftl-global-cache'
 
 
 class Base(object):
@@ -76,12 +79,20 @@ class Registry(Base):
                  transport,
                  cache_version=None,
                  threads=1,
-                 mount=None):
+                 mount=None,
+                 use_global=False):
         super(Registry, self).__init__()
         self._repo = repo
         self._base_image = base_image
         self._namespace = namespace
         self._creds = creds
+        _reg_name = '{base}/{namespace}'.format(base=_GLOBAL_CACHE_REGISTRY,
+                                                namespace=self._namespace)
+        # TODO(nkubala): default this to true to point builds to global cache
+        self._use_global = use_global
+        if use_global:
+            _reg = docker_name.Registry(_reg_name)
+            self._global_creds = docker_creds.DefaultKeychain.Resolve(_reg)
         self._transport = transport
         self._cache_version = cache_version
         self._threads = threads
@@ -112,6 +123,25 @@ class Registry(Base):
 
     def _getEntry(self, cache_key):
         """Retrieve value from cache."""
+        # check global cache first
+        img = self._getGlobalEntry(cache_key)
+        if img:
+            return img
+        # if we get a global cache miss, check the local cache
+        return self._getLocalEntry(cache_key)
+
+    def _getGlobalEntry(self, cache_key):
+        if self._use_global:
+            key = self._tag(cache_key, _GLOBAL_CACHE_REGISTRY)
+            entry = Registry.getEntryFromCreds(key, self._global_creds,
+                                               self._transport)
+            if not entry:
+                # TODO(nkubala): standardize this log message so we can
+                # crawl cloudbuild logs for cache misses
+                logging.info('Cache miss on global cache for %s', key)
+            return entry
+
+    def _getLocalEntry(self, cache_key):
         key = self._tag(cache_key)
         entry = Registry.getEntryFromCreds(key, self._creds, self._transport)
         if not entry:
