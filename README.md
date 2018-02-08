@@ -15,9 +15,9 @@ See below for a list of the tools contained here.
 
 * [FTL](./ftl/) - A set of tools for building language-runtime focused images "faster-than-light".
 * [Integration Tests](./integration_tests/) - A set of tools for testing the functionality of language-based application containers on GCP.
-* [reconciletags](./reconciletags/) - A source-based workflow tool for managing the tags on container images in GCR.
-* [runtime_builders](./runtime_builders) - A tool for releasing sets of container images.
-* [check_if_image_tag_exists](./check_if_image_tag_exists/) - A Container Builder step to help prevent overwriting images.
+* [reconciletags](./appengine/reconciletags/) - A source-based workflow tool for managing the tags on container images in GCR.
+* [runtime_builders](./appengine/runtime_builders) - A tool for releasing sets of container images.
+* [check_if_image_tag_exists](./appengine/check_if_image_tag_exists/) - A Container Builder step to help prevent overwriting images.
 * [containerregistry testing](./testing/) - A Python library for testing containerregistry.
 
 ## Developing
