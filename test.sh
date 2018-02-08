@@ -11,4 +11,4 @@ echo "Running tests..."
 bazel test --test_output=errors appengine/reconciletags:reconciletags_test
 bazel test --test_output=errors ftl/... --deleted_packages=ftl/node/benchmark,ftl/php/benchmark,ftl/python/benchmark,ftl/benchmark
 bazel test --test_output=errors testing/lib:mock_registry_tests
-cd appengine/runtime_builders && py.test test_manifest.py && cd ..
+pushd appengine/runtime_builders && py.test test_manifest.py && popd
