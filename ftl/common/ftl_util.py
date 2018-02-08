@@ -22,6 +22,8 @@ import json
 
 from containerregistry.transform.v2_2 import metadata
 
+_CACHE_MAPPING_GCS_PATH = 'gs://ftl-global-cache/mapping.json'
+
 # This is a 'whitelist' of values to pass from the
 # config_file of a DockerImage to an Overrides object
 # _OVERRIDES_VALUES = ['created', 'Entrypoint', 'Env']
@@ -52,6 +54,20 @@ def CfgDctToOverrides(config_dct):
             overrides_dct['env'] = v
     return metadata.Overrides(**overrides_dct)
 
+def GetCacheMappingsFromGCS():
+    # get mapping file from GCS and load into dict
+    try:
+        _, tmp = tempfile.mkstemp(text=True)
+        logging.info('tempfile: %s', tmp)
+        logging.info('remote gcs path: %s', _CACHE_MAPPING_GCS_PATH)
+        command = ['gsutil', 'cp', _CACHE_MAPPING_GCS_PATH, tmp]
+        subprocess.check_output(command, stderr=subprocess.STDOUT)
+        with open(tmp) as f:
+            return json.load(f)
+    except subprocess.CalledProcessError:
+        logging.error('Error retrieving mapping file from GCS: mappings not saved')
+    finally:
+        os.remove(tmp)
 
 class Timing(object):
     def __init__(self, descriptor):

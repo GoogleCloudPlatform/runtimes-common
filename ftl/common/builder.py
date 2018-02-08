@@ -72,8 +72,8 @@ class JustApp(Base):
             self._ctx = ctx
             self._destination_path = destination_path
 
-        def GetCacheKeyRaw(self):
-            return None
+        # def GetCacheKeyRaw(self):
+        #     return None
 
         def BuildLayer(self):
             """Override."""
@@ -136,7 +136,18 @@ class RuntimeBase(JustApp):
             threads=_THREADS,
             mount=[self._base_name],
             use_global=self._args.global_cache)
+        self._cache_mappings = {}
         self._descriptor_files = descriptor_files
+
+    def GetCacheMappings(self):
+        return self._cache_mappings
+
+    def SaveCacheMappings(self):
+        current_config = ftl_util.GetCacheMappingsFromGCS()
+        for k, v in current_config.iteritems():
+            logging.info('existing mapping: %s -> %s', k, v)
+        # for k, v in mappings.iteritems():
+        #     logging.info('mapping: %s -> %s', k, v)
 
     def Build(self):
         return

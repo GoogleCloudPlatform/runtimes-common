@@ -15,6 +15,7 @@
 
 import sys
 import argparse
+import logging
 
 from containerregistry.tools import patched
 
@@ -46,6 +47,11 @@ def main(cli_args):
                 _PHP_CACHE_VERSION)
         with ftl_util.Timing("build process for FTL image"):
             php_ftl.Build()
+    with ftl_util.Timing("GCS mapping upload"):
+        php_ftl.SaveCacheMappings()
+        # mappings = php_ftl.GetCacheMappings()
+        # for k, v in mappings.iteritems():
+            # logging.info('mapping: %s -> %s', k, v)
 
 
 if __name__ == '__main__':

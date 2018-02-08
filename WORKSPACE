@@ -71,6 +71,15 @@ exports_files(["docker-credential-gcr"])""",
     url = "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.4.1/docker-credential-gcr_linux_amd64-1.4.1.tar.gz",
 )
 
+new_http_archive(
+    name = "gsutil",
+    # sha256 = "",
+    type = "tar.gz",
+    build_file_content = """package(default_visibility = ["//visibility:public"])
+exports_files(["gsutil"])""",
+    url = "https://storage.googleapis.com/pub/gsutil.tar.gz",
+)
+
 # TODO(aaron-prindle) cleanup circular dep here by pushing ubuntu_base to GCR
 # OR by moving structure_test to own repo
 

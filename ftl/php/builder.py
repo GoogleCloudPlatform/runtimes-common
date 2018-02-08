@@ -55,6 +55,8 @@ class PHP(builder.RuntimeBase):
                 pkg = self.PackageLayer(self._ctx, self._descriptor_files,
                                         pkg_txt, self._args.destination_path,
                                         self._args.entrypoint)
+                mapping = pkg.GetCacheMapping()
+                self._cache_mappings[mapping[0]] = mapping[1]
                 cached_pkg_img = None
                 if self._args.cache:
                     with ftl_util.Timing("checking cached pkg layer"):
@@ -73,7 +75,7 @@ class PHP(builder.RuntimeBase):
         with ftl_util.Timing("builder app layer"):
             app.BuildLayer()
         lyr_imgs.append(app)
-        with ftl_util.Timing("stitching lyrs into final image"):
+        with ftl_util.Timing("stitching layers into final image"):
             ftl_image = self.AppendLayersIntoImage(lyr_imgs)
         with ftl_util.Timing("uploading final image"):
             self.StoreImage(ftl_image)
@@ -87,6 +89,9 @@ class PHP(builder.RuntimeBase):
             self._pkg_descriptor = pkg_descriptor
             self._destination_path = destination_path
             self._entrypoint = entrypoint
+
+        def GetCacheMapping(self):
+            return (self.GetCacheKeyRaw(), self.GetCacheKey())
 
         def GetCacheKeyRaw(self):
             if self._pkg_descriptor is not None:

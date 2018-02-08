@@ -59,6 +59,8 @@ class CacheableLayer(BaseLayer):
         """
 
     def GetCacheKey(self):
+        # keep track of all mappings here, then after build fork process and 
+        # kick off job to write mappings to GCS master list
         return docker_digest.SHA256(self.GetCacheKeyRaw())
 
     @abc.abstractmethod

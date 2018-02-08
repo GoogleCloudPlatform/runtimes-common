@@ -98,6 +98,14 @@ pkg_tar(
     package_dir = "/usr/local/bin",
 )
 
+pkg_tar(
+    name = "gsutil",
+    srcs = ["@gsutil//:gsutil"],
+    mode = "0755",
+    package_dir = "/gsutil",
+    symlinks = { "/usr/local/bin/gsutil": "/gsutil/gsutil/gsutil"}
+)
+
 # The node base image sets a default CMD, which causes issues if you run our image with no CMD.
 # So, reset it to [""] before building our py_image.
 docker_build(
@@ -108,6 +116,7 @@ docker_build(
     tars = [
         ":cred_helper.tar",
         ":default_creds.tar",
+        ":gsutil.tar",
     ],
 )
 
@@ -164,6 +173,7 @@ docker_build(
     tars = [
         ":cred_helper.tar",
         ":default_creds.tar",
+        ":gsutil.tar",
     ],
 )
 
@@ -225,6 +235,7 @@ docker_build(
     tars = [
         ":cred_helper.tar",
         ":default_creds.tar",
+        ":gsutil.tar",
     ],
 )
 
