@@ -65,7 +65,7 @@ class PHP(builder.RuntimeBase):
                     with ftl_util.Timing("building pkg layer"):
                         pkg.BuildLayer()
                         # keep track of mappings for new cache entries only
-                        mapping = pkg.GetCacheMapping()                        
+                        mapping = pkg.GetCacheMapping()
                         self._cache_mappings[mapping[0]] = mapping[1]
                     if self._args.cache:
                         with ftl_util.Timing("uploading pkg layer"):

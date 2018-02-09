@@ -72,9 +72,6 @@ class JustApp(Base):
             self._ctx = ctx
             self._destination_path = destination_path
 
-        # def GetCacheKeyRaw(self):
-        #     return None
-
         def BuildLayer(self):
             """Override."""
             buf = cStringIO.StringIO()
@@ -139,21 +136,20 @@ class RuntimeBase(JustApp):
         self._cache_mappings = {}
         self._descriptor_files = descriptor_files
 
-    def GetCacheMappings(self):
-        return self._cache_mappings
-
     def SaveCacheMappings(self):
+        # if we don't have any new mappings to save, just exit
         if self._cache_mappings == {}:
             return
         try:
-            # if not ftl_util.AcquireGCSLock():
-            #     return
+            if not ftl_util.AcquireGCSLock():
+                return
             current_mapping = ftl_util.GetCacheMappingsFromGCS()
             if not current_mapping:
-                logging.warn('No existing mapping found, creating new mapping.')
+                logging.warn('No existing mapping found,'
+                             ' creating new mapping.')
                 current_mapping = {}
             for k, v in current_mapping.iteritems():
-                logging.info('existing mapping: %s -> %s', k, v)
+                logging.debug('existing mapping: %s -> %s', k, v)
             for k, v in self._cache_mappings.iteritems():
                 # this will overwrite existing mappings: but as long
                 # as we don't change the cache_key algorithm this
@@ -164,8 +160,7 @@ class RuntimeBase(JustApp):
             logging.error(e)
         finally:
             ftl_util.RelinquishGCSLock()
-        # for k, v in mappings.iteritems():
-        #     logging.info('mapping: %s -> %s', k, v)
+            os._exit(0)
 
     def Build(self):
         return
