@@ -24,9 +24,9 @@ import shutil
 import unittest
 import tempfile
 from containerregistry.tools import patched
-from reconciletags import tag_reconciler
-from reconciletags import data_integrity_test
-from reconciletags import config_integrity_test
+from appengine.reconciletags import tag_reconciler
+from appengine.reconciletags import data_integrity_test
+from appengine.reconciletags import config_integrity_test
 
 
 def run_test(files, test):
