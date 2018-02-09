@@ -22,6 +22,7 @@ py_library(
     deps = [
         "@containerregistry",
         "@httplib2",
+        "@retrying",
     ],
 )
 
@@ -98,6 +99,14 @@ pkg_tar(
     package_dir = "/usr/local/bin",
 )
 
+pkg_tar(
+    name = "gsutil",
+    srcs = ["@gsutil//:gsutil"],
+    mode = "0755",
+    package_dir = "/gsutil",
+    symlinks = { "/usr/local/bin/gsutil": "/gsutil/gsutil/gsutil"}
+)
+
 # The node base image sets a default CMD, which causes issues if you run our image with no CMD.
 # So, reset it to [""] before building our py_image.
 docker_build(
@@ -108,6 +117,7 @@ docker_build(
     tars = [
         ":cred_helper.tar",
         ":default_creds.tar",
+        ":gsutil.tar",
     ],
 )
 
@@ -120,6 +130,7 @@ par_binary(
     deps = [
         "//testing/lib:containerregistry_mock_lib",
         "@containerregistry",
+        "@retrying",
     ],
 )
 
@@ -130,6 +141,7 @@ py_image(
     main = "node/main.py",
     deps = [
         "@containerregistry",
+        "@retrying",
     ],
 )
 
@@ -164,6 +176,7 @@ docker_build(
     tars = [
         ":cred_helper.tar",
         ":default_creds.tar",
+        ":gsutil.tar",
     ],
 )
 
@@ -171,7 +184,7 @@ par_binary(
     name = "python_builder",
     srcs = [":python_lib"],
     main = "python/main.py",
-    deps = ["@containerregistry"],
+    deps = ["@containerregistry", "@retrying"],
 )
 
 py_image(
@@ -181,6 +194,7 @@ py_image(
     main = "python/main.py",
     deps = [
         "@containerregistry",
+        "@retrying",
     ],
 )
 
@@ -199,6 +213,7 @@ par_binary(
     deps = [
         "//testing/lib:containerregistry_mock_lib",
         "@containerregistry",
+        "@retrying",
     ],
 )
 
@@ -225,6 +240,7 @@ docker_build(
     tars = [
         ":cred_helper.tar",
         ":default_creds.tar",
+        ":gsutil.tar",
     ],
 )
 
@@ -235,5 +251,6 @@ py_image(
     main = "php/main.py",
     deps = [
         "@containerregistry",
+        "@retrying",
     ],
 )

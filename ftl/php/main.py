@@ -13,6 +13,7 @@
 # limitations under the License.
 """A binary for constructing images from a source context."""
 
+import os
 import sys
 import argparse
 
@@ -46,6 +47,10 @@ def main(cli_args):
                 _PHP_CACHE_VERSION)
         with ftl_util.Timing("build process for FTL image"):
             php_ftl.Build()
+    newpid = os.fork()
+    if newpid == 0:
+        with ftl_util.Timing("GCS mapping upload"):
+            php_ftl.SaveCacheMappings()
 
 
 if __name__ == '__main__':

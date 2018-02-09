@@ -15,12 +15,19 @@
 import os
 import time
 import logging
+from retrying import retry
 import subprocess
 import tempfile
 import datetime
 import json
 
 from containerregistry.transform.v2_2 import metadata
+
+_CACHE_MAPPING_GCS_PATH = 'gs://ftl-global-cache/mapping.json'
+_GCS_LOCKFILE_PATH = 'gs://ftl-global-cache/mapping.lock'
+
+_GCS_LOCK_RETRIES = 7
+_GCS_LOCK_WAIT_TIME = 200  # milliseconds
 
 # This is a 'whitelist' of values to pass from the
 # config_file of a DockerImage to an Overrides object
@@ -51,6 +58,63 @@ def CfgDctToOverrides(config_dct):
             # but 'Env' in the config_file
             overrides_dct['env'] = v
     return metadata.Overrides(**overrides_dct)
+
+
+def GetCacheMappingsFromGCS():
+    # get mapping file from GCS and load into dict
+    try:
+        _, tmp = tempfile.mkstemp(text=True)
+        command = ['gsutil', 'cp', _CACHE_MAPPING_GCS_PATH, tmp]
+        subprocess.check_output(command, stderr=subprocess.STDOUT)
+        with open(tmp, 'r') as f:
+            return json.load(f)
+    except subprocess.CalledProcessError:
+        logging.warn('Error retrieving mapping file from GCS')
+    finally:
+        os.remove(tmp)
+
+
+@retry(stop_max_attempt_number=_GCS_LOCK_RETRIES,
+       wait_fixed=_GCS_LOCK_WAIT_TIME)
+def AcquireGCSLock():
+    logging.debug('Acquiring GCS Lockfile')
+    try:
+        command = ['gsutil', 'rm', _GCS_LOCKFILE_PATH]
+        subprocess.check_output(command, stderr=subprocess.STDOUT)
+        logging.debug('lockfile acquired')
+        return True
+    except subprocess.CalledProcessError as cpe:
+        logging.error('Unable to acquire lockfile from GCS: %s', cpe.output)
+        return False
+
+
+def RelinquishGCSLock():
+    logging.debug('Relinquishing GCS Lockfile')
+    try:
+        _, f_name = tempfile.mkstemp(text=True)
+        command = ['gsutil', 'cp', f_name, _GCS_LOCKFILE_PATH]
+        subprocess.check_output(command, stderr=subprocess.STDOUT)
+        logging.debug('lockfile relinquished')
+    except subprocess.CalledProcessError as cpe:
+        logging.error('Unable to relinquish lockfile from GCS: %s', cpe.output)
+    finally:
+        if f_name:
+            os.remove(f_name)
+
+
+def WriteCacheMappingsToGCS(cache_mappings):
+    logging.debug('Writing cache_mappings to GCS: %s', cache_mappings)
+    try:
+        fd, f_name = tempfile.mkstemp(text=True)
+        os.write(fd, json.dumps(cache_mappings))
+        command = ['gsutil', 'cp', f_name, _CACHE_MAPPING_GCS_PATH]
+        subprocess.check_output(command, stderr=subprocess.STDOUT)
+        logging.debug('mappings written to GCS')
+    except subprocess.CalledProcessError as cpe:
+        logging.error('Unable to write mappings to GCS: %s', cpe.output)
+    finally:
+        if f_name:
+            os.remove(f_name)
 
 
 class Timing(object):
