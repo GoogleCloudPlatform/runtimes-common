@@ -22,6 +22,7 @@ py_library(
     deps = [
         "@containerregistry",
         "@httplib2",
+        "@retrying",
     ],
 )
 
@@ -129,6 +130,7 @@ par_binary(
     deps = [
         "//testing/lib:containerregistry_mock_lib",
         "@containerregistry",
+        "@retrying",
     ],
 )
 
@@ -139,6 +141,7 @@ py_image(
     main = "node/main.py",
     deps = [
         "@containerregistry",
+        "@retrying",
     ],
 )
 
@@ -181,7 +184,7 @@ par_binary(
     name = "python_builder",
     srcs = [":python_lib"],
     main = "python/main.py",
-    deps = ["@containerregistry"],
+    deps = ["@containerregistry", "@retrying"],
 )
 
 py_image(
@@ -191,6 +194,7 @@ py_image(
     main = "python/main.py",
     deps = [
         "@containerregistry",
+        "@retrying",
     ],
 )
 
@@ -209,6 +213,7 @@ par_binary(
     deps = [
         "//testing/lib:containerregistry_mock_lib",
         "@containerregistry",
+        "@retrying",
     ],
 )
 
@@ -246,5 +251,6 @@ py_image(
     main = "php/main.py",
     deps = [
         "@containerregistry",
+        "@retrying",
     ],
 )

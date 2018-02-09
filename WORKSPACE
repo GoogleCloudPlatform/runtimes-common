@@ -55,6 +55,27 @@ py_library(
     url = "https://pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz",
 )
 
+new_http_archive(
+    name = "retrying",
+    build_file_content = """
+# Rename retrying.py to __init__.py
+genrule(
+    name = "rename",
+    srcs = ["retrying.py"],
+    outs = ["__init__.py"],
+    cmd = "cat $< >$@",
+)
+py_library(
+   name = "retrying",
+   srcs = [":__init__.py"],
+   visibility = ["//visibility:public"],
+)""",
+    # sha256 = "b839dd2d9c117c701430c149956918a423a9863b48b09c90e30a6013e7d2f44f",
+    strip_prefix = "retrying-1.3.3/",
+    type = "tar.gz",
+    url = "https://pypi.python.org/packages/44/ef/beae4b4ef80902f22e3af073397f079c96969c69b2c7d52a57ea9ae61c9d/retrying-1.3.3.tar.gz",
+)
+
 docker_pull(
     name = "python_base",
     digest = "sha256:163a514abdb54f99ba371125e884c612e30d6944628dd6c73b0feca7d31d2fb3",

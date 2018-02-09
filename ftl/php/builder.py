@@ -55,8 +55,6 @@ class PHP(builder.RuntimeBase):
                 pkg = self.PackageLayer(self._ctx, self._descriptor_files,
                                         pkg_txt, self._args.destination_path,
                                         self._args.entrypoint)
-                mapping = pkg.GetCacheMapping()
-                self._cache_mappings[mapping[0]] = mapping[1]
                 cached_pkg_img = None
                 if self._args.cache:
                     with ftl_util.Timing("checking cached pkg layer"):
@@ -66,6 +64,9 @@ class PHP(builder.RuntimeBase):
                 else:
                     with ftl_util.Timing("building pkg layer"):
                         pkg.BuildLayer()
+                        # keep track of mappings for new cache entries only
+                        mapping = pkg.GetCacheMapping()                        
+                        self._cache_mappings[mapping[0]] = mapping[1]
                     if self._args.cache:
                         with ftl_util.Timing("uploading pkg layer"):
                             self._cache.Set(pkg.GetCacheKey(), pkg.GetImage())
