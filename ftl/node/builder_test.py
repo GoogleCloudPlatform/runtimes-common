@@ -60,7 +60,7 @@ class NodeTest(unittest.TestCase):
         args = mock.Mock()
         args.name = 'gcr.io/test/test:latest'
         args.base = 'gcr.io/google-appengine/python:latest'
-        args.python_version = 'python2.7'
+        args.tar_base_image_path = None
         self.builder = builder.Node(self.ctx, args, "")
 
         # Mock out the calls to package managers for speed.
