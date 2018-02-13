@@ -13,6 +13,7 @@
 # limitations under the License.
 """This package defines the shared cli args for ftl binaries."""
 
+from ftl.common import constants
 from ftl.common import logger
 import argparse
 
@@ -102,14 +103,14 @@ def base_parser():
         '--destination',
         dest='destination_path',
         action='store',
-        default='srv',
+        default=constants.DEFAULT_DESTINATION_PATH,
         help='The base path that the app and dependency files will be \
         installed in the final image')
     parser.add_argument(
         '--entrypoint',
         dest='entrypoint',
         action='store',
-        default=None,
+        default=constants.DEFAULT_ENTRYPOINT,
         help='The entrypoint for the dockerimage')
     parser.add_argument(
         '--exposed_ports',

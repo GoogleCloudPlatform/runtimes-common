@@ -20,6 +20,7 @@ import mock
 from ftl.common import context
 
 from ftl.node import builder
+from ftl.node import layer_builder
 
 _PACKAGE_JSON = json.loads("""
 {
@@ -62,11 +63,15 @@ class NodeTest(unittest.TestCase):
         args.base = 'gcr.io/google-appengine/python:latest'
         args.tar_base_image_path = None
         self.builder = builder.Node(self.ctx, args, "")
+        self.layer_builder = layer_builder.LayerBuilder(
+            ctx=self.builder._ctx,
+            descriptor_files=self.builder._descriptor_files,
+            destination_path="/app")
 
         # Mock out the calls to package managers for speed.
-        self.builder.PackageLayer._gen_npm_install_tar = mock.Mock()
-        self.builder.PackageLayer._gen_npm_install_tar.return_value = ('layer',
-                                                                       'sha')
+        self.layer_builder._gen_npm_install_tar = mock.Mock()
+        self.layer_builder._gen_npm_install_tar.return_value = ('layer',
+                                                                'sha')
 
     @mock.patch('ftl.common.tar_to_dockerimage.FromFSImage.uncompressed_blob')
     def test_create_package_base_no_descriptor(self, mock_from):
@@ -74,12 +79,10 @@ class NodeTest(unittest.TestCase):
         self.assertFalse(self.ctx.Contains('package.json'))
         self.assertFalse(self.ctx.Contains('package-lock.json'))
 
-        pkg = self.builder.PackageLayer(self.builder._ctx, None,
-                                        self.builder._descriptor_files, "/app",
-                                        None)
-        pkg.BuildLayer()
-        config = json.loads(pkg.GetImage().config_file())
-        self.assertIsInstance(pkg.GetImage().GetFirstBlob(), str)
+        self.layer_builder.BuildLayer()
+        config = json.loads(self.layer_builder.GetImage().config_file())
+        self.assertIsInstance(self.layer_builder.GetImage().GetFirstBlob(),
+                              str)
         self.assertEqual(config['config']['Entrypoint'],
                          ['sh', '-c', 'node server.js'])
 
@@ -90,11 +93,8 @@ class NodeTest(unittest.TestCase):
         pj['scripts'] = {'start': 'foo bar'}
         self.ctx.AddFile('package.json', json.dumps(pj))
 
-        pkg = self.builder.PackageLayer(self.builder._ctx, None,
-                                        self.builder._descriptor_files, "/app",
-                                        None)
-        pkg.BuildLayer()
-        config = json.loads(pkg.GetImage().config_file())
+        self.layer_builder.BuildLayer()
+        config = json.loads(self.layer_builder.GetImage().config_file())
         self.assertEqual(config['config']['Entrypoint'],
                          ['sh', '-c', 'foo bar'])
 
@@ -103,11 +103,8 @@ class NodeTest(unittest.TestCase):
         mock_from.return_value = "layer"
         self.ctx.AddFile('package.json', _PACKAGE_JSON_TEXT)
 
-        pkg = self.builder.PackageLayer(self.builder._ctx, None,
-                                        self.builder._descriptor_files, "/app",
-                                        None)
-        pkg.BuildLayer()
-        config = json.loads(pkg.GetImage().config_file())
+        self.layer_builder.BuildLayer()
+        config = json.loads(self.layer_builder.GetImage().config_file())
         self.assertEqual(config['config']['Entrypoint'],
                          ['sh', '-c', 'node server.js'])
 
@@ -118,11 +115,8 @@ class NodeTest(unittest.TestCase):
         pj['scripts'] = {'prestart': 'foo bar', 'start': 'baz'}
         self.ctx.AddFile('package.json', json.dumps(pj))
 
-        pkg = self.builder.PackageLayer(self.builder._ctx, None,
-                                        self.builder._descriptor_files, "/app",
-                                        None)
-        pkg.BuildLayer()
-        config = json.loads(pkg.GetImage().config_file())
+        self.layer_builder.BuildLayer()
+        config = json.loads(self.layer_builder.GetImage().config_file())
         self.assertEqual(config['config']['Entrypoint'],
                          ['sh', '-c', 'foo bar && baz'])
 

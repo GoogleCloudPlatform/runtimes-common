@@ -20,6 +20,7 @@ import json
 from ftl.common import context
 from ftl.common import ftl_util
 from ftl.python import builder
+from ftl.python import layer_builder
 
 _REQUIREMENTS_TXT = """
 Flask==0.12.0
@@ -54,20 +55,14 @@ class PythonTest(unittest.TestCase):
         args.python_version = 'python2.7'
         args.tar_base_image_path = None
         self.builder = builder.Python(self.ctx, args, "")
+        self.interpreter_builder = layer_builder.InterpreterLayerBuilder(
+            self.builder._venv_dir, self.builder._args.python_version)
         self.builder._pip_install = mock.Mock()
 
-        # Mock out the calls to package managers for speed.
-        self.builder.PackageLayer._gen_package_tar = mock.Mock()
-        self.builder.PackageLayer._gen_package_tar.return_value = ('layer',
-                                                                   'sha')
-
     def test_build_interpreter_layer_ttl_written(self):
-        interpreter = self.builder.InterpreterLayer(
-            self.builder._venv_dir, self.builder._args.python_version)
-        interpreter._setup_venv = mock.Mock()
-        interpreter.BuildLayer()
+        self.interpreter_builder.BuildLayer()
         overrides = ftl_util.CfgDctToOverrides(
-            json.loads(interpreter.GetImage().config_file()))
+            json.loads(self.interpreter_builder.GetImage().config_file()))
 
         self.assertNotEqual(overrides.creation_time, "1970-01-01T00:00:00Z")
         last_created = ftl_util.timestamp_to_time(overrides.creation_time)

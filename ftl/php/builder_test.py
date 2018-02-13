@@ -19,6 +19,7 @@ import mock
 
 from ftl.common import context
 from ftl.php import builder
+from ftl.php import layer_builder
 
 _COMPOSER_JSON = json.loads("""
 {
@@ -73,21 +74,20 @@ class PHPTest(unittest.TestCase):
         args.base = 'gcr.io/google-appengine/php:latest'
         args.tar_base_image_path = None
         self.builder = builder.PHP(self.ctx, args, "")
+        self.layer_builder = layer_builder.LayerBuilder(
+            self.builder._ctx, None,
+            self.builder._descriptor_files, "/app")
 
         # Mock out the calls to package managers for speed.
-        self.builder.PackageLayer._gen_composer_install_tar = mock.Mock()
-        self.builder.PackageLayer._gen_composer_install_tar.return_value = (
+        self.layer_builder._gen_composer_install_tar = mock.Mock()
+        self.layer_builder._gen_composer_install_tar.return_value = (
             'layer', 'sha')
 
     def test_create_package_base_no_descriptor(self):
         self.assertFalse(self.ctx.Contains('composer.json'))
         self.assertFalse(self.ctx.Contains('composer-lock.json'))
-
-        pkg = self.builder.PackageLayer(self.builder._ctx, None,
-                                        self.builder._descriptor_files, "/app")
-        pkg.BuildLayer()
-        lyr = pkg.GetImage().GetFirstBlob()
-
+        self.layer_builder.BuildLayer()
+        lyr = self.layer_builder.GetImage().GetFirstBlob()
         self.assertIsInstance(lyr, str)
 
 
