@@ -126,8 +126,11 @@ class RuntimeBase(JustApp):
         self._base_image = docker_image.FromRegistry(
             self._base_name, self._base_creds, self._transport)
         self._base_image.__enter__()
+        cache_repo = args.cache_repository
+        if not cache_repo:
+            cache_repo = self._target_image.as_repository()
         self._cache = cache.Registry(
-            repo=self._target_image.as_repository(),
+            repo=cache_repo,
             namespace=self._namespace,
             base_image=self._base_image,
             creds=self._target_creds,
