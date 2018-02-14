@@ -12,9 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+DEFAULT_LOG_LEVEL = "NOTSET"
+
 DEFAULT_DESTINATION_PATH = 'srv'
 DEFAULT_ENTRYPOINT = None
 
+# cache constants
+DEFAULT_TTL_WEEKS = 1
+GLOBAL_CACHE_REGISTRY = 'gcr.io/ftl-global-cache'
+
+# node constants
 NODE_NAMESPACE = 'node-package-lock-cache'
 PACKAGE_LOCK = 'package-lock.json'
 PACKAGE_JSON = 'package.json'

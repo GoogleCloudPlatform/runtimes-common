@@ -94,7 +94,7 @@ def base_parser():
     parser.add_argument(
         "-v",
         "--verbosity",
-        default="NOTSET",
+        default=constants.DEFAULT_LOG_LEVEL,
         nargs="?",
         action='store',
         choices=logger.LEVEL_MAP.keys())
