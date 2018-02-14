@@ -117,14 +117,10 @@ class FromFSImage(docker_image.DockerImage):
             _PROCESSOR_ARCHITECTURE = 'amd64'
             _OPERATING_SYSTEM = 'linux'
 
-            entrypoint = []
-            if 'Entrypoint' in self._overrides:
-                entrypoint = self._overrides['Entrypoint']
-                self._overrides.pop('Entrypoint', None)
-            env = {}
-            if 'Env' in self._overrides:
-                entrypoint = self._overrides['Env']
-                self._overrides.pop('Env', None)
+            entrypoint = self._overrides.pop('Entrypoint', [])
+            env = self._overrides.pop('Env', {})
+            exposed_ports = self._overrides.pop('ExposedPorts', {})
+
             output = v2_2_metadata.Override(
                 json.loads('{}'),
                 v2_2_metadata.Overrides(
@@ -132,7 +128,8 @@ class FromFSImage(docker_image.DockerImage):
                     created_by='bazel build ...',
                     layers=[k for k in self._diff_id_to_u_layer],
                     entrypoint=entrypoint,
-                    env=env),
+                    env=env,
+                    ports=exposed_ports),
                 architecture=_PROCESSOR_ARCHITECTURE,
                 operating_system=_OPERATING_SYSTEM)
             output['rootfs'] = {

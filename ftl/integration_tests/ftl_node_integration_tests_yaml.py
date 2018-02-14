@@ -9,7 +9,7 @@ import util
 # Add directories for new tests here.
 TEST_DIRS = [
     'gcp_build_test', 'packages_test', 'packages_lock_test',
-    'destination_test', 'entrypoint_test'
+    'destination_test', 'metadata_test'
 ]
 
 _TEST_DIR = '/workspace/ftl/node/testdata'
@@ -38,7 +38,8 @@ def main():
             os.path.join(_TEST_DIR, test), '--no-cache'
         ]
     test_map['destination_test'].extend(['--destination', '/alternative-app'])
-    test_map['entrypoint_test'].extend(['--entrypoint', '/bin/echo'])
+    test_map['metadata_test'].extend(['--entrypoint', '/bin/echo'])
+    test_map['metadata_test'].extend(['--exposed_ports', '8091'])
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(
             'node_builder_image',

@@ -50,6 +50,11 @@ def CfgDctToOverrides(config_dct):
             # 'env' in an Overrides object
             # but 'Env' in the config_file
             overrides_dct['env'] = v
+        elif k == 'ExposedPorts':
+            # this key change is made as the key is
+            # 'ports' in an Overrides object
+            # but 'ExposedPorts' in the config_file
+            overrides_dct['ports'] = v
     return metadata.Overrides(**overrides_dct)
 
 

@@ -84,8 +84,7 @@ class PHPTest(unittest.TestCase):
         self.assertFalse(self.ctx.Contains('composer-lock.json'))
 
         pkg = self.builder.PackageLayer(self.builder._ctx, None,
-                                        self.builder._descriptor_files, "/app",
-                                        None)
+                                        self.builder._descriptor_files, "/app")
         pkg.BuildLayer()
         lyr = pkg.GetImage().GetFirstBlob()
 

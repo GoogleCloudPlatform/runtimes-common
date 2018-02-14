@@ -53,8 +53,7 @@ class PHP(builder.RuntimeBase):
                 pkgs = [None]
             for pkg_txt in pkgs:
                 pkg = self.PackageLayer(self._ctx, self._descriptor_files,
-                                        pkg_txt, self._args.destination_path,
-                                        self._args.entrypoint)
+                                        pkg_txt, self._args.destination_path)
                 cached_pkg_img = None
                 if self._args.cache:
                     with ftl_util.Timing("checking cached pkg layer"):
@@ -69,7 +68,9 @@ class PHP(builder.RuntimeBase):
                             self._cache.Set(pkg.GetCacheKey(), pkg.GetImage())
                 lyr_imgs.append(pkg)
 
-        app = self.AppLayer(self._ctx, self._args.destination_path)
+        app = self.AppLayer(self._ctx, self._args.destination_path,
+                            self._args.entrypoint,
+                            self._args.exposed_ports)
         with ftl_util.Timing("builder app layer"):
             app.BuildLayer()
         lyr_imgs.append(app)
@@ -80,13 +81,12 @@ class PHP(builder.RuntimeBase):
 
     class PackageLayer(single_layer_image.CacheableLayer):
         def __init__(self, ctx, descriptor_files, pkg_descriptor,
-                     destination_path, entrypoint):
+                     destination_path):
             super(PHP.PackageLayer, self).__init__()
             self._ctx = ctx
             self._descriptor_files = descriptor_files
             self._pkg_descriptor = pkg_descriptor
             self._destination_path = destination_path
-            self._entrypoint = entrypoint
 
         def GetCacheKeyRaw(self):
             if self._pkg_descriptor is not None:
@@ -103,8 +103,6 @@ class PHP(builder.RuntimeBase):
             overrides_dct = {
                     'created': str(datetime.date.today()) + "T00:00:00Z"
                 }
-            if self._entrypoint:
-                overrides_dct['Entrypoint'] = self._entrypoint
             self._img = tar_to_dockerimage.FromFSImage(
                 [blob], [u_blob], overrides_dct)
 
