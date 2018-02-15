@@ -35,21 +35,22 @@ class RegistryTest(unittest.TestCase):
 
         # Test when the image exists.
         mock_img.exists.return_value = True
-        c = cache.Registry(repo='fake.gcr.io/google-appengine',
-                           base_image=fake_base,
-                           namespace='namespace',
-                           creds=None,
-                           transport=None)
-        self.assertEquals(c._getEntry('abc123'),
-                          mock_img)
+        c = cache.Registry(
+            repo='fake.gcr.io/google-appengine',
+            base_image=fake_base,
+            namespace='namespace',
+            creds=None,
+            transport=None)
+        self.assertEquals(c._getEntry('abc123'), mock_img)
 
         # Test when it does not exist
         mock_img.exists.return_value = False
-        c = cache.Registry(repo='fake.gcr.io/google-appengine',
-                           base_image=fake_base,
-                           namespace='namespace',
-                           creds=None,
-                           transport=None)
+        c = cache.Registry(
+            repo='fake.gcr.io/google-appengine',
+            base_image=fake_base,
+            namespace='namespace',
+            creds=None,
+            transport=None)
         self.assertIsNone(c._getEntry('abc123'))
 
 

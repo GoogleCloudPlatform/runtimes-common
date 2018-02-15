@@ -45,6 +45,7 @@ def run_test_steps(builder_name, full_name, directory, args):
                 '/go_default_test', '-image', full_name,
                 os.path.join(directory, 'structure_test.yaml')
             ],
-            'id': 'test-image%s' % full_name
+            'id':
+            'test-image%s' % full_name
         }
     ]

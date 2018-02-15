@@ -14,8 +14,8 @@
 
 import argparse
 import sys
-from ftl.benchmark import args
-from ftl.benchmark import benchmark
+from ftl.cached import args
+from ftl.cached import cached
 
 _RUNTIME = "php"
 
@@ -23,17 +23,11 @@ parser = args.base_parser()
 php_parser = argparse.ArgumentParser(
     add_help=False, parents=[parser], description='Run php benchmark.')
 
-php_parser.add_argument(
-    '--table',
-    action='store',
-    default='ftl_php_benchmark',
-    help='Bigquery table build times should be stored in')
 
-
-def main(args):
-    args = php_parser.parse_args(args)
-    b = benchmark.Benchmark(args, _RUNTIME)
-    b.run_benchmarks()
+def main(cli_args):
+    parsed_args = php_parser.parse_args(cli_args)
+    c = cached.Cached(parsed_args, _RUNTIME)
+    c.run_cached_tests()
 
 
 if __name__ == '__main__':

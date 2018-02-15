@@ -5,7 +5,6 @@ import yaml
 
 import util
 
-
 # Add directories for new tests here.
 TEST_DIRS = [
     'gcp_build_test', 'packages_test', 'packages_lock_test',
@@ -26,8 +25,7 @@ def main():
             'args': ['run', '//ftl:node_builder_image', '--', '--norun'],
             'id': 'build-builder',
             'waitFor': [cloudbuild_yaml['steps'][0]['id']],
-        },
-    )
+        }, )
 
     # Generate a set of steps for each test and add them.
     test_map = {}
@@ -44,8 +42,7 @@ def main():
         cloudbuild_yaml['steps'] += util.run_test_steps(
             'node_builder_image',
             'gcr.io/ftl-node-test/%s-image:latest' % test,
-            os.path.join(_TEST_DIR, test),
-            args)
+            os.path.join(_TEST_DIR, test), args)
 
     print yaml.dump(cloudbuild_yaml)
 

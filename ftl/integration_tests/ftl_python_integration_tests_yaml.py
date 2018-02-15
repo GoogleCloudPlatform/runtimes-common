@@ -5,11 +5,8 @@ import yaml
 
 import util
 
-
 # Add directories for new tests here.
-TEST_DIRS = [
-    'packages_test', 'metadata_test'
-]
+TEST_DIRS = ['packages_test', 'metadata_test']
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
              '6195641f5a5a14c63c7945262066270842150ddb')
@@ -26,8 +23,7 @@ def main():
             'name': 'gcr.io/cloud-builders/bazel',
             'args': ['run', '//ftl:python_builder_image', '--', '--norun'],
             'id': 'build-builder',
-        },
-    )
+        }, )
 
     # Generate a set of steps for each test and add them.
     test_map = {}
@@ -43,8 +39,7 @@ def main():
         cloudbuild_yaml['steps'] += util.run_test_steps(
             'python_builder_image',
             'gcr.io/ftl-node-test/%s-image:latest' % test,
-            os.path.join(_TEST_DIR, test),
-            args)
+            os.path.join(_TEST_DIR, test), args)
 
     print yaml.dump(cloudbuild_yaml)
 

@@ -20,34 +20,45 @@ from mock import patch
 
 
 class BenchmarkTest(unittest.TestCase):
-
     @patch('google.cloud.bigquery.Client.create_rows')
     def testPHPBenchmark(self, bigquery_mock):
         php_main.main([
-            '--base', 'gcr.io/gae-runtimes/php72_app_builder:latest',
-            '--name', 'gcr.io/ftl-node-test/benchmark-php-test:test',
-            '--directory', 'ftl/php/benchmark/data/small_app',
-            '--iterations', '1',
+            '--base',
+            'gcr.io/gae-runtimes/php72_app_builder:latest',
+            '--name',
+            'gcr.io/ftl-node-test/benchmark-php-test:test',
+            '--directory',
+            'ftl/php/benchmark/data/small_app',
+            '--iterations',
+            '1',
         ])
         assert bigquery_mock.called
 
     @patch('google.cloud.bigquery.Client.create_rows')
     def testNodeBenchmark(self, bigquery_mock):
         node_main.main([
-            '--base', 'gcr.io/google-appengine/nodejs:latest',
-            '--name', 'gcr.io/ftl-node-test/benchmark-node-test:test',
-            '--directory', 'ftl/node/benchmark/data/small_app',
-            '--iterations', '1',
+            '--base',
+            'gcr.io/google-appengine/nodejs:latest',
+            '--name',
+            'gcr.io/ftl-node-test/benchmark-node-test:test',
+            '--directory',
+            'ftl/node/benchmark/data/small_app',
+            '--iterations',
+            '1',
         ])
         assert bigquery_mock.called
 
     @patch('google.cloud.bigquery.Client.create_rows')
     def testPythonBenchmark(self, bigquery_mock):
         python_main.main([
-            '--base', 'gcr.io/google-appengine/python:latest',
-            '--name', 'gcr.io/ftl-node-test/benchmark-python-test:test',
-            '--directory', 'ftl/python/benchmark/data/small_app',
-            '--iterations', '1',
+            '--base',
+            'gcr.io/google-appengine/python:latest',
+            '--name',
+            'gcr.io/ftl-node-test/benchmark-python-test:test',
+            '--directory',
+            'ftl/python/benchmark/data/small_app',
+            '--iterations',
+            '1',
         ])
         assert bigquery_mock.called
 
