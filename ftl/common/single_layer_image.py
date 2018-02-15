@@ -11,15 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""This package defines the shared cli args for ftl binaries."""
+"""This package defines abstract methods for
+building individual image layers."""
 
 import abc
 
 from containerregistry.client.v2_2 import docker_digest
 
 
-class BaseLayer(object):
-    """BaseLayer is an abstract base class representing a container layer.
+class BaseLayerBuilder(object):
+    """BaseLayerBuilder is an abstract base class representing
+    a builder for a container layer.
 
     It provides methods for generating a dependency layer and an application
     layer.
@@ -47,7 +49,7 @@ class BaseLayer(object):
         """
 
 
-class CacheableLayer(BaseLayer):
+class CacheableLayerBuilder(BaseLayerBuilder):
 
     __metaclass__ = abc.ABCMeta  # For enforcing that methods are overriden.
 

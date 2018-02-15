@@ -18,16 +18,14 @@ import hashlib
 import logging
 import datetime
 
+from ftl.common import constants
+
 from containerregistry.client import docker_name
 from containerregistry.client import docker_creds
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
 
 from ftl.common import ftl_util
-
-_DEFAULT_TTL_WEEKS = 1
-
-_GLOBAL_CACHE_REGISTRY = 'gcr.io/ftl-global-cache'
 
 
 class Base(object):
@@ -86,8 +84,9 @@ class Registry(Base):
         self._base_image = base_image
         self._namespace = namespace
         self._creds = creds
-        _reg_name = '{base}/{namespace}'.format(base=_GLOBAL_CACHE_REGISTRY,
-                                                namespace=self._namespace)
+        _reg_name = '{base}/{namespace}'.format(
+            base=constants.GLOBAL_CACHE_REGISTRY,
+            namespace=self._namespace)
         # TODO(nkubala): default this to true to point builds to global cache
         self._use_global = use_global
         if use_global:
@@ -132,7 +131,7 @@ class Registry(Base):
 
     def _getGlobalEntry(self, cache_key):
         if self._use_global:
-            key = self._tag(cache_key, _GLOBAL_CACHE_REGISTRY)
+            key = self._tag(cache_key, constants.GLOBAL_CACHE_REGISTRY)
             entry = Registry.getEntryFromCreds(key, self._global_creds,
                                                self._transport)
             if not entry:
@@ -176,4 +175,4 @@ class Registry(Base):
                 ftl_util.creation_time(entry))
         now = datetime.datetime.now()
         return last_created > now - datetime.timedelta(
-                weeks=_DEFAULT_TTL_WEEKS)
+                weeks=constants.DEFAULT_TTL_WEEKS)

@@ -16,31 +16,17 @@
 import os
 import subprocess
 import tempfile
-import datetime
 
 from ftl.common import builder
 from ftl.common import ftl_util
-from ftl.common import single_layer_image
-from ftl.common import tar_to_dockerimage
+from ftl.common import layer_builder as base_builder
+from ftl.python import layer_builder as package_builder
 
 _VENV_DIR = 'env'
 _WHEEL_DIR = 'wheel'
 _THREADS = 32
 _REQUIREMENTS_TXT = 'requirements.txt'
 _PYTHON_NAMESPACE = 'python-requirements-cache'
-
-
-def _generate_overrides(set_path):
-    env = {
-        "VIRTUAL_ENV": "/env",
-    }
-    if set_path:
-        env['PATH'] = '/env/bin:$PATH'
-    overrides_dct = {
-        "created": str(datetime.date.today()) + "T00:00:00Z",
-        "env": env
-    }
-    return overrides_dct
 
 
 class Python(builder.RuntimeBase):
@@ -54,23 +40,24 @@ class Python(builder.RuntimeBase):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
-
-            interpreter = self.InterpreterLayer(self._venv_dir,
-                                                self._args.python_version)
+            interpreter_builder = package_builder.InterpreterLayerBuilder(
+                self._venv_dir,
+                self._args.python_version)
             cached_int_img = None
             if self._args.cache:
                 with ftl_util.Timing("checking cached int layer"):
-                    cached_int_img = self._cache.Get(interpreter.GetCacheKey())
+                    key = interpreter_builder.GetCacheKey()
+                    cached_int_img = self._cache.Get(key)
             if cached_int_img is not None:
-                interpreter.SetImage(cached_int_img)
+                interpreter_builder.SetImage(cached_int_img)
             else:
                 with ftl_util.Timing("building int layer"):
-                    interpreter.BuildLayer()
+                    interpreter_builder.BuildLayer()
                 if self._args.cache:
                     with ftl_util.Timing("uploading int layer"):
-                        self._cache.Set(interpreter.GetCacheKey(),
-                                        interpreter.GetImage())
-            lyr_imgs.append(interpreter)
+                        self._cache.Set(interpreter_builder.GetCacheKey(),
+                                        interpreter_builder.GetImage())
+            lyr_imgs.append(interpreter_builder)
 
             pkg_descriptor = ftl_util.descriptor_parser(
                 self._descriptor_files, self._ctx)
@@ -83,52 +70,37 @@ class Python(builder.RuntimeBase):
                 pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
 
             for whl_pkg_dir in pkg_dirs:
-                pkg = self.PackageLayer(self._ctx, self._descriptor_files,
-                                        whl_pkg_dir, interpreter)
+                layer_builder = package_builder.PackageLayerBuilder(
+                    self._ctx, self._descriptor_files,
+                    whl_pkg_dir, interpreter_builder)
                 cached_pkg_img = None
                 if self._args.cache:
                     with ftl_util.Timing("checking cached pkg layer"):
-                        cached_pkg_img = self._cache.Get(pkg.GetCacheKey())
+                        key = layer_builder.GetCacheKey()
+                        cached_pkg_img = self._cache.Get(key)
                 if cached_pkg_img is not None:
-                    pkg.SetImage(cached_pkg_img)
+                    layer_builder.SetImage(cached_pkg_img)
                 else:
                     with ftl_util.Timing("building pkg layer"):
-                        pkg.BuildLayer()
+                        layer_builder.BuildLayer()
                     if self._args.cache:
                         with ftl_util.Timing("uploading pkg layer"):
-                            self._cache.Set(pkg.GetCacheKey(), pkg.GetImage())
-                lyr_imgs.append(pkg)
+                            self._cache.Set(layer_builder.GetCacheKey(),
+                                            layer_builder.GetImage())
+                lyr_imgs.append(layer_builder)
 
-        app = self.AppLayer(self._ctx, self._args.destination_path,
-                            self._args.entrypoint,
-                            self._args.exposed_ports)
-        app.BuildLayer()
+        app = base_builder.AppLayerBuilder(
+            ctx=self._ctx,
+            destination_path=self._args.destination_path,
+            entrypoint=self._args.entrypoint,
+            exposed_ports=self._args.exposed_ports)
+        with ftl_util.Timing("builder app layer"):
+            app.BuildLayer()
         lyr_imgs.append(app)
-        ftl_image = self.AppendLayersIntoImage(lyr_imgs)
-        self.StoreImage(ftl_image)
-
-    class InterpreterLayer(single_layer_image.CacheableLayer):
-        def __init__(self, venv_dir, python_version):
-            super(Python.InterpreterLayer, self).__init__()
-            self._venv_dir = venv_dir
-            self._python_version = python_version
-
-        def GetCacheKeyRaw(self):
-            return self._python_version
-
-        def BuildLayer(self):
-            self._setup_venv(self._python_version)
-            blob, u_blob = ftl_util.zip_dir_to_layer_sha(
-                os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
-            self._img = tar_to_dockerimage.FromFSImage(
-                [blob], [u_blob], _generate_overrides(True))
-
-        def _setup_venv(self, python_version):
-            with ftl_util.Timing("create_virtualenv"):
-                subprocess.check_call([
-                    'virtualenv', '--no-download', self._venv_dir, '-p',
-                    python_version
-                ])
+        with ftl_util.Timing("stitching lyrs into final image"):
+            ftl_image = self.AppendLayersIntoImage(lyr_imgs)
+        with ftl_util.Timing("uploading final image"):
+            self.StoreImage(ftl_image)
 
     def _pip_install(self, pkg_txt):
         with ftl_util.Timing("pip_install_wheels"):
@@ -165,22 +137,3 @@ class Python(builder.RuntimeBase):
         pip_env['VIRTUAL_ENV'] = self._venv_dir
         pip_env['PATH'] = self._venv_dir + "/bin" + ":" + os.environ['PATH']
         return pip_env
-
-    class PackageLayer(single_layer_image.CacheableLayer):
-        def __init__(self, ctx, descriptor_files, pkg_dir, dep_img_lyr):
-            super(Python.PackageLayer, self).__init__()
-            self._ctx = ctx
-            self._pkg_dir = pkg_dir
-            self._descriptor_files = descriptor_files
-            self._dep_img_lyr = dep_img_lyr
-
-        def GetCacheKeyRaw(self):
-            descriptor_contents = ftl_util.descriptor_parser(
-                self._descriptor_files, self._ctx)
-            return "%s %s" % (descriptor_contents,
-                              self._dep_img_lyr.GetCacheKeyRaw())
-
-        def BuildLayer(self):
-            blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
-            self._img = tar_to_dockerimage.FromFSImage(
-                [blob], [u_blob], _generate_overrides(False))

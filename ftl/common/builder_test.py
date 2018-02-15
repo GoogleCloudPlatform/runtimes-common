@@ -18,6 +18,7 @@ import unittest
 import tarfile
 
 import builder
+import layer_builder
 import context
 
 
@@ -35,9 +36,9 @@ class JustAppTest(unittest.TestCase):
             ctx.AddFile(p, f)
 
         b = builder.JustApp(ctx)
-        app = b.AppLayer(b._ctx)
-        app.BuildLayer()
-        app_layer = app.GetImage().GetFirstBlob()
+        app_builder = layer_builder.AppLayerBuilder(b._ctx)
+        app_builder.BuildLayer()
+        app_layer = app_builder.GetImage().GetFirstBlob()
         stream = cStringIO.StringIO(app_layer)
         with tarfile.open(fileobj=stream, mode='r:gz') as tf:
             self.assertEqual(len(tf.getnames()), len(files))

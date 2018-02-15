@@ -13,14 +13,10 @@
 # limitations under the License.
 
 import abc
-import cStringIO
-import os
 import tarfile
 import logging
-import subprocess
 import httplib2
 import json
-import datetime
 
 from containerregistry.client import docker_creds
 from containerregistry.client import docker_name
@@ -32,8 +28,6 @@ from containerregistry.transport import transport_pool
 
 from ftl.common import cache
 from ftl.common import ftl_util
-from ftl.common import single_layer_image
-from ftl.common import tar_to_dockerimage
 
 _THREADS = 32
 
@@ -67,51 +61,6 @@ class JustApp(Base):
         """Override."""
         # this can't be abstract as it is instantiated in tests
         return
-
-    class AppLayer(single_layer_image.BaseLayer):
-        def __init__(self, ctx, destination_path='srv', entrypoint=None,
-                     exposed_ports=None):
-            self._ctx = ctx
-            self._destination_path = destination_path
-            self._entrypoint = entrypoint
-            self._exposed_ports = exposed_ports
-
-        def GetCacheKeyRaw(self):
-            return None
-
-        def BuildLayer(self):
-            """Override."""
-            buf = cStringIO.StringIO()
-            logging.info('Starting to generate app layer \
-                tarfile from context...')
-            with tarfile.open(fileobj=buf, mode='w') as out:
-                for name in self._ctx.ListFiles():
-                    content = self._ctx.GetFile(name)
-                    info = tarfile.TarInfo(
-                        os.path.join(self._destination_path.strip("/"), name))
-                    info.size = len(content)
-                    out.addfile(info, fileobj=cStringIO.StringIO(content))
-            logging.info('Finished generating app layer tarfile from context.')
-
-            tar = buf.getvalue()
-
-            logging.info('Starting to gzip app layer tarfile...')
-            gzip_process = subprocess.Popen(
-                ['gzip', '-f'],
-                stdout=subprocess.PIPE,
-                stdin=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-            gz = gzip_process.communicate(input=tar)[0]
-            overrides_dct = {
-                    'created': str(datetime.date.today()) + "T00:00:00Z"
-                }
-            if self._entrypoint:
-                overrides_dct['Entrypoint'] = self._entrypoint
-            if self._exposed_ports:
-                overrides_dct['ExposedPorts'] = self._exposed_ports
-            logging.info('Finished gzipping tarfile.')
-            self._img = tar_to_dockerimage.FromFSImage([gz], [tar],
-                                                       overrides_dct)
 
 
 class RuntimeBase(JustApp):
