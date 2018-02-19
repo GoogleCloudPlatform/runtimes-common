@@ -17,6 +17,7 @@ limitations under the License.
 package ctc_lib
 
 import (
+<<<<<<< HEAD
 	"errors"
 	"fmt"
 
