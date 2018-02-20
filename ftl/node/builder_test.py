@@ -80,45 +80,8 @@ class NodeTest(unittest.TestCase):
         self.assertFalse(self.ctx.Contains('package-lock.json'))
 
         self.layer_builder.BuildLayer()
-        config = json.loads(self.layer_builder.GetImage().config_file())
         self.assertIsInstance(self.layer_builder.GetImage().GetFirstBlob(),
                               str)
-        self.assertEqual(config['config']['Entrypoint'],
-                         ['sh', '-c', 'node server.js'])
-
-    @mock.patch('ftl.common.tar_to_dockerimage.FromFSImage.uncompressed_blob')
-    def test_package_layer_entrypoint(self, mock_from):
-        mock_from.return_value = "layer"
-        pj = _PACKAGE_JSON.copy()
-        pj['scripts'] = {'start': 'foo bar'}
-        self.ctx.AddFile('package.json', json.dumps(pj))
-
-        self.layer_builder.BuildLayer()
-        config = json.loads(self.layer_builder.GetImage().config_file())
-        self.assertEqual(config['config']['Entrypoint'],
-                         ['sh', '-c', 'foo bar'])
-
-    @mock.patch('ftl.common.tar_to_dockerimage.FromFSImage.uncompressed_blob')
-    def test_create_package_base_no_entrypoint(self, mock_from):
-        mock_from.return_value = "layer"
-        self.ctx.AddFile('package.json', _PACKAGE_JSON_TEXT)
-
-        self.layer_builder.BuildLayer()
-        config = json.loads(self.layer_builder.GetImage().config_file())
-        self.assertEqual(config['config']['Entrypoint'],
-                         ['sh', '-c', 'node server.js'])
-
-    @mock.patch('ftl.common.tar_to_dockerimage.FromFSImage.uncompressed_blob')
-    def test_create_package_base_prestart(self, mock_from):
-        mock_from.return_value = "layer"
-        pj = _PACKAGE_JSON.copy()
-        pj['scripts'] = {'prestart': 'foo bar', 'start': 'baz'}
-        self.ctx.AddFile('package.json', json.dumps(pj))
-
-        self.layer_builder.BuildLayer()
-        config = json.loads(self.layer_builder.GetImage().config_file())
-        self.assertEqual(config['config']['Entrypoint'],
-                         ['sh', '-c', 'foo bar && baz'])
 
 
 if __name__ == '__main__':
