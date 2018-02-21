@@ -36,8 +36,11 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._destination_path = destination_path
 
     def GetCacheKeyRaw(self):
-        return ftl_util.descriptor_parser(self._descriptor_files,
-                                          self._ctx)
+        descriptor_contents = ftl_util.descriptor_parser(
+            self._descriptor_files,
+            self._ctx)
+        return "%s %s" % (descriptor_contents,
+                          self._destination_path)
 
     def BuildLayer(self):
         """Override."""
