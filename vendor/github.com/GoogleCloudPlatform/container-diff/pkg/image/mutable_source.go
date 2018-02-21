@@ -130,7 +130,7 @@ func (m *MutableSource) AppendLayer(content []byte) error {
 	// Add the layer to the manifest.
 	descriptor := manifest.Schema2Descriptor{
 		MediaType: manifest.DockerV2Schema2LayerMediaType,
-		Size:      int64(len(content)),
+		Size:      int64(len(compressedBlob)),
 		Digest:    dgst,
 	}
 	m.mfst.LayersDescriptors = append(m.mfst.LayersDescriptors, descriptor)
