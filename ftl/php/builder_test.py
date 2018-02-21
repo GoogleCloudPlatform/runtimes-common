@@ -75,13 +75,12 @@ class PHPTest(unittest.TestCase):
         args.tar_base_image_path = None
         self.builder = builder.PHP(self.ctx, args, "")
         self.layer_builder = layer_builder.LayerBuilder(
-            self.builder._ctx, None,
-            self.builder._descriptor_files, "/app")
+            self.builder._ctx, None, self.builder._descriptor_files, "/app")
 
         # Mock out the calls to package managers for speed.
         self.layer_builder._gen_composer_install_tar = mock.Mock()
-        self.layer_builder._gen_composer_install_tar.return_value = (
-            'layer', 'sha')
+        self.layer_builder._gen_composer_install_tar.return_value = ('layer',
+                                                                     'sha')
 
     def test_create_package_base_no_descriptor(self):
         self.assertFalse(self.ctx.Contains('composer.json'))

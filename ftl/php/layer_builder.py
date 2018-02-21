@@ -25,7 +25,10 @@ from ftl.common import tar_to_dockerimage
 
 
 class LayerBuilder(single_layer_image.CacheableLayerBuilder):
-    def __init__(self, ctx=None, descriptor_files=None, pkg_descriptor=None,
+    def __init__(self,
+                 ctx=None,
+                 descriptor_files=None,
+                 pkg_descriptor=None,
                  destination_path=constants.DEFAULT_DESTINATION_PATH):
         super(LayerBuilder, self).__init__()
         self._ctx = ctx
@@ -36,20 +39,21 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
     def GetCacheKeyRaw(self):
         if self._pkg_descriptor is not None:
             # phase 2 cache key
-            return self._pkg_descriptor[0] + ' ' + self._pkg_descriptor[1]
+            return "%s %s %s" % (self._pkg_descriptor[0],
+                                 self._pkg_descriptor[1],
+                                 self._destination_path)
         # phase 1 cache key
-        return ftl_util.descriptor_parser(self._descriptor_files,
-                                          self._ctx)
+        return "%s %s" % (
+            ftl_util.descriptor_parser(self._descriptor_files, self._ctx),
+            self._destination_path)
 
     def BuildLayer(self):
         """Override."""
-        blob, u_blob = self._gen_composer_install_tar(
-            self._pkg_descriptor, self._destination_path)
-        overrides_dct = {
-            'created': str(datetime.date.today()) + "T00:00:00Z"
-        }
-        self._img = tar_to_dockerimage.FromFSImage(
-            [blob], [u_blob], overrides_dct)
+        blob, u_blob = self._gen_composer_install_tar(self._pkg_descriptor,
+                                                      self._destination_path)
+        overrides_dct = {'created': str(datetime.date.today()) + "T00:00:00Z"}
+        self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
+                                                   overrides_dct)
 
     def _gen_composer_install_tar(self, pkg_descriptor, destination_path):
         # Create temp directory to write package descriptor to
@@ -64,8 +68,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             ftl_util.descriptor_copy(self._ctx, self._descriptor_files,
                                      app_dir)
 
-        subprocess.check_call(
-            ['rm', '-rf', os.path.join(app_dir, 'vendor')])
+        subprocess.check_call(['rm', '-rf', os.path.join(app_dir, 'vendor')])
 
         with ftl_util.Timing("composer_install"):
             if pkg_descriptor is None:
@@ -77,7 +80,6 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 pkg, version = pkg_descriptor
                 subprocess.check_call(
                     ['composer', 'require',
-                        str(pkg),
-                        str(version)],
+                     str(pkg), str(version)],
                     cwd=app_dir)
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
