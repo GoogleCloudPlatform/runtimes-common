@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["layer.go"],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/appender/layer",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/GoogleCloudPlatform/container-diff/pkg/image:go_default_library",
+        "//vendor/github.com/containers/image/copy:go_default_library",
+        "//vendor/github.com/containers/image/docker:go_default_library",
+        "//vendor/github.com/containers/image/signature:go_default_library",
+    ],
+)

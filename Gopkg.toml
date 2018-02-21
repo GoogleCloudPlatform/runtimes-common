@@ -33,6 +33,16 @@
   name = "github.com/golang/protobuf"
   version = "1.0.0"
 
+[[override]]
+  name = "github.com/docker/distribution"
+  revision = "f4118485915abb8b163442717326597908eee6aa"  
+
+[[override]]
+  name = "github.com/containers/image"
+  revision = "495da41bd26c50be62fa07ae903ea2ee54c00283"  
+
 [prune]
+  non-go = true
   go-tests = true
   unused-packages = true
+

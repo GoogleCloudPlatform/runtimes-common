@@ -3,7 +3,7 @@
 set -ex
 echo "Checking formatting..."
 find . -name "*.sh" | grep -v vendor/ | xargs shellcheck
-flake8 .
+flake8 . --exclude=vendor
 ./.gofmt.sh
 ./.buildifier.sh
 
