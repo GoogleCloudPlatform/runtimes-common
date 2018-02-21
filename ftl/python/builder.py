@@ -133,7 +133,7 @@ class Python(builder.RuntimeBase):
         pip_env = os.environ.copy()
         # bazel adds its own PYTHONPATH to the env
         # which must be removed for the pip calls to work properly
-        del pip_env['PYTHONPATH']
+        pip_env.pop('PYTHONPATH', None)
         pip_env['VIRTUAL_ENV'] = self._venv_dir
         pip_env['PATH'] = self._venv_dir + "/bin" + ":" + os.environ['PATH']
         return pip_env
