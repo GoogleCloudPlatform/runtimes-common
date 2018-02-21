@@ -76,13 +76,8 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 
     def _generate_overrides(self):
-        pj_contents = {}
-        if self._ctx.Contains(constants.PACKAGE_JSON):
-            pj_contents = json.loads(self._ctx.GetFile(constants.PACKAGE_JSON))
-        entrypoint = self._parse_entrypoint(pj_contents)
         overrides_dct = {
             'created': str(datetime.date.today()) + "T00:00:00Z",
-            'Entrypoint': entrypoint,
         }
         return overrides_dct
 
@@ -98,16 +93,3 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         subprocess.check_call(['npm', 'install'], cwd=app_dir, env=env)
         subprocess.check_call(
             ['npm', 'run-script', 'gcp-build'], cwd=app_dir, env=env)
-
-    def _parse_entrypoint(self, package_json):
-        entrypoint = []
-
-        scripts = package_json.get('scripts', {})
-        start = scripts.get('start', constants.NODE_DEFAULT_ENTRYPOINT)
-        prestart = scripts.get('prestart')
-
-        if prestart:
-            entrypoint = '%s && %s' % (prestart, start)
-        else:
-            entrypoint = start
-        return ['sh', '-c', entrypoint]
