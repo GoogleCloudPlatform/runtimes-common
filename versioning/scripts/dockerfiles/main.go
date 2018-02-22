@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
+	"unicode"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/versioning/versions"
 )
@@ -71,6 +72,17 @@ func deleteIfFileExists(path string) {
 	}
 }
 
+// this function removes all white characters from the string
+// usefull in comparing files that can have a mix of whitespaces and tabs
+func removeWhiteCharacters(str string) string {
+	return strings.Map(func(char rune) rune {
+		if unicode.IsSpace(char) {
+			return -1
+		}
+		return char
+	}, str)
+}
+
 func verifyDockerfiles(spec versions.Spec, tmpl template.Template) (failureCount int) {
 	foundDockerfile := make(map[string]bool)
 	failureCount = 0
@@ -82,14 +94,20 @@ func verifyDockerfiles(spec versions.Spec, tmpl template.Template) (failureCount
 		path := filepath.Join(version.Dir, "Dockerfile")
 		dockerfile, err := ioutil.ReadFile(path)
 		check(err)
-
 		foundDockerfile[path] = true
 
 		if string(dockerfile) == string(data) {
 			log.Printf("%s: OK", path)
 		} else {
-			failureCount++
-			log.Printf("%s: FAILED", path)
+			// there is chance the the only difference between files are
+			// white characters like whitespaces or tabulators or any characters
+			// if the only difference is whitespaces vs. tabs then we should be fine
+			if removeWhiteCharacters(string(dockerfile)) != removeWhiteCharacters(string(data)) {
+				failureCount++
+				log.Printf("%s: FAILED", path)
+			} else {
+				log.Printf("Mix of whitespaces and tabs discovered in Dockerfile. Consider converting white characters into spaces.")
+			}
 		}
 	}
 
