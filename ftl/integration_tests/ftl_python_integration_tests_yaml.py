@@ -6,7 +6,9 @@ import yaml
 import util
 
 # Add directories for new tests here.
-TEST_DIRS = ['packages_test', 'metadata_test']
+TEST_DIRS = [
+    'packages_test', 'metadata_test', 'python3_test'
+]
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
              '6195641f5a5a14c63c7945262066270842150ddb')
@@ -35,6 +37,9 @@ def main():
         ]
     test_map['metadata_test'].extend(['--entrypoint', '/bin/echo'])
     test_map['metadata_test'].extend(['--exposed-ports', '8090,8091'])
+    test_map['python3_test'].extend(['--python-cmd', 'python3.6'])
+    test_map['python3_test'].extend(['--pip-cmd', 'python3.6 -m pip'])
+
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(
             'python_builder_image',

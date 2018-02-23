@@ -122,7 +122,6 @@ class RuntimeBase(JustApp):
                 lyr = img.blob(img._diff_id_to_digest(diff_id))
                 overrides = ftl_util.CfgDctToOverrides(
                     json.loads(img.config_file()))
-
                 result_image = append.Layer(
                     result_image, lyr, diff_id=diff_id, overrides=overrides)
         return result_image
