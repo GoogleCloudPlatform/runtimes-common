@@ -13,6 +13,7 @@
 # limitations under the License.
 """This package defines the interface for orchestrating image builds."""
 
+import logging
 import os
 import subprocess
 import tempfile
@@ -111,8 +112,15 @@ class Python(builder.RuntimeBase):
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                env=self._gen_pip_env(), )
-            pipe1.communicate(input=pkg_txt)[0]
+                env=self._gen_pip_env(),
+            )
+            stdoutdata, stderrdata = pipe1.communicate(input=pkg_txt)
+            logging.info("`pip wheel` stdout:\n%s" % stdoutdata)
+            if stderrdata:
+                logging.error("`pip wheel` had error output:\n%s" % stderrdata)
+            if pipe1.returncode:
+                raise Exception("error: `pip wheel` returned code: %d" %
+                                pipe1.returncode)
 
     def _resolve_whls(self):
         return [
