@@ -25,7 +25,8 @@ class Node(builder.RuntimeBase):
         super(
             Node, self).__init__(
             ctx, constants.NODE_NAMESPACE, args, cache_version_str, [
-                constants.PACKAGE_LOCK, constants.PACKAGE_JSON])
+                constants.PACKAGE_LOCK, constants.PACKAGE_JSON,
+                constants.NPMRC])
 
     def Build(self):
         lyr_imgs = []

@@ -9,7 +9,7 @@ import util
 # Add directories for new tests here.
 TEST_DIRS = [
     'gcp_build_test', 'packages_test', 'packages_lock_test',
-    'destination_test', 'metadata_test'
+    'destination_test', 'metadata_test', 'npmrc_test'
 ]
 
 _TEST_DIR = '/workspace/ftl/node/testdata'

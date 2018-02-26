@@ -4,7 +4,8 @@ import os
 
 # Add directories for new tests here.
 TEST_DIRS = [
-    'gcp_build_test', 'packages_test', 'packages_lock_test', 'destination_test'
+    'gcp_build_test', 'packages_test', 'packages_lock_test',
+    'destination_test', 'npmrc_test'
 ]
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
