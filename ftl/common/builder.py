@@ -77,7 +77,7 @@ class RuntimeBase(JustApp):
         if args.entrypoint:
             args.entrypoint = args.entrypoint.split(" ")
         if args.exposed_ports:
-            args.exposed_ports = args.exposed_ports.split(" ")
+            args.exposed_ports = args.exposed_ports.split(",")
         self._args = args
         self._base_name = docker_name.Tag(self._args.base)
         self._base_creds = docker_creds.DefaultKeychain.Resolve(

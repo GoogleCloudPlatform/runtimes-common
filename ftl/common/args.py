@@ -113,7 +113,7 @@ def base_parser():
         default=constants.DEFAULT_ENTRYPOINT,
         help='The entrypoint for the dockerimage')
     parser.add_argument(
-        '--exposed_ports',
+        '--exposed-ports',
         dest='exposed_ports',
         action='store',
         default=None,
