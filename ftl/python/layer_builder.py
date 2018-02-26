@@ -71,10 +71,10 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
                  descriptor_files=None,
                  pkg_dir=None,
                  dep_img_lyr=None,
-                 wheel_dir=None,
-                 venv_dir=None,
-                 pip_cmd=None,
-                 venv_cmd=None,
+                 wheel_dir=constants.WHEEL_DIR,
+                 venv_dir=constants.VENV_DIR,
+                 pip_cmd=[constants.PIP_DEFAULT_CMD],
+                 venv_cmd=[constants.VENV_DEFAULT_CMD],
                  cache=None):
         super(RequirementsLayerBuilder, self).__init__()
         self._ctx = ctx
@@ -209,10 +209,10 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
                  pkg_descriptor=None,
                  pkg_dir=None,
                  dep_img_lyr=None,
-                 wheel_dir=None,
-                 venv_dir=None,
-                 pip_cmd=None,
-                 venv_cmd=None,
+                 wheel_dir=constants.WHEEL_DIR,
+                 venv_dir=constants.VENV_DIR,
+                 pip_cmd=[constants.PIP_DEFAULT_CMD],
+                 venv_cmd=[constants.VENV_DEFAULT_CMD],
                  cache=None):
         super(RequirementsLayerBuilder, self).__init__()
         self._ctx = ctx
@@ -227,7 +227,8 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
         self._pkg_descriptor = pkg_descriptor
 
     def GetCacheKeyRaw(self):
-        return "%s %s %s" % (self._pkg_descriptor[0], self._pkg_descriptor[1],
+        return "%s %s %s" % (self._pkg_descriptor[0],
+                             self._pkg_descriptor[1],
                              self._dep_img_lyr.GetCacheKeyRaw())
 
     def _log_cache_result(self, hit):
@@ -294,9 +295,9 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
 
 class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def __init__(self,
-                 venv_dir=None,
-                 python_cmd=None,
-                 venv_cmd=None,
+                 venv_dir=constants.VENV_DIR,
+                 python_cmd=[constants.PYTHON_DEFAULT_CMD],
+                 venv_cmd=[constants.VENV_DEFAULT_CMD],
                  cache=None):
         super(InterpreterLayerBuilder, self).__init__()
         self._venv_dir = venv_dir

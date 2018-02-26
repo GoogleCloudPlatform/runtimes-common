@@ -1,0 +1,12 @@
+steps:
+  - name: gcr.io/gcp-runtimes/${LANGUAGE}_cache_image:latest
+    args: [
+      '--language', '${LANGUAGE}',
+      '--packages',
+      # packages should be provided as a space-separated list.
+      '${PACKAGES}',
+    ]
+
+  - name: gcr.io/cloud-builders/gsutil
+    args: ['cp', '/workspace/${LANGUAGE}-mapping.json',
+           'gs://ftl-global-cache/${LANGUAGE}-mapping.json']

@@ -130,7 +130,7 @@ def extra_args(parser, opt_list):
             '--python-cmd', {
                 "dest": 'python_cmd',
                 "action": 'store',
-                "default": "python2.7",
+                "default": constants.PYTHON_DEFAULT_CMD,
                 "help": 'The python command to be run (ex: python2.7)'
             }
         ],
@@ -138,7 +138,7 @@ def extra_args(parser, opt_list):
             '--pip-cmd', {
                 "dest": 'pip_cmd',
                 "action": 'store',
-                "default": "pip",
+                "default": constants.PIP_DEFAULT_CMD,
                 "help": 'The pip command to be run (ex: pip)'
             }
         ],
@@ -146,7 +146,7 @@ def extra_args(parser, opt_list):
             '--virtualenv-cmd', {
                 "dest": 'venv_cmd',
                 "action": 'store',
-                "default": "virtualenv",
+                "default": constants.VENV_DEFAULT_CMD,
                 "help": 'The virtualenv command to be run (ex: virtualenv)'
             }
         ],

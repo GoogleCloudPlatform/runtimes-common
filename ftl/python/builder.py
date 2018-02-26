@@ -26,7 +26,7 @@ class Python(builder.RuntimeBase):
     def __init__(self, ctx, args):
         super(Python, self).__init__(
             ctx,
-            constants.PYTHON_NAMESPACE,
+            constants.PYTHON_CACHE_NAMESPACE,
             args,
             [
                 constants.PIPFILE_LOCK,
@@ -35,9 +35,11 @@ class Python(builder.RuntimeBase):
             ])
         self._venv_dir = constants.VENV_DIR
         self._wheel_dir = ftl_util.gen_tmp_dir(constants.WHEEL_DIR)
+
         self._python_cmd = args.python_cmd.split(" ")
         self._pip_cmd = args.pip_cmd.split(" ")
         self._venv_cmd = args.venv_cmd.split(" ")
+
         self._is_phase2 = ctx.Contains(constants.PIPFILE_LOCK)
 
     def _parse_pipfile_pkgs(self):

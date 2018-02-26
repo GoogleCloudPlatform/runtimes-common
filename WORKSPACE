@@ -33,6 +33,20 @@ git_repository(
 )
 
 git_repository(
+    name = "io_bazel_rules_python",
+    remote = "https://github.com/bazelbuild/rules_python.git",
+    commit = "115e3a0dab4291184fdcb0d4e564a0328364571a",
+)
+load("@io_bazel_rules_python//python:pip.bzl", "pip_repositories", "pip_import")
+pip_repositories()
+pip_import(
+    name = "requests",
+    requirements = "//ftl:requirements.txt"
+)
+load("@requests//:requirements.bzl", "pip_install")
+pip_install()
+
+git_repository(
     name = "containerregistry",
     commit = "6b250f0bae8cce028df939010ee3118c8f2977ba",
     remote = "https://github.com/google/containerregistry",

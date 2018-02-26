@@ -23,7 +23,7 @@ from ftl.node import layer_builder as node_builder
 class Node(builder.RuntimeBase):
     def __init__(self, ctx, args):
         super(Node, self).__init__(
-            ctx, constants.NODE_NAMESPACE, args,
+            ctx, constants.NODE_CACHE_NAMESPACE, args,
             [constants.PACKAGE_LOCK, constants.PACKAGE_JSON, constants.NPMRC])
 
     def Build(self):

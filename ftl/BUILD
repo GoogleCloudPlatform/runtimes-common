@@ -12,6 +12,7 @@ load(
     "@io_bazel_rules_docker//docker:docker.bzl",
     "docker_build",
 )
+load("@requests//:requirements.bzl", "requirement")
 
 py_library(
     name = "ftl_lib",
@@ -184,6 +185,21 @@ py_image(
     ],
 )
 
+py_image(
+    name = "python_cache_image",
+    srcs = [
+        "common/cache_runner.py",
+        ":php_lib",
+        ":python_lib",
+    ],
+    base = ":python_builder_base",
+    main = "common/cache_runner.py",
+    deps = [
+        "@containerregistry",
+        requirement("requests"),
+    ],
+)
+
 # PHP
 
 py_library(
@@ -235,5 +251,21 @@ py_image(
     main = "php/main.py",
     deps = [
         "@containerregistry",
+        requirement("requests"),
+    ],
+)
+
+py_image(
+    name = "php_cache_image",
+    srcs = [
+        "common/cache_runner.py",
+        ":php_lib",
+        ":python_lib",
+    ],
+    base = ":php_builder_base",
+    main = "common/cache_runner.py",
+    deps = [
+        "@containerregistry",
+        requirement("requests"),
     ],
 )
