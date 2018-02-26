@@ -19,13 +19,17 @@ cd runtimes-common
 - Build:
 
 ``` shell
-bazel build versioning/scripts:all
+bazel run //:gazelle
+bazel build versioning/scripts/dockerfiles:dockerfiles
+bazel build versioning/scripts/cloudbuild:cloudbuild
 ```
 
 - Set the path to the built scripts:
 
 ``` shell
-export PATH=$PATH:$PWD/bazel-bin/versioning/scripts
+BAZEL_ARCH=linux_amd64_stripped
+export PATH=$PATH:$PWD/bazel-bin/versioning/scripts/dockerfiles/${BAZEL_ARCH}/
+export PATH=$PATH:$PWD/bazel-bin/versioning/scripts/cloudbuild/${BAZEL_ARCH}/
 ```
 
 # Create `versions.yaml`
