@@ -15,26 +15,18 @@ import (
 	"text/template"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/versioning/versions"
-	"strconv"
 )
 
 type Format struct {
 	Indent string
-	Count  int
 }
 
 func parseSpecToFormat(c map[string]string) Format {
 	fIndent := " "
-	fCount := 4
-	if val, ok := c["template_retry_intendt_type"]; ok {
+	if val, ok := c["template_retry_intendt"]; ok {
 		fIndent = val
 	}
-	if val, ok := c["template_retry_intendt_length"]; ok {
-		count, err := strconv.Atoi(val)
-		check(err)
-		fCount = count
-	}
-	return Format{Indent: fIndent, Count: fCount}
+	return Format{Indent: fIndent}
 }
 
 func (f Format) indent(s string) string {
@@ -46,7 +38,7 @@ func (f Format) indent(s string) string {
 		}
 		trimmed := strings.TrimSpace(line)
 		diff := len(line) - len(trimmed)
-		prefix := strings.Repeat(f.Indent, diff*f.Count)
+		prefix := strings.Repeat(f.Indent, diff)
 		str = str + prefix + trimmed
 	}
 	return str
@@ -58,9 +50,9 @@ func renderDockerfile(version versions.Version, tmpl template.Template) []byte {
 	return result.Bytes()
 }
 
-func renderRetry(pack versions.Package, tmpl template.Template) string {
+func renderRetry(pkg versions.Package, tmpl template.Template) string {
 	var result bytes.Buffer
-	tmpl.Execute(&result, pack)
+	tmpl.Execute(&result, pkg)
 	return string(result.Bytes())
 }
 
@@ -242,11 +234,11 @@ func main() {
 	templateData, err := ioutil.ReadFile(templatePath)
 	templateString := string(templateData)
 	check(err)
-	if spec.CheckExtension("TEMPLATE_FROM") {
+	if spec.HasExtension("from") {
 		templateString = templateFrom + templateString
 	}
-	if spec.CheckExtension("TEMPLATE_RETRY") {
-		templateFormat := parseSpecToFormat(spec.Config)
+	if spec.HasExtension("retry") {
+		templateFormat := parseSpecToFormat(spec.Extensions["retry"])
 		retryTmpl, err := template.
 			New("retryTemplate").
 			Parse(templateFormat.indent(templateRetry))

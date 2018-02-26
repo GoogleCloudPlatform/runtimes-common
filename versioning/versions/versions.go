@@ -33,8 +33,7 @@ type Version struct {
 
 type Spec struct {
 	Versions   []Version
-	Extensions []string
-	Config     map[string]string
+	Extensions map[string]map[string]string
 }
 
 func LoadVersions(path string) Spec {
@@ -65,11 +64,9 @@ func validateUniqueTags(spec Spec) {
 	}
 }
 
-func (spec *Spec) CheckExtension(s string) bool {
-	for _, b := range spec.Extensions {
-		if b == s {
-			return true
-		}
+func (spec *Spec) HasExtension(s string) bool {
+	if _, ok := spec.Extensions[s]; ok {
+		return true
 	}
 	return false
 }
