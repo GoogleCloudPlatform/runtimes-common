@@ -77,6 +77,15 @@ py_test(
 )
 
 py_test(
+    name = "reconciletags_par_test",
+    srcs = ["reconciletags_par_test.py"],
+    data = [
+        "retagger.json",
+        ":reconciletags.par",
+    ],
+)
+
+py_test(
     name = "config_integrity_test",
     srcs = ["config_integrity_test.py"],
     deps = [
