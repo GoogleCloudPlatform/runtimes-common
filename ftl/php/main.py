@@ -39,6 +39,7 @@ _PHP_CACHE_VERSION = 'v1'
 def main(cli_args):
     builder_args = php_parser.parse_args(cli_args)
     logger.setup_logging(builder_args)
+    logger.preamble("php", builder_args)
     with ftl_util.Timing("full build"):
         with ftl_util.Timing("builder initialization"):
             php_ftl = php_builder.PHP(

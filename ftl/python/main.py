@@ -39,6 +39,7 @@ _PYTHON_CACHE_VERSION = 'v1'
 def main(cli_args):
     builder_args = python_parser.parse_args(cli_args)
     logger.setup_logging(builder_args)
+    logger.preamble("python", builder_args)
     with ftl_util.Timing("full build"):
         with ftl_util.Timing("builder initialization"):
             python_ftl = python_builder.Python(
