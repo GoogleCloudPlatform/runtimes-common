@@ -17,20 +17,18 @@ import sys
 from ftl.benchmark import args
 from ftl.benchmark import benchmark
 
-
 _RUNTIME = "node"
 parser = argparse.ArgumentParser(description='Run FTL node benchmarks.')
 
 parser = args.base_parser()
 node_parser = argparse.ArgumentParser(
-    add_help=False,
-    parents=[parser], description='Run node benchmark.')
+    add_help=False, parents=[parser], description='Run node benchmark.')
 
 node_parser.add_argument(
-        '--table',
-        action='store',
-        default='ftl_benchmark',
-        help='Bigquery table build times should be stored in')
+    '--table',
+    action='store',
+    default='ftl_benchmark',
+    help='Bigquery table build times should be stored in')
 
 
 def main(args):

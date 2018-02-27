@@ -17,19 +17,17 @@ import sys
 from ftl.benchmark import args
 from ftl.benchmark import benchmark
 
-
 _RUNTIME = "python"
 
 parser = args.base_parser()
 python_parser = argparse.ArgumentParser(
-    add_help=False,
-    parents=[parser], description='Run python benchmark.')
+    add_help=False, parents=[parser], description='Run python benchmark.')
 
 python_parser.add_argument(
-        '--table',
-        action='store',
-        default='ftl_python_benchmark',
-        help='Bigquery table build times should be stored in')
+    '--table',
+    action='store',
+    default='ftl_python_benchmark',
+    help='Bigquery table build times should be stored in')
 
 
 def main(args):

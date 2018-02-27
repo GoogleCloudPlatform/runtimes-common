@@ -42,13 +42,12 @@ class Benchmark():
         table_ref = dataset_ref.table(self._table)
         table = client.get_table(table_ref)
 
-        full_name = "{0}:{1}.{2}".format(self._project,
-                                         self._dataset,
+        full_name = "{0}:{1}.{2}".format(self._project, self._dataset,
                                          self._table)
 
         logging.info("Adding build time data to {0}".format(full_name))
-        rows = [(current_date, self._description, bt[0], bt[1]) for
-                bt in build_times]
+        rows = [(current_date, self._description, bt[0], bt[1])
+                for bt in build_times]
         client.create_rows(table, rows)
         logging.info("Finished adding build times to {0}".format(full_name))
 
@@ -73,19 +72,22 @@ class Benchmark():
                 # For container builder
                 if not os.path.isfile(builder_path):
                     builder_path = 'bazel-bin/ftl/{0}_builder.par'.format(
-                                        self._runtime)
+                        self._runtime)
 
-                cmd = subprocess.Popen([builder_path,
-                                        '--base', self._base,
-                                        '--name', self._name,
-                                        '--directory', self._directory,
-                                        '--no-cache'], stderr=subprocess.PIPE)
+                cmd = subprocess.Popen(
+                    [
+                        builder_path, '--base', self._base, '--name',
+                        self._name, '--directory', self._directory,
+                        '--no-cache'
+                    ],
+                    stderr=subprocess.PIPE)
                 _, output = cmd.communicate()
 
                 build_time = round(time.time() - start_time, 2)
                 build_times.append((build_time, output))
             except OSError:
-                raise OSError("""Benchmarking assumes either ftl/{0}_builder.par
+                raise OSError(
+                    """Benchmarking assumes either ftl/{0}_builder.par
                     or bazel-bin/ftl/{0}_builder.par
                     exists""".format(self._runtime))
         logging.info('Beginning recording build times to bigquery')

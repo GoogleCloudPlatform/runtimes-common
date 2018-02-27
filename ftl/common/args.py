@@ -22,9 +22,7 @@ def base_parser():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        '--base',
-        action='store',
-        help=('The name of the docker base image.'))
+        '--base', action='store', help=('The name of the docker base image.'))
 
     group.add_argument(
         '--tar_base_image_path',

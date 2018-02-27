@@ -44,7 +44,8 @@ def main(cli_args):
             python_ftl = python_builder.Python(
                 context.Workspace(builder_args.directory),
                 builder_args,
-                _PYTHON_CACHE_VERSION, )
+                _PYTHON_CACHE_VERSION,
+            )
         with ftl_util.Timing("build process for FTL image"):
             python_ftl.Build()
 

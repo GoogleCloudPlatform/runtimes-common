@@ -11,7 +11,7 @@ py_binary(
         "main.py",
         "//ftl/benchmark:benchmark_lib",
     ],
-    data = ["//ftl:php_builder.par"],
+    data = ["//ftl:python_builder.par"],
     main = "main.py",
     deps = [
         "//ftl:ftl_lib",

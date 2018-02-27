@@ -115,8 +115,8 @@ class Registry(Base):
             if Registry.checkTTL(hit):
                 return hit
             else:
-                logging.info('TTL expired for cached image, rebuilding %s'
-                             % cache_key)
+                logging.info(
+                    'TTL expired for cached image, rebuilding %s' % cache_key)
         else:
             logging.info('No cached dependency layer for %s' % cache_key)
 
@@ -172,7 +172,7 @@ class Registry(Base):
         """Check TTL of cache entry.
         Return whether or not the entry is expired."""
         last_created = ftl_util.timestamp_to_time(
-                ftl_util.creation_time(entry))
+            ftl_util.creation_time(entry))
         now = datetime.datetime.now()
         return last_created > now - datetime.timedelta(
                 weeks=constants.DEFAULT_TTL_WEEKS)
