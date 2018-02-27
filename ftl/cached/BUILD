@@ -5,10 +5,6 @@ load(
     "py_image",
 )
 
-exports_files([
-    "Dockerfile",
-])
-
 py_library(
     name = "cached_lib",
     srcs = glob(["*.py"]),
