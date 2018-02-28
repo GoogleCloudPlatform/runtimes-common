@@ -3,7 +3,7 @@
 set -ex
 echo "Checking formatting..."
 find . -name "*.sh" | grep -v vendor/ | xargs shellcheck
-flake8 .
+flake8 . --exclude=vendor
 ./.gofmt.sh
 ./.buildifier.sh
 
@@ -13,3 +13,4 @@ bazel test --test_output=errors appengine/reconciletags:reconciletags_par_test
 bazel test --test_output=errors ftl/... --deleted_packages=ftl/node/benchmark,ftl/php/benchmark,ftl/python/benchmark,ftl/benchmark
 bazel test --test_output=errors testing/lib:mock_registry_tests
 pushd appengine/runtime_builders && py.test test_manifest.py && popd
+go test -tags "container_image_ostree_stub containers_image_openpgp" github.com/GoogleCloudPlatform/runtimes-common/appender/cmd/

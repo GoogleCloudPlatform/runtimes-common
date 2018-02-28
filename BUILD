@@ -20,7 +20,11 @@ load("@io_bazel_rules_go//go:def.bzl", "gazelle")
 
 gazelle(
     name = "gazelle",
-    build_tags = ["go1.7"],
+    build_tags = [
+        "go1.7",
+        "containers_image_openpgp",
+        "containers_image_ostree_stub",
+    ],
     external = "vendored",
     prefix = "github.com/GoogleCloudPlatform/runtimes-common",
 )
