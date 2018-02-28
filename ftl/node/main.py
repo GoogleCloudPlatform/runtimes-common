@@ -40,6 +40,7 @@ _NODE_CACHE_VERSION = 'v1'
 def main(cli_args):
     builder_args = node_parser.parse_args(cli_args)
     logger.setup_logging(builder_args)
+    logger.preamble("node", builder_args)
     with ftl_util.Timing("full build"):
         with ftl_util.Timing("builder initialization"):
             node_ftl = node_builder.Node(
