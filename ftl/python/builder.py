@@ -117,10 +117,10 @@ class Python(builder.RuntimeBase):
                 stderr=subprocess.PIPE,
                 env=self._gen_pip_env(),
             )
-            stdoutdata, stderrdata = proc_pipe.communicate(input=pkg_txt)
-            logging.info("`pip wheel` stdout:\n%s" % stdoutdata)
-            if stderrdata:
-                logging.error("`pip wheel` had error output:\n%s" % stderrdata)
+            stdout, stderr = proc_pipe.communicate(input=pkg_txt)
+            logging.info("`pip wheel` stdout:\n%s" % stdout)
+            if stderr:
+                logging.error("`pip wheel` had error output:\n%s" % stderr)
             if proc_pipe.returncode:
                 raise Exception("error: `pip wheel` returned code: %d" %
                                 proc_pipe.returncode)
@@ -145,10 +145,10 @@ class Python(builder.RuntimeBase):
             stderr=subprocess.PIPE,
             env=self._gen_pip_env(),
         )
-        stdoutdata, stderrdata = proc_pipe.communicate()
-        logging.info("`pip install` stdout:\n%s" % stdoutdata)
-        if stderrdata:
-            logging.error("`pip install` had error output:\n%s" % stderrdata)
+        stdout, stderr = proc_pipe.communicate()
+        logging.info("`pip install` stdout:\n%s" % stdout)
+        if stderr:
+            logging.error("`pip install` had error output:\n%s" % stderr)
         if proc_pipe.returncode:
             raise Exception("error: `pip install` returned code: %d" %
                             proc_pipe.returncode)
