@@ -7,7 +7,7 @@ import argparse
 _TEST_TEMPLATE = '/workspace/ftl/%s/testdata'
 
 _BASE_MAP = {
-    "node": 'gcr.io/google-appengine/nodejs:latest',
+    "node": 'gcr.io/gae-runtimes/nodejs8:latest',
     "php": 'gcr.io/gae-runtimes/php72_app_builder:latest',
     "python": 'gcr.io/google-appengine/python:latest',
 }

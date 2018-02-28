@@ -12,7 +12,7 @@ TEST_DIRS = [
 ]
 
 _TEST_DIR = '/workspace/ftl/node/testdata'
-_NODE_BASE = 'gcr.io/google-appengine/nodejs:latest'
+_NODE_BASE = 'gcr.io/gae-runtimes/nodejs8:latest'
 
 
 def main():
