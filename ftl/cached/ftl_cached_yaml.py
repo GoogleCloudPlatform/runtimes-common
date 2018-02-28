@@ -40,15 +40,17 @@ def main():
             # Build the runtime builder par file
             {
                 'name': 'gcr.io/cloud-builders/bazel',
-                'args': ['build', 'ftl:node_builder.par']
+                'args': ['build', 'ftl:%s_builder.par' % args.runtime]
             },
             # Run the cache test
             {
                 'name':
                 'gcr.io/cloud-builders/bazel',
                 'args': [
-                    'run', '//ftl/node/cached:node_cached', '--', '--base',
-                    _BASE_MAP[args.runtime], '--name', name, '--directory',
+                    'run',
+                    '//ftl/%s/cached:%s_cached' % (args.runtime, args.runtime),
+                    '--', '--base', _BASE_MAP[args.runtime], '--name', name,
+                    '--directory',
                     os.path.join(_TEST_TEMPLATE % args.runtime + app_dir)
                 ]
             },

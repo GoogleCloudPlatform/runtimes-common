@@ -121,24 +121,36 @@ def base_parser():
 
 node_flgs = []
 php_flgs = []
-python_flgs = ['python_version']
+python_flgs = ['python_cmd', 'pip_cmd', 'venv_cmd']
 
 
 def extra_args(parser, opt_list):
     opt_dict = {
-        'python_version': [
-            '--python-version', {
-                "dest":
-                'python_version',
-                "action":
-                'store',
-                "default":
-                "python2.7",
-                "help":
-                'The python version to use, formatted as pythonX.X \
-                (ex: python2.7)'
+        'python_cmd': [
+            '--python-cmd', {
+                "dest": 'python_cmd',
+                "action": 'store',
+                "default": "python2.7",
+                "help": 'The python command to be run (ex: python2.7)'
             }
         ],
+        'pip_cmd': [
+            '--pip-cmd', {
+                "dest": 'pip_cmd',
+                "action": 'store',
+                "default": "pip",
+                "help": 'The pip command to be run (ex: pip)'
+            }
+        ],
+        'venv_cmd': [
+            '--virtualenv-cmd', {
+                "dest": 'venv_cmd',
+                "action": 'store',
+                "default": "virtualenv",
+                "help": 'The virtualenv command to be run (ex: virtualenv)'
+            }
+        ],
+
     }
     for opt in opt_list:
         arg_vars = opt_dict[opt]

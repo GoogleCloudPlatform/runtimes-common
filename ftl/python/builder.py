@@ -36,14 +36,16 @@ class Python(builder.RuntimeBase):
                                      cache_version_str, [_REQUIREMENTS_TXT])
         self._venv_dir = ftl_util.gen_tmp_dir(_VENV_DIR)
         self._wheel_dir = ftl_util.gen_tmp_dir(_WHEEL_DIR)
+        self._python_cmd = args.python_cmd.split(" ")
+        self._pip_cmd = args.pip_cmd.split(" ")
+        self._venv_cmd = args.venv_cmd.split(" ")
 
     def Build(self):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             interpreter_builder = package_builder.InterpreterLayerBuilder(
-                self._venv_dir,
-                self._args.python_version)
+                self._venv_dir, self._python_cmd, self._venv_cmd)
             cached_int_img = None
             if self._args.cache:
                 with ftl_util.Timing("checking cached int layer"):
@@ -69,11 +71,10 @@ class Python(builder.RuntimeBase):
             with ftl_util.Timing("resolving whl paths"):
                 whls = self._resolve_whls()
                 pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
-
             for whl_pkg_dir in pkg_dirs:
                 layer_builder = package_builder.PackageLayerBuilder(
-                    self._ctx, self._descriptor_files,
-                    whl_pkg_dir, interpreter_builder)
+                    self._ctx, self._descriptor_files, whl_pkg_dir,
+                    interpreter_builder)
                 cached_pkg_img = None
                 if self._args.cache:
                     with ftl_util.Timing("checking cached pkg layer"):
@@ -104,23 +105,25 @@ class Python(builder.RuntimeBase):
             self.StoreImage(ftl_image)
 
     def _pip_install(self, pkg_txt):
-        with ftl_util.Timing("pip_install_wheels"):
-            args = ['pip', 'wheel', '-w', self._wheel_dir, '-r', "/dev/stdin"]
+        with ftl_util.Timing("pip_download_wheels"):
+            pip_cmd_args = list(self._pip_cmd)
+            pip_cmd_args.extend(
+                ['wheel', '-w', self._wheel_dir, '-r', "/dev/stdin"])
 
-            pipe1 = subprocess.Popen(
-                args,
+            proc_pipe = subprocess.Popen(
+                pip_cmd_args,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 env=self._gen_pip_env(),
             )
-            stdoutdata, stderrdata = pipe1.communicate(input=pkg_txt)
+            stdoutdata, stderrdata = proc_pipe.communicate(input=pkg_txt)
             logging.info("`pip wheel` stdout:\n%s" % stdoutdata)
             if stderrdata:
                 logging.error("`pip wheel` had error output:\n%s" % stderrdata)
-            if pipe1.returncode:
+            if proc_pipe.returncode:
                 raise Exception("error: `pip wheel` returned code: %d" %
-                                pipe1.returncode)
+                                proc_pipe.returncode)
 
     def _resolve_whls(self):
         return [
@@ -132,9 +135,23 @@ class Python(builder.RuntimeBase):
         tmp_dir = tempfile.mkdtemp()
         pkg_dir = os.path.join(tmp_dir, 'env')
         os.makedirs(pkg_dir)
-        subprocess.check_call(
-            ['pip', 'install', '--prefix', pkg_dir, whl],
-            env=self._gen_pip_env())
+
+        pip_cmd_args = list(self._pip_cmd)
+        pip_cmd_args.extend(['install', '--no-deps', '--prefix', pkg_dir, whl])
+
+        proc_pipe = subprocess.Popen(
+            pip_cmd_args,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=self._gen_pip_env(),
+        )
+        stdoutdata, stderrdata = proc_pipe.communicate()
+        logging.info("`pip install` stdout:\n%s" % stdoutdata)
+        if stderrdata:
+            logging.error("`pip install` had error output:\n%s" % stderrdata)
+        if proc_pipe.returncode:
+            raise Exception("error: `pip install` returned code: %d" %
+                            proc_pipe.returncode)
         return tmp_dir
 
     def _gen_pip_env(self):

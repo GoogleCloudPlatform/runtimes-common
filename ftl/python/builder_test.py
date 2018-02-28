@@ -52,11 +52,15 @@ class PythonTest(unittest.TestCase):
         args = mock.Mock()
         args.name = 'gcr.io/test/test:latest'
         args.base = 'gcr.io/google-appengine/python:latest'
-        args.python_version = 'python2.7'
+        args.python_cmd = 'python2.7'
+        args.pip_cmd = 'pip'
+        args.venv_cmd = 'virtualenv'
         args.tar_base_image_path = None
         self.builder = builder.Python(self.ctx, args, "")
         self.interpreter_builder = layer_builder.InterpreterLayerBuilder(
-            self.builder._venv_dir, self.builder._args.python_version)
+            self.builder._venv_dir, self.builder._python_cmd,
+            self.builder._venv_cmd)
+        self.interpreter_builder._setup_venv = mock.Mock()
         self.builder._pip_install = mock.Mock()
 
     def test_build_interpreter_layer_ttl_written(self):

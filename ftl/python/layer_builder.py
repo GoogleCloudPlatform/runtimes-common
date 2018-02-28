@@ -16,6 +16,7 @@
 import datetime
 import os
 import subprocess
+import logging
 
 from ftl.common import ftl_util
 from ftl.common import single_layer_image
@@ -38,32 +39,52 @@ class PackageLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
     def BuildLayer(self):
         blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
-        self._img = tar_to_dockerimage.FromFSImage(
-            [blob], [u_blob], _generate_overrides(False))
+        self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
+                                                   _generate_overrides(False))
 
 
 class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
-    def __init__(self, venv_dir, python_version):
+    def __init__(self, venv_dir, python_cmd, venv_cmd):
         super(InterpreterLayerBuilder, self).__init__()
         self._venv_dir = venv_dir
-        self._python_version = python_version
+        self._python_cmd = python_cmd
+        self._venv_cmd = venv_cmd
 
     def GetCacheKeyRaw(self):
-        return self._python_version
+        return "%s %s" % (self._python_cmd, self._venv_cmd)
 
     def BuildLayer(self):
-        self._setup_venv(self._python_version)
+        self._setup_venv()
         blob, u_blob = ftl_util.zip_dir_to_layer_sha(
             os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
-        self._img = tar_to_dockerimage.FromFSImage(
-            [blob], [u_blob], _generate_overrides(True))
+        self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
+                                                   _generate_overrides(True))
 
-    def _setup_venv(self, python_version):
+    def _setup_venv(self):
         with ftl_util.Timing("create_virtualenv"):
-            subprocess.check_call([
-                'virtualenv', '--no-download', self._venv_dir, '-p',
-                python_version
+            venv_cmd_args = list(self._venv_cmd)
+            venv_cmd_args.extend([
+                '--no-download',
+                self._venv_dir,
+                '-p',
             ])
+            venv_cmd_args.extend(self._python_cmd)
+            proc_pipe = subprocess.Popen(
+                venv_cmd_args,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            stdoutdata, stderrdata = proc_pipe.communicate()
+            logging.info("`virtualenv` stdout:\n%s" % stdoutdata)
+            if stderrdata:
+                logging.error(
+                    "`virtualenv` had error output:\n%s" % stderrdata)
+            if proc_pipe.returncode:
+                raise Exception("error: `virtualenv` returned code: %d" %
+                                proc_pipe.returncode)
+
+            subprocess.check_call(venv_cmd_args)
 
 
 def _generate_overrides(set_path):
