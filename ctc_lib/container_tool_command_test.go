@@ -16,34 +16,92 @@ limitations under the License.
 package ctc_lib
 
 import (
+	"errors"
 	"fmt"
+	"os"
+	"reflect"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/container_command_output"
-
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/version"
 	"github.com/spf13/cobra"
 )
 
 type TestInterface struct {
-	testField string
+	Salutation string
+	Name       string
+}
+
+var Salutation string
+var Name string
+
+var testCommand = ContainerToolCommand{
+	Command: &cobra.Command{
+		Use:  "Hello Command",
+		RunE: RunCommand,
+	},
+	Phase:   "test",
+	Version: "1.0.1",
+	Output:  &TestInterface{},
+}
+
+func RunCommand(command *cobra.Command, args []string) error {
+	fmt.Println("Running Hello World Command")
+	if Name == "" {
+		return errors.New("Please supply Name Argument")
+	}
+	testOutput := TestInterface{
+		Salutation: Salutation,
+		Name:       Name,
+	}
+	WriteObject(command, testOutput)
+	return nil
+}
+
+func setup() {
+	testCommand.Flags().StringVarP(&Salutation, "salutation", "s", "", "Salutation")
+	testCommand.Flags().StringVarP(&Name, "name", "n", "", "Name")
+}
+
+func TestMain(m *testing.M) {
+	setup()
+	code := m.Run()
+	os.Exit(code)
 }
 
 func TestContainerToolCommandVersion(t *testing.T) {
-	var testCommand = ContainerToolCommand{
-		Command: &cobra.Command{
-			Use: "test Command",
-			Run: func(command *cobra.Command, args []string) {
-				fmt.Println("Example test")
-			},
-		},
-		Phase:         "test",
-		CommandOutput: container_command_output.ContainerCommandOutput{},
-		Version:       "1.0.1",
-	}
 	testCommand.SetArgs([]string{"version"})
-	testCommand.Execute()
-	//	var expected string = "1.0"
-	if testCommand.CommandOutput.Version != "1.0" {
-		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", "1.0", testCommand.CommandOutput.Version)
+	output := testCommand.ExecuteO()
+	var expectedOutput = version.VersionOutput{
+		Version: "1.0.1",
 	}
+	if reflect.DeepEqual(output, expectedOutput) {
+		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", expectedOutput, output)
+	}
+}
+
+func TestContainerToolCommandHelp(t *testing.T) {
+	testCommand.SetArgs([]string{"help"})
+	testCommand.Execute()
+	if "1" != "HELP STRING" {
+		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", "HELP STRING", "!")
+	}
+}
+
+func TestContainerToolCommandOutput(t *testing.T) {
+	testCommand.SetArgs([]string{"--name=Sparks", "--salutation=Mr."})
+	output := testCommand.ExecuteO()
+	var expectedOutput = TestInterface{
+		Salutation: "Mr.",
+		Name:       "Sparks",
+	}
+	if reflect.DeepEqual(output, expectedOutput) {
+		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", expectedOutput, testCommand.Output)
+	}
+}
+
+func TestContainerToolCommandOutputError(t *testing.T) {
+	testCommand.Execute()
+	// if testCommand.OutputBuffer.String() != "1.0.1" {
+	// 	t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", "1.0.1", testCommand.OutputBuffer)
+	// }
 }

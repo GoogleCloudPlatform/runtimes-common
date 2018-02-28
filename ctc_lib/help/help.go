@@ -11,42 +11,47 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package version
+package help
 
 import (
-	"encoding/json"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/sub_command"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-type VersionCommand struct {
+type HelpCommand struct {
 	*sub_command.ContainerToolSubCommand
 }
 
-type VersionOutput struct {
-	Version string
+type HelpOutput struct {
+	HelpText string
 }
 
-func NewVersionCommand(version string, toolname string) *VersionCommand {
+var HelpTemplate = `
+{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
+
+func NewHelpCommand(helpText string, toolname string) *HelpCommand {
 	var command = &cobra.Command{
-		Use:   "version",
-		Short: "Print the version of " + toolname,
-		Long:  `Print the version of ` + toolname,
-		Args:  cobra.ExactArgs(0),
-		Run: func(command *cobra.Command, args []string) {
-			var versionOutput = VersionOutput{
-				Version: version,
+		Use:   "help [command]",
+		Short: "Help about the command",
+		RunE: func(c *cobra.Command, args []string) error {
+			cmd, args, e := c.Root().Find(args)
+			if cmd == nil || e != nil || len(args) > 0 {
+				return errors.Errorf("unknown help topic: %v", strings.Join(args, " "))
 			}
-			jsonEncoded, _ := json.Marshal(&versionOutput)
-			command.Print(string(jsonEncoded))
+
+			helpFunc := cmd.HelpFunc()
+			helpFunc(cmd, args)
+			return nil
 		},
 	}
-	var versionCommand = &VersionCommand{
+	var helpCommand = &HelpCommand{
 		ContainerToolSubCommand: &sub_command.ContainerToolSubCommand{
 			Command: command,
-			Output:  &VersionOutput{},
+			Output:  &HelpOutput{},
 		},
 	}
-	return versionCommand
+	return helpCommand
 }

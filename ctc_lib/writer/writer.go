@@ -13,14 +13,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-package sub_command
+package writer
 
 import (
-	"github.com/spf13/cobra"
+	"bytes"
 )
 
-type ContainerToolSubCommand struct {
-	*cobra.Command
-	Output interface{}
+type CTCBuffer struct {
+	OutputBuffer *bytes.Buffer
+	OutputType   interface{}
+}
+
+func NewCTCBuffer(outputType interface{}) *CTCBuffer {
+	return &CTCBuffer{
+		OutputBuffer: &bytes.Buffer{},
+		OutputType:   outputType,
+	}
+}
+
+func (ctcBuffer CTCBuffer) Write(p []byte) (n int, err error) {
+	return ctcBuffer.OutputBuffer.Write(p)
 }
