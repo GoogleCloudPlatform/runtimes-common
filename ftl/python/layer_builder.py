@@ -75,11 +75,11 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-            stdoutdata, stderrdata = proc_pipe.communicate()
-            logging.info("`virtualenv` stdout:\n%s" % stdoutdata)
-            if stderrdata:
+            stdout, stderr = proc_pipe.communicate()
+            logging.info("`virtualenv` stdout:\n%s" % stdout)
+            if stderr:
                 logging.error(
-                    "`virtualenv` had error output:\n%s" % stderrdata)
+                    "`virtualenv` had error output:\n%s" % stderr)
             if proc_pipe.returncode:
                 raise Exception("error: `virtualenv` returned code: %d" %
                                 proc_pipe.returncode)
