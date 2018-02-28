@@ -37,7 +37,7 @@ def main():
         ]
     test_map['destination_test'].extend(['--destination', '/alternative-app'])
     test_map['metadata_test'].extend(['--entrypoint', '/bin/echo'])
-    test_map['metadata_test'].extend(['--exposed_ports', '8091'])
+    test_map['metadata_test'].extend(['--exposed-ports', '8090,8091'])
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(
             'node_builder_image',
