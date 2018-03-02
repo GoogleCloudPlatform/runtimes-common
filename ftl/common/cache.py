@@ -69,24 +69,27 @@ class Registry(Base):
     cache_key. For example: gcr.io/$repo/$namespace:$cache_key
     """
 
-    def __init__(self,
-                 repo,
-                 base_image,
-                 namespace,
-                 creds,
-                 transport,
-                 cache_version=None,
-                 threads=1,
-                 mount=None,
-                 use_global=False):
+    def __init__(
+            self,
+            repo,
+            base_image,
+            namespace,
+            creds,
+            transport,
+            cache_version=None,
+            threads=1,
+            should_cache=True,
+            should_upload=True,
+            mount=None,
+            use_global=False,
+    ):
         super(Registry, self).__init__()
         self._repo = repo
         self._base_image = base_image
         self._namespace = namespace
         self._creds = creds
         _reg_name = '{base}/{namespace}'.format(
-            base=constants.GLOBAL_CACHE_REGISTRY,
-            namespace=self._namespace)
+            base=constants.GLOBAL_CACHE_REGISTRY, namespace=self._namespace)
         # TODO(nkubala): default this to true to point builds to global cache
         self._use_global = use_global
         if use_global:
@@ -96,6 +99,8 @@ class Registry(Base):
         self._cache_version = cache_version
         self._threads = threads
         self._mount = mount or []
+        self._should_cache = should_cache
+        self._should_upload = should_upload
 
     def _tag(self, cache_key, repo=None):
         fingerprint = '%s %s' % (self._base_image.digest(), cache_key)
@@ -107,6 +112,9 @@ class Registry(Base):
             tag=hashlib.sha256(fingerprint).hexdigest()))
 
     def Get(self, cache_key):
+        if not self._should_cache:
+            logging.info("--no-cache flag set, cache won't be checked")
+            return
         """Attempt to retrieve value from cache."""
         logging.debug('Checking cache for cache_key %s', cache_key)
         hit = self._getEntry(cache_key)
@@ -148,6 +156,9 @@ class Registry(Base):
         return entry
 
     def Set(self, cache_key, value):
+        if not self._should_upload:
+            logging.info("--no-upload flag set, images won't be pushed")
+            return
         entry = self._tag(cache_key)
         with docker_session.Push(
                 entry,
@@ -175,4 +186,4 @@ class Registry(Base):
             ftl_util.creation_time(entry))
         now = datetime.datetime.now()
         return last_created > now - datetime.timedelta(
-                weeks=constants.DEFAULT_TTL_WEEKS)
+            weeks=constants.DEFAULT_TTL_WEEKS)

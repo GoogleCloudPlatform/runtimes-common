@@ -49,19 +49,17 @@ class Python(builder.RuntimeBase):
             interpreter_builder = package_builder.InterpreterLayerBuilder(
                 self._venv_dir, self._python_cmd, self._venv_cmd)
             cached_int_img = None
-            if self._args.cache:
-                with ftl_util.Timing("checking cached interpreter layer"):
-                    key = interpreter_builder.GetCacheKey()
-                    cached_int_img = self._cache.Get(key)
+            with ftl_util.Timing("checking cached int layer"):
+                key = interpreter_builder.GetCacheKey()
+                cached_int_img = self._cache.Get(key)
             if cached_int_img is not None:
                 interpreter_builder.SetImage(cached_int_img)
             else:
                 with ftl_util.Timing("building interpreter layer"):
                     interpreter_builder.BuildLayer()
-                if self._args.cache:
-                    with ftl_util.Timing("uploading interpreter layer"):
-                        self._cache.Set(interpreter_builder.GetCacheKey(),
-                                        interpreter_builder.GetImage())
+                with ftl_util.Timing("uploading int layer"):
+                    self._cache.Set(interpreter_builder.GetCacheKey(),
+                                    interpreter_builder.GetImage())
             lyr_imgs.append(interpreter_builder)
 
             # check cache or build package layers
@@ -69,10 +67,9 @@ class Python(builder.RuntimeBase):
                 self._ctx, self._descriptor_files, None,
                 interpreter_builder)
             cached_req_txt_img = None
-            if self._args.cache:
-                with ftl_util.Timing("checking cached req.txt layer"):
-                    key = req_txt_builder.GetCacheKey()
-                    cached_req_txt_img = self._cache.Get(key)
+            with ftl_util.Timing("checking cached req.txt layer"):
+                key = req_txt_builder.GetCacheKey()
+                cached_req_txt_img = self._cache.Get(key)
             if cached_req_txt_img is not None:
                 req_txt_builder.SetImage(cached_req_txt_img)
             else:
@@ -98,11 +95,31 @@ class Python(builder.RuntimeBase):
                     req_txt_image = self.AppendLayersIntoImage(req_txt_imgs)
 
                 req_txt_builder.SetImage(req_txt_image)
-                if self._args.cache:
-                    with ftl_util.Timing("uploading req.txt image"):
-                        self._cache.Set(req_txt_builder.GetCacheKey(),
-                                        req_txt_builder.GetImage())
+                with ftl_util.Timing("uploading req.txt image"):
+                    self._cache.Set(req_txt_builder.GetCacheKey(),
+                                    req_txt_builder.GetImage())
             lyr_imgs.append(req_txt_builder)
+
+            with ftl_util.Timing("resolving whl paths"):
+                whls = self._resolve_whls()
+                pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
+            for whl_pkg_dir in pkg_dirs:
+                layer_builder = package_builder.PackageLayerBuilder(
+                    self._ctx, self._descriptor_files, whl_pkg_dir,
+                    interpreter_builder)
+                cached_pkg_img = None
+                with ftl_util.Timing("checking cached pkg layer"):
+                    key = layer_builder.GetCacheKey()
+                    cached_pkg_img = self._cache.Get(key)
+                if cached_pkg_img is not None:
+                    layer_builder.SetImage(cached_pkg_img)
+                else:
+                    with ftl_util.Timing("building pkg layer"):
+                        layer_builder.BuildLayer()
+                    with ftl_util.Timing("uploading pkg layer"):
+                        self._cache.Set(layer_builder.GetCacheKey(),
+                                        layer_builder.GetImage())
+                lyr_imgs.append(layer_builder)
 
         app = base_builder.AppLayerBuilder(
             ctx=self._ctx,
