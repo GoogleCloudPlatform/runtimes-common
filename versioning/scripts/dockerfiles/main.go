@@ -72,8 +72,9 @@ func deleteIfFileExists(path string) {
 	}
 }
 
-// this function removes all white characters from the string
-// usefull in comparing files that can have a mix of whitespaces and tabs
+// removeWhiteCharacters removes '\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP)
+// from a sting and it leaves spaces
+// used in comparing expected and received Dockerfiles
 func removeWhiteCharacters(str string) string {
 	return strings.Map(func(char rune) rune {
 		if unicode.IsSpace(char) {
@@ -99,14 +100,13 @@ func verifyDockerfiles(spec versions.Spec, tmpl template.Template) (failureCount
 		if string(dockerfile) == string(data) {
 			log.Printf("%s: OK", path)
 		} else {
-			// there is chance the the only difference between files are
-			// white characters like whitespaces or tabulators or any characters
-			// if the only difference is whitespaces vs. tabs then we should be fine
+			// Ignore differences caused by whitespaces and tabs.
 			if removeWhiteCharacters(string(dockerfile)) != removeWhiteCharacters(string(data)) {
 				failureCount++
 				log.Printf("%s: FAILED", path)
 			} else {
-				log.Printf("Mix of whitespaces and tabs discovered in Dockerfile. Consider converting white characters into spaces.")
+				warningCount++
+				log.Printf("%s: OK, but inconsistent whitespaces/tabs detected. Consider normalizing whitespaces/tabs or re-generate Dockerfiles ", path)
 			}
 		}
 	}
