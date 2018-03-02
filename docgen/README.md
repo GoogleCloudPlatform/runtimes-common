@@ -16,7 +16,8 @@ cd runtimes-common
 - Build:
 
 ``` shell
-bazel build docgen/scripts:docgen
+bazel run //:gazelle
+bazel build docgen/scripts/docgen:docgen
 ```
 
 - Set the path to the built scripts:
