@@ -114,7 +114,10 @@ class RuntimeBase(JustApp):
     def AppendLayersIntoImage(self, lyr_imgs):
         for i, lyr_img in enumerate(lyr_imgs):
             if i == 0:
-                result_image = lyr_img
+                try:
+                    result_image = lyr_img.GetImage()
+                except AttributeError:
+                    result_image = lyr_img
                 continue
             img = lyr_img.GetImage()
             diff_ids = img.diff_ids()
