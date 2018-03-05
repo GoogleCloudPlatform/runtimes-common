@@ -57,16 +57,14 @@ class PHP(builder.RuntimeBase):
                     pkg_descriptor=pkg_txt,
                     destination_path=self._args.destination_path)
                 cached_pkg_img = None
-                if self._args.cache:
-                    with ftl_util.Timing("checking cached pkg layer"):
-                        key = layer_builder.GetCacheKey()
-                        cached_pkg_img = self._cache.Get(key)
+                with ftl_util.Timing("checking cached pkg layer"):
+                    key = layer_builder.GetCacheKey()
+                    cached_pkg_img = self._cache.Get(key)
                 if cached_pkg_img is not None:
                     layer_builder.SetImage(cached_pkg_img)
                 else:
                     with ftl_util.Timing("building pkg layer"):
                         layer_builder.BuildLayer()
-                    if self._args.cache:
                         with ftl_util.Timing("uploading pkg layer"):
                             self._cache.Set(layer_builder.GetCacheKey(),
                                             layer_builder.GetImage())
