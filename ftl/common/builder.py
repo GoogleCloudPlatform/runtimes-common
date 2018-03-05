@@ -79,10 +79,10 @@ class RuntimeBase(JustApp):
         if args.exposed_ports:
             args.exposed_ports = args.exposed_ports.split(",")
         self._args = args
-        self._base_name = docker_name.Tag(self._args.base)
+        self._base_name = docker_name.Tag(self._args.base, strict=False)
         self._base_creds = docker_creds.DefaultKeychain.Resolve(
             self._base_name)
-        self._target_image = docker_name.Tag(self._args.name)
+        self._target_image = docker_name.Tag(self._args.name, strict=False)
         self._target_creds = docker_creds.DefaultKeychain.Resolve(
             self._target_image)
         self._transport = transport_pool.Http(httplib2.Http, size=_THREADS)

@@ -32,7 +32,7 @@ def main():
     for test in TEST_DIRS:
         test_map[test] = [
             '--base', _NODE_BASE, '--name',
-            'gcr.io/ftl-node-test/%s-image:latest' % test, '--directory',
+            'gcr.io/ftl-node-test/%s-image' % test, '--directory',
             os.path.join(_TEST_DIR, test), '--no-cache'
         ]
     test_map['destination_test'].extend(['--destination', '/alternative-app'])
@@ -41,7 +41,7 @@ def main():
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(
             'node_builder_image',
-            'gcr.io/ftl-node-test/%s-image:latest' % test,
+            'gcr.io/ftl-node-test/%s-image' % test,
             os.path.join(_TEST_DIR, test), args)
 
     print yaml.dump(cloudbuild_yaml)
