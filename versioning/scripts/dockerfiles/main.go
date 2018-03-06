@@ -17,10 +17,43 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/versioning/versions"
 )
 
+type Format struct {
+	Indent string
+}
+
+func parseSpecToFormat(c map[string]string) Format {
+	fIndent := " "
+	if val, ok := c["template_retry_intendt"]; ok {
+		fIndent = val
+	}
+	return Format{Indent: fIndent}
+}
+
+func (f Format) indent(s string) string {
+	temp := strings.Split(s, "\n")
+	str := ""
+	for index, line := range temp {
+		if index > 0 {
+			str = str + "\n"
+		}
+		trimmed := strings.TrimSpace(line)
+		diff := len(line) - len(trimmed)
+		prefix := strings.Repeat(f.Indent, diff)
+		str = str + prefix + trimmed
+	}
+	return str
+}
+
 func renderDockerfile(version versions.Version, tmpl template.Template) []byte {
 	var result bytes.Buffer
 	tmpl.Execute(&result, version)
 	return result.Bytes()
+}
+
+func renderRetry(pkg versions.Package, tmpl template.Template) string {
+	var result bytes.Buffer
+	tmpl.Execute(&result, pkg)
+	return string(result.Bytes())
 }
 
 func writeDockerfile(version versions.Version, data []byte) {
@@ -170,6 +203,25 @@ func check(e error) {
 	}
 }
 
+const templateFrom = `FROM {{ .From }}
+`
+
+const templateRetry = `found='' && \
+ for server in \
+  pool.sks-keyservers.net \
+  na.pool.sks-keyservers.net \
+  eu.pool.sks-keyservers.net \
+  oc.pool.sks-keyservers.net \
+  ha.pool.sks-keyservers.net \
+  hkp://p80.pool.sks-keyservers.net:80 \
+  hkp://keyserver.ubuntu.com:80 \
+  pgp.mit.edu \
+ ; do \
+  {{ $.RetryCommand }} \
+   && found=yes && break; \
+ done; \
+ test -n "$found"`
+
 func main() {
 	templateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template and any other files to copy over")
 	verifyPtr := flag.Bool("verify_only", false, "Verify dockerfiles")
@@ -182,7 +234,24 @@ func main() {
 	templateData, err := ioutil.ReadFile(templatePath)
 	templateString := string(templateData)
 	check(err)
-
+	if spec.HasExtension("from") {
+		templateString = templateFrom + templateString
+	}
+	if spec.HasExtension("retry") {
+		templateFormat := parseSpecToFormat(spec.Extensions["retry"])
+		retryTmpl, err := template.
+			New("retryTemplate").
+			Parse(templateFormat.indent(templateRetry))
+		check(err)
+		for index, element := range spec.Versions {
+			for pName, pValues := range element.Packages {
+				if pValues.RetryCommand != "" {
+					pValues.RetryCommand = renderRetry(pValues, *retryTmpl)
+					spec.Versions[index].Packages[pName] = pValues
+				}
+			}
+		}
+	}
 	tmpl, err := template.
 		New("dockerfileTemplate").
 		Parse(templateString)
