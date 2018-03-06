@@ -74,4 +74,5 @@ func errRecover(errp *error) {
 		fmt.Println(e)
 		*errp = errors.New(fmt.Sprintf("%v", e))
 		CommandExit(*errp)
-	}}
+	}
+}
