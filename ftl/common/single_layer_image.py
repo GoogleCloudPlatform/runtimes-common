@@ -16,6 +16,7 @@ building individual image layers."""
 
 import abc
 
+from ftl.common import constants
 from containerregistry.client.v2_2 import docker_digest
 
 
@@ -61,7 +62,8 @@ class CacheableLayerBuilder(BaseLayerBuilder):
         """
 
     def GetCacheKey(self):
-        return docker_digest.SHA256(self.GetCacheKeyRaw())
+        return docker_digest.SHA256("%s %s" % (self.GetCacheKeyRaw(),
+                                               constants.CACHE_KEY_VERSION))
 
     @abc.abstractmethod
     def BuildLayer(self):

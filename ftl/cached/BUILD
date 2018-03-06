@@ -10,6 +10,7 @@ py_library(
     srcs = glob(["*.py"]),
     deps = [
         "@containerregistry",
+        "@mock",
     ],
 )
 

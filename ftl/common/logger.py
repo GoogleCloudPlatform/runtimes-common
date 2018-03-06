@@ -35,4 +35,4 @@ def setup_logging(args):
 def preamble(runtime, args):
     logging.info("Beginning FTL build for %s" % runtime)
     for arg in vars(args):
-        logging.info("FTL arg passed: \n %s %s" % (arg, getattr(args, arg)))
+        logging.info("FTL arg passed: %s %s" % (arg, getattr(args, arg)))
