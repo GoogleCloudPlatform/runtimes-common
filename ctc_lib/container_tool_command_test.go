@@ -16,13 +16,12 @@ limitations under the License.
 package ctc_lib
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
-	"reflect"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/version"
 	"github.com/spf13/cobra"
 )
 
@@ -33,33 +32,34 @@ type TestInterface struct {
 
 var Salutation string
 var Name string
+var OutputBuffer bytes.Buffer
 
 var testCommand = ContainerToolCommand{
 	Command: &cobra.Command{
-		Use:  "Hello Command",
-		RunE: RunCommand,
+		Use: "Hello Command",
 	},
 	Phase:   "test",
 	Version: "1.0.1",
 	Output:  &TestInterface{},
+	RunO:    RunCommand,
 }
 
-func RunCommand(command *cobra.Command, args []string) error {
+func RunCommand(command *cobra.Command, args []string) (interface{}, error) {
 	fmt.Println("Running Hello World Command")
 	if Name == "" {
-		return errors.New("Please supply Name Argument")
+		return (*TestInterface)(nil), errors.New("Please supply Name Argument")
 	}
 	testOutput := TestInterface{
 		Salutation: Salutation,
 		Name:       Name,
 	}
-	WriteObject(command, testOutput)
-	return nil
+	return &testOutput, nil
 }
 
 func setup() {
 	testCommand.Flags().StringVarP(&Salutation, "salutation", "s", "", "Salutation")
 	testCommand.Flags().StringVarP(&Name, "name", "n", "", "Name")
+	testCommand.Command.SetOutput(&OutputBuffer)
 }
 
 func TestMain(m *testing.M) {
@@ -69,13 +69,10 @@ func TestMain(m *testing.M) {
 }
 
 func TestContainerToolCommandVersion(t *testing.T) {
-	testCommand.SetArgs([]string{"version"})
-	output := testCommand.ExecuteO()
-	var expectedOutput = version.VersionOutput{
-		Version: "1.0.1",
-	}
-	if reflect.DeepEqual(output, expectedOutput) {
-		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", expectedOutput, output)
+	testCommand.SetArgs([]string{"version", "--template", "Version"})
+	testCommand.Execute()
+	if OutputBuffer.String() == "1.0.1" {
+		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", "1.0.1", OutputBuffer.String())
 	}
 }
 
@@ -89,12 +86,13 @@ func TestContainerToolCommandHelp(t *testing.T) {
 
 func TestContainerToolCommandOutput(t *testing.T) {
 	testCommand.SetArgs([]string{"--name=Sparks", "--salutation=Mr."})
-	output := testCommand.ExecuteO()
+	testCommand.Execute()
 	var expectedOutput = TestInterface{
-		Salutation: "Mr.",
+		Salutation: "Mr1s.",
 		Name:       "Sparks",
 	}
-	if reflect.DeepEqual(output, expectedOutput) {
+	fmt.Print(expectedOutput)
+	if OutputBuffer.String() == fmt.Sprint(expectedOutput) {
 		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", expectedOutput, testCommand.Output)
 	}
 }

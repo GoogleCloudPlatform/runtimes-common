@@ -17,23 +17,22 @@ limitations under the License.
 package ctc_lib
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/help"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/version"
-	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/writer"
 	"github.com/spf13/cobra"
 )
 
 type ContainerToolCommand struct {
 	*cobra.Command
-	Phase                string
-	Version              string
-	HelpText             string
-	Output               interface{}
-	subCommandsOutputMap map[string]interface{}
-	args                 []string
+	Phase    string
+	Version  string
+	HelpText string
+	Output   interface{}
+	args     []string
+	RunO     func(command *cobra.Command, args []string) (interface{}, error)
 }
 
 type ContainerToolCommandList struct {
@@ -41,66 +40,52 @@ type ContainerToolCommandList struct {
 	Phase      string
 	Version    string
 	OutputList []interface{}
+	RunO       func(ctc *ContainerToolCommand, args []string) (interface{}, error)
 }
 
+// Define all Flags
+var Template string
+
 func (ctc *ContainerToolCommand) init() {
+	ctc.AddSubCommands()
+	ctc.AddFlags()
+}
+
+func (ctc *ContainerToolCommand) AddSubCommands() {
 	// Add version subcommand
-	ctc.AddCommand(version.NewVersionCommand(ctc.Version,
-		ctc.Command.Name()).Command, &version.VersionOutput{})
+	ctc.Command.AddCommand(
+		version.NewVersionCommand(ctc.Version, ctc.Command.Name()).Command)
 	// Add help subcommand
-	ctc.AddCommand(help.NewHelpCommand(ctc.HelpText,
-		ctc.Command.Name()).Command, &help.HelpOutput{})
+	ctc.Command.AddCommand(
+		help.NewHelpCommand(ctc.HelpText, ctc.Command.Name()).Command)
 
 	// Set up Root Command
 	ctc.Command.SetHelpTemplate(help.HelpTemplate)
 }
 
-func (ctc *ContainerToolCommand) AddCommand(command *cobra.Command, output interface{}) {
-	ctc.Command.AddCommand(command)
-	ctc.SetSubCommandsOutputMap(command.Name(), output)
-}
+func (ctc *ContainerToolCommand) AddFlags() {
+	// Add template Flag
+	ctc.Command.Flags().StringVarP(&Template, "template", "t", "{{.}}", "Output format")
 
-func (ctc *ContainerToolCommand) SetArgs(args []string) {
-	ctc.args = args
-	ctc.Command.SetArgs(args)
-}
-
-func (ctc *ContainerToolCommand) SetSubCommandsOutputMap(name string, output interface{}) {
-	if ctc.subCommandsOutputMap == nil {
-		ctc.subCommandsOutputMap = make(map[string]interface{})
-	}
-	ctc.subCommandsOutputMap[name] = output
-}
-
-func (ctc *ContainerToolCommand) GetSubCommandsOutputMap() map[string]interface{} {
-	return ctc.subCommandsOutputMap
 }
 
 func (ctc *ContainerToolCommand) Execute() error {
 	ctc.init()
-	fmt.Println("Execute called")
+	if (ctc.Command.Run != nil || ctc.Command.RunE != nil) && ctc.RunO != nil {
+		errors.New("Cannot provide both Command.Run and RunO implementation" +
+			"Either implement Command.Run implementation or RunO implemetation")
+	}
+	cobraRun := func(c *cobra.Command, args []string) {
+		obj, _ := ctc.RunO(c, args)
+		fmt.Println(obj, Template)
+	}
+
+	ctc.Command.Run = cobraRun
 	return ctc.Command.Execute()
 }
 
-func (ctc *ContainerToolCommand) ExecuteO() interface{} {
-	ctc.init()
-	ctcWriter := writer.NewCTCBuffer(ctc.Output)
-	ctc.Command.SetOutput(ctcWriter)
-	err := ctc.Command.Execute()
-	if err != nil {
-		return err
-	}
-
-	targetCommand, _, _ := ctc.Command.Find(ctc.args)
-	output := ctc.GetSubCommandsOutputMap()[targetCommand.Name()]
-	err = json.Unmarshal(ctcWriter.OutputBuffer.Bytes(), output)
-	if err != nil {
-		return err
-	}
-	return output
-}
-
-func WriteObject(cmd *cobra.Command, obj interface{}) {
-	jsonEncoded, _ := json.Marshal(obj)
-	cmd.Print(string(jsonEncoded))
+// This function is used for Testing.
+func (ctc *ContainerToolCommand) SetArgs(args []string) {
+	ctc.args = args
+	ctc.Command.SetArgs(args)
 }
