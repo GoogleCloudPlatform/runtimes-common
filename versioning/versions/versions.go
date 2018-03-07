@@ -20,12 +20,17 @@ type Package struct {
 	Md5     string
 }
 
+type Command struct {
+	Cmd string
+}
+
 type Version struct {
 	Dir          string
 	Repo         string
 	Tags         []string
 	From         string
 	Cmd          string
+	Custom       map[string]Command
 	Packages     map[string]Package
 	ExcludeTests []string `yaml:"excludeTests"`
 }
