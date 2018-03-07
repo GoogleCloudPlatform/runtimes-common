@@ -14,8 +14,6 @@ limitations under the License.
 package version
 
 import (
-	"encoding/json"
-
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/sub_command"
 	"github.com/spf13/cobra"
 )
@@ -34,19 +32,19 @@ func NewVersionCommand(version string, toolname string) *VersionCommand {
 		Short: "Print the version of " + toolname,
 		Long:  `Print the version of ` + toolname,
 		Args:  cobra.ExactArgs(0),
-		Run: func(command *cobra.Command, args []string) {
-			var versionOutput = VersionOutput{
-				Version: version,
-			}
-			jsonEncoded, _ := json.Marshal(&versionOutput)
-			command.Print(string(jsonEncoded))
-		},
 	}
 	var versionCommand = &VersionCommand{
 		ContainerToolSubCommand: &sub_command.ContainerToolSubCommand{
 			Command: command,
 			Output:  &VersionOutput{},
+			RunO: func(command *cobra.Command, args []string) (interface{}, error) {
+				var versionOutput = VersionOutput{
+					Version: version,
+				}
+				return versionOutput, nil
+			},
 		},
 	}
+
 	return versionCommand
 }

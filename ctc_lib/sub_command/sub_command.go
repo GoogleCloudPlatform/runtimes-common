@@ -23,4 +23,5 @@ import (
 type ContainerToolSubCommand struct {
 	*cobra.Command
 	Output interface{}
+	RunO   func(command *cobra.Command, args []string) (interface{}, error)
 }
