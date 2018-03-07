@@ -14,14 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package sub_command
+package util
 
 import (
-	"github.com/spf13/cobra"
+	"fmt"
+	"io"
+	"text/template"
 )
 
-type ContainerToolSubCommand struct {
-	*cobra.Command
-	Output interface{}
-	RunO   func(command *cobra.Command, args []string) (interface{}, error)
+func ExecuteTemplate(templateStr string, obj interface{}, out io.Writer) error {
+	tmpl, err := template.New("Template").Parse(templateStr)
+	if err != nil {
+		fmt.Println("Err")
+		return err
+	}
+	return tmpl.Execute(out, obj)
 }

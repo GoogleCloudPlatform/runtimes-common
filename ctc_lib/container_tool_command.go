@@ -19,8 +19,13 @@ package ctc_lib
 import (
 	"errors"
 	"fmt"
+	"os"
+	"reflect"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/help"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/sub_command"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/version"
 	"github.com/spf13/cobra"
 )
@@ -31,20 +36,16 @@ type ContainerToolCommand struct {
 	Version  string
 	HelpText string
 	Output   interface{}
-	args     []string
 	RunO     func(command *cobra.Command, args []string) (interface{}, error)
 }
 
-type ContainerToolCommandList struct {
+type ContainerToolListCommand struct {
 	*cobra.Command
 	Phase      string
 	Version    string
 	OutputList []interface{}
-	RunO       func(ctc *ContainerToolCommand, args []string) (interface{}, error)
+	RunO       func(command *cobra.Command, args []string) (interface{}, error)
 }
-
-// Define all Flags
-var Template string
 
 func (ctc *ContainerToolCommand) init() {
 	ctc.AddSubCommands()
@@ -53,39 +54,73 @@ func (ctc *ContainerToolCommand) init() {
 
 func (ctc *ContainerToolCommand) AddSubCommands() {
 	// Add version subcommand
-	ctc.Command.AddCommand(
-		version.NewVersionCommand(ctc.Version, ctc.Command.Name()).Command)
+	ctc.AddCommand(version.NewVersionCommand(ctc.Version, ctc.Command.Name()).ContainerToolSubCommand)
 	// Add help subcommand
-	ctc.Command.AddCommand(
-		help.NewHelpCommand(ctc.HelpText, ctc.Command.Name()).Command)
+	ctc.AddCommand(help.NewHelpCommand(ctc.HelpText, ctc.Command.Name()).ContainerToolSubCommand)
 
 	// Set up Root Command
 	ctc.Command.SetHelpTemplate(help.HelpTemplate)
 }
 
+func (ctc *ContainerToolCommand) AddCommand(subCommand *sub_command.ContainerToolSubCommand) {
+	cobraRun := func(c *cobra.Command, args []string) {
+		obj, _ := subCommand.RunO(c, args)
+		subCommand.Output = obj
+		util.ExecuteTemplate(flags.TemplateString, subCommand.Output, ctc.OutOrStdout())
+	}
+	subCommand.Command.Run = cobraRun
+	ctc.Command.AddCommand(subCommand.Command)
+}
+
 func (ctc *ContainerToolCommand) AddFlags() {
 	// Add template Flag
-	ctc.Command.Flags().StringVarP(&Template, "template", "t", "{{.}}", "Output format")
+	ctc.Command.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", "{{.}}", "Output format")
+
+	// Add NoExit Flag used for testing
+	ctc.Command.PersistentFlags().BoolVar(&flags.NoExit, "noexit", false,
+		"Do not Exit with Status 1 on Error. Used for Testing")
+	ctc.Command.Flags().MarkHidden("noexit")
 
 }
 
-func (ctc *ContainerToolCommand) Execute() error {
+func (ctc *ContainerToolCommand) Execute() (err error) {
+	defer errRecover(&err)
+
 	ctc.init()
+	fmt.Println(ctc.PersistentFlags().GetBool("noexit"))
 	if (ctc.Command.Run != nil || ctc.Command.RunE != nil) && ctc.RunO != nil {
-		errors.New("Cannot provide both Command.Run and RunO implementation" +
-			"Either implement Command.Run implementation or RunO implemetation")
+		panic("Cannot provide both Command.Run and RunO implementation." +
+			"\nEither implement Command.Run implementation or RunO implemetation")
 	}
 	cobraRun := func(c *cobra.Command, args []string) {
 		obj, _ := ctc.RunO(c, args)
-		fmt.Println(obj, Template)
+		ctc.Output = obj
+		util.ExecuteTemplate(flags.TemplateString, obj, ctc.OutOrStdout())
 	}
 
 	ctc.Command.Run = cobraRun
-	return ctc.Command.Execute()
+	err = ctc.Command.Execute()
+	if err != nil {
+		panic(err)
+	}
+	return err
 }
 
 // This function is used for Testing.
 func (ctc *ContainerToolCommand) SetArgs(args []string) {
-	ctc.args = args
 	ctc.Command.SetArgs(args)
+}
+
+// errRecover is the handler that turns panics into returns from the top
+// level of Parse.
+func errRecover(errp *error) {
+	if e := recover(); e != nil {
+		// TODO: Change this to Log.Error once Logging is introduced.
+		fmt.Println(e, flags.NoExit)
+		fmt.Println(reflect.TypeOf(e))
+		if !flags.NoExit {
+			os.Exit(1)
+		}
+		*errp = errors.New(fmt.Sprintf("%v", e))
+	}
 }

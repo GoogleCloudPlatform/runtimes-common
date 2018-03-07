@@ -14,14 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package sub_command
+package flags
 
-import (
-	"github.com/spf13/cobra"
-)
+// TemplateString  Stores the template which is applied to command output
+var TemplateString string
 
-type ContainerToolSubCommand struct {
-	*cobra.Command
-	Output interface{}
-	RunO   func(command *cobra.Command, args []string) (interface{}, error)
-}
+// NoExit Does not Exit when specifed. Used for Testing
+var NoExit bool

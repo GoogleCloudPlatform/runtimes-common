@@ -20,20 +20,26 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"testing"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/sub_command"
 	"github.com/spf13/cobra"
 )
 
 type TestInterface struct {
-	Salutation string
-	Name       string
+	Greeting string
+	Name     string
 }
 
-var Salutation string
+type TestSubcommandOutput struct {
+	Breed string
+	Size  string
+}
+
+var Greeting string
 var Name string
 var OutputBuffer bytes.Buffer
-
 var testCommand = ContainerToolCommand{
 	Command: &cobra.Command{
 		Use: "Hello Command",
@@ -50,14 +56,14 @@ func RunCommand(command *cobra.Command, args []string) (interface{}, error) {
 		return (*TestInterface)(nil), errors.New("Please supply Name Argument")
 	}
 	testOutput := TestInterface{
-		Salutation: Salutation,
-		Name:       Name,
+		Greeting: Greeting,
+		Name:     Name,
 	}
-	return &testOutput, nil
+	return testOutput, nil
 }
 
 func setup() {
-	testCommand.Flags().StringVarP(&Salutation, "salutation", "s", "", "Salutation")
+	testCommand.Flags().StringVarP(&Greeting, "greeting", "g", "Hello", "Greeting")
 	testCommand.Flags().StringVarP(&Name, "name", "n", "", "Name")
 	testCommand.Command.SetOutput(&OutputBuffer)
 }
@@ -68,38 +74,96 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestContainerToolCommandVersion(t *testing.T) {
-	testCommand.SetArgs([]string{"version", "--template", "Version"})
+func TestContainerToolCommandTemplate(t *testing.T) {
+	testCommand.SetArgs([]string{"version", "--template", "{{.Version}}"})
 	testCommand.Execute()
-	if OutputBuffer.String() == "1.0.1" {
+	// check template applies to the output
+	if OutputBuffer.String() != "1.0.1" {
 		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", "1.0.1", OutputBuffer.String())
 	}
 }
 
-func TestContainerToolCommandHelp(t *testing.T) {
-	testCommand.SetArgs([]string{"help"})
-	testCommand.Execute()
-	if "1" != "HELP STRING" {
-		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", "HELP STRING", "!")
-	}
-}
-
 func TestContainerToolCommandOutput(t *testing.T) {
-	testCommand.SetArgs([]string{"--name=Sparks", "--salutation=Mr."})
+	testCommand.SetArgs([]string{"--name=Sparks"})
 	testCommand.Execute()
 	var expectedOutput = TestInterface{
-		Salutation: "Mr1s.",
-		Name:       "Sparks",
+		Greeting: "Hello",
+		Name:     "Sparks",
 	}
-	fmt.Print(expectedOutput)
-	if OutputBuffer.String() == fmt.Sprint(expectedOutput) {
+
+	if expectedOutput != testCommand.Output {
 		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", expectedOutput, testCommand.Output)
 	}
 }
 
-func TestContainerToolCommandOutputError(t *testing.T) {
+func TestContainerToolCommandSubCommandOutput(t *testing.T) {
+	testCommand.SetArgs([]string{"details", "--template", "{{.Breed}}"})
+	testSubCommand := &sub_command.ContainerToolSubCommand{
+		Command: &cobra.Command{
+			Use:   "details",
+			Short: "More Info",
+		},
+		Output: &TestSubcommandOutput{},
+		RunO: func(command *cobra.Command, args []string) (interface{}, error) {
+			return TestSubcommandOutput{
+				Breed: "Chihuhua Mix",
+				Size:  "Small",
+			}, nil
+		},
+	}
+	testCommand.AddCommand(testSubCommand)
 	testCommand.Execute()
-	// if testCommand.OutputBuffer.String() != "1.0.1" {
-	// 	t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", "1.0.1", testCommand.OutputBuffer)
-	// }
+	var expectedOutput = TestSubcommandOutput{
+		Breed: "Chihuhua Mix",
+		Size:  "Small",
+	}
+
+	if testSubCommand.Output != expectedOutput {
+		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", expectedOutput, testSubCommand.Output)
+	}
+
+	// check template applies to the output
+	if OutputBuffer.String() != "Chihuhua Mix" {
+		t.Errorf("Expected to contain: \n Chihuhua Mix \nGot:\n %v\n", OutputBuffer.String())
+	}
+}
+
+func TestContainerToolCommandPanic(t *testing.T) {
+	testCommand.Flags().String("foo1", "", "")
+	testCommand.MarkFlagRequired("foo")
+	if os.Getenv("TEST_EXIT_CODE") == "1" {
+		testCommand.Execute()
+		return
+	}
+	// Run the go test again with environment variable set to run the command.
+	cmd := exec.Command(os.Args[0], "-test.run=TestContainerToolCommandPanic")
+	cmd.Env = append(os.Environ(), "TEST_EXIT_CODE=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		return
+	}
+	t.Fatalf("process ran with err %v, want non zero exit status", err)
+}
+
+func TestContainerToolCommandRunDefined(t *testing.T) {
+	runDefined := ContainerToolCommand{
+		Command: &cobra.Command{
+			Use:   "run",
+			Short: "Invalid command Description",
+			Run: func(command *cobra.Command, args []string) {
+				fmt.Println("Run is defined")
+			},
+		},
+		Output: "",
+		RunO: func(command *cobra.Command, args []string) (interface{}, error) {
+			return nil, nil
+		},
+	}
+	runDefined.SetArgs([]string{"--noexit=True"})
+	err := runDefined.Execute()
+	expectedError := ("Cannot provide both Command.Run and RunO implementation." +
+		"\nEither implement Command.Run implementation or RunO implemetation")
+	if err.Error() != expectedError {
+		t.Errorf("Expected Error: \n %q \nGot:\n %q\n", expectedError, err.Error())
+	}
 }
