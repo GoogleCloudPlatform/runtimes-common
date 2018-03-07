@@ -58,7 +58,7 @@ func funcKeyServersRetryLoop(indentSequence string, cmd string) string {
 	check(err)
 	var result bytes.Buffer
 	tmpl.Execute(&result, cmd)
-	return string(result.Bytes())
+	return funcIndent(indentSequence, string(result.Bytes()))
 }
 
 func funcIndent(leading string, s string) string {
@@ -241,7 +241,7 @@ func main() {
 
 	tmpl, err := template.
 		New("dockerfileTemplate").
-		Funcs(template.FuncMap{"KeyServersRetryLoop": funcKeyServersRetryLoop, "indent": funcIndent}).
+		Funcs(template.FuncMap{"KeyServersRetryLoop": funcKeyServersRetryLoop}).
 		Parse(templateString)
 	check(err)
 
