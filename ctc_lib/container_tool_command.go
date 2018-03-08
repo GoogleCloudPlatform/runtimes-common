@@ -19,7 +19,6 @@ package ctc_lib
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util"
@@ -32,36 +31,38 @@ type ContainerToolCommand struct {
 	RunO   func(command *cobra.Command, args []string) (interface{}, error)
 }
 
-type ContainerToolListCommand struct {
-	*ContainerToolCommandBase
-	OutputList []interface{}
-	RunO       func(command *cobra.Command, args []string) ([]interface{}, error)
+func (ctc *ContainerToolCommand) isRunODefined() bool {
+	return ctc.RunO != nil
+}
+
+func (ctc *ContainerToolCommand) ValidateCommand() error {
+	if (ctc.Run != nil || ctc.RunE != nil) && ctc.isRunODefined() {
+		return errors.New("Cannot provide both Command.Run and RunO implementation." +
+			"\nEither implement Command.Run implementation or RunO implemetation")
+	}
+	return nil
 }
 
 func (ctc *ContainerToolCommand) Execute() (err error) {
 	defer errRecover(&err)
-	isRunODefined := ctc.RunO != nil
 
-	if err := ctc.CheckValidCommand(isRunODefined); err != nil {
-		panic(err.Error())
+	if err := ctc.ValidateCommand(); err != nil {
+		CommandExit(err)
 	}
 	ctc.init()
-	if isRunODefined {
+	if ctc.isRunODefined() {
 		cobraRun := func(c *cobra.Command, args []string) {
 			obj, _ := ctc.RunO(c, args)
 			ctc.Output = obj
-			util.ExecuteTemplate(flags.TemplateString, obj, ctc.OutOrStdout())
+			err = util.ExecuteTemplate(flags.TemplateString, obj, ctc.OutOrStdout())
 		}
 		ctc.Command.Run = cobraRun
 	}
 
 	err = ctc.Command.Execute()
-	//Add empty line.
-	fmt.Println()
-
-	if err != nil {
-		panic(err)
-	}
+	//Add empty line as template.Execute does not print an empty line
+	ctc.Println()
+	CommandExit(err)
 	return err
 }
 
@@ -71,9 +72,7 @@ func errRecover(errp *error) {
 	if e := recover(); e != nil {
 		// TODO: Change this to Log.Error once Logging is introduced.
 		fmt.Println(e)
-		if !flags.NoExit {
-			os.Exit(1)
-		}
 		*errp = errors.New(fmt.Sprintf("%v", e))
+		CommandExit(*errp)
 	}
 }

@@ -14,7 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package flags
+package ctc_lib
 
-// TemplateString  Stores the template which is applied to command output
-var TemplateString string
+// This file declares all the package level globals
+
+import (
+	"fmt"
+	"os"
+)
+
+var noExitOnError bool
+var subCommands []ContainerToolCommand
+var Version string
+
+func SetNoExitOnError(value bool) {
+	noExitOnError = value
+}
+
+func GetNoExitOnError() bool {
+	return noExitOnError
+}
+
+func CommandExit(err error) {
+	if err != nil && !noExitOnError {
+		// TODO: Change this to Log.Error once Logging is introduced.
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}

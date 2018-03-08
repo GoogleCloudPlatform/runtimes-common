@@ -23,7 +23,6 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/sub_command"
 	"github.com/spf13/cobra"
 )
 
@@ -53,13 +52,13 @@ func RunCommand(command *cobra.Command, args []string) (interface{}, error) {
 }
 
 func TestContainerToolCommandTemplate(t *testing.T) {
+	Version = "1.0.1"
 	testCommand := ContainerToolCommand{
 		ContainerToolCommandBase: &ContainerToolCommandBase{
 			Command: &cobra.Command{
 				Use: "Hello Command",
 			},
-			Phase:   "test",
-			Version: "1.0.1",
+			Phase: "test",
 		},
 		Output: &TestInterface{},
 		RunO:   RunCommand,
@@ -82,8 +81,7 @@ func TestContainerToolCommandOutput(t *testing.T) {
 			Command: &cobra.Command{
 				Use: "Hello Command",
 			},
-			Phase:   "test",
-			Version: "1.0.1",
+			Phase: "test",
 		},
 		Output: &TestInterface{},
 		RunO:   RunCommand,
@@ -110,8 +108,7 @@ func TestContainerToolCommandSubCommandOutput(t *testing.T) {
 			Command: &cobra.Command{
 				Use: "Hello Command",
 			},
-			Phase:   "test",
-			Version: "1.0.1",
+			Phase: "test",
 		},
 		Output: &TestInterface{},
 		RunO:   RunCommand,
@@ -119,10 +116,12 @@ func TestContainerToolCommandSubCommandOutput(t *testing.T) {
 	testCommand.SetArgs([]string{"details", "--template", "{{.Breed}}"})
 	var OutputBuffer bytes.Buffer
 	testCommand.Command.SetOutput(&OutputBuffer)
-	testSubCommand := &sub_command.ContainerToolSubCommand{
-		Command: &cobra.Command{
-			Use:   "details",
-			Short: "More Info",
+	testSubCommand := &ContainerToolCommand{
+		ContainerToolCommandBase: &ContainerToolCommandBase{
+			Command: &cobra.Command{
+				Use:   "details",
+				Short: "More Info",
+			},
 		},
 		Output: &TestSubcommandOutput{},
 		RunO: func(command *cobra.Command, args []string) (interface{}, error) {
@@ -144,7 +143,7 @@ func TestContainerToolCommandSubCommandOutput(t *testing.T) {
 	}
 
 	// check template applies to the output
-	if OutputBuffer.String() != "Chihuhua Mix" {
+	if OutputBuffer.String() != "Chihuhua Mix\n" {
 		t.Errorf("Expected to contain: \n Chihuhua Mix \nGot:\n %v\n", OutputBuffer.String())
 	}
 
@@ -156,14 +155,13 @@ func TestContainerToolCommandPanic(t *testing.T) {
 			Command: &cobra.Command{
 				Use: "Hello Command",
 			},
-			Phase:   "test",
-			Version: "1.0.1",
+			Phase: "test",
 		},
 		Output: &TestInterface{},
 		RunO:   RunCommand,
 	}
 	testCommand.Flags().String("foo", "", "")
-	//testCommand.MarkFlagRequired("foo")
+	testCommand.MarkFlagRequired("foo")
 	if os.Getenv("TEST_EXIT_CODE") == "1" {
 		testCommand.Execute()
 		return
@@ -179,20 +177,21 @@ func TestContainerToolCommandPanic(t *testing.T) {
 }
 
 func TestContainerToolCommandPanicWithNoExit(t *testing.T) {
+	defer SetNoExitOnError(false)
 	testCommand := ContainerToolCommand{
 		ContainerToolCommandBase: &ContainerToolCommandBase{
 			Command: &cobra.Command{
 				Use: "Hello Command",
 			},
-			Phase:   "test",
-			Version: "1.0.1",
+			Phase: "test",
 		},
 		Output: &TestInterface{},
 		RunO:   RunCommand,
 	}
+	SetNoExitOnError(true)
+
 	testCommand.Flags().String("foo", "", "")
 	testCommand.MarkFlagRequired("foo")
-	testCommand.SetArgs([]string{"--noexit=true"})
 	err := testCommand.Execute()
 
 	expected := fmt.Sprintf("Required flag(s) %q have/has not been set", "foo")
@@ -202,6 +201,7 @@ func TestContainerToolCommandPanicWithNoExit(t *testing.T) {
 }
 
 func TestContainerToolCommandRunDefined(t *testing.T) {
+	defer SetNoExitOnError(false)
 	runDefined := ContainerToolCommand{
 		ContainerToolCommandBase: &ContainerToolCommandBase{
 			Command: &cobra.Command{
@@ -217,7 +217,8 @@ func TestContainerToolCommandRunDefined(t *testing.T) {
 			return nil, nil
 		},
 	}
-	err := runDefined.CheckValidCommand(runDefined.RunO != nil)
+	SetNoExitOnError(true)
+	err := runDefined.ValidateCommand()
 	expectedError := ("Cannot provide both Command.Run and RunO implementation." +
 		"\nEither implement Command.Run implementation or RunO implemetation")
 	if err.Error() != expectedError {

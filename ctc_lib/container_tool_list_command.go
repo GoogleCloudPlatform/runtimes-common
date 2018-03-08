@@ -14,14 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package sub_command
+package ctc_lib
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
 )
 
-type ContainerToolSubCommand struct {
-	*cobra.Command
-	Output interface{}
-	RunO   func(command *cobra.Command, args []string) (interface{}, error)
+type ContainerToolListCommand struct {
+	*ContainerToolCommandBase
+	OutputList []interface{}
+	RunO       func(command *cobra.Command, args []string) ([]interface{}, error)
+}
+
+func (commandList ContainerToolListCommand) isRunODefined() bool {
+	return commandList.RunO != nil
+}
+
+func (ctc *ContainerToolListCommand) ValidateCommand() error {
+	if (ctc.Run != nil || ctc.RunE != nil) && ctc.isRunODefined() {
+		return errors.New("Cannot provide both Command.Run and RunO implementation." +
+			"\nEither implement Command.Run implementation or RunO implemetation")
+	}
+	return nil
 }
