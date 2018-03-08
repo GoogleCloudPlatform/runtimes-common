@@ -214,6 +214,93 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
                 key=self.GetCacheKey()))
 
 
+class PipfileLayerBuilder(RequirementsLayerBuilder):
+    def __init__(self,
+                 ctx=None,
+                 descriptor_files=None,
+                 pkg_descriptor=None,
+                 pkg_dir=None,
+                 dep_img_lyr=None,
+                 wheel_dir=None,
+                 venv_dir=None,
+                 pip_cmd=None,
+                 venv_cmd=None,
+                 cache=None):
+        super(RequirementsLayerBuilder, self).__init__()
+        self._ctx = ctx
+        self._pkg_dir = pkg_dir
+        self._wheel_dir = wheel_dir
+        self._venv_dir = venv_dir
+        self._pip_cmd = pip_cmd
+        self._venv_cmd = venv_cmd
+        self._descriptor_files = descriptor_files
+        self._dep_img_lyr = dep_img_lyr
+        self._cache = cache
+        self._pkg_descriptor = pkg_descriptor
+
+    def GetCacheKeyRaw(self):
+        return "%s %s %s" % (self._pkg_descriptor[0], self._pkg_descriptor[1],
+                             self._dep_img_lyr.GetCacheKeyRaw())
+
+    def _log_cache_result(self, hit):
+        if hit:
+            cache_str = constants.PHASE_2_CACHE_HIT
+        else:
+            cache_str = constants.PHASE_2_CACHE_MISS
+        logging.info(
+            cache_str.format(
+                key_version=constants.CACHE_KEY_VERSION,
+                language='PYTHON',
+                package_name=self._pkg_descriptor[0],
+                package_version=self._pkg_descriptor[1],
+                key=self.GetCacheKey()))
+
+    def BuildLayer(self):
+        cached_img = None
+        if self._cache:
+            with ftl_util.Timing('Checking cached pkg layer'):
+                key = self.GetCacheKey()
+                cached_img = self._cache.Get(key)
+                self._log_cache_result(False if cached_img is None else True)
+        if cached_img:
+            self.SetImage(cached_img)
+        else:
+            with ftl_util.Timing('Installing pip packages'):
+                self._pip_install(' '.join(self._pkg_descriptor))
+
+            with ftl_util.Timing('Resolving whl paths'):
+                whls = self._resolve_whls()
+                if len(whls) != 1:
+                    raise Exception("expected one whl for one installed pkg")
+                pkg_dir = self._whl_to_fslayer(whls[0])
+                blob, u_blob = ftl_util.zip_dir_to_layer_sha(pkg_dir)
+                overrides = ftl_util.generate_overrides(False)
+                self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
+                                                           overrides)
+
+    def _pip_install(self, pkg_txt):
+        with ftl_util.Timing('pip_download_wheel'):
+            pip_cmd_args = list(self._pip_cmd)
+            pip_cmd_args.extend(
+                ['wheel', '-w', self._wheel_dir, '-r', '/dev/stdin'])
+            pip_cmd_args.extend(['--no-deps'])
+
+            proc_pipe = subprocess.Popen(
+                pip_cmd_args,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=self._gen_pip_env(),
+            )
+            stdout, stderr = proc_pipe.communicate(input=pkg_txt)
+            logging.info("`pip wheel` stdout:\n%s" % stdout)
+            if stderr:
+                logging.error("`pip wheel` had error output:\n%s" % stderr)
+            if proc_pipe.returncode:
+                raise Exception("error: `pip wheel` returned code: %d" %
+                                proc_pipe.returncode)
+
+
 class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def __init__(self,
                  venv_dir=None,

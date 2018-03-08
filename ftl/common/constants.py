@@ -32,6 +32,8 @@ NODE_DEFAULT_ENTRYPOINT = 'node server.js'
 NPMRC = '.npmrc'
 
 # python constants
+PIPFILE_LOCK = 'Pipfile.lock'
+PIPFILE = 'Pipfile'
 REQUIREMENTS_TXT = 'requirements.txt'
 PYTHON_NAMESPACE = 'python-requirements-cache'
 VENV_DIR = 'env'
