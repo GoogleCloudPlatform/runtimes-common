@@ -116,15 +116,22 @@ func verifyDockerfiles(spec versions.Spec, tmpl template.Template) (failureCount
 
 func verifyCopiedFiles(spec versions.Spec, templateDir string) (failureCount int) {
 	failureCount = 0
+	var tmplDirPath string
 	for _, version := range spec.Versions {
-		findFilesToCopy(templateDir, func(path string, sourceFileInfo os.FileInfo) {
+		if version.TemplateDir != "" {
+			tmplDirPath = filepath.Join(templateDir, version.TemplateDir)
+		} else {
+			tmplDirPath = templateDir
+		}
+		findFilesToCopy(tmplDirPath, func(path string, sourceFileInfo os.FileInfo) {
 			failureCount++
 
-			source := filepath.Join(templateDir, path)
+			source := filepath.Join(tmplDirPath, path)
 			target := filepath.Join(version.Dir, path)
 			targetFileInfo, err := os.Stat(target)
 			if err != nil {
 				log.Printf("%s is expected but cannot be stat'ed", target)
+				log.Printf("Please, check accessability of %s", source)
 				return
 			}
 
@@ -173,30 +180,39 @@ func check(e error) {
 func main() {
 	templateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template and any other files to copy over")
 	verifyPtr := flag.Bool("verify_only", false, "Verify dockerfiles")
+	var templatePath string
+	var version = "0.01"
+
+	log.Printf("dockerfiles verson: %s", version)
+
 	flag.Parse()
 
 	var spec versions.Spec
 	spec = versions.LoadVersions("versions.yaml")
 
-	templatePath := filepath.Join(*templateDirPtr, "Dockerfile.template")
-	templateData, err := ioutil.ReadFile(templatePath)
-	templateString := string(templateData)
-	check(err)
+	for _, version := range spec.Versions {
+		if version.TemplateDir != "" {
+			templatePath = filepath.Join(*templateDirPtr, version.TemplateDir, "Dockerfile.template")
+		} else {
+			templatePath = filepath.Join(*templateDirPtr, "Dockerfile.template")
+		}
+		templateData, err := ioutil.ReadFile(templatePath)
+		templateString := string(templateData)
+		check(err)
 
-	tmpl, err := template.
-		New("dockerfileTemplate").
-		Parse(templateString)
-	check(err)
+		tmpl, err := template.
+			New("dockerfileTemplate").
+			Parse(templateString)
+		check(err)
 
-	if *verifyPtr {
-		failureCount := verifyDockerfiles(spec, *tmpl)
-		failureCount += verifyCopiedFiles(spec, *templateDirPtr)
-		os.Exit(failureCount)
-	} else {
-		for _, version := range spec.Versions {
+		if *verifyPtr {
+			failureCount := verifyDockerfiles(spec, *tmpl)
+			failureCount += verifyCopiedFiles(spec, *templateDirPtr)
+			os.Exit(failureCount)
+		} else {
 			data := renderDockerfile(version, *tmpl)
 			writeDockerfile(version, data)
-			copyFiles(version, *templateDirPtr)
+			copyFiles(version, templatePath)
 		}
 	}
 }

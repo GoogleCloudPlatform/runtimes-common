@@ -22,6 +22,7 @@ type Package struct {
 
 type Version struct {
 	Dir          string
+	TemplateDir  string
 	Repo         string
 	Tags         []string
 	From         string
