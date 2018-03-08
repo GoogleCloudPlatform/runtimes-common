@@ -3,7 +3,13 @@ http_archive(
     url = "https://github.com/bazelbuild/rules_go/releases/download/0.9.0/rules_go-0.9.0.tar.gz",
     sha256 = "4d8d6244320dd751590f9100cf39fd7a4b75cd901e1f3ffdfd6f048328883695",
 )
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+load(
+    "@io_bazel_rules_go//go:def.bzl",
+    "go_rules_dependencies",
+    "go_register_toolchains",
+    "go_repository"
+)
+
 go_rules_dependencies()
 go_register_toolchains()
 
@@ -112,3 +118,18 @@ docker_pull(
     registry = "gcr.io",
     repository = "gae-runtimes/php72_app_builder"
 )
+
+# Go Dependencies for Container Tool Command Library.
+# Import Go dependencies.
+go_repository(
+    name = "com_github_spf13_cobra",
+    importpath = "github.com/spf13/cobra",
+    commit = "c6c44e6fdcc30161c7f4480754da7230d01c06e3",
+)
+
+go_repository(
+    name = "com_github_spf13_pflag",
+    importpath = "github.com/spf13/pflag",
+    commit = "ee5fd03fd6acfd43e44aea0b4135958546ed8e73",
+)
+

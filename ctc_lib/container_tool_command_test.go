@@ -70,7 +70,7 @@ func TestContainerToolCommandTemplate(t *testing.T) {
 	testCommand.SetArgs([]string{"version", "--template", "{{.Version}}"})
 	testCommand.Execute()
 	// check template applies to the output
-	if OutputBuffer.String() != "1.0.1" {
+	if OutputBuffer.String() != "1.0.1\n" {
 		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", "1.0.1", OutputBuffer.String())
 	}
 }
@@ -194,7 +194,7 @@ func TestContainerToolCommandPanicWithNoExit(t *testing.T) {
 	testCommand.MarkFlagRequired("foo")
 	err := testCommand.Execute()
 
-	expected := fmt.Sprintf("Required flag(s) %q have/has not been set", "foo")
+	expected := fmt.Sprintf("required flag(s) %q not set", "foo")
 	if err.Error() != expected {
 		t.Errorf("Expected Error: \n %q \nGot:\n %q\n", expected, err.Error())
 	}
