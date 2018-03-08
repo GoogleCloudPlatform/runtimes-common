@@ -24,27 +24,6 @@
   version = "v1.0"
 
 [[projects]]
-  name = "github.com/pkg/errors"
-  packages = ["."]
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
-
-[[projects]]
-  name = "github.com/spf13/cobra"
-  packages = ["."]
-  name = "github.com/magiconair/properties"
-  packages = ["."]
-  revision = "a8e9fa9ffe534206df1daaa7e9d5e82ca23db7e0"
-  version = "v1.7.5"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/mitchellh/go-homedir"
-  packages = ["."]
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
-
-[[projects]]
   name = "github.com/spf13/cobra"
   packages = ["."]
   revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
@@ -64,6 +43,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cd2eadf70aba4ce7bbe6ec1857f561f213a9b8b04dccd1de62a54f278c50df0e"
+  inputs-digest = "904de324003a630dc25702d9147ae2e159cf5a8622602e2f7adb62512fa4ddd8"
   solver-name = "gps-cdcl"
   solver-version = 1
