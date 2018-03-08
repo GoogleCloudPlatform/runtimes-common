@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-DEFAULT_LOG_LEVEL = "NOTSET"
+DEFAULT_LOG_LEVEL = 'NOTSET'
 
 DEFAULT_DESTINATION_PATH = 'srv'
 DEFAULT_ENTRYPOINT = None
@@ -27,3 +27,16 @@ PACKAGE_LOCK = 'package-lock.json'
 PACKAGE_JSON = 'package.json'
 NODE_DEFAULT_ENTRYPOINT = 'node server.js'
 NPMRC = '.npmrc'
+
+PHASE_1_CACHE_STR = '{key_version}:{language}->{key}'
+PHASE_2_CACHE_STR = '{key_version}:{language}:{package_name}:' \
+            '{package_version}->{key}'
+CACHE_HIT = '[CACHE][HIT] '
+CACHE_MISS = '[CACHE][MISS] '
+
+PHASE_1_CACHE_HIT = CACHE_HIT + PHASE_1_CACHE_STR
+PHASE_2_CACHE_HIT = CACHE_HIT + PHASE_2_CACHE_STR
+PHASE_1_CACHE_MISS = CACHE_MISS + PHASE_1_CACHE_STR
+PHASE_2_CACHE_MISS = CACHE_MISS + PHASE_2_CACHE_STR
+
+CACHE_KEY_VERSION = 'v1'

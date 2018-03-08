@@ -62,7 +62,7 @@ class NodeTest(unittest.TestCase):
         args.name = 'gcr.io/test/test:latest'
         args.base = 'gcr.io/google-appengine/python:latest'
         args.tar_base_image_path = None
-        self.builder = builder.Node(self.ctx, args, "")
+        self.builder = builder.Node(self.ctx, args)
         self.layer_builder = layer_builder.LayerBuilder(
             ctx=self.builder._ctx,
             descriptor_files=self.builder._descriptor_files,

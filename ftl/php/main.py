@@ -32,9 +32,6 @@ php_parser = argparse.ArgumentParser(
     description='Construct php images from source.')
 args.extra_args(php_parser, args.php_flgs)
 
-# Version string used to bust caches.
-_PHP_CACHE_VERSION = 'v1'
-
 
 def main(cli_args):
     builder_args = php_parser.parse_args(cli_args)
@@ -43,8 +40,7 @@ def main(cli_args):
     with ftl_util.Timing("full build"):
         with ftl_util.Timing("builder initialization"):
             php_ftl = php_builder.PHP(
-                context.Workspace(builder_args.directory), builder_args,
-                _PHP_CACHE_VERSION)
+                context.Workspace(builder_args.directory), builder_args)
         with ftl_util.Timing("build process for FTL image"):
             php_ftl.Build()
 

@@ -76,7 +76,6 @@ class Registry(Base):
             namespace,
             creds,
             transport,
-            cache_version=None,
             threads=1,
             should_cache=True,
             should_upload=True,
@@ -96,16 +95,15 @@ class Registry(Base):
             _reg = docker_name.Registry(_reg_name)
             self._global_creds = docker_creds.DefaultKeychain.Resolve(_reg)
         self._transport = transport
-        self._cache_version = cache_version
         self._threads = threads
         self._mount = mount or []
         self._should_cache = should_cache
         self._should_upload = should_upload
 
     def _tag(self, cache_key, repo=None):
-        fingerprint = '%s %s' % (self._base_image.digest(), cache_key)
-        if self._cache_version:
-            fingerprint += ' ' + self._cache_version
+        fingerprint = '%s %s %s' % (self._base_image.digest(),
+                                    cache_key,
+                                    constants.CACHE_KEY_VERSION)
         return docker_name.Tag('{repo}/{namespace}:{tag}'.format(
             repo=repo or str(self._repo),
             namespace=self._namespace,

@@ -32,9 +32,6 @@ python_parser = argparse.ArgumentParser(
     description='Construct python images from source.')
 args.extra_args(python_parser, args.python_flgs)
 
-# Version string used to bust caches.
-_PYTHON_CACHE_VERSION = 'v1'
-
 
 def main(cli_args):
     builder_args = python_parser.parse_args(cli_args)
@@ -44,9 +41,7 @@ def main(cli_args):
         with ftl_util.Timing("builder initialization"):
             python_ftl = python_builder.Python(
                 context.Workspace(builder_args.directory),
-                builder_args,
-                _PYTHON_CACHE_VERSION,
-            )
+                builder_args)
         with ftl_util.Timing("build process for FTL image"):
             python_ftl.Build()
 

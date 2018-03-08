@@ -16,6 +16,6 @@ pushd appengine/runtime_builders && py.test test_manifest.py && popd
 
 # Check building of container related tools
 bazel run //:gazelle
-bazel build docgen/scripts/docgen:docgen
-bazel build versioning/scripts/dockerfiles:dockerfiles
-bazel build versioning/scripts/cloudbuild:cloudbuild
+bazel build //docgen/scripts/docgen:docgen
+bazel build //versioning/scripts/dockerfiles:dockerfiles
+bazel build //versioning/scripts/cloudbuild:cloudbuild
