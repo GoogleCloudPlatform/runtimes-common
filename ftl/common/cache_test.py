@@ -37,7 +37,6 @@ class RegistryTest(unittest.TestCase):
         mock_img.exists.return_value = True
         c = cache.Registry(
             repo='fake.gcr.io/google-appengine',
-            base_image=fake_base,
             namespace='namespace',
             creds=None,
             transport=None)
@@ -47,7 +46,6 @@ class RegistryTest(unittest.TestCase):
         mock_img.exists.return_value = False
         c = cache.Registry(
             repo='fake.gcr.io/google-appengine',
-            base_image=fake_base,
             namespace='namespace',
             creds=None,
             transport=None)
