@@ -30,7 +30,3 @@ func ExecuteTemplate(templateStr string, obj interface{}, out io.Writer) error {
 	}
 	return tmpl.Execute(out, obj)
 }
-
-func InitializeSubCommands() {
-
-}
