@@ -25,8 +25,12 @@ from ftl.common import tar_to_dockerimage
 
 
 class PackageLayerBuilder(single_layer_image.CacheableLayerBuilder):
-    def __init__(self, ctx=None, descriptor_files=None,
-                 pkg_dir=None, dep_img_lyr=None, cache=None):
+    def __init__(self,
+                 ctx=None,
+                 descriptor_files=None,
+                 pkg_dir=None,
+                 dep_img_lyr=None,
+                 cache=None):
         super(PackageLayerBuilder, self).__init__()
         self._ctx = ctx
         self._pkg_dir = pkg_dir
@@ -54,31 +58,36 @@ class PackageLayerBuilder(single_layer_image.CacheableLayerBuilder):
                 self._build_layer()
             if self._cache:
                 with ftl_util.Timing('Uploading pkg layer'):
-                    self._cache.Set(self.GetCacheKey(),
-                                    self.GetImage())
+                    self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
         blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
         overrides = ftl_util.generate_overrides(False)
-        self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
-                                                   overrides)
+        self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
 
     def _log_cache_result(self, hit):
         if hit:
             cache_str = constants.PHASE_1_CACHE_HIT
         else:
             cache_str = constants.PHASE_1_CACHE_MISS
-        logging.info(cache_str.format(
-            key_version=constants.CACHE_KEY_VERSION,
-            language='PYTHON (package)',
-            key=self.GetCacheKey()
-        ))
+        logging.info(
+            cache_str.format(
+                key_version=constants.CACHE_KEY_VERSION,
+                language='PYTHON (package)',
+                key=self.GetCacheKey()))
 
 
 class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
-    def __init__(self, ctx=None, descriptor_files=None, pkg_dir=None,
-                 dep_img_lyr=None, wheel_dir=None, venv_dir=None,
-                 pip_cmd=None, venv_cmd=None, cache=None):
+    def __init__(self,
+                 ctx=None,
+                 descriptor_files=None,
+                 pkg_dir=None,
+                 dep_img_lyr=None,
+                 wheel_dir=None,
+                 venv_dir=None,
+                 pip_cmd=None,
+                 venv_cmd=None,
+                 cache=None):
         super(RequirementsLayerBuilder, self).__init__()
         self._ctx = ctx
         self._pkg_dir = pkg_dir
@@ -124,7 +133,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
                     dep_img_lyr=self,
                     cache=self._cache)
                 layer_builder.BuildLayer()
-                req_txt_imgs.append(layer_builder)
+                req_txt_imgs.append(layer_builder.GetImage())
 
             req_txt_image = ftl_util.AppendLayersIntoImage(req_txt_imgs)
 
@@ -132,8 +141,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
             if self._cache:
                 with ftl_util.Timing('Uploading req.txt image'):
-                    self._cache.Set(self.GetCacheKey(),
-                                    self.GetImage())
+                    self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _resolve_whls(self):
         return [
@@ -199,16 +207,19 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             cache_str = constants.PHASE_1_CACHE_HIT
         else:
             cache_str = constants.PHASE_1_CACHE_MISS
-        logging.info(cache_str.format(
-            key_version=constants.CACHE_KEY_VERSION,
-            language='PYTHON (requirements)',
-            key=self.GetCacheKey()
-        ))
+        logging.info(
+            cache_str.format(
+                key_version=constants.CACHE_KEY_VERSION,
+                language='PYTHON (requirements)',
+                key=self.GetCacheKey()))
 
 
 class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
-    def __init__(self, venv_dir=None, python_cmd=None,
-                 venv_cmd=None, cache=None):
+    def __init__(self,
+                 venv_dir=None,
+                 python_cmd=None,
+                 venv_cmd=None,
+                 cache=None):
         super(InterpreterLayerBuilder, self).__init__()
         self._venv_dir = venv_dir
         self._python_cmd = python_cmd
@@ -232,16 +243,14 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
                 self._build_layer()
             if self._cache:
                 with ftl_util.Timing('Uploading pkg layer'):
-                    self._cache.Set(self.GetCacheKey(),
-                                    self.GetImage())
+                    self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
         self._setup_venv()
         blob, u_blob = ftl_util.zip_dir_to_layer_sha(
             os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
         overrides = ftl_util.generate_overrides(True)
-        self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
-                                                   overrides)
+        self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
 
     def _setup_venv(self):
         with ftl_util.Timing('create_virtualenv'):
@@ -261,8 +270,7 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
             stdout, stderr = proc_pipe.communicate()
             logging.info("`virtualenv` stdout:\n%s" % stdout)
             if stderr:
-                logging.error(
-                    "`virtualenv` had error output:\n%s" % stderr)
+                logging.error("`virtualenv` had error output:\n%s" % stderr)
             if proc_pipe.returncode:
                 raise Exception("error: `virtualenv` returned code: %d" %
                                 proc_pipe.returncode)
@@ -274,8 +282,8 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
             cache_str = constants.PHASE_1_CACHE_HIT
         else:
             cache_str = constants.PHASE_1_CACHE_MISS
-        logging.info(cache_str.format(
-            key_version=constants.CACHE_KEY_VERSION,
-            language='PYTHON (interpreter)',
-            key=self.GetCacheKey()
-        ))
+        logging.info(
+            cache_str.format(
+                key_version=constants.CACHE_KEY_VERSION,
+                language='PYTHON (interpreter)',
+                key=self.GetCacheKey()))

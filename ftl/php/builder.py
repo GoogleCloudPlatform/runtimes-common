@@ -59,7 +59,7 @@ class PHP(builder.RuntimeBase):
                     destination_path=self._args.destination_path,
                     cache=cache)
                 layer_builder.BuildLayer()
-                lyr_imgs.append(layer_builder)
+                lyr_imgs.append(layer_builder.GetImage())
 
         app = base_builder.AppLayerBuilder(
             ctx=self._ctx,
@@ -67,6 +67,6 @@ class PHP(builder.RuntimeBase):
             entrypoint=self._args.entrypoint,
             exposed_ports=self._args.exposed_ports)
         app.BuildLayer()
-        lyr_imgs.append(app)
+        lyr_imgs.append(app.GetImage())
         ftl_image = ftl_util.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)

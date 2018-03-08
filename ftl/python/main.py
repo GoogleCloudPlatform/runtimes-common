@@ -40,8 +40,7 @@ def main(cli_args):
     with ftl_util.Timing("full build"):
         with ftl_util.Timing("builder initialization"):
             python_ftl = python_builder.Python(
-                context.Workspace(builder_args.directory),
-                builder_args)
+                context.Workspace(builder_args.directory), builder_args)
         with ftl_util.Timing("build process for FTL image"):
             python_ftl.Build()
 

@@ -150,7 +150,6 @@ def extra_args(parser, opt_list):
                 "help": 'The virtualenv command to be run (ex: virtualenv)'
             }
         ],
-
     }
     for opt in opt_list:
         arg_vars = opt_dict[opt]

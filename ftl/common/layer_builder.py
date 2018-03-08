@@ -26,9 +26,11 @@ from ftl.common import tar_to_dockerimage
 
 
 class AppLayerBuilder(single_layer_image.BaseLayerBuilder):
-    def __init__(self, ctx,
+    def __init__(self,
+                 ctx,
                  destination_path=constants.DEFAULT_DESTINATION_PATH,
-                 entrypoint=constants.DEFAULT_ENTRYPOINT, exposed_ports=None):
+                 entrypoint=constants.DEFAULT_ENTRYPOINT,
+                 exposed_ports=None):
         self._ctx = ctx
         self._destination_path = destination_path
         self._entrypoint = entrypoint

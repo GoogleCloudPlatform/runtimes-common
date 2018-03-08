@@ -25,9 +25,8 @@ from containerregistry.client.v2_2 import save
 from containerregistry.transport import transport_pool
 
 from ftl.common import cache
+from ftl.common import constants
 from ftl.common import ftl_util
-
-_THREADS = 32
 
 
 class Base(object):
@@ -68,8 +67,7 @@ class RuntimeBase(JustApp):
     It provides methods for generating appending layers and caching images
     """
 
-    def __init__(self, ctx, namespace, args,
-                 descriptor_files):
+    def __init__(self, ctx, namespace, args, descriptor_files):
         super(RuntimeBase, self).__init__(ctx)
         self._namespace = namespace
         if args.entrypoint:
@@ -83,7 +81,8 @@ class RuntimeBase(JustApp):
         self._target_image = docker_name.Tag(self._args.name, strict=False)
         self._target_creds = docker_creds.DefaultKeychain.Resolve(
             self._target_image)
-        self._transport = transport_pool.Http(httplib2.Http, size=_THREADS)
+        self._transport = transport_pool.Http(
+            httplib2.Http, size=constants.THREADS)
         if args.tar_base_image_path:
             self._base_image = docker_image.FromTarball(
                 args.tar_base_image_path)
@@ -100,7 +99,7 @@ class RuntimeBase(JustApp):
             base_image=self._base_image,
             creds=self._target_creds,
             transport=self._transport,
-            threads=_THREADS,
+            threads=constants.THREADS,
             mount=[self._base_name],
             use_global=args.global_cache,
             should_cache=args.cache,
@@ -126,7 +125,7 @@ class RuntimeBase(JustApp):
                             self._target_image,
                             self._target_creds,
                             self._transport,
-                            threads=_THREADS,
+                            threads=constants.THREADS,
                             mount=[self._base_name]) as session:
                         logging.info('Pushing final image...')
                         session.upload(result_image)

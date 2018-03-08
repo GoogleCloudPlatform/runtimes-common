@@ -101,8 +101,7 @@ class Registry(Base):
         self._should_upload = should_upload
 
     def _tag(self, cache_key, repo=None):
-        fingerprint = '%s %s %s' % (self._base_image.digest(),
-                                    cache_key,
+        fingerprint = '%s %s %s' % (self._base_image.digest(), cache_key,
                                     constants.CACHE_KEY_VERSION)
         return docker_name.Tag('{repo}/{namespace}:{tag}'.format(
             repo=repo or str(self._repo),

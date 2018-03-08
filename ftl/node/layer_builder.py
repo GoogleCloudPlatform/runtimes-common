@@ -42,10 +42,8 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
 
     def GetCacheKeyRaw(self):
         descriptor_contents = ftl_util.descriptor_parser(
-            self._descriptor_files,
-            self._ctx)
-        return '%s %s' % (descriptor_contents,
-                          self._destination_path)
+            self._descriptor_files, self._ctx)
+        return '%s %s' % (descriptor_contents, self._destination_path)
 
     def BuildLayer(self):
         """Override."""
@@ -62,14 +60,13 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 self._build_layer()
             if self._cache:
                 with ftl_util.Timing('Uploading pkg layer'):
-                    self._cache.Set(self.GetCacheKey(),
-                                    self.GetImage())
+                    self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
         blob, u_blob = self._gen_npm_install_tar(self._pkg_descriptor,
                                                  self._destination_path)
-        self._img = tar_to_dockerimage.FromFSImage(
-            [blob], [u_blob], self._generate_overrides())
+        self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
+                                                   self._generate_overrides())
 
     def _gen_npm_install_tar(self, pkg_descriptor, destination_path):
         # Create temp directory to write package descriptor to
@@ -78,14 +75,12 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         os.makedirs(app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
-        ftl_util.descriptor_copy(self._ctx, self._descriptor_files,
-                                 app_dir)
+        ftl_util.descriptor_copy(self._ctx, self._descriptor_files, app_dir)
 
         self._check_gcp_build(
             json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)), app_dir)
         subprocess.check_call(
-            ['rm', '-rf',
-                os.path.join(app_dir, 'node_modules')])
+            ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
         with ftl_util.Timing("npm_install"):
             if not pkg_descriptor:
                 subprocess.check_call(
@@ -122,20 +117,20 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 cache_str = constants.PHASE_2_CACHE_HIT
             else:
                 cache_str = constants.PHASE_2_CACHE_MISS
-            logging.info(cache_str.format(
-                key_version=constants.CACHE_KEY_VERSION,
-                language='NODE',
-                package_name=self._pkg_descriptor[0],
-                package_version=self._pkg_descriptor[1],
-                key=self.GetCacheKey()
-            ))
+            logging.info(
+                cache_str.format(
+                    key_version=constants.CACHE_KEY_VERSION,
+                    language='NODE',
+                    package_name=self._pkg_descriptor[0],
+                    package_version=self._pkg_descriptor[1],
+                    key=self.GetCacheKey()))
         else:
             if hit:
                 cache_str = constants.PHASE_1_CACHE_HIT
             else:
                 cache_str = constants.PHASE_1_CACHE_MISS
-            logging.info(cache_str.format(
-                key_version=constants.CACHE_KEY_VERSION,
-                language='NODE',
-                key=self.GetCacheKey()
-            ))
+            logging.info(
+                cache_str.format(
+                    key_version=constants.CACHE_KEY_VERSION,
+                    language='NODE',
+                    key=self.GetCacheKey()))
