@@ -24,7 +24,6 @@ import (
 )
 
 var noExitOnError bool
-var subCommands []ContainerToolCommand
 var Version string
 
 func SetNoExitOnError(value bool) {
