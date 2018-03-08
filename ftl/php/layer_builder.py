@@ -65,8 +65,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 self._build_layer()
             if self._cache:
                 with ftl_util.Timing('Uploading pkg layer'):
-                    self._cache.Set(self.GetCacheKey(),
-                                    self.GetImage())
+                    self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
         blob, u_blob = self._gen_composer_install_tar(self._pkg_descriptor,
@@ -109,20 +108,20 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 cache_str = constants.PHASE_2_CACHE_HIT
             else:
                 cache_str = constants.PHASE_2_CACHE_MISS
-            logging.info(cache_str.format(
-                key_version=constants.CACHE_KEY_VERSION,
-                language='PHP',
-                package_name=self._pkg_descriptor[0],
-                package_version=self._pkg_descriptor[1],
-                key=self.GetCacheKey()
-            ))
+            logging.info(
+                cache_str.format(
+                    key_version=constants.CACHE_KEY_VERSION,
+                    language='PHP',
+                    package_name=self._pkg_descriptor[0],
+                    package_version=self._pkg_descriptor[1],
+                    key=self.GetCacheKey()))
         else:
             if hit:
                 cache_str = constants.PHASE_1_CACHE_HIT
             else:
                 cache_str = constants.PHASE_1_CACHE_MISS
-            logging.info(cache_str.format(
-                key_version=constants.CACHE_KEY_VERSION,
-                language='PHP',
-                key=self.GetCacheKey()
-            ))
+            logging.info(
+                cache_str.format(
+                    key_version=constants.CACHE_KEY_VERSION,
+                    language='PHP',
+                    key=self.GetCacheKey()))

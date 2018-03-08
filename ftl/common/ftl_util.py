@@ -24,16 +24,12 @@ from containerregistry.client.v2_2 import append
 from containerregistry.transform.v2_2 import metadata
 
 
-def AppendLayersIntoImage(lyr_imgs):
+def AppendLayersIntoImage(imgs):
     with Timing('Stitching layers into final image'):
-        for i, lyr_img in enumerate(lyr_imgs):
+        for i, img in enumerate(imgs):
             if i == 0:
-                try:
-                    result_image = lyr_img.GetImage()
-                except AttributeError:
-                    result_image = lyr_img
+                result_image = img
                 continue
-            img = lyr_img.GetImage()
             diff_ids = img.diff_ids()
             for diff_id in diff_ids:
                 lyr = img.blob(img._diff_id_to_digest(diff_id))

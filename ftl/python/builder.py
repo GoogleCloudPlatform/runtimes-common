@@ -14,23 +14,18 @@
 """This package defines the interface for orchestrating image builds."""
 
 from ftl.common import builder
+from ftl.common import constants
 from ftl.common import ftl_util
 from ftl.common import layer_builder as base_builder
 from ftl.python import layer_builder as package_builder
 
-_VENV_DIR = 'env'
-_WHEEL_DIR = 'wheel'
-_THREADS = 32
-_REQUIREMENTS_TXT = 'requirements.txt'
-_PYTHON_NAMESPACE = 'python-requirements-cache'
-
 
 class Python(builder.RuntimeBase):
     def __init__(self, ctx, args):
-        super(Python, self).__init__(ctx, _PYTHON_NAMESPACE,
-                                     args, [_REQUIREMENTS_TXT])
-        self._venv_dir = ftl_util.gen_tmp_dir(_VENV_DIR)
-        self._wheel_dir = ftl_util.gen_tmp_dir(_WHEEL_DIR)
+        super(Python, self).__init__(ctx, constants.PYTHON_NAMESPACE, args,
+                                     [constants.REQUIREMENTS_TXT])
+        self._venv_dir = ftl_util.gen_tmp_dir(constants.VENV_DIR)
+        self._wheel_dir = ftl_util.gen_tmp_dir(constants.WHEEL_DIR)
         self._python_cmd = args.python_cmd.split(" ")
         self._pip_cmd = args.pip_cmd.split(" ")
         self._venv_cmd = args.venv_cmd.split(" ")
@@ -49,7 +44,7 @@ class Python(builder.RuntimeBase):
                 venv_cmd=self._venv_cmd,
                 cache=cache)
             interpreter_builder.BuildLayer()
-            lyr_imgs.append(interpreter_builder)
+            lyr_imgs.append(interpreter_builder.GetImage())
 
             # build package layers
             req_txt_builder = package_builder.RequirementsLayerBuilder(
@@ -63,7 +58,7 @@ class Python(builder.RuntimeBase):
                 dep_img_lyr=interpreter_builder,
                 cache=cache)
             req_txt_builder.BuildLayer()
-            lyr_imgs.append(req_txt_builder)
+            lyr_imgs.append(req_txt_builder.GetImage())
 
         app = base_builder.AppLayerBuilder(
             ctx=self._ctx,
@@ -71,6 +66,6 @@ class Python(builder.RuntimeBase):
             entrypoint=self._args.entrypoint,
             exposed_ports=self._args.exposed_ports)
         app.BuildLayer()
-        lyr_imgs.append(app)
+        lyr_imgs.append(app.GetImage())
         ftl_image = ftl_util.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)

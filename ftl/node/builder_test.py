@@ -70,8 +70,7 @@ class NodeTest(unittest.TestCase):
 
         # Mock out the calls to package managers for speed.
         self.layer_builder._gen_npm_install_tar = mock.Mock()
-        self.layer_builder._gen_npm_install_tar.return_value = ('layer',
-                                                                'sha')
+        self.layer_builder._gen_npm_install_tar.return_value = ('layer', 'sha')
 
     @mock.patch('ftl.common.tar_to_dockerimage.FromFSImage.uncompressed_blob')
     def test_create_package_base_no_descriptor(self, mock_from):

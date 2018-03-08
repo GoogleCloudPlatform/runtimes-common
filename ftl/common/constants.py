@@ -17,6 +17,9 @@ DEFAULT_LOG_LEVEL = 'NOTSET'
 DEFAULT_DESTINATION_PATH = 'srv'
 DEFAULT_ENTRYPOINT = None
 
+# docker transport thread config
+THREADS = 32
+
 # cache constants
 DEFAULT_TTL_WEEKS = 1
 GLOBAL_CACHE_REGISTRY = 'gcr.io/ftl-global-cache'
@@ -28,6 +31,13 @@ PACKAGE_JSON = 'package.json'
 NODE_DEFAULT_ENTRYPOINT = 'node server.js'
 NPMRC = '.npmrc'
 
+# python constants
+REQUIREMENTS_TXT = 'requirements.txt'
+PYTHON_NAMESPACE = 'python-requirements-cache'
+VENV_DIR = 'env'
+WHEEL_DIR = 'wheel'
+
+# logging constants
 PHASE_1_CACHE_STR = '{key_version}:{language}->{key}'
 PHASE_2_CACHE_STR = '{key_version}:{language}:{package_name}:' \
             '{package_version}->{key}'

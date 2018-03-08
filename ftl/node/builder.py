@@ -22,11 +22,9 @@ from ftl.node import layer_builder as node_builder
 
 class Node(builder.RuntimeBase):
     def __init__(self, ctx, args):
-        super(
-            Node, self).__init__(
-            ctx, constants.NODE_NAMESPACE, args, [
-                constants.PACKAGE_LOCK, constants.PACKAGE_JSON,
-                constants.NPMRC])
+        super(Node, self).__init__(
+            ctx, constants.NODE_NAMESPACE, args,
+            [constants.PACKAGE_LOCK, constants.PACKAGE_JSON, constants.NPMRC])
 
     def Build(self):
         lyr_imgs = []
@@ -39,13 +37,12 @@ class Node(builder.RuntimeBase):
                 destination_path=self._args.destination_path,
                 cache=cache)
             layer_builder.BuildLayer()
-            lyr_imgs.append(layer_builder)
+            lyr_imgs.append(layer_builder.GetImage())
 
-        app = base_builder.AppLayerBuilder(self._ctx,
-                                           self._args.destination_path,
-                                           self._args.entrypoint,
-                                           self._args.exposed_ports)
+        app = base_builder.AppLayerBuilder(
+            self._ctx, self._args.destination_path, self._args.entrypoint,
+            self._args.exposed_ports)
         app.BuildLayer()
-        lyr_imgs.append(app)
+        lyr_imgs.append(app.GetImage())
         ftl_image = ftl_util.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)
