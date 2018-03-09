@@ -37,8 +37,8 @@ func (ctc *ContainerToolCommand) isRunODefined() bool {
 
 func (ctc *ContainerToolCommand) ValidateCommand() error {
 	if (ctc.Run != nil || ctc.RunE != nil) && ctc.isRunODefined() {
-		return errors.New("Cannot provide both Command.Run and RunO implementation." +
-			"\nEither implement Command.Run implementation or RunO implemetation")
+		return errors.New(`Cannot provide both Command.Run and RunO implementation.
+Either implement Command.Run implementation or RunO implemetation`)
 	}
 	return nil
 }
@@ -55,6 +55,9 @@ func (ctc *ContainerToolCommand) Execute() (err error) {
 			obj, _ := ctc.RunO(c, args)
 			ctc.Output = obj
 			err = util.ExecuteTemplate(flags.TemplateString, obj, ctc.OutOrStdout())
+			if err != nil {
+				panic(err)
+			}
 		}
 		ctc.Command.Run = cobraRun
 	}

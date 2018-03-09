@@ -50,7 +50,7 @@ func (ctb *ContainerToolCommandBase) AddCommand(command *ContainerToolCommand) {
 	ctb.Command.AddCommand(command.Command)
 }
 
-func (ctb *ContainerToolCommandBase) AddCommandList(command *ContainerToolListCommand) {
+func (ctb *ContainerToolCommandBase) AddListCommand(command *ContainerToolListCommand) {
 	cobraRun := func(c *cobra.Command, args []string) {
 		obj, _ := command.RunO(c, args)
 		command.OutputList = obj
@@ -63,9 +63,4 @@ func (ctb *ContainerToolCommandBase) AddCommandList(command *ContainerToolListCo
 func (ctb *ContainerToolCommandBase) AddFlags() {
 	// Add template Flag
 	ctb.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", "{{.}}", "Output format")
-}
-
-// These functions are used for Testing.
-func (ctb *ContainerToolCommandBase) SetArgs(args []string) {
-	ctb.Command.SetArgs(args)
 }

@@ -23,19 +23,19 @@ import (
 	"os"
 )
 
-var noExitOnError bool
+var exitOnError = true
 var Version string
 
 func SetNoExitOnError(value bool) {
-	noExitOnError = value
+	exitOnError = value
 }
 
 func GetNoExitOnError() bool {
-	return noExitOnError
+	return exitOnError
 }
 
 func CommandExit(err error) {
-	if err != nil && !noExitOnError {
+	if err != nil && exitOnError {
 		// TODO: Change this to Log.Error once Logging is introduced.
 		fmt.Println(err)
 		os.Exit(1)
