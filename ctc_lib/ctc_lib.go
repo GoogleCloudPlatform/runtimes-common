@@ -26,11 +26,11 @@ import (
 var exitOnError = true
 var Version string
 
-func SetNoExitOnError(value bool) {
+func SetExitOnError(value bool) {
 	exitOnError = value
 }
 
-func GetNoExitOnError() bool {
+func GetExitOnError() bool {
 	return exitOnError
 }
 
