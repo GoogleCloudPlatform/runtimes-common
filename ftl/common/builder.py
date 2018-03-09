@@ -96,7 +96,6 @@ class RuntimeBase(JustApp):
         self._cache = cache.Registry(
             repo=cache_repo,
             namespace=self._namespace,
-            base_image=self._base_image,
             creds=self._target_creds,
             transport=self._transport,
             threads=constants.THREADS,

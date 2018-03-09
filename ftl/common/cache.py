@@ -14,7 +14,6 @@
 """This package defines the interface for caching objects."""
 
 import abc
-import hashlib
 import logging
 import datetime
 
@@ -46,7 +45,6 @@ class Base(object):
     def Get(self, cache_key):
         """Lookup a cached image.
         Args:
-          base_image: the docker_image.Image on which things are based.
           cache_key: the cache_key of the package descriptor atop our base.
         Returns:
           the docker_image.Image of the cache hit, or None.
@@ -56,7 +54,6 @@ class Base(object):
     def Set(self, cache_key, value):
         """Set an entry in the cache.
         Args:
-          base_image: the docker_image.Image on which things are based.
           cache_key: the cache_key of the package descriptor atop our base.
           value: the docker_image.Image to store into the cache.
         """
@@ -72,7 +69,6 @@ class Registry(Base):
     def __init__(
             self,
             repo,
-            base_image,
             namespace,
             creds,
             transport,
@@ -84,7 +80,6 @@ class Registry(Base):
     ):
         super(Registry, self).__init__()
         self._repo = repo
-        self._base_image = base_image
         self._namespace = namespace
         self._creds = creds
         _reg_name = '{base}/{namespace}'.format(
@@ -101,12 +96,10 @@ class Registry(Base):
         self._should_upload = should_upload
 
     def _tag(self, cache_key, repo=None):
-        fingerprint = '%s %s %s' % (self._base_image.digest(), cache_key,
-                                    constants.CACHE_KEY_VERSION)
         return docker_name.Tag('{repo}/{namespace}:{tag}'.format(
             repo=repo or str(self._repo),
             namespace=self._namespace,
-            tag=hashlib.sha256(fingerprint).hexdigest()))
+            tag=cache_key))
 
     def Get(self, cache_key):
         if not self._should_cache:
