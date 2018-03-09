@@ -44,7 +44,7 @@ Either implement Command.Run implementation or RunO implemetation`)
 }
 
 func (ctc *ContainerToolCommand) Execute() (err error) {
-	defer errRecover(&err)
+	defer errRecover()
 
 	if err := ctc.ValidateCommand(); err != nil {
 		CommandExit(err)
@@ -71,11 +71,11 @@ func (ctc *ContainerToolCommand) Execute() (err error) {
 
 // errRecover is the handler that turns panics into returns from the top
 // level of Parse.
-func errRecover(errp *error) {
+func errRecover() {
 	if e := recover(); e != nil {
 		// TODO: Change this to Log.Error once Logging is introduced.
 		fmt.Println(e)
-		*errp = errors.New(fmt.Sprintf("%v", e))
-		CommandExit(*errp)
+		errp := errors.New(fmt.Sprintf("%v", e))
+		CommandExit(errp)
 	}
 }
