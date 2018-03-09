@@ -8,10 +8,6 @@ load(
 py_library(
     name = "cached_lib",
     srcs = glob(["*.py"]),
-    deps = [
-        "@containerregistry",
-        "@mock",
-    ],
 )
 
 py_test(

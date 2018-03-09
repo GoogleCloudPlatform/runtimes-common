@@ -18,6 +18,8 @@ import logging
 import httplib2
 import json
 
+from ftl.common import ftl_util
+
 from containerregistry.client import docker_creds
 from containerregistry.client import docker_name
 from containerregistry.client.v2_2 import docker_image
@@ -33,6 +35,8 @@ class Cached():
         self._name = args.name
         self._directory = args.directory
         self._labels = [args.label_1, args.label_2]
+        self._dirs = [args.dir_1, args.dir_2]
+        self._offset = args.layer_offset
         self._runtime = runtime
         logging.getLogger().setLevel("NOTSET")
         logging.basicConfig(
@@ -49,12 +53,20 @@ class Cached():
             builder_path = 'bazel-bin/ftl/{0}_builder.par'.format(
                 self._runtime)
         lyr_shas = []
-        for label in self._labels:
+        for label, dir in zip(self._labels, self._dirs):
+            logging.info("label: %s" % label)
+            logging.info("dir: %s" % dir)
             img_name = ''.join([self._name.split(":")[0], ":", label])
+            ftl_args = [
+                builder_path, '--base', self._base, '--name', img_name,
+                '--directory', dir
+            ]
+            if label == "original":
+                ftl_args.extend(['--no-cache'])
             cmd = subprocess.Popen(
                 [
                     builder_path, '--base', self._base, '--name', img_name,
-                    '--directory', self._directory
+                    '--directory', dir
                 ],
                 stderr=subprocess.PIPE)
             _, output = cmd.communicate()
@@ -62,8 +74,8 @@ class Cached():
             lyr_shas.append(self._fetch_lyr_shas(img_name))
             self._del_img_from_gcr(img_name)
         try:
-            self._compare_layers(lyr_shas[0], lyr_shas[1])
-        except RuntimeError as e:
+            self._compare_layers(lyr_shas[0], lyr_shas[1], self._offset)
+        except ftl_util.FTLException as e:
             logging.error(e)
             exit(1)
 
@@ -78,17 +90,19 @@ class Cached():
                 lyr_shas.append(lyr['digest'])
             return set(lyr_shas)
 
-    def _compare_layers(self, lyr_shas_1, lyr_shas_2):
-        if len(lyr_shas_1) != len(lyr_shas_2):
-            raise RuntimeError("different amount of layers found when \
-                               reuploading same image")
-        lyr_diff_cnt = 0
-        for lyr_sha in lyr_shas_1:
-            if lyr_sha not in lyr_shas_2:
-                lyr_diff_cnt += 1
-            if lyr_diff_cnt > 1:
-                raise RuntimeError("more layers differed then app layer when \
-                    reuploading image")
+    def _compare_layers(self, lyr_shas_1, lyr_shas_2, offset):
+        lyr_diff = 0
+        if len(lyr_shas_1) <= len(lyr_shas_2):
+            lyr_diff = lyr_shas_1 - lyr_shas_2
+        else:
+            lyr_diff = lyr_shas_2 - lyr_shas_1
+        logging.info(
+            "Encountered %s differences between layers" % len(lyr_diff))
+        logging.info("Different layer shas: %s" % lyr_diff)
+        if len(lyr_diff) != offset:
+            raise ftl_util.FTLException(
+                "expected {0} different layers, got {1}".format(
+                    self._offset, len(lyr_diff)))
 
     def _del_img_from_gcr(self, img_name):
         img_tag = docker_name.Tag(img_name)

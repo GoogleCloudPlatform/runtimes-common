@@ -24,6 +24,10 @@ from containerregistry.client.v2_2 import append
 from containerregistry.transform.v2_2 import metadata
 
 
+class FTLException(Exception):
+    pass
+
+
 def AppendLayersIntoImage(imgs):
     with Timing('Stitching layers into final image'):
         for i, img in enumerate(imgs):
