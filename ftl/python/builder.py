@@ -13,6 +13,8 @@
 # limitations under the License.
 """This package defines the interface for orchestrating image builds."""
 
+import json
+
 from ftl.common import builder
 from ftl.common import constants
 from ftl.common import ftl_util
@@ -22,13 +24,31 @@ from ftl.python import layer_builder as package_builder
 
 class Python(builder.RuntimeBase):
     def __init__(self, ctx, args):
-        super(Python, self).__init__(ctx, constants.PYTHON_NAMESPACE, args,
-                                     [constants.REQUIREMENTS_TXT])
+        super(Python, self).__init__(
+            ctx,
+            constants.PYTHON_NAMESPACE,
+            args,
+            [
+                constants.PIPFILE_LOCK,
+                constants.PIPFILE,  # not supported rn
+                constants.REQUIREMENTS_TXT
+            ])
         self._venv_dir = ftl_util.gen_tmp_dir(constants.VENV_DIR)
         self._wheel_dir = ftl_util.gen_tmp_dir(constants.WHEEL_DIR)
         self._python_cmd = args.python_cmd.split(" ")
         self._pip_cmd = args.pip_cmd.split(" ")
         self._venv_cmd = args.venv_cmd.split(" ")
+        self._is_phase2 = ctx.Contains(constants.PIPFILE_LOCK)
+
+    def _parse_pipfile_pkgs(self):
+        pkg_descriptor = ftl_util.descriptor_parser(self._descriptor_files,
+                                                    self._ctx)
+        pipfile_json = json.loads(pkg_descriptor)
+        pkgs = []
+        for pkg, info in pipfile_json['default'].iteritems():
+            version = info['version']
+            pkgs.append((pkg, version))
+        return pkgs
 
     def Build(self):
         lyr_imgs = []
@@ -46,19 +66,39 @@ class Python(builder.RuntimeBase):
             interpreter_builder.BuildLayer()
             lyr_imgs.append(interpreter_builder.GetImage())
 
-            # build package layers
-            req_txt_builder = package_builder.RequirementsLayerBuilder(
-                ctx=self._ctx,
-                descriptor_files=self._descriptor_files,
-                pkg_dir=None,
-                wheel_dir=self._wheel_dir,
-                venv_dir=self._venv_dir,
-                pip_cmd=self._pip_cmd,
-                venv_cmd=self._venv_cmd,
-                dep_img_lyr=interpreter_builder,
-                cache=cache)
-            req_txt_builder.BuildLayer()
-            lyr_imgs.append(req_txt_builder.GetImage())
+            if self._is_phase2:
+                # do a phase 2 build of the package layers w/ Pipfile.lock
+                # iterate over package/version Pipfile.lock
+                pkgs = self._parse_pipfile_pkgs()
+                for pkg in pkgs:
+                    pipfile_builder = package_builder.PipfileLayerBuilder(
+                        ctx=self._ctx,
+                        descriptor_files=self._descriptor_files,
+                        pkg_descriptor=pkg,
+                        pkg_dir=None,
+                        wheel_dir=ftl_util.gen_tmp_dir(constants.WHEEL_DIR),
+                        venv_dir=self._venv_dir,
+                        pip_cmd=self._pip_cmd,
+                        venv_cmd=self._venv_cmd,
+                        dep_img_lyr=interpreter_builder,
+                        cache=cache)
+                    pipfile_builder.BuildLayer()
+                    lyr_imgs.append(pipfile_builder.GetImage())
+
+            else:
+                # do a phase 1 build of the package layers w/ requirements.txt
+                req_txt_builder = package_builder.RequirementsLayerBuilder(
+                    ctx=self._ctx,
+                    descriptor_files=self._descriptor_files,
+                    pkg_dir=None,
+                    wheel_dir=self._wheel_dir,
+                    venv_dir=self._venv_dir,
+                    pip_cmd=self._pip_cmd,
+                    venv_cmd=self._venv_cmd,
+                    dep_img_lyr=interpreter_builder,
+                    cache=cache)
+                req_txt_builder.BuildLayer()
+                lyr_imgs.append(req_txt_builder.GetImage())
 
         app = base_builder.AppLayerBuilder(
             ctx=self._ctx,
