@@ -1,3 +1,6 @@
+# Exclude rewriting docgen/scripts path
+# gazelle:exclude docgen/scripts
+
 # Runtimes Common: A collections of scripts for cloud languages runtimes team
 # to manage continuous integration for silver languages.
 
