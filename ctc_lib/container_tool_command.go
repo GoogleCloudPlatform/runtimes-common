@@ -56,7 +56,7 @@ func (ctc *ContainerToolCommand) Execute() (err error) {
 			ctc.Output = obj
 			err = util.ExecuteTemplate(flags.TemplateString, obj, ctc.OutOrStdout())
 			if err != nil {
-				panic(err)
+				CommandExit(err)
 			}
 		}
 		ctc.Command.Run = cobraRun
@@ -75,7 +75,7 @@ func errRecover() {
 	if e := recover(); e != nil {
 		// TODO: Change this to Log.Error once Logging is introduced.
 		fmt.Println(e)
-		errp := errors.New(fmt.Sprintf("%v", e))
+		errp := fmt.Errorf("%v", e)
 		CommandExit(errp)
 	}
 }
