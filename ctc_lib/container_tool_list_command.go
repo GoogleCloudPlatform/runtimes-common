@@ -19,6 +19,7 @@ package ctc_lib
 import (
 	"errors"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util"
 	"github.com/spf13/cobra"
 )
 
@@ -28,14 +29,21 @@ type ContainerToolListCommand struct {
 	RunO       func(command *cobra.Command, args []string) ([]interface{}, error)
 }
 
-func (commandList ContainerToolListCommand) isRunODefined() bool {
+func (commandList ContainerToolListCommand) IsRunODefined() bool {
 	return commandList.RunO != nil
 }
 
 func (ctc *ContainerToolListCommand) ValidateCommand() error {
-	if (ctc.Run != nil || ctc.RunE != nil) && ctc.isRunODefined() {
+	if (ctc.Run != nil || ctc.RunE != nil) && ctc.IsRunODefined() {
 		return errors.New("Cannot provide both Command.Run and RunO implementation." +
 			"\nEither implement Command.Run implementation or RunO implemetation")
 	}
 	return nil
+}
+
+func (ctc *ContainerToolListCommand) PrintO(c *cobra.Command, args []string) {
+	obj, _ := ctc.RunO(c, args)
+	ctc.OutputList = obj
+	util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
+		ctc.OutputList, ctc.OutOrStdout())
 }
