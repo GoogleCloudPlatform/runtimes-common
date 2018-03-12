@@ -14,5 +14,6 @@ go_library(
 go_binary(
     name = "docgen",
     embed = [":go_default_library"],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/docgen/scripts/docgen",
     visibility = ["//visibility:public"],
 )
