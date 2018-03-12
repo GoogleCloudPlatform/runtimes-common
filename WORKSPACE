@@ -1,8 +1,15 @@
 http_archive(
     name = "io_bazel_rules_go",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.9.0/rules_go-0.9.0.tar.gz",
-    sha256 = "4d8d6244320dd751590f9100cf39fd7a4b75cd901e1f3ffdfd6f048328883695",
+    url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.1/rules_go-0.10.1.tar.gz",
+    sha256 = "4b14d8dd31c6dbaf3ff871adcd03f28c3274e42abc855cb8fb4d01233c0154dc",
 )
+# To use Gazelle in a new project, we need to add the bazel_gazelle repository and its dependencies before go_rules_dependencies is called
+http_archive(
+    name = "bazel_gazelle",
+    url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.10.0/bazel-gazelle-0.10.0.tar.gz",
+    sha256 = "6228d9618ab9536892aa69082c063207c91e777e51bd3c5544c9c060cafe1bd8",
+)
+
 load(
     "@io_bazel_rules_go//go:def.bzl",
     "go_rules_dependencies",
@@ -12,6 +19,10 @@ load(
 
 go_rules_dependencies()
 go_register_toolchains()
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+gazelle_dependencies()
+
 
 git_repository(
     name = "io_bazel_rules_docker",
@@ -117,19 +128,5 @@ docker_pull(
     digest = "sha256:b4a1f5de8156f30ea1a6e6f84afb7ea79013a57d0cae4a530d4806df4a04a1e3",
     registry = "gcr.io",
     repository = "gae-runtimes/php72_app_builder"
-)
-
-# Go Dependencies for Container Tool Command Library.
-# Import Go dependencies.
-go_repository(
-    name = "com_github_spf13_cobra",
-    importpath = "github.com/spf13/cobra",
-    commit = "c6c44e6fdcc30161c7f4480754da7230d01c06e3",
-)
-
-go_repository(
-    name = "com_github_spf13_pflag",
-    importpath = "github.com/spf13/pflag",
-    commit = "ee5fd03fd6acfd43e44aea0b4135958546ed8e73",
 )
 

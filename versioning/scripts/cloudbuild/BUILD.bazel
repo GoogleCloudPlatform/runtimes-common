@@ -11,6 +11,5 @@ go_library(
 go_binary(
     name = "cloudbuild",
     embed = [":go_default_library"],
-    importpath = "github.com/GoogleCloudPlatform/runtimes-common/versioning/scripts/cloudbuild",
     visibility = ["//visibility:public"],
 )
