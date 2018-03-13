@@ -192,7 +192,7 @@ func TestContainerToolCommandPanicWithNoExit(t *testing.T) {
 
 	testCommand.Flags().String("foo", "", "")
 	testCommand.MarkFlagRequired("foo")
-	err := Execute(&testCommand)
+	err := ExecuteE(&testCommand)
 
 	expected := fmt.Sprintf("Required flag(s) %q have/has not been set", "foo")
 	if err.Error() != expected {

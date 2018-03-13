@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 go_library(
     name = "go_default_library",
     srcs = [
-        "CLI_interface.go",
+        "cli_interface.go",
         "container_tool_command.go",
         "container_tool_command_base.go",
         "container_tool_list_command.go",

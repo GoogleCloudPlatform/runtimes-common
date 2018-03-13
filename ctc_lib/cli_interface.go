@@ -17,7 +17,6 @@ limitations under the License.
 package ctc_lib
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -32,11 +31,15 @@ type CLIInterface interface {
 	Init()
 }
 
-func Execute(ctb CLIInterface) (err error) {
-	defer errRecover(&err)
+func Execute(ctb CLIInterface) {
+	defer errRecover()
+	err := ExecuteE(ctb)
+	CommandExit(err)
+}
 
+func ExecuteE(ctb CLIInterface) (err error) {
 	if err := ctb.ValidateCommand(); err != nil {
-		CommandExit(err)
+		return err
 	}
 	ctb.Init()
 	if ctb.IsRunODefined() {
@@ -50,17 +53,16 @@ func Execute(ctb CLIInterface) (err error) {
 
 	//Add empty line as template.Execute does not print an empty line
 	ctb.GetCommand().Println()
-	CommandExit(err)
 	return err
 }
 
 // errRecover is the handler that turns panics into returns from the top
 // level of Parse.
-func errRecover(errp *error) {
+func errRecover() {
 	if e := recover(); e != nil {
 		// TODO: Change this to Log.Error once Logging is introduced.
 		fmt.Println(e)
-		*errp = errors.New(fmt.Sprintf("%v", e))
-		CommandExit(*errp)
+		err := fmt.Errorf("%v", e)
+		CommandExit(err)
 	}
 }
