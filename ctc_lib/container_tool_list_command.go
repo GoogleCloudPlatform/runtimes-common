@@ -35,8 +35,8 @@ func (commandList ContainerToolListCommand) IsRunODefined() bool {
 
 func (ctc *ContainerToolListCommand) ValidateCommand() error {
 	if (ctc.Run != nil || ctc.RunE != nil) && ctc.IsRunODefined() {
-		return errors.New("Cannot provide both Command.Run and RunO implementation." +
-			"\nEither implement Command.Run implementation or RunO implemetation")
+		return errors.New(`Cannot provide both Command.Run and RunO implementation.
+Either implement Command.Run implementation or RunO implemetation`)
 	}
 	return nil
 }
