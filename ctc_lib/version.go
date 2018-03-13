@@ -29,6 +29,7 @@ var VersionCommand = &ContainerToolCommand{
 			Long:  `Print the version`,
 			Args:  cobra.ExactArgs(0),
 		},
+		DefaultTemplate: "{{.Version}}",
 	},
 	Output: &VersionOutput{},
 	RunO: func(command *cobra.Command, args []string) (interface{}, error) {

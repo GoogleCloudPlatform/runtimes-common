@@ -45,7 +45,7 @@ var RootCommand = &ctc_lib.ContainerToolCommand{
 
 func Execute() {
 	ctc_lib.Version = "1.0.1"
-	RootCommand.Execute()
+	ctc_lib.Execute(RootCommand)
 }
 
 func init() {

@@ -67,8 +67,8 @@ func TestContainerToolCommandTemplate(t *testing.T) {
 	testCommand.Flags().StringVarP(&Greeting, "greeting", "g", "Hello", "Greeting")
 	testCommand.Flags().StringVarP(&Name, "name", "n", "", "Name")
 	testCommand.Command.SetOutput(&OutputBuffer)
-	testCommand.SetArgs([]string{"version", "--template", "{{.Version}}"})
-	testCommand.Execute()
+	testCommand.SetArgs([]string{"version"})
+	Execute(&testCommand)
 	// check template applies to the output
 	if OutputBuffer.String() != "1.0.1\n" {
 		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", "1.0.1", OutputBuffer.String())
@@ -91,7 +91,7 @@ func TestContainerToolCommandOutput(t *testing.T) {
 	var OutputBuffer bytes.Buffer
 	testCommand.Command.SetOutput(&OutputBuffer)
 	testCommand.SetArgs([]string{"--name=Sparks"})
-	testCommand.Execute()
+	Execute(&testCommand)
 	var expectedOutput = TestInterface{
 		Greeting: "Hello",
 		Name:     "Sparks",
@@ -132,7 +132,7 @@ func TestContainerToolCommandSubCommandOutput(t *testing.T) {
 		},
 	}
 	testCommand.AddCommand(testSubCommand)
-	testCommand.Execute()
+	Execute(testCommand)
 	var expectedOutput = TestSubcommandOutput{
 		Breed: "Chihuhua Mix",
 		Size:  "Small",
@@ -163,7 +163,7 @@ func TestContainerToolCommandPanic(t *testing.T) {
 	testCommand.Flags().String("foo", "", "")
 	testCommand.MarkFlagRequired("foo")
 	if os.Getenv("TEST_EXIT_CODE") == "1" {
-		testCommand.Execute()
+		Execute(&testCommand)
 		return
 	}
 	// Run the go test again with environment variable set to run the command.
@@ -192,7 +192,7 @@ func TestContainerToolCommandPanicWithNoExit(t *testing.T) {
 
 	testCommand.Flags().String("foo", "", "")
 	testCommand.MarkFlagRequired("foo")
-	err := testCommand.Execute()
+	err := ExecuteE(&testCommand)
 
 	expected := fmt.Sprintf("Required flag(s) %q have/has not been set", "foo")
 	if err.Error() != expected {

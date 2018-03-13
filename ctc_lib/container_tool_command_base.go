@@ -18,16 +18,24 @@ package ctc_lib
 
 import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
-	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util"
 	"github.com/spf13/cobra"
 )
 
 type ContainerToolCommandBase struct {
 	*cobra.Command
-	Phase string
+	Phase           string
+	DefaultTemplate string
 }
 
-func (ctb *ContainerToolCommandBase) init() {
+func (ctb *ContainerToolCommandBase) GetCommand() *cobra.Command {
+	return ctb.Command
+}
+
+func (ctb *ContainerToolCommandBase) SetRun(cobraRun func(c *cobra.Command, args []string)) {
+	ctb.Run = cobraRun
+}
+
+func (ctb *ContainerToolCommandBase) Init() {
 	ctb.AddSubCommands()
 	ctb.AddFlags()
 }
@@ -40,27 +48,22 @@ func (ctb *ContainerToolCommandBase) AddSubCommands() {
 	ctb.Command.SetHelpTemplate(HelpTemplate)
 }
 
-func (ctb *ContainerToolCommandBase) AddCommand(command *ContainerToolCommand) {
+func (ctb *ContainerToolCommandBase) AddCommand(command CLIInterface) {
 	cobraRun := func(c *cobra.Command, args []string) {
-		obj, _ := command.RunO(c, args)
-		command.Output = obj
-		util.ExecuteTemplate(flags.TemplateString, command.Output, ctb.OutOrStdout())
+		command.PrintO(c, args)
 	}
-	command.Run = cobraRun
-	ctb.Command.AddCommand(command.Command)
-}
-
-func (ctb *ContainerToolCommandBase) AddListCommand(command *ContainerToolListCommand) {
-	cobraRun := func(c *cobra.Command, args []string) {
-		obj, _ := command.RunO(c, args)
-		command.OutputList = obj
-		util.ExecuteTemplate(flags.TemplateString, command.OutputList, ctb.OutOrStdout())
-	}
-	command.Run = cobraRun
-	ctb.Command.AddCommand(command.Command)
+	command.SetRun(cobraRun)
+	ctb.Command.AddCommand(command.GetCommand())
 }
 
 func (ctb *ContainerToolCommandBase) AddFlags() {
 	// Add template Flag
-	ctb.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", "{{.}}", "Output format")
+	ctb.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", emptyTemplate, "Output format")
+}
+
+func (ctb *ContainerToolCommandBase) ReadTemplateFromFlagOrCmdDefault() string {
+	if flags.TemplateString == emptyTemplate && ctb.DefaultTemplate != "" {
+		return ctb.DefaultTemplate
+	}
+	return flags.TemplateString
 }

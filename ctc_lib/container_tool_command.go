@@ -18,9 +18,7 @@ package ctc_lib
 
 import (
 	"errors"
-	"fmt"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util"
 	"github.com/spf13/cobra"
 )
@@ -31,51 +29,21 @@ type ContainerToolCommand struct {
 	RunO   func(command *cobra.Command, args []string) (interface{}, error)
 }
 
-func (ctc *ContainerToolCommand) isRunODefined() bool {
+func (ctc *ContainerToolCommand) IsRunODefined() bool {
 	return ctc.RunO != nil
 }
 
 func (ctc *ContainerToolCommand) ValidateCommand() error {
-	if (ctc.Run != nil || ctc.RunE != nil) && ctc.isRunODefined() {
+	if (ctc.Run != nil || ctc.RunE != nil) && ctc.IsRunODefined() {
 		return errors.New(`Cannot provide both Command.Run and RunO implementation.
 Either implement Command.Run implementation or RunO implemetation`)
 	}
 	return nil
 }
 
-func (ctc *ContainerToolCommand) Execute() (err error) {
-	defer errRecover()
-
-	if err := ctc.ValidateCommand(); err != nil {
-		CommandExit(err)
-	}
-	ctc.init()
-	if ctc.isRunODefined() {
-		cobraRun := func(c *cobra.Command, args []string) {
-			obj, _ := ctc.RunO(c, args)
-			ctc.Output = obj
-			err = util.ExecuteTemplate(flags.TemplateString, obj, ctc.OutOrStdout())
-			if err != nil {
-				CommandExit(err)
-			}
-		}
-		ctc.Command.Run = cobraRun
-	}
-
-	err = ctc.Command.Execute()
-	//Add empty line as template.Execute does not print an empty line
-	ctc.Println()
-	CommandExit(err)
-	return err
-}
-
-// errRecover is the handler that turns panics into returns from the top
-// level of Parse.
-func errRecover() {
-	if e := recover(); e != nil {
-		// TODO: Change this to Log.Error once Logging is introduced.
-		fmt.Println(e)
-		errp := fmt.Errorf("%v", e)
-		CommandExit(errp)
-	}
+func (ctc *ContainerToolCommand) PrintO(c *cobra.Command, args []string) {
+	obj, _ := ctc.RunO(c, args)
+	ctc.Output = obj
+	util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
+		ctc.Output, ctc.OutOrStdout())
 }

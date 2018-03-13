@@ -25,6 +25,7 @@ import (
 
 var exitOnError = true
 var Version string
+var emptyTemplate = "{{.}}"
 
 func SetExitOnError(value bool) {
 	exitOnError = value
