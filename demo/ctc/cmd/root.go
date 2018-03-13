@@ -33,8 +33,7 @@ var RootCommand = &ctc_lib.ContainerToolCommand{
 			Use:   "echo",
 			Short: "Echo's Message",
 		},
-		Version: "0.0.1",
-		Phase:   "test",
+		Phase: "test",
 	},
 	Output: &RootCommandOutput{},
 	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
@@ -45,6 +44,7 @@ var RootCommand = &ctc_lib.ContainerToolCommand{
 }
 
 func Execute() {
+	ctc_lib.Version = "1.0.1"
 	RootCommand.Execute()
 }
 

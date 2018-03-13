@@ -70,7 +70,7 @@ func TestContainerToolCommandTemplate(t *testing.T) {
 	testCommand.SetArgs([]string{"version", "--template", "{{.Version}}"})
 	testCommand.Execute()
 	// check template applies to the output
-	if OutputBuffer.String() != "1.0.1" {
+	if OutputBuffer.String() != "1.0.1\n" {
 		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", "1.0.1", OutputBuffer.String())
 	}
 }
@@ -177,7 +177,7 @@ func TestContainerToolCommandPanic(t *testing.T) {
 }
 
 func TestContainerToolCommandPanicWithNoExit(t *testing.T) {
-	defer SetNoExitOnError(false)
+	defer SetExitOnError(true)
 	testCommand := ContainerToolCommand{
 		ContainerToolCommandBase: &ContainerToolCommandBase{
 			Command: &cobra.Command{
@@ -188,7 +188,7 @@ func TestContainerToolCommandPanicWithNoExit(t *testing.T) {
 		Output: &TestInterface{},
 		RunO:   RunCommand,
 	}
-	SetNoExitOnError(true)
+	SetExitOnError(false)
 
 	testCommand.Flags().String("foo", "", "")
 	testCommand.MarkFlagRequired("foo")
@@ -201,7 +201,7 @@ func TestContainerToolCommandPanicWithNoExit(t *testing.T) {
 }
 
 func TestContainerToolCommandRunDefined(t *testing.T) {
-	defer SetNoExitOnError(false)
+	defer SetExitOnError(true)
 	runDefined := ContainerToolCommand{
 		ContainerToolCommandBase: &ContainerToolCommandBase{
 			Command: &cobra.Command{
@@ -217,7 +217,7 @@ func TestContainerToolCommandRunDefined(t *testing.T) {
 			return nil, nil
 		},
 	}
-	SetNoExitOnError(true)
+	SetExitOnError(false)
 	err := runDefined.ValidateCommand()
 	expectedError := ("Cannot provide both Command.Run and RunO implementation." +
 		"\nEither implement Command.Run implementation or RunO implemetation")

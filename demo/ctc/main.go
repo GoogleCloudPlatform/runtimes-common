@@ -16,7 +16,7 @@ limitations under the License.
 
 package main
 
-import "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/examples/cmd"
+import "github.com/GoogleCloudPlatform/runtimes-common/demo/ctc/cmd"
 
 func main() {
 	cmd.Execute()

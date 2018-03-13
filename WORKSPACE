@@ -1,11 +1,30 @@
 http_archive(
     name = "io_bazel_rules_go",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.9.0/rules_go-0.9.0.tar.gz",
-    sha256 = "4d8d6244320dd751590f9100cf39fd7a4b75cd901e1f3ffdfd6f048328883695",
+    sha256 = "4b14d8dd31c6dbaf3ff871adcd03f28c3274e42abc855cb8fb4d01233c0154dc",
+    url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.1/rules_go-0.10.1.tar.gz",
 )
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+
+# To use Gazelle in a new project, we need to add the bazel_gazelle repository and its dependencies before go_rules_dependencies is called
+http_archive(
+    name = "bazel_gazelle",
+    sha256 = "6228d9618ab9536892aa69082c063207c91e777e51bd3c5544c9c060cafe1bd8",
+    url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.10.0/bazel-gazelle-0.10.0.tar.gz",
+)
+
+load(
+    "@io_bazel_rules_go//go:def.bzl",
+    "go_rules_dependencies",
+    "go_register_toolchains",
+    "go_repository",
+)
+
 go_rules_dependencies()
+
 go_register_toolchains()
+
+load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
+
+gazelle_dependencies()
 
 git_repository(
     name = "io_bazel_rules_docker",
@@ -29,7 +48,7 @@ docker_repositories()
 
 load(
     "@io_bazel_rules_docker//container:container.bzl",
-    "repositories"
+    "repositories",
 )
 
 repositories()
@@ -64,10 +83,10 @@ docker_pull(
 
 new_http_archive(
     name = "docker_credential_gcr",
-    sha256 = "c4f51ff78c25e2bfef38af0f38c6966806e25da7c5e43092c53a4d467fea4743",
-    type = "tar.gz",
     build_file_content = """package(default_visibility = ["//visibility:public"])
 exports_files(["docker-credential-gcr"])""",
+    sha256 = "c4f51ff78c25e2bfef38af0f38c6966806e25da7c5e43092c53a4d467fea4743",
+    type = "tar.gz",
     url = "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.4.1/docker-credential-gcr_linux_amd64-1.4.1.tar.gz",
 )
 
@@ -104,11 +123,12 @@ docker_pull(
     name = "distroless_base",
     digest = "sha256:4a8979a768c3ef8d0a8ed8d0af43dc5920be45a51749a9c611d178240f136eb4",
     registry = "gcr.io",
-    repository = "distroless/base"
+    repository = "distroless/base",
 )
+
 docker_pull(
     name = "php_base",
     digest = "sha256:b4a1f5de8156f30ea1a6e6f84afb7ea79013a57d0cae4a530d4806df4a04a1e3",
     registry = "gcr.io",
-    repository = "gae-runtimes/php72_app_builder"
+    repository = "gae-runtimes/php72_app_builder",
 )

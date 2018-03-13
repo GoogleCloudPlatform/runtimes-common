@@ -2,10 +2,6 @@ package(default_visibility = ["//visibility:public"])
 
 load("@subpar//:subpar.bzl", "par_binary")
 load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_prefix",
-)
-load(
     "@io_bazel_rules_docker//docker:docker.bzl",
     "docker_push",
     "docker_build",
