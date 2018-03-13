@@ -20,25 +20,13 @@ type Package struct {
 	Md5     string
 }
 
-// this will allow for passing many custom commands to Dockerfile.template
-// usage in versions.yaml
-//    custom:
-//       your_command:
-//                  cmd: "<command to be added to Dockerfile>"
-// usage in Dockerfile.template
-// {{- $cmd1 := index .Custom "your_command" }}
-// {{ $cmd1.Cmd }} \
-type Command struct {
-	Cmd string
-}
-
 type Version struct {
 	Dir          string
 	Repo         string
 	Tags         []string
 	From         string
 	Cmd          string
-	Custom       map[string]Command
+	TemplateArgs map[string]string
 	Packages     map[string]Package
 	ExcludeTests []string `yaml:"excludeTests"`
 }
