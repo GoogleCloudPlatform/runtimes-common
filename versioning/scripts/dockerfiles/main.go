@@ -173,8 +173,8 @@ func verifyDockerfiles(spec versions.Spec, tmpl template.Template) (failureCount
 func verifyCopiedFiles(spec versions.Spec, templateDir string) (failureCount int) {
 	failureCount = 0
 	for _, version := range spec.Versions {
+		// tmpDirPath stores the subfolder where files to copy will be searched
 		tmplDirPath := filepath.Join(templateDir, version.TemplateSubDir)
-
 		findFilesToCopy(tmplDirPath, func(path string, sourceFileInfo os.FileInfo) {
 			failureCount++
 
