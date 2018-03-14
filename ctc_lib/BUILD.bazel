@@ -15,7 +15,9 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//ctc_lib/flags:go_default_library",
+        "//ctc_lib/types:go_default_library",
         "//ctc_lib/util:go_default_library",
+        "//vendor/github.com/sirupsen/logrus:go_default_library",
         "//vendor/github.com/spf13/cobra:go_default_library",
     ],
 )

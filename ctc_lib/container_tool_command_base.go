@@ -18,6 +18,8 @@ package ctc_lib
 
 import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/types"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -36,8 +38,13 @@ func (ctb *ContainerToolCommandBase) SetRun(cobraRun func(c *cobra.Command, args
 }
 
 func (ctb *ContainerToolCommandBase) Init() {
+	// Init Logger and set the Output to StdOut or Error
+	Log = log.New()
+	// Initialize Global flags in PrePersistentRun Hook.
+	ctb.initGlobalFlags()
 	ctb.AddSubCommands()
 	ctb.AddFlags()
+
 }
 
 func (ctb *ContainerToolCommandBase) AddSubCommands() {
@@ -59,6 +66,7 @@ func (ctb *ContainerToolCommandBase) AddCommand(command CLIInterface) {
 func (ctb *ContainerToolCommandBase) AddFlags() {
 	// Add template Flag
 	ctb.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", emptyTemplate, "Output format")
+	ctb.PersistentFlags().VarP(types.NewLogLevel(defaultLogLevel, &flags.LogLevel), "loglevel", "l", "LogLevel")
 }
 
 func (ctb *ContainerToolCommandBase) ReadTemplateFromFlagOrCmdDefault() string {
@@ -66,4 +74,30 @@ func (ctb *ContainerToolCommandBase) ReadTemplateFromFlagOrCmdDefault() string {
 		return ctb.DefaultTemplate
 	}
 	return flags.TemplateString
+}
+
+// The command line flags are not parsed until Execute is called.
+// Hence all logic to init global flags should go in this function.
+func (ctb *ContainerToolCommandBase) initGlobalFlags() {
+	init_persisted_flags := func(cmd *cobra.Command, args []string) {
+		Log.SetLevel(flags.LogLevel.Level)
+	}
+	if ctb.PersistentPreRun == nil && ctb.PersistentPreRunE == nil {
+		ctb.PersistentPreRun = init_persisted_flags
+		return
+	}
+	// Cobra run PersistentPreRunE first if it is set.
+	if ctb.PersistentPreRunE != nil {
+		existingPreRun := ctb.PersistentPreRunE
+		ctb.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+			init_persisted_flags(cmd, args)
+			return existingPreRun(cmd, args)
+		}
+	} else {
+		existingPreRun := ctb.PersistentPreRun
+		ctb.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+			init_persisted_flags(cmd, args)
+			existingPreRun(cmd, args)
+		}
+	}
 }

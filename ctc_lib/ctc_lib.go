@@ -19,13 +19,16 @@ package ctc_lib
 // This file declares all the package level globals
 
 import (
-	"fmt"
 	"os"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var exitOnError = true
 var Version string
 var emptyTemplate = "{{.}}"
+var defaultLogLevel = "info"
+var Log *log.Logger
 
 func SetExitOnError(value bool) {
 	exitOnError = value
@@ -37,8 +40,7 @@ func GetExitOnError() bool {
 
 func CommandExit(err error) {
 	if err != nil && exitOnError {
-		// TODO: Change this to Log.Error once Logging is introduced.
-		fmt.Println(err)
+		Log.Error(err)
 		os.Exit(1)
 	}
 }

@@ -17,7 +17,6 @@ package ctc_lib
 
 import (
 	"bytes"
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -32,7 +31,7 @@ type TestListOutput struct {
 var LName string
 
 func RunListCommand(command *cobra.Command, args []string) ([]interface{}, error) {
-	fmt.Println("Running Hello World Command")
+	Log.Info("Running Hello World Command")
 	var testOutputs []TestListOutput
 	for _, name := range strings.Split(LName, ",") {
 		testOutputs = append(testOutputs, TestListOutput{
@@ -42,6 +41,7 @@ func RunListCommand(command *cobra.Command, args []string) ([]interface{}, error
 	s := make([]interface{}, len(testOutputs))
 	for i, v := range testOutputs {
 		s[i] = v
+		Log.Debug(v.Name)
 	}
 	return s, nil
 }
@@ -72,5 +72,29 @@ func TestContainerToolCommandListOutput(t *testing.T) {
 	}
 	if !reflect.DeepEqual(s, testCommand.OutputList) {
 		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", s, testCommand.OutputList)
+	}
+}
+
+func TestContainerToolCommandLogging(t *testing.T) {
+	var buf bytes.Buffer
+
+	testCommand := ContainerToolListCommand{
+		ContainerToolCommandBase: &ContainerToolCommandBase{
+			Command: &cobra.Command{
+				Use: "Hello Command",
+				PersistentPreRun: func(c *cobra.Command, args []string) {
+					Log.Out = &buf // All logging should be directed here now
+				},
+			},
+			Phase: "test",
+		},
+		OutputList: make([]interface{}, 0),
+		RunO:       RunListCommand,
+	}
+	testCommand.Flags().StringVarP(&LName, "name", "n", "", "Comma Separated list of Name")
+	testCommand.SetArgs([]string{"--name=John,Jane", "--loglevel=debug"})
+	Execute(&testCommand)
+	if !strings.Contains(buf.String(), "John") {
+		t.Errorf("Expected Logger to contain Debug Level messages. However it is %v", buf.String())
 	}
 }
