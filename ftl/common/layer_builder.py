@@ -20,14 +20,17 @@ import logging
 import subprocess
 
 from ftl.common import constants
+from ftl.common import ftl_util
 from ftl.common import single_layer_image
 from ftl.common import tar_to_dockerimage
 
 
 class AppLayerBuilder(single_layer_image.BaseLayerBuilder):
-    def __init__(self, ctx,
+    def __init__(self,
+                 ctx,
                  destination_path=constants.DEFAULT_DESTINATION_PATH,
-                 entrypoint=constants.DEFAULT_ENTRYPOINT, exposed_ports=None):
+                 entrypoint=constants.DEFAULT_ENTRYPOINT,
+                 exposed_ports=None):
         self._ctx = ctx
         self._destination_path = destination_path
         self._entrypoint = entrypoint
@@ -38,34 +41,35 @@ class AppLayerBuilder(single_layer_image.BaseLayerBuilder):
 
     def BuildLayer(self):
         """Override."""
-        buf = cStringIO.StringIO()
-        logging.info('Starting to generate app layer \
-            tarfile from context...')
-        with tarfile.open(fileobj=buf, mode='w') as out:
-            for name in self._ctx.ListFiles():
-                content = self._ctx.GetFile(name)
-                info = tarfile.TarInfo(
-                    os.path.join(self._destination_path.strip("/"), name))
-                info.size = len(content)
-                out.addfile(info, fileobj=cStringIO.StringIO(content))
-        logging.info('Finished generating app layer tarfile from context.')
+        with ftl_util.Timing('Building app layer'):
+            buf = cStringIO.StringIO()
+            logging.info('Starting to generate app layer \
+                tarfile from context...')
+            with tarfile.open(fileobj=buf, mode='w') as out:
+                for name in self._ctx.ListFiles():
+                    content = self._ctx.GetFile(name)
+                    info = tarfile.TarInfo(
+                        os.path.join(self._destination_path.strip("/"), name))
+                    info.size = len(content)
+                    out.addfile(info, fileobj=cStringIO.StringIO(content))
+            logging.info('Finished generating app layer tarfile from context.')
 
-        tar = buf.getvalue()
+            tar = buf.getvalue()
 
-        logging.info('Starting to gzip app layer tarfile...')
-        gzip_process = subprocess.Popen(
-            ['gzip', '-f'],
-            stdout=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            stderr=subprocess.PIPE)
-        gz = gzip_process.communicate(input=tar)[0]
-        overrides_dct = {
-                'created': str(datetime.date.today()) + "T00:00:00Z"
+            logging.info('Starting to gzip app layer tarfile...')
+            gzip_process = subprocess.Popen(
+                ['gzip', '-f'],
+                stdout=subprocess.PIPE,
+                stdin=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+            gz = gzip_process.communicate(input=tar)[0]
+            overrides_dct = {
+                'created': str(datetime.date.today()) + 'T00:00:00Z'
             }
-        if self._entrypoint:
-            overrides_dct['Entrypoint'] = self._entrypoint
-        if self._exposed_ports:
-            overrides_dct['ExposedPorts'] = self._exposed_ports
-        logging.info('Finished gzipping tarfile.')
-        self._img = tar_to_dockerimage.FromFSImage([gz], [tar],
-                                                   overrides_dct)
+            if self._entrypoint:
+                overrides_dct['Entrypoint'] = self._entrypoint
+            if self._exposed_ports:
+                overrides_dct['ExposedPorts'] = self._exposed_ports
+            logging.info('Finished gzipping tarfile.')
+            self._img = tar_to_dockerimage.FromFSImage([gz], [tar],
+                                                       overrides_dct)

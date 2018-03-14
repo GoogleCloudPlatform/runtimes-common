@@ -40,8 +40,7 @@ def main():
     test_map['metadata_test'].extend(['--exposed-ports', '8090,8091'])
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(
-            'node_builder_image',
-            'gcr.io/ftl-node-test/%s-image' % test,
+            'node_builder_image', 'gcr.io/ftl-node-test/%s-image' % test,
             os.path.join(_TEST_DIR, test), args)
 
     print yaml.dump(cloudbuild_yaml)

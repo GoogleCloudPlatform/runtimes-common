@@ -73,7 +73,7 @@ class PHPTest(unittest.TestCase):
         args.name = 'gcr.io/test/test:latest'
         args.base = 'gcr.io/google-appengine/php:latest'
         args.tar_base_image_path = None
-        self.builder = builder.PHP(self.ctx, args, "")
+        self.builder = builder.PHP(self.ctx, args)
         self.layer_builder = layer_builder.LayerBuilder(
             self.builder._ctx, None, self.builder._descriptor_files, "/app")
 

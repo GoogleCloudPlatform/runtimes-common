@@ -251,12 +251,12 @@ func main() {
 		templateString := string(templateData)
 		check(err)
 
-		tmpl, err := template.
+    tmpl, err := template.
 			New("dockerfileTemplate").
 			Funcs(template.FuncMap{"KeyServersRetryLoop": funcKeyServersRetryLoop}).
 			Parse(templateString)
 		check(err)
-
+    
 		if *verifyPtr {
 			failureCount := verifyDockerfiles(spec, *tmpl)
 			failureCount += verifyCopiedFiles(spec, *defaultTemplateDirPtr)

@@ -27,8 +27,8 @@ _COMPOSER_JSON = 'composer.json'
 
 
 class PHP(builder.RuntimeBase):
-    def __init__(self, ctx, args, cache_version_str):
-        super(PHP, self).__init__(ctx, _PHP_NAMESPACE, args, cache_version_str,
+    def __init__(self, ctx, args):
+        super(PHP, self).__init__(ctx, _PHP_NAMESPACE, args,
                                   [_COMPOSER_LOCK, _COMPOSER_JSON])
 
     def _parse_composer_pkgs(self):
@@ -49,36 +49,24 @@ class PHP(builder.RuntimeBase):
             if len(pkgs) > 41:
                 pkgs = [None]
             for pkg_txt in pkgs:
-                logging.info('building package layer')
+                logging.info('Building package layer')
                 logging.info(pkg_txt)
+                cache = self._cache if self._args.cache else None
                 layer_builder = php_builder.LayerBuilder(
                     ctx=self._ctx,
                     descriptor_files=self._descriptor_files,
                     pkg_descriptor=pkg_txt,
-                    destination_path=self._args.destination_path)
-                cached_pkg_img = None
-                with ftl_util.Timing("checking cached pkg layer"):
-                    key = layer_builder.GetCacheKey()
-                    cached_pkg_img = self._cache.Get(key)
-                if cached_pkg_img is not None:
-                    layer_builder.SetImage(cached_pkg_img)
-                else:
-                    with ftl_util.Timing("building pkg layer"):
-                        layer_builder.BuildLayer()
-                        with ftl_util.Timing("uploading pkg layer"):
-                            self._cache.Set(layer_builder.GetCacheKey(),
-                                            layer_builder.GetImage())
-                lyr_imgs.append(layer_builder)
+                    destination_path=self._args.destination_path,
+                    cache=cache)
+                layer_builder.BuildLayer()
+                lyr_imgs.append(layer_builder.GetImage())
 
         app = base_builder.AppLayerBuilder(
             ctx=self._ctx,
             destination_path=self._args.destination_path,
             entrypoint=self._args.entrypoint,
             exposed_ports=self._args.exposed_ports)
-        with ftl_util.Timing("builder app layer"):
-            app.BuildLayer()
-        lyr_imgs.append(app)
-        with ftl_util.Timing("stitching lyrs into final image"):
-            ftl_image = self.AppendLayersIntoImage(lyr_imgs)
-        with ftl_util.Timing("uploading final image"):
-            self.StoreImage(ftl_image)
+        app.BuildLayer()
+        lyr_imgs.append(app.GetImage())
+        ftl_image = ftl_util.AppendLayersIntoImage(lyr_imgs)
+        self.StoreImage(ftl_image)

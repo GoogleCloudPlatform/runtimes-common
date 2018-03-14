@@ -56,7 +56,7 @@ class PythonTest(unittest.TestCase):
         args.pip_cmd = 'pip'
         args.venv_cmd = 'virtualenv'
         args.tar_base_image_path = None
-        self.builder = builder.Python(self.ctx, args, "")
+        self.builder = builder.Python(self.ctx, args)
         self.interpreter_builder = layer_builder.InterpreterLayerBuilder(
             self.builder._venv_dir, self.builder._python_cmd,
             self.builder._venv_cmd)

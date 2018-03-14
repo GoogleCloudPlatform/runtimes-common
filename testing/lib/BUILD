@@ -24,7 +24,10 @@ py_library(
     srcs = glob([
         "*.py",
     ]),
-    deps = ["@containerregistry"],
+    deps = [
+        "@containerregistry",
+        "@mock",
+    ],
 )
 
 docker_build(
@@ -36,5 +39,8 @@ py_test(
     name = "mock_registry_tests",
     srcs = ["mock_registry_tests.py"],
     data = [":test.tar"],
-    deps = ["@containerregistry"],
+    deps = [
+        "@containerregistry",
+        "@mock",
+    ],
 )

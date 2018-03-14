@@ -20,13 +20,28 @@ import tempfile
 import datetime
 import json
 
+from containerregistry.client.v2_2 import append
 from containerregistry.transform.v2_2 import metadata
+
+
+def AppendLayersIntoImage(imgs):
+    with Timing('Stitching layers into final image'):
+        for i, img in enumerate(imgs):
+            if i == 0:
+                result_image = img
+                continue
+            diff_ids = img.diff_ids()
+            for diff_id in diff_ids:
+                lyr = img.blob(img._diff_id_to_digest(diff_id))
+                overrides = CfgDctToOverrides(json.loads(img.config_file()))
+                result_image = append.Layer(
+                    result_image, lyr, diff_id=diff_id, overrides=overrides)
+        return result_image
+
 
 # This is a 'whitelist' of values to pass from the
 # config_file of a DockerImage to an Overrides object
 # _OVERRIDES_VALUES = ['created', 'Entrypoint', 'Env']
-
-
 def CfgDctToOverrides(config_dct):
     """
     Takes a dct of config values and runs them through
@@ -72,13 +87,13 @@ class Timing(object):
 
 
 def zip_dir_to_layer_sha(pkg_dir):
-    tar_path = tempfile.mktemp(suffix=".tar")
-    with Timing("tar_runtime_package"):
+    tar_path = tempfile.mktemp(suffix='.tar')
+    with Timing('tar_runtime_package'):
         subprocess.check_call(['tar', '-C', pkg_dir, '-cf', tar_path, '.'])
 
     u_blob = open(tar_path, 'r').read()
     # We use gzip for performance instead of python's zip.
-    with Timing("gzip_runtime_tar"):
+    with Timing('gzip_runtime_tar'):
         subprocess.check_call(['gzip', tar_path, '-1'])
     return open(os.path.join(pkg_dir, tar_path + '.gz'), 'rb').read(), u_blob
 
@@ -98,7 +113,7 @@ def descriptor_parser(descriptor_files, ctx):
             descriptor_contents = ctx.GetFile(descriptor)
             break
     if not descriptor:
-        logging.info('No package descriptor found. No packages installed.')
+        logging.info("No package descriptor found. No packages installed.")
         return None
     return descriptor_contents
 
@@ -124,5 +139,18 @@ def creation_time(image):
 
 
 def timestamp_to_time(dt_str):
-    dt = dt_str.rstrip("Z")
+    dt = dt_str.rstrip('Z')
     return datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
+
+
+def generate_overrides(set_path):
+    env = {
+        'VIRTUAL_ENV': '/env',
+    }
+    if set_path:
+        env['PATH'] = '/env/bin:$PATH'
+    overrides_dct = {
+        'created': str(datetime.date.today()) + 'T00:00:00Z',
+        'env': env
+    }
+    return overrides_dct

@@ -1,3 +1,6 @@
+# Exclude rewriting docgen/scripts path
+# gazelle:exclude docgen/scripts
+
 # Runtimes Common: A collections of scripts for cloud languages runtimes team
 # to manage continuous integration for silver languages.
 
@@ -9,14 +12,11 @@ licenses(["notice"])  # Apache 2.0
 
 exports_files(["LICENSE"])
 
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_prefix",
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_prefix")
 
 go_prefix("github.com/GoogleCloudPlatform/runtimes-common")
 
-load("@io_bazel_rules_go//go:def.bzl", "gazelle")
+load("@bazel_gazelle//:def.bzl", "gazelle")
 
 gazelle(
     name = "gazelle",

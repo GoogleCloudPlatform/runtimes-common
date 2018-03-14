@@ -13,7 +13,7 @@
 # limitations under the License.
 """This package implements the Node package layer builder."""
 
-
+import logging
 import os
 import subprocess
 import tempfile
@@ -27,27 +27,46 @@ from ftl.common import tar_to_dockerimage
 
 
 class LayerBuilder(single_layer_image.CacheableLayerBuilder):
-    def __init__(self, ctx=None, descriptor_files=None, pkg_descriptor=None,
-                 destination_path=constants.DEFAULT_DESTINATION_PATH):
+    def __init__(self,
+                 ctx=None,
+                 descriptor_files=None,
+                 pkg_descriptor=None,
+                 destination_path=constants.DEFAULT_DESTINATION_PATH,
+                 cache=None):
         super(LayerBuilder, self).__init__()
         self._ctx = ctx
         self._descriptor_files = descriptor_files
         self._pkg_descriptor = pkg_descriptor
         self._destination_path = destination_path
+        self._cache = cache
 
     def GetCacheKeyRaw(self):
         descriptor_contents = ftl_util.descriptor_parser(
-            self._descriptor_files,
-            self._ctx)
-        return "%s %s" % (descriptor_contents,
-                          self._destination_path)
+            self._descriptor_files, self._ctx)
+        return '%s %s' % (descriptor_contents, self._destination_path)
 
     def BuildLayer(self):
         """Override."""
+        cached_img = None
+        if self._cache:
+            with ftl_util.Timing('Checking cached pkg layer'):
+                key = self.GetCacheKey()
+                cached_img = self._cache.Get(key)
+                self._log_cache_result(False if cached_img is None else True)
+        if cached_img:
+            self.SetImage(cached_img)
+        else:
+            with ftl_util.Timing('Building pkg layer'):
+                self._build_layer()
+            if self._cache:
+                with ftl_util.Timing('Uploading pkg layer'):
+                    self._cache.Set(self.GetCacheKey(), self.GetImage())
+
+    def _build_layer(self):
         blob, u_blob = self._gen_npm_install_tar(self._pkg_descriptor,
                                                  self._destination_path)
-        self._img = tar_to_dockerimage.FromFSImage(
-            [blob], [u_blob], self._generate_overrides())
+        self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
+                                                   self._generate_overrides())
 
     def _gen_npm_install_tar(self, pkg_descriptor, destination_path):
         # Create temp directory to write package descriptor to
@@ -56,16 +75,14 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         os.makedirs(app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
-        ftl_util.descriptor_copy(self._ctx, self._descriptor_files,
-                                 app_dir)
+        ftl_util.descriptor_copy(self._ctx, self._descriptor_files, app_dir)
 
         self._check_gcp_build(
             json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)), app_dir)
         subprocess.check_call(
-            ['rm', '-rf',
-                os.path.join(app_dir, 'node_modules')])
+            ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
         with ftl_util.Timing("npm_install"):
-            if pkg_descriptor is None:
+            if not pkg_descriptor:
                 subprocess.check_call(
                     ['npm', 'install', '--production'], cwd=app_dir)
             else:
@@ -93,3 +110,27 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         subprocess.check_call(['npm', 'install'], cwd=app_dir, env=env)
         subprocess.check_call(
             ['npm', 'run-script', 'gcp-build'], cwd=app_dir, env=env)
+
+    def _log_cache_result(self, hit):
+        if self._pkg_descriptor:
+            if hit:
+                cache_str = constants.PHASE_2_CACHE_HIT
+            else:
+                cache_str = constants.PHASE_2_CACHE_MISS
+            logging.info(
+                cache_str.format(
+                    key_version=constants.CACHE_KEY_VERSION,
+                    language='NODE',
+                    package_name=self._pkg_descriptor[0],
+                    package_version=self._pkg_descriptor[1],
+                    key=self.GetCacheKey()))
+        else:
+            if hit:
+                cache_str = constants.PHASE_1_CACHE_HIT
+            else:
+                cache_str = constants.PHASE_1_CACHE_MISS
+            logging.info(
+                cache_str.format(
+                    key_version=constants.CACHE_KEY_VERSION,
+                    language='NODE',
+                    key=self.GetCacheKey()))
