@@ -230,8 +230,7 @@ func check(e error) {
 }
 
 func main() {
-	defaultTemplateDirPtr := flag.String("template_dir", "templates",
-		"Path to directory containing Dockerfile.template and any other files to copy over")
+	defaultTemplateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template and any other files to copy over")
 	verifyPtr := flag.Bool("verify_only", false, "Verify dockerfiles")
 	var version = "0.01"
 
@@ -256,7 +255,7 @@ func main() {
 			Funcs(template.FuncMap{"KeyServersRetryLoop": funcKeyServersRetryLoop}).
 			Parse(templateString)
 		check(err)
-    
+
 		if *verifyPtr {
 			failureCount := verifyDockerfiles(spec, *tmpl)
 			failureCount += verifyCopiedFiles(spec, *defaultTemplateDirPtr)
