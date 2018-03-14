@@ -41,10 +41,11 @@ func (ctb *ContainerToolCommandBase) Init() {
 	// Init Logger and set the Output to StdOut or Error
 	Log = log.New()
 	// Initialize Global flags in PrePersistentRun Hook.
+	Log.AddHook(NewFatalHook(ctb.OutOrStderr()))
+
 	ctb.initGlobalFlags()
 	ctb.AddSubCommands()
 	ctb.AddFlags()
-
 }
 
 func (ctb *ContainerToolCommandBase) AddSubCommands() {

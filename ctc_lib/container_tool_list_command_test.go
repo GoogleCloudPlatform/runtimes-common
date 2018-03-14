@@ -21,6 +21,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/magiconair/properties/assert"
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +33,7 @@ type TestListOutput struct {
 var LName string
 
 func RunListCommand(command *cobra.Command, args []string) ([]interface{}, error) {
-	Log.Info("Running Hello World Command")
+	Log.Debug("Running Hello World Command")
 	var testOutputs []TestListOutput
 	for _, name := range strings.Split(LName, ",") {
 		testOutputs = append(testOutputs, TestListOutput{
@@ -41,7 +43,6 @@ func RunListCommand(command *cobra.Command, args []string) ([]interface{}, error
 	s := make([]interface{}, len(testOutputs))
 	for i, v := range testOutputs {
 		s[i] = v
-		Log.Debug(v.Name)
 	}
 	return s, nil
 }
@@ -76,14 +77,14 @@ func TestContainerToolCommandListOutput(t *testing.T) {
 }
 
 func TestContainerToolCommandLogging(t *testing.T) {
-	var buf bytes.Buffer
-
+	var hook *test.Hook
 	testCommand := ContainerToolListCommand{
 		ContainerToolCommandBase: &ContainerToolCommandBase{
 			Command: &cobra.Command{
 				Use: "Hello Command",
 				PersistentPreRun: func(c *cobra.Command, args []string) {
-					Log.Out = &buf // All logging should be directed here now
+					_, hook = test.NewNullLogger()
+					Log.AddHook(hook)
 				},
 			},
 			Phase: "test",
@@ -94,7 +95,31 @@ func TestContainerToolCommandLogging(t *testing.T) {
 	testCommand.Flags().StringVarP(&LName, "name", "n", "", "Comma Separated list of Name")
 	testCommand.SetArgs([]string{"--name=John,Jane", "--loglevel=debug"})
 	Execute(&testCommand)
-	if !strings.Contains(buf.String(), "John") {
-		t.Errorf("Expected Logger to contain Debug Level messages. However it is %v", buf.String())
+	assert.Equal(t, len(hook.Entries), 1)
+	assert.Equal(t, hook.LastEntry().Message, "Running Hello World Command")
+}
+
+func TestContainerToolCommandHandlePanicLogging(t *testing.T) {
+	defer SetExitOnError(true)
+	var hook *test.Hook
+	testCommand := ContainerToolListCommand{
+		ContainerToolCommandBase: &ContainerToolCommandBase{
+			Command: &cobra.Command{
+				Use: "kill",
+				PersistentPreRun: func(c *cobra.Command, args []string) {
+					_, hook = test.NewNullLogger()
+					Log.AddHook(hook)
+				},
+			},
+			Phase: "test",
+		},
+		OutputList: make([]interface{}, 0),
+		RunO: func(command *cobra.Command, args []string) ([]interface{}, error) {
+			Log.Panic("Please dont kill me")
+			return nil, nil
+		},
 	}
+	SetExitOnError(false)
+	Execute(&testCommand)
+	assert.Equal(t, hook.LastEntry().Message, "Please dont kill me")
 }

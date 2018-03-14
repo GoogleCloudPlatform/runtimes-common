@@ -17,7 +17,8 @@ func (llevel *LogLevel) String() string {
 func (llevel *LogLevel) Set(s string) error {
 	level, err := log.ParseLevel(s)
 	if err != nil {
-		return fmt.Errorf("%s is not a valid LogLevel. TODO Print Action!", s)
+		return fmt.Errorf(`%s is not a valid LogLevel.
+Please Provide one of %s"`, s, log.AllLevels)
 	}
 	llevel.Level = level
 	return nil

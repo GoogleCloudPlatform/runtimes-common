@@ -19,6 +19,7 @@ package ctc_lib
 // This file declares all the package level globals
 
 import (
+	"fmt"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -40,7 +41,8 @@ func GetExitOnError() bool {
 
 func CommandExit(err error) {
 	if err != nil && exitOnError {
-		Log.Error(err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
+	log.Error(err)
 }
