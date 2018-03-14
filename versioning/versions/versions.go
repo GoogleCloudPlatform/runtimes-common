@@ -21,14 +21,14 @@ type Package struct {
 }
 
 type Version struct {
-	Dir          string
-	TemplateDir  string
-	Repo         string
-	Tags         []string
-	From         string
-	Cmd          string
-	Packages     map[string]Package
-	ExcludeTests []string `yaml:"excludeTests"`
+	Dir            string
+	TemplateSubDir string
+	Repo           string
+	Tags           []string
+	From           string
+	Cmd            string
+	Packages       map[string]Package
+	ExcludeTests   []string `yaml:"excludeTests"`
 }
 
 type Spec struct {

@@ -46,7 +46,8 @@ func findFilesToCopy(templateDir string, callback func(path string, fileInfo os.
 
 func copyFiles(version versions.Version, templateDir string) {
 	findFilesToCopy(templateDir, func(path string, fileInfo os.FileInfo) {
-		data, err := ioutil.ReadFile(filepath.Join(templateDir, path))
+		pathh := filepath.Join(templateDir, path)
+		data, err := ioutil.ReadFile(pathh)
 		check(err)
 
 		target := filepath.Join(version.Dir, path)
@@ -116,13 +117,9 @@ func verifyDockerfiles(spec versions.Spec, tmpl template.Template) (failureCount
 
 func verifyCopiedFiles(spec versions.Spec, templateDir string) (failureCount int) {
 	failureCount = 0
-	var tmplDirPath string
 	for _, version := range spec.Versions {
-		if version.TemplateDir != "" {
-			tmplDirPath = filepath.Join(templateDir, version.TemplateDir)
-		} else {
-			tmplDirPath = templateDir
-		}
+		tmplDirPath := filepath.Join(templateDir, version.TemplateSubDir)
+
 		findFilesToCopy(tmplDirPath, func(path string, sourceFileInfo os.FileInfo) {
 			failureCount++
 
@@ -178,12 +175,14 @@ func check(e error) {
 }
 
 func main() {
-	templateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template and any other files to copy over")
+	defaultTemplateDirPtr := flag.String("template_dir", "templates",
+		"Path to directory containing Dockerfile.template and any other files to copy over")
 	verifyPtr := flag.Bool("verify_only", false, "Verify dockerfiles")
-	var templatePath string
 	var version = "0.01"
 
-	log.Printf("dockerfiles verson: %s", version)
+	// printing version of the tool; version should be bumped up
+	// whenever one makes changes (initially it'll be done manually and ultimately automatically)
+	log.Printf("dockerfiles version: %s", version)
 
 	flag.Parse()
 
@@ -191,28 +190,24 @@ func main() {
 	spec = versions.LoadVersions("versions.yaml")
 
 	for _, version := range spec.Versions {
-		if version.TemplateDir != "" {
-			templatePath = filepath.Join(*templateDirPtr, version.TemplateDir, "Dockerfile.template")
-		} else {
-			templatePath = filepath.Join(*templateDirPtr, "Dockerfile.template")
-		}
+		// templatePath - path to Dockerfile.template
+		templatePath := filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir, "Dockerfile.template")
 		templateData, err := ioutil.ReadFile(templatePath)
 		templateString := string(templateData)
 		check(err)
 
-		tmpl, err := template.
-			New("dockerfileTemplate").
-			Parse(templateString)
+		tmpl, err := template.New("dockerfileTemplate").Parse(templateString)
 		check(err)
 
 		if *verifyPtr {
 			failureCount := verifyDockerfiles(spec, *tmpl)
-			failureCount += verifyCopiedFiles(spec, *templateDirPtr)
+			failureCount += verifyCopiedFiles(spec, *defaultTemplateDirPtr)
 			os.Exit(failureCount)
 		} else {
+			// if version.TemplateSubDir is empty then we default to 'templates' folder
+			copyFiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir))
 			data := renderDockerfile(version, *tmpl)
 			writeDockerfile(version, data)
-			copyFiles(version, templatePath)
 		}
 	}
 }
