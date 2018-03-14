@@ -251,7 +251,7 @@ func main() {
 		templateString := string(templateData)
 		check(err)
 
-    tmpl, err := template.
+		tmpl, err := template.
 			New("dockerfileTemplate").
 			Funcs(template.FuncMap{"KeyServersRetryLoop": funcKeyServersRetryLoop}).
 			Parse(templateString)
