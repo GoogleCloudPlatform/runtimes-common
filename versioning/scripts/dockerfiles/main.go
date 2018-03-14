@@ -17,6 +17,62 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/versioning/versions"
 )
 
+type indentFormat string
+
+// indent replaces leading spaces in the input string with the
+// value of the indentFormat object.
+func (f indentFormat) indent(s string) string {
+	temp := strings.Split(s, "\n")
+	str := ""
+	for index, line := range temp {
+		if index > 0 {
+			str = str + "\n"
+		}
+		trimmed := strings.TrimLeft(line, " ")
+		diff := len(line) - len(trimmed)
+		prefix := strings.Repeat(string(f), diff)
+		str = str + prefix + trimmed
+	}
+	return str
+}
+
+const keyServersRetryTemplate = `found='' && \
+for server in \
+ pool.sks-keyservers.net \
+ na.pool.sks-keyservers.net \
+ eu.pool.sks-keyservers.net \
+ oc.pool.sks-keyservers.net \
+ ha.pool.sks-keyservers.net \
+ hkp://p80.pool.sks-keyservers.net:80 \
+ hkp://keyserver.ubuntu.com:80 \
+ pgp.mit.edu \
+; do \
+ {{ . }} \
+  && found=yes && break; \
+done; \
+test -n "$found"`
+
+func funcKeyServersRetryLoop(indentSequence string, cmd string) string {
+	f := indentFormat(indentSequence)
+	tmpl, err := template.New("retryTemplate").Parse(f.indent(keyServersRetryTemplate))
+	check(err)
+	var result bytes.Buffer
+	tmpl.Execute(&result, cmd)
+	return funcIndent(indentSequence, string(result.Bytes()))
+}
+
+func funcIndent(leading string, s string) string {
+	temp := strings.Split(s, "\n")
+	str := ""
+	for index, line := range temp {
+		if index > 0 {
+			str = str + "\n" + leading
+		}
+		str = str + line
+	}
+	return str
+}
+
 func renderDockerfile(version versions.Version, tmpl template.Template) []byte {
 	var result bytes.Buffer
 	tmpl.Execute(&result, version)
@@ -46,8 +102,7 @@ func findFilesToCopy(templateDir string, callback func(path string, fileInfo os.
 
 func copyFiles(version versions.Version, templateDir string) {
 	findFilesToCopy(templateDir, func(path string, fileInfo os.FileInfo) {
-		pathh := filepath.Join(templateDir, path)
-		data, err := ioutil.ReadFile(pathh)
+		data, err := ioutil.ReadFile(filepath.Join(templateDir, path))
 		check(err)
 
 		target := filepath.Join(version.Dir, path)
@@ -196,7 +251,10 @@ func main() {
 		templateString := string(templateData)
 		check(err)
 
-		tmpl, err := template.New("dockerfileTemplate").Parse(templateString)
+		tmpl, err := template.
+			New("dockerfileTemplate").
+			Funcs(template.FuncMap{"KeyServersRetryLoop": funcKeyServersRetryLoop}).
+			Parse(templateString)
 		check(err)
 
 		if *verifyPtr {
@@ -204,10 +262,10 @@ func main() {
 			failureCount += verifyCopiedFiles(spec, *defaultTemplateDirPtr)
 			os.Exit(failureCount)
 		} else {
-			// if version.TemplateSubDir is empty then we default to 'templates' folder
-			copyFiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir))
 			data := renderDockerfile(version, *tmpl)
 			writeDockerfile(version, data)
+			// if version.TemplateSubDir is empty then we default to 'templates' folder
+			copyFiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir))
 		}
 	}
 }
