@@ -13,6 +13,7 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
+	"unicode"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/versioning/versions"
 )
@@ -127,6 +128,18 @@ func deleteIfFileExists(path string) {
 	}
 }
 
+// removeWhiteCharacters removes '\t', '\n', '\v', '\f', '\r', ' ', U+0085 (NEL), U+00A0 (NBSP)
+// from a sting and it leaves spaces
+// used in comparing expected and received Dockerfiles
+func removeWhiteCharacters(str string) string {
+	return strings.Map(func(char rune) rune {
+		if unicode.IsSpace(char) {
+			return -1
+		}
+		return char
+	}, str)
+}
+
 func verifyDockerfiles(spec versions.Spec, tmpl template.Template) (failureCount int) {
 	foundDockerfile := make(map[string]bool)
 	failureCount = 0
@@ -138,14 +151,19 @@ func verifyDockerfiles(spec versions.Spec, tmpl template.Template) (failureCount
 		path := filepath.Join(version.Dir, "Dockerfile")
 		dockerfile, err := ioutil.ReadFile(path)
 		check(err)
-
 		foundDockerfile[path] = true
 
 		if string(dockerfile) == string(data) {
 			log.Printf("%s: OK", path)
 		} else {
-			failureCount++
-			log.Printf("%s: FAILED", path)
+			// Ignore differences caused by whitespaces and tabs.
+			if removeWhiteCharacters(string(dockerfile)) != removeWhiteCharacters(string(data)) {
+				failureCount++
+				log.Printf("%s: FAILED", path)
+			} else {
+				warningCount++
+				log.Printf("%s: OK, but inconsistent whitespaces/tabs detected. Consider normalizing whitespaces/tabs or re-generate Dockerfiles ", path)
+			}
 		}
 	}
 
