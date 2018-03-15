@@ -74,8 +74,8 @@ class PHPTest(unittest.TestCase):
         args.base = 'gcr.io/google-appengine/php:latest'
         args.tar_base_image_path = None
         self.builder = builder.PHP(self.ctx, args)
-        self.layer_builder = layer_builder.LayerBuilder(
-            self.builder._ctx, None, self.builder._descriptor_files, "/app")
+        self.layer_builder = layer_builder.PhaseOneLayerBuilder(
+            self.builder._ctx, self.builder._descriptor_files, "/app")
 
         # Mock out the calls to package managers for speed.
         self.layer_builder._gen_composer_install_tar = mock.Mock()
