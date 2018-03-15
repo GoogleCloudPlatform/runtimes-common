@@ -26,6 +26,7 @@ type Version struct {
 	Tags         []string
 	From         string
 	Cmd          string
+	TemplateArgs map[string]string
 	Packages     map[string]Package
 	ExcludeTests []string `yaml:"excludeTests"`
 }
