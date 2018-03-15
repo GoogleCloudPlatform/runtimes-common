@@ -31,7 +31,6 @@ go_test(
     ],
     embed = [":go_default_library"],
     deps = [
-        "//vendor/github.com/magiconair/properties/assert:go_default_library",
         "//vendor/github.com/sirupsen/logrus/hooks/test:go_default_library",
         "//vendor/github.com/spf13/cobra:go_default_library",
     ],

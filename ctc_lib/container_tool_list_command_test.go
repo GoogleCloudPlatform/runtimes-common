@@ -21,7 +21,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/magiconair/properties/assert"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/spf13/cobra"
 )
@@ -95,8 +94,12 @@ func TestContainerToolCommandLogging(t *testing.T) {
 	testCommand.Flags().StringVarP(&LName, "name", "n", "", "Comma Separated list of Name")
 	testCommand.SetArgs([]string{"--name=John,Jane", "--loglevel=debug"})
 	Execute(&testCommand)
-	assert.Equal(t, len(hook.Entries), 1)
-	assert.Equal(t, hook.LastEntry().Message, "Running Hello World Command")
+	if len(hook.Entries) != 1 {
+		t.Errorf("Expected 1 Log Entry. Found %v", len(hook.Entries))
+	}
+	if hook.LastEntry().Message != "Running Hello World Command" {
+		t.Errorf("Expected to contain: \n Running Hello World Command\nGot:\n %v\n", hook.LastEntry().Message)
+	}
 }
 
 func TestContainerToolCommandHandlePanicLogging(t *testing.T) {
@@ -121,5 +124,7 @@ func TestContainerToolCommandHandlePanicLogging(t *testing.T) {
 	}
 	SetExitOnError(false)
 	Execute(&testCommand)
-	assert.Equal(t, hook.LastEntry().Message, "Please dont kill me")
+	if hook.LastEntry().Message != "Please dont kill me" {
+		t.Errorf("Expected to contain: \n Please dont kill me\nGot:\n %v\n", hook.LastEntry().Message)
+	}
 }
