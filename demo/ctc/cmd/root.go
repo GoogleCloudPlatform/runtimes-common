@@ -37,6 +37,7 @@ var RootCommand = &ctc_lib.ContainerToolCommand{
 	},
 	Output: &RootCommandOutput{},
 	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
+		// An Example of Logging.
 		ctc_lib.Log.Info("You are running echo command")
 		return RootCommandOutput{
 			Message: Message,

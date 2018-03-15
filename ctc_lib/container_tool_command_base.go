@@ -78,11 +78,14 @@ func (ctb *ContainerToolCommandBase) ReadTemplateFromFlagOrCmdDefault() string {
 }
 
 // The command line flags are not parsed until Execute is called.
-// Hence all logic to init global flags should go in this function.
+// Hence all logic to init global flags should happen in PersistentPreRun.
 func (ctb *ContainerToolCommandBase) initGlobalFlags() {
 	init_persisted_flags := func(cmd *cobra.Command, args []string) {
 		Log.SetLevel(flags.LogLevel.Level)
 	}
+	// Set PersistentPreRun to above function if its not set already.
+	// Else overwrite the existing one with init_persisted_flags followed by
+	// user set.
 	if ctb.PersistentPreRun == nil && ctb.PersistentPreRunE == nil {
 		ctb.PersistentPreRun = init_persisted_flags
 		return
