@@ -25,8 +25,7 @@ type Version struct {
 	Repo         string
 	Tags         []string
 	From         string
-	Cmd          string
-	TemplateArgs map[string]string
+	TemplateArgs map[string]string `yaml:"templateArgs"`
 	Packages     map[string]Package
 	ExcludeTests []string `yaml:"excludeTests"`
 }
