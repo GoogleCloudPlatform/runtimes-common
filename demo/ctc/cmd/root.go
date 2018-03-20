@@ -19,6 +19,7 @@ package cmd
 import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type RootCommandOutput struct {
@@ -52,4 +53,5 @@ func Execute() {
 
 func init() {
 	RootCommand.Flags().StringVarP(&Message, "message", "m", "text", "Message to Echo")
+	viper.BindPFlag("message", RootCommand.Flags().Lookup("message"))
 }
