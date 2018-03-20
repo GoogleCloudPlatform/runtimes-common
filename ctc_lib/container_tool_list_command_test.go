@@ -17,6 +17,7 @@ package ctc_lib
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -92,10 +93,13 @@ func TestContainerToolCommandLogging(t *testing.T) {
 		RunO:       RunListCommand,
 	}
 	testCommand.Flags().StringVarP(&LName, "name", "n", "", "Comma Separated list of Name")
-	testCommand.SetArgs([]string{"--name=John,Jane", "--loglevel=debug"})
+	testCommand.SetArgs([]string{"--name=John,Jane", "--logLevel=debug"})
 	Execute(&testCommand)
 	if len(hook.Entries) != 1 {
 		t.Errorf("Expected 1 Log Entry. Found %v", len(hook.Entries))
+	}
+	for _, v := range hook.AllEntries() {
+		fmt.Println(v.Message)
 	}
 	if hook.LastEntry().Message != "Running Hello World Command" {
 		t.Errorf("Expected to contain: \n Running Hello World Command\nGot:\n %v\n", hook.LastEntry().Message)

@@ -45,7 +45,9 @@ func ExecuteE(ctb CLIInterface) (err error) {
 	if ctb.IsRunODefined() {
 		cobraRun := func(c *cobra.Command, args []string) {
 			err = ctb.PrintO(c, args)
-			Log.Error(err)
+			if err != nil {
+				Log.Error(err)
+			}
 		}
 		ctb.SetRun(cobraRun)
 	}
