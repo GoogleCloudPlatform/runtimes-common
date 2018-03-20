@@ -31,7 +31,20 @@ func NewStdOutLogHook(alsoLogtoStdOut bool) *StdOutLogHook {
 
 func (hook *StdOutLogHook) Fire(entry *log.Entry) error {
 	if hook.alsoLogtoStdOut {
-		Out.Info(entry.Message)
+		switch entry.Level {
+		case log.PanicLevel:
+			Out.Panic(entry.Message)
+		case log.FatalLevel:
+			Out.Fatal(entry.Message)
+		case log.DebugLevel:
+			Out.Debug(entry.Message)
+		case log.ErrorLevel:
+			Out.Error(entry.Message)
+		case log.WarnLevel:
+			Out.Warn(entry.Message)
+		case log.InfoLevel:
+			Out.Info(entry.Message)
+		}
 	}
 	return nil
 }
