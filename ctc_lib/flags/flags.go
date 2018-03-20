@@ -26,3 +26,5 @@ var LogLevel types.LogLevel
 
 var UpdateCheck bool
 var AlsoLogToStdOut bool
+
+var LogDir string

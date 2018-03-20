@@ -14,11 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package config
+package cmd
 
-var DefaultConfig = []byte(`{
-	"logDir": "/var/log",
-	"updateCheck": true
-	}`)
+import (
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
+	"github.com/spf13/cobra"
+)
 
-var DefaultConfigType = "json"
+var PanicCommand = &ctc_lib.ContainerToolCommand{
+	ContainerToolCommandBase: &ctc_lib.ContainerToolCommandBase{
+		Command: &cobra.Command{
+			Use:   "panic",
+			Short: "Raises Error",
+		},
+		Phase: "test",
+	},
+	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
+		// An Example of Panic!
+		ctc_lib.Log.Panic("Oh you called Panic")
+		return nil, nil
+	},
+}

@@ -64,12 +64,14 @@ func (ctb *ContainerToolCommandBase) AddCommand(command CLIInterface) {
 func (ctb *ContainerToolCommandBase) AddFlags() {
 	// Add template Flag
 	ctb.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", constants.EmptyTemplate, "Output format")
-	ctb.PersistentFlags().VarP(types.NewLogLevel(constants.DefaultLogLevel, &flags.LogLevel), "loglevel", "l", "LogLevel")
-	ctb.PersistentFlags().BoolVarP(&flags.UpdateCheck, "updateCheck", "u", true, "Run Update Check")
+	ctb.PersistentFlags().VarP(types.NewLogLevel(constants.DefaultLogLevel, &flags.LogLevel), "logLevel", "l", "LogLevel")
+	ctb.PersistentFlags().BoolVarP(&flags.UpdateCheck, "updateCheck", "u", true, "Run Update Check") // TODO Add Update Check logic
 	viper.BindPFlag("updateCheck", ctb.PersistentFlags().Lookup("updateCheck"))
-
 	// Also Log to StdOut
 	ctb.PersistentFlags().BoolVar(&flags.AlsoLogToStdOut, "alsoLogToStdOut", false, "Also Log to Std Out")
+
+	ctb.PersistentFlags().StringVar(&flags.LogDir, "logDir", "/tmp/", "LogDir")
+	viper.BindPFlag("logDir", ctb.PersistentFlags().Lookup("logDir"))
 }
 
 func (ctb *ContainerToolCommandBase) ReadTemplateFromFlagOrCmdDefault() string {

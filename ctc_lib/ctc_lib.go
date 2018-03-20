@@ -84,7 +84,7 @@ You can override it via ctc_lib.ConfigFile pkg variable`)
 
 func initLogging() {
 	// Init File Logger
-	Log = logging.NewLogger(filepath.Join(viper.GetString("logdir"), toolName))
+	Log = logging.NewLogger(filepath.Join(viper.GetString("logDir"), toolName))
 	Log.SetLevel(flags.LogLevel.Level)
 	Log.AddHook(logging.NewFatalHook(exitOnError))
 	Log.AddHook(logging.NewStdOutLogHook(flags.AlsoLogToStdOut))
