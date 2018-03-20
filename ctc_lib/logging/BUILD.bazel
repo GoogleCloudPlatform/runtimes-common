@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "log_manager.go",
+        "shutdown_hook.go",
+        "stdout_log_hook.go",
+    ],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/logging",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/lestrrat-go/file-rotatelogs:go_default_library",
+        "//vendor/github.com/sirupsen/logrus:go_default_library",
+    ],
+)

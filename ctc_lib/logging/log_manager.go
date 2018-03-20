@@ -14,37 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package ctc_lib
+package logging
 
 import (
-	"fmt"
-	"io"
+	"time"
 
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	log "github.com/sirupsen/logrus"
 )
 
-// Hook which exits when Log.Panic and Log.Fatal is Called
-type FatalHook struct {
-	writer io.Writer
-}
+func NewLogger(path string) *log.Logger {
 
-func NewFatalHook(writer io.Writer) *FatalHook {
-	return &FatalHook{
-		writer: writer,
+	writer, _ := rotatelogs.New(
+		path+".%Y%m%d%H%M",
+		rotatelogs.WithLinkName(path),
+		rotatelogs.WithMaxAge(time.Duration(86400)*time.Second),
+		rotatelogs.WithRotationTime(time.Duration(604800)*time.Second),
+	)
+
+	return &log.Logger{
+		Out:       writer,
+		Formatter: new(log.JSONFormatter),
+		Hooks:     make(log.LevelHooks),
+		Level:     log.DebugLevel, //Also needs to come from Command line.
 	}
 }
 
-func (hook *FatalHook) Fire(entry *log.Entry) error {
-	switch entry.Level {
-	case log.PanicLevel:
-		CommandExit(fmt.Errorf(entry.Message))
-	case log.FatalLevel:
-		CommandExit(fmt.Errorf(entry.Message))
-		log.Warn("Avoid using Log.Fatal. Consider Log.Panic instead to exit gracefully")
-	}
-	return nil
-}
-
-func (hook *FatalHook) Levels() []log.Level {
-	return []log.Level{log.PanicLevel, log.FatalLevel}
-}
+var Out = log.New()

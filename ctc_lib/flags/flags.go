@@ -23,3 +23,6 @@ import (
 // TemplateString  Stores the template which is applied to command output
 var TemplateString string
 var LogLevel types.LogLevel
+
+var UpdateCheck bool
+var AlsoLogToStdOut bool

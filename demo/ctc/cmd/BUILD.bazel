@@ -8,5 +8,6 @@ go_library(
     deps = [
         "//ctc_lib:go_default_library",
         "//vendor/github.com/spf13/cobra:go_default_library",
+        "//vendor/github.com/spf13/viper:go_default_library",
     ],
 )
