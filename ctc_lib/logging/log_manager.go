@@ -24,7 +24,6 @@ import (
 )
 
 func NewLogger(path string) *log.Logger {
-
 	writer, _ := rotatelogs.New(
 		path+".%Y%m%d%H%M",
 		rotatelogs.WithLinkName(path),
@@ -40,4 +39,6 @@ func NewLogger(path string) *log.Logger {
 	}
 }
 
+// Define Explicit StdOut Loggers which can be used to always print to StdOut.
+// This can also add other functionalilty like colored output etc.
 var Out = log.New()

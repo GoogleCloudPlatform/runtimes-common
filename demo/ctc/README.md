@@ -5,7 +5,8 @@ This package contains examples for ContainerToolCommand Usage.
 # How to Run
 * See Available Commands
 ``` shell
-go run main.go --help
+bazel run demo/ctc:ctc_demo --  --help
+INFO: Running command line: bazel-bin/demo/ctc/linux_amd64_stripped/ctc_demo --help
 
 Usage:
   echo [flags]
@@ -13,34 +14,47 @@ Usage:
 
 Available Commands:
   help        Help about any command
-  version     Print the version of echo
+  panic       Raises Error
+  version     Print the version
 
 Flags:
-  -h, --help              help for echo
-  -m, --message string    Message to Echo (default "text")
-  -t, --template string   Output format (default "{{.}}")
+      --alsoLogToStdOut           Also Log to Std Out
+  -h, --help                      help for echo
+      --logDir string             LogDir (default "/tmp/")
+  -l, --logLevel types.LogLevel   LogLevel (default info)
+  -m, --message string            Message to Echo (default "YOUR TEXT TO ECHO")
+  -t, --template string           Output format (default "{{.}}")
+  -u, --updateCheck               Run Update Check (default true)
 
 Use "echo [command] --help" for more information about a command.
+
 
 ```
 * Run echo with command args
 ``` shell
-cd ctc_lib/examples
-go run main.go --message ping
-{ping}
-```
-* Run echo with --template argument
-``` shell
-cd ctc_lib/examples
-go run main.go --message ping --template {{.Message}}
+bazel run demo/ctc:ctc_demo --  --message=ping
+INFO: Running command line: bazel-bin/demo/ctc/linux_amd64_stripped/ctc_demo '--message=ping'
 ping
-
 ```
+
+You can check the logs at
+``` shell
+{"level":"info","msg":"You are running echo command with message ping","time":"2018-03-20T15:14:11-07:00"}
+```
+
 * Run Version Command.
 ```shell
-cd ctc_lib/examples
-go run main.go version --template={{.Version}}
-0.0.1
+bazel run demo/ctc:ctc_demo --  version
+INFO: Running command line: bazel-bin/demo/ctc/linux_amd64_stripped/ctc_demo version
+1.0.1
+```
+
+* Run panic Subcommand with --alsoLogToStdOut
+```shell
+bazel run demo/ctc:ctc_demo --  panic --alsoLogToStdOut
+INFO: Running command line: bazel-bin/demo/ctc/linux_amd64_stripped/ctc_demo panic --alsoLogToStdOut
+time="2018-03-20T15:15:53-07:00" level=error msg="Oh you called Panic"
+ERROR: Non-zero return code '1' from command: Process exited with status 1
 ```
 
 

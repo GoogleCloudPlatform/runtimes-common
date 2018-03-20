@@ -17,7 +17,6 @@ limitations under the License.
 package util
 
 import (
-	"fmt"
 	"io"
 	"text/template"
 )
@@ -25,7 +24,6 @@ import (
 func ExecuteTemplate(templateStr string, obj interface{}, out io.Writer) error {
 	tmpl, err := template.New("Template").Parse(templateStr)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return tmpl.Execute(out, obj)
