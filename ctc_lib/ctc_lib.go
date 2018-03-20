@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -45,4 +46,12 @@ func CommandExit(err error) {
 		os.Exit(1)
 	}
 	log.Error(err)
+}
+
+func initLogging() {
+	// Init File Logger
+	// Init Logger and set the Output to StdOut or Error
+	Log = log.New()
+	Log.AddHook(NewFatalHook(os.Stdout))
+	Log.SetLevel(flags.LogLevel.Level)
 }
