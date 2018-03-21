@@ -23,7 +23,7 @@ import (
 )
 
 type CLIInterface interface {
-	PrintO(c *cobra.Command, args []string)
+	PrintO(c *cobra.Command, args []string) error
 	SetRun(func(c *cobra.Command, args []string))
 	GetCommand() *cobra.Command
 	ValidateCommand() error
@@ -44,7 +44,10 @@ func ExecuteE(ctb CLIInterface) (err error) {
 	ctb.Init()
 	if ctb.IsRunODefined() {
 		cobraRun := func(c *cobra.Command, args []string) {
-			ctb.PrintO(c, args)
+			err = ctb.PrintO(c, args)
+			if err != nil {
+				Log.Error(err)
+			}
 		}
 		ctb.SetRun(cobraRun)
 	}

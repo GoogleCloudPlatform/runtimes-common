@@ -17,9 +17,11 @@ limitations under the License.
 package ctc_lib
 
 import (
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/types"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type ContainerToolCommandBase struct {
@@ -37,9 +39,10 @@ func (ctb *ContainerToolCommandBase) SetRun(cobraRun func(c *cobra.Command, args
 }
 
 func (ctb *ContainerToolCommandBase) Init() {
-	cobra.OnInitialize(initLogging)
-	ctb.AddSubCommands()
+	toolName = ctb.Name()
+	cobra.OnInitialize(initConfig, initLogging)
 	ctb.AddFlags()
+	ctb.AddSubCommands()
 }
 
 func (ctb *ContainerToolCommandBase) AddSubCommands() {
@@ -60,12 +63,19 @@ func (ctb *ContainerToolCommandBase) AddCommand(command CLIInterface) {
 
 func (ctb *ContainerToolCommandBase) AddFlags() {
 	// Add template Flag
-	ctb.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", emptyTemplate, "Output format")
-	ctb.PersistentFlags().VarP(types.NewLogLevel(defaultLogLevel, &flags.LogLevel), "loglevel", "l", "LogLevel")
+	ctb.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", constants.EmptyTemplate, "Output format")
+	ctb.PersistentFlags().VarP(types.NewLogLevel(constants.DefaultLogLevel, &flags.LogLevel), "logLevel", "l", "LogLevel")
+	ctb.PersistentFlags().BoolVarP(&flags.UpdateCheck, "updateCheck", "u", true, "Run Update Check") // TODO Add Update Check logic
+	viper.BindPFlag("updateCheck", ctb.PersistentFlags().Lookup("updateCheck"))
+	// Also Log to StdOut
+	ctb.PersistentFlags().BoolVar(&flags.AlsoLogToStdOut, "alsoLogToStdOut", false, "Also Log to Std Out")
+
+	ctb.PersistentFlags().StringVar(&flags.LogDir, "logDir", "/tmp/", "LogDir")
+	viper.BindPFlag("logDir", ctb.PersistentFlags().Lookup("logDir"))
 }
 
 func (ctb *ContainerToolCommandBase) ReadTemplateFromFlagOrCmdDefault() string {
-	if flags.TemplateString == emptyTemplate && ctb.DefaultTemplate != "" {
+	if flags.TemplateString == constants.EmptyTemplate && ctb.DefaultTemplate != "" {
 		return ctb.DefaultTemplate
 	}
 	return flags.TemplateString

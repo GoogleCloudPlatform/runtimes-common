@@ -9,6 +9,7 @@ go_binary(
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
+    data = ["testConfig.json"],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/demo/ctc",
     visibility = ["//visibility:private"],
     deps = ["//demo/ctc/cmd:go_default_library"],  # keep

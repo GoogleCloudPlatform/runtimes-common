@@ -44,3 +44,15 @@
 [[constraint]]
   name = "github.com/sirupsen/logrus"
   version = "1.0.5"
+
+[[constraint]]
+  name = "github.com/spf13/viper"
+  version = "1.0.0"
+
+[[constraint]]
+  name = "github.com/rifflock/lfshook"
+  version = "2.3.0"
+
+[[constraint]]
+  name = "github.com/lestrrat-go/file-rotatelogs"
+  version = "2.1.0"

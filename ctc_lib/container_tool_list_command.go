@@ -41,9 +41,9 @@ Either implement Command.Run implementation or RunO implemetation`)
 	return nil
 }
 
-func (ctc *ContainerToolListCommand) PrintO(c *cobra.Command, args []string) {
+func (ctc *ContainerToolListCommand) PrintO(c *cobra.Command, args []string) error {
 	obj, _ := ctc.RunO(c, args)
 	ctc.OutputList = obj
-	util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
+	return util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
 		ctc.OutputList, ctc.OutOrStdout())
 }
