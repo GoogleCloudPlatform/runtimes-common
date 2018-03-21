@@ -16,5 +16,10 @@ limitations under the License.
 
 package flags
 
+import (
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/types"
+)
+
 // TemplateString  Stores the template which is applied to command output
 var TemplateString string
+var LogLevel types.LogLevel

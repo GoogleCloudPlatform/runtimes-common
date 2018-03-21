@@ -21,11 +21,16 @@ package ctc_lib
 import (
 	"fmt"
 	"os"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
+	log "github.com/sirupsen/logrus"
 )
 
 var exitOnError = true
 var Version string
 var emptyTemplate = "{{.}}"
+var defaultLogLevel = "info"
+var Log *log.Logger
 
 func SetExitOnError(value bool) {
 	exitOnError = value
@@ -37,8 +42,16 @@ func GetExitOnError() bool {
 
 func CommandExit(err error) {
 	if err != nil && exitOnError {
-		// TODO: Change this to Log.Error once Logging is introduced.
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	log.Error(err)
+}
+
+func initLogging() {
+	// Init File Logger
+	// Init Logger and set the Output to StdOut or Error
+	Log = log.New()
+	Log.AddHook(NewFatalHook(os.Stdout))
+	Log.SetLevel(flags.LogLevel.Level)
 }

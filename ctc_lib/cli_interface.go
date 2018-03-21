@@ -60,8 +60,6 @@ func ExecuteE(ctb CLIInterface) (err error) {
 // level of Parse.
 func errRecover() {
 	if e := recover(); e != nil {
-		// TODO: Change this to Log.Error once Logging is introduced.
-		fmt.Println(e)
 		err := fmt.Errorf("%v", e)
 		CommandExit(err)
 	}

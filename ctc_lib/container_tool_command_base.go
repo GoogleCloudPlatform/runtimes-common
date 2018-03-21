@@ -18,6 +18,7 @@ package ctc_lib
 
 import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/types"
 	"github.com/spf13/cobra"
 )
 
@@ -36,6 +37,7 @@ func (ctb *ContainerToolCommandBase) SetRun(cobraRun func(c *cobra.Command, args
 }
 
 func (ctb *ContainerToolCommandBase) Init() {
+	cobra.OnInitialize(initLogging)
 	ctb.AddSubCommands()
 	ctb.AddFlags()
 }
@@ -59,6 +61,7 @@ func (ctb *ContainerToolCommandBase) AddCommand(command CLIInterface) {
 func (ctb *ContainerToolCommandBase) AddFlags() {
 	// Add template Flag
 	ctb.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", emptyTemplate, "Output format")
+	ctb.PersistentFlags().VarP(types.NewLogLevel(defaultLogLevel, &flags.LogLevel), "loglevel", "l", "LogLevel")
 }
 
 func (ctb *ContainerToolCommandBase) ReadTemplateFromFlagOrCmdDefault() string {
