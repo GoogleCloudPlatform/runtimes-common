@@ -36,7 +36,7 @@ PIPFILE_LOCK = 'Pipfile.lock'
 PIPFILE = 'Pipfile'
 REQUIREMENTS_TXT = 'requirements.txt'
 PYTHON_NAMESPACE = 'python-requirements-cache'
-VENV_DIR = 'env'
+VENV_DIR = '/env'
 WHEEL_DIR = 'wheel'
 
 # logging constants

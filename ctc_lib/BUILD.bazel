@@ -9,13 +9,16 @@ go_library(
         "container_tool_list_command.go",
         "ctc_lib.go",
         "help.go",
+        "hooks.go",
         "version.go",
     ],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib",
     visibility = ["//visibility:public"],
     deps = [
         "//ctc_lib/flags:go_default_library",
+        "//ctc_lib/types:go_default_library",
         "//ctc_lib/util:go_default_library",
+        "//vendor/github.com/sirupsen/logrus:go_default_library",
         "//vendor/github.com/spf13/cobra:go_default_library",
     ],
 )
@@ -27,5 +30,8 @@ go_test(
         "container_tool_list_command_test.go",
     ],
     embed = [":go_default_library"],
-    deps = ["//vendor/github.com/spf13/cobra:go_default_library"],
+    deps = [
+        "//vendor/github.com/sirupsen/logrus/hooks/test:go_default_library",
+        "//vendor/github.com/spf13/cobra:go_default_library",
+    ],
 )

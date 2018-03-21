@@ -16,3 +16,9 @@ fileExistenceTests:
   path: '/env/lib/python2.7/site-packages/flask'
   shouldExist: true
   isDirectory: false
+
+commandTests:
+- name: 'venv setup correctly'
+  command: 'cat'
+  args: ['/env/bin/activate']
+  expectedOutput: ['"/env"']
