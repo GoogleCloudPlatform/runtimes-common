@@ -17,6 +17,7 @@ limitations under the License.
 package ctc_lib
 
 import (
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/logging"
@@ -47,7 +48,7 @@ func (ctb *ContainerToolCommandBase) Init() {
 
 func (ctb *ContainerToolCommandBase) initLogging() {
 	Log = logging.NewLogger(
-		viper.GetString("logDir"), // This is changed to constants in upcoming PR
+		viper.GetString(config.LogDirConfigKey),
 		ctb.Name(),
 		flags.Verbosity.Level,
 		flags.EnableColors,
@@ -59,6 +60,8 @@ func (ctb *ContainerToolCommandBase) initLogging() {
 func (ctb *ContainerToolCommandBase) AddSubCommands() {
 	// Add version subcommand
 	ctb.AddCommand(VersionCommand)
+	ConfigCommand.Command.AddCommand(SetConfigCommand)
+	ctb.AddCommand(ConfigCommand)
 
 	// Set up Root Command
 	ctb.Command.SetHelpTemplate(HelpTemplate)

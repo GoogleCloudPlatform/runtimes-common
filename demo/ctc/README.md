@@ -57,4 +57,25 @@ time="2018-03-20T15:15:53-07:00" level=error msg="Oh you called Panic"
 ERROR: Non-zero return code '1' from command: Process exited with status 1
 ```
 
+* Run config command to see command configurations.
+```shell
+go run  demo/ctc/main.go  config
+logdir : /tmp
+message : echo
+updatecheck : false
+
+```
+* Set Config Variable to a new value
+```shell
+$go run  demo/ctc/main.go  config set message hi
+Config key Changed and written to file demo/ctc/testConfig.json
+
+$cat demo/ctc/testConfig.json
+{
+  "logdir": "/tmp",
+  "message": "hi",
+  "updatecheck": "false"
+}
+```
+
 
