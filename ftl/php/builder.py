@@ -45,21 +45,33 @@ class PHP(builder.RuntimeBase):
         lyr_imgs.append(self._base_image)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             pkgs = self._parse_composer_pkgs()
-            # if there are 42 or more packages, revert to using phase 1
+            # due to image layers limits, we revert to using phase 1 if over
+            # the threshold
             if len(pkgs) > 41:
-                pkgs = [None]
-            for pkg_txt in pkgs:
+                # phase 1
                 logging.info('Building package layer')
-                logging.info(pkg_txt)
                 cache = self._cache if self._args.cache else None
-                layer_builder = php_builder.LayerBuilder(
+                layer_builder = php_builder.PhaseOneLayerBuilder(
                     ctx=self._ctx,
                     descriptor_files=self._descriptor_files,
-                    pkg_descriptor=pkg_txt,
                     destination_path=self._args.destination_path,
                     cache=cache)
                 layer_builder.BuildLayer()
                 lyr_imgs.append(layer_builder.GetImage())
+            else:
+                # phase 2
+                for pkg_txt in pkgs:
+                    logging.info('Building package layer: {0} {1}'.format(
+                        pkg_txt[0], pkg_txt[1]))
+                    cache = self._cache if self._args.cache else None
+                    layer_builder = php_builder.PhaseTwoLayerBuilder(
+                        ctx=self._ctx,
+                        descriptor_files=self._descriptor_files,
+                        pkg_descriptor=pkg_txt,
+                        destination_path=self._args.destination_path,
+                        cache=cache)
+                    layer_builder.BuildLayer()
+                    lyr_imgs.append(layer_builder.GetImage())
 
         app = base_builder.AppLayerBuilder(
             ctx=self._ctx,
