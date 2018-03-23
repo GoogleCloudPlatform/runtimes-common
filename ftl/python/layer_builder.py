@@ -20,6 +20,7 @@ import tempfile
 
 from ftl.common import constants
 from ftl.common import ftl_util
+from ftl.common import ftl_error
 from ftl.common import single_layer_image
 from ftl.common import tar_to_dockerimage
 
@@ -155,10 +156,12 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         stdout, stderr = proc_pipe.communicate()
         logging.info("`pip install` stdout:\n%s" % stdout)
         if stderr:
-            logging.error("`pip install` had error output:\n%s" % stderr)
+            err_txt = "`pip install` had error output:\n%s" % stderr
+            raise ftl_error.UserError(err_txt)
         if proc_pipe.returncode:
-            raise Exception("error: `pip install` returned code: %d" %
-                            proc_pipe.returncode)
+            err_txt = "error: `pip install` returned code: %d" % \
+                      proc_pipe.returncode
+            raise ftl_error.UserError(err_txt)
         return tmp_dir
 
     def _pip_install(self, pkg_txt):
@@ -177,10 +180,13 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             stdout, stderr = proc_pipe.communicate(input=pkg_txt)
             logging.info("`pip wheel` stdout:\n%s" % stdout)
             if stderr:
-                logging.error("`pip wheel` had error output:\n%s" % stderr)
+                err_txt = "`pip wheel` had error output:\n%s" % stderr
+                raise ftl_error.UserError(err_txt)
+
             if proc_pipe.returncode:
-                raise Exception("error: `pip wheel` returned code: %d" %
-                                proc_pipe.returncode)
+                err_txt = "error: `pip wheel` returned code: %d" % \
+                                proc_pipe.returncode
+                raise ftl_error.UserError(err_txt)
 
     def _gen_pip_env(self):
         pip_env = os.environ.copy()
@@ -215,7 +221,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
                  pip_cmd=[constants.PIP_DEFAULT_CMD],
                  venv_cmd=[constants.VENV_DEFAULT_CMD],
                  cache=None):
-        super(RequirementsLayerBuilder, self).__init__()
+        super(PipfileLayerBuilder, self).__init__()
         self._ctx = ctx
         self._pkg_dir = pkg_dir
         self._wheel_dir = wheel_dir
@@ -288,10 +294,13 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
             stdout, stderr = proc_pipe.communicate(input=pkg_txt)
             logging.info("`pip wheel` stdout:\n%s" % stdout)
             if stderr:
-                logging.error("`pip wheel` had error output:\n%s" % stderr)
+                err_txt = "`pip wheel` had error output:\n%s" % stderr
+                raise ftl_error.UserError(err_txt)
+
             if proc_pipe.returncode:
-                raise Exception("error: `pip wheel` returned code: %d" %
-                                proc_pipe.returncode)
+                err_txt = "error: `pip wheel` returned code: %d" % \
+                                proc_pipe.returncode
+                raise ftl_error.UserError(err_txt)
 
 
 class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
@@ -382,11 +391,12 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
             stdout, stderr = proc_pipe.communicate()
             logging.info("`virtualenv` stdout:\n%s" % stdout)
             if stderr:
-                logging.error("`virtualenv` had error output:\n%s" % stderr)
+                err_txt = "`virtualenv` had error output:\n%s" % stderr
+                raise ftl_error.UserError(err_txt)
             if proc_pipe.returncode:
-                raise Exception("error: `virtualenv` returned code: %d" %
-                                proc_pipe.returncode)
-
+                err_txt = "error: `virtualenv` returned code: %d" % \
+                        proc_pipe.returncode
+                raise ftl_error.UserError(err_txt)
             subprocess.check_call(venv_cmd_args)
 
     def _log_cache_result(self, hit):

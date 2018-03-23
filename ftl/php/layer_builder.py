@@ -21,6 +21,7 @@ import datetime
 
 from ftl.common import constants
 from ftl.common import ftl_util
+from ftl.common import ftl_error
 from ftl.common import single_layer_image
 from ftl.common import tar_to_dockerimage
 
@@ -77,9 +78,26 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
         subprocess.check_call(['rm', '-rf', os.path.join(app_dir, 'vendor')])
 
         with ftl_util.Timing('Composer_install'):
-            subprocess.check_call(
-                ['composer', 'install', '--no-dev', '--no-scripts'],
-                cwd=app_dir)
+            composer_cmd_args = ['composer', 'install', '--no-dev',
+                                 '--no-scripts']
+            proc_pipe = subprocess.Popen(
+                composer_cmd_args,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=app_dir
+            )
+            stdout, stderr = proc_pipe.communicate()
+            logging.info("`composer require` stdout:\n%s" % stdout)
+            if stderr:
+                err_txt = "`composer require` had error output:\n%s" % stderr
+                raise ftl_error.UserError(err_txt)
+
+            if proc_pipe.returncode:
+                err_txt = "error: `composer require` returned code: %d" % \
+                                proc_pipe.returncode
+                raise ftl_error.UserError(err_txt)
+
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 
     def _log_cache_result(self, hit):
@@ -128,9 +146,27 @@ class PhaseTwoLayerBuilder(PhaseOneLayerBuilder):
 
         with ftl_util.Timing('Composer_install'):
             pkg, version = pkg_descriptor
-            subprocess.check_call(
-                ['composer', 'require',
-                 str(pkg), str(version)], cwd=app_dir)
+            composer_cmd_args = ['composer', 'require',
+                                 str(pkg), str(version)]
+
+            proc_pipe = subprocess.Popen(
+                composer_cmd_args,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=app_dir
+            )
+            stdout, stderr = proc_pipe.communicate()
+            logging.info("`composer require` stdout:\n%s" % stdout)
+            if stderr:
+                err_txt = "`composer require` had error output:\n%s" % stderr
+                raise ftl_error.UserError(err_txt)
+
+            if proc_pipe.returncode:
+                err_txt = "error: `composer require` returned code: %d" % \
+                                proc_pipe.returncode
+                raise ftl_error.UserError(err_txt)
+
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 
     def _log_cache_result(self, hit):

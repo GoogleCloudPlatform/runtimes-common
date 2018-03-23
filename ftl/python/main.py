@@ -22,6 +22,7 @@ from ftl.common import args
 from ftl.common import logger
 from ftl.common import context
 from ftl.common import ftl_util
+from ftl.common import ftl_error
 
 from ftl.python import builder as python_builder
 
@@ -34,15 +35,22 @@ args.extra_args(python_parser, args.python_flgs)
 
 
 def main(cli_args):
-    builder_args = python_parser.parse_args(cli_args)
-    logger.setup_logging(builder_args.verbosity)
-    logger.preamble("python", builder_args)
-    with ftl_util.Timing("full build"):
-        with ftl_util.Timing("builder initialization"):
-            python_ftl = python_builder.Python(
-                context.Workspace(builder_args.directory), builder_args)
-        with ftl_util.Timing("build process for FTL image"):
-            python_ftl.Build()
+    try:
+        builder_args = python_parser.parse_args(cli_args)
+        logger.setup_logging(builder_args)
+        logger.preamble("python", builder_args)
+        with ftl_util.Timing("full build"):
+            with ftl_util.Timing("builder initialization"):
+                python_ftl = python_builder.Python(
+                    context.Workspace(builder_args.directory), builder_args)
+            with ftl_util.Timing("build process for FTL image"):
+                python_ftl.Build()
+    except ftl_error.UserError as u_err:
+        ftl_error.UserErrorHandler(u_err, builder_args.log_path)
+    except ftl_error.InternalError:
+        ftl_error.InternalErrorHandler(builder_args.log_path)
+        if builder_args.log_path:
+            exit(0)
 
 
 if __name__ == '__main__':

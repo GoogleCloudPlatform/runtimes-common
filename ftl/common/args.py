@@ -116,6 +116,13 @@ def base_parser():
         action='store',
         default=None,
         help='The port to expose for the dockerimage')
+    parser.add_argument(
+        '--log-path',
+        dest='log_path',
+        action='store',
+        default=None,
+        help='The path to store FTL logs')
+
     return parser
 
 

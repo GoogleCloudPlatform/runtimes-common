@@ -22,6 +22,7 @@ import datetime
 
 from ftl.common import constants
 from ftl.common import ftl_util
+from ftl.common import ftl_error
 from ftl.common import single_layer_image
 from ftl.common import tar_to_dockerimage
 
@@ -87,12 +88,27 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
         with ftl_util.Timing("npm_install"):
             if not pkg_descriptor:
-                subprocess.check_call(
-                    ['npm', 'install', '--production'], cwd=app_dir)
+                npm_cmd_args = ['npm', 'install', '--production']
             else:
-                subprocess.check_call(
-                    ['npm', 'install', '--production', pkg_descriptor],
-                    cwd=app_dir)
+                npm_cmd_args = [
+                    'npm', 'install', '--production', pkg_descriptor
+                ]
+            proc_pipe = subprocess.Popen(
+                npm_cmd_args,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=app_dir)
+            stdout, stderr = proc_pipe.communicate()
+            logging.info("`npm install` stdout:\n%s" % stdout)
+            if stderr:
+                err_txt = "`npm install` had error output:\n%s" % stderr
+                raise ftl_error.UserError(err_txt)
+
+            if proc_pipe.returncode:
+                err_txt = "error: `npm install` returned code: %d" % \
+                                proc_pipe.returncode
+                raise ftl_error.UserError(err_txt)
 
         tar_path = tempfile.mktemp(suffix='.tar')
         with ftl_util.Timing('tar_runtime_package'):

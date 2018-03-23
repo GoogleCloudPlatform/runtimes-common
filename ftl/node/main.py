@@ -21,8 +21,8 @@ from containerregistry.tools import patched
 from ftl.common import args
 from ftl.common import logger
 from ftl.common import context
-
 from ftl.common import ftl_util
+from ftl.common import ftl_error
 
 from ftl.node import builder as node_builder
 
@@ -35,15 +35,22 @@ args.extra_args(node_parser, args.node_flgs)
 
 
 def main(cli_args):
-    builder_args = node_parser.parse_args(cli_args)
-    logger.setup_logging(builder_args.verbosity)
-    logger.preamble("node", builder_args)
-    with ftl_util.Timing("full build"):
-        with ftl_util.Timing("builder initialization"):
-            node_ftl = node_builder.Node(
-                context.Workspace(builder_args.directory), builder_args)
-        with ftl_util.Timing("build process for FTL image"):
-            node_ftl.Build()
+    try:
+        builder_args = node_parser.parse_args(cli_args)
+        logger.setup_logging(builder_args)
+        logger.preamble("node", builder_args)
+        with ftl_util.Timing("full build"):
+            with ftl_util.Timing("builder initialization"):
+                node_ftl = node_builder.Node(
+                    context.Workspace(builder_args.directory), builder_args)
+            with ftl_util.Timing("build process for FTL image"):
+                node_ftl.Build()
+    except ftl_error.UserError as u_err:
+        ftl_error.UserErrorHandler(u_err, builder_args.log_path)
+    except ftl_error.InternalError:
+        ftl_error.InternalErrorHandler(builder_args.log_path)
+        if builder_args.log_path:
+            exit(0)
 
 
 if __name__ == '__main__':

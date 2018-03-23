@@ -17,6 +17,7 @@ import unittest
 import constants
 import StringIO
 import logging
+import mock
 
 import ftl_util
 import logger
@@ -24,7 +25,11 @@ import logger
 
 class UtilTest(unittest.TestCase):
     def setUp(self):
-        logger.setup_logging("DEBUG")
+        args = mock.Mock()
+        args.verbosity = "DEBUG"
+        args.log_path = None
+
+        logger.setup_logging(args)
         defaultLogger = logging.getLogger()
 
         self.log_capture_string = StringIO.StringIO()
