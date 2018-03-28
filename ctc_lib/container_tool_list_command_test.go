@@ -93,7 +93,7 @@ func TestContainerToolCommandLogging(t *testing.T) {
 		RunO:       RunListCommand,
 	}
 	testCommand.Flags().StringVarP(&LName, "name", "n", "", "Comma Separated list of Name")
-	testCommand.SetArgs([]string{"--name=John,Jane", "--logLevel=debug"})
+	testCommand.SetArgs([]string{"--name=John,Jane", "--verbosity=debug"})
 	Execute(&testCommand)
 	if len(hook.Entries) != 1 {
 		t.Errorf("Expected 1 Log Entry. Found %v", len(hook.Entries))

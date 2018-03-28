@@ -33,9 +33,11 @@ const (
 	gray    = 37
 )
 
-// This Files Defines a LogFormatter With . This Format used is
+// This Files Defines a LogFormatter With Colors. This Format used is
 //<Level>: <Message>
 
+// Implements Interface Logrus.Formatter
+// https://github.com/sirupsen/logrus/blob/master/formatter.go
 type CTCLogFormatter struct {
 	EnableColors bool
 }

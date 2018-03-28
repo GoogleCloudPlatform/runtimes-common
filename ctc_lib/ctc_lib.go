@@ -20,9 +20,7 @@ package ctc_lib
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
@@ -84,8 +82,7 @@ You can override it via ctc_lib.ConfigFile pkg variable`)
 }
 
 func initLogging() {
-	logging_dir, _ := ioutil.TempDir(viper.GetString("logDir"), toolName)
-	Log = logging.NewLogger(filepath.Join(logging_dir, constants.LogFileName),
+	Log = logging.NewLogger(viper.GetString("logDir"), toolName,
 		flags.Verbosity.Level, flags.EnableColors)
 	Log.SetLevel(flags.Verbosity.Level)
 	Log.AddHook(logging.NewFatalHook(exitOnError))

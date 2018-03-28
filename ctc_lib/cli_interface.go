@@ -19,6 +19,8 @@ package ctc_lib
 import (
 	"fmt"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/logging"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util"
 	"github.com/spf13/cobra"
 )
 
@@ -56,6 +58,13 @@ func ExecuteE(ctb CLIInterface) (err error) {
 
 	//Add empty line as template.Execute does not print an empty line
 	ctb.getCommand().Println()
+	if util.IsDebug(Log.Level) {
+		logFile, ok := logging.GetCurrentFileName(Log)
+		fmt.Println(logFile, ok)
+		if ok {
+			ctb.getCommand().Println("See logs at ", logFile)
+		}
+	}
 	return err
 }
 

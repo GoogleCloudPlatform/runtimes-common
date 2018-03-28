@@ -19,6 +19,8 @@ package util
 import (
 	"io"
 	"text/template"
+
+	"github.com/sirupsen/logrus"
 )
 
 func ExecuteTemplate(templateStr string, obj interface{}, out io.Writer) error {
@@ -27,4 +29,8 @@ func ExecuteTemplate(templateStr string, obj interface{}, out io.Writer) error {
 		return err
 	}
 	return tmpl.Execute(out, obj)
+}
+
+func IsDebug(level logrus.Level) bool {
+	return level == logrus.DebugLevel
 }

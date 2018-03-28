@@ -10,6 +10,7 @@ go_library(
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/logging",
     visibility = ["//visibility:public"],
     deps = [
+        "//ctc_lib/constants:go_default_library",
         "//vendor/github.com/lestrrat-go/file-rotatelogs:go_default_library",
         "//vendor/github.com/sirupsen/logrus:go_default_library",
     ],

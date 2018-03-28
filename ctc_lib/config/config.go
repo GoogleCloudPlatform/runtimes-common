@@ -17,7 +17,6 @@ limitations under the License.
 package config
 
 var DefaultConfig = []byte(`{
-	"logDir": "/var/log",
 	"updateCheck": true
 	}`)
 

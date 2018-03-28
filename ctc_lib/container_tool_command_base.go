@@ -70,7 +70,7 @@ func (ctb *ContainerToolCommandBase) AddFlags() {
 	viper.BindPFlag("updateCheck", ctb.PersistentFlags().Lookup("updateCheck"))
 
 	ctb.PersistentFlags().BoolVar(&flags.EnableColors, "enableColors", true, `Enable Colors when displaying logs to Std Out.`)
-	ctb.PersistentFlags().StringVar(&flags.LogDir, "logDir", "/tmp/", "LogDir")
+	ctb.PersistentFlags().StringVar(&flags.LogDir, "logDir", "", "LogDir")
 	viper.BindPFlag("logDir", ctb.PersistentFlags().Lookup("logDir"))
 }
 

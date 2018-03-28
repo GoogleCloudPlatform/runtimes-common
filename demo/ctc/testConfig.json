@@ -1,5 +1,4 @@
 {
   "updateCheck": "false",
-  "message": "echo",
-  "logDir": "/tmp"
+  "message": "echo"
 }
