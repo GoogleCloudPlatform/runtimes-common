@@ -20,6 +20,7 @@ package ctc_lib
 
 import (
 	"bytes"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -83,9 +84,9 @@ You can override it via ctc_lib.ConfigFile pkg variable`)
 }
 
 func initLogging() {
-	// Init File Logger
-	Log = logging.NewLogger(filepath.Join(viper.GetString("logDir"), toolName))
-	Log.SetLevel(flags.LogLevel.Level)
+	logging_dir, _ := ioutil.TempDir(viper.GetString("logDir"), toolName)
+	Log = logging.NewLogger(filepath.Join(logging_dir, constants.LogFileName),
+		flags.Verbosity.Level, flags.EnableColors)
+	Log.SetLevel(flags.Verbosity.Level)
 	Log.AddHook(logging.NewFatalHook(exitOnError))
-	Log.AddHook(logging.NewStdOutLogHook(flags.AlsoLogToStdOut))
 }

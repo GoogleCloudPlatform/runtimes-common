@@ -30,11 +30,11 @@ type ContainerToolCommandBase struct {
 	DefaultTemplate string
 }
 
-func (ctb *ContainerToolCommandBase) GetCommand() *cobra.Command {
+func (ctb *ContainerToolCommandBase) getCommand() *cobra.Command {
 	return ctb.Command
 }
 
-func (ctb *ContainerToolCommandBase) SetRun(cobraRun func(c *cobra.Command, args []string)) {
+func (ctb *ContainerToolCommandBase) setRun(cobraRun func(c *cobra.Command, args []string)) {
 	ctb.Run = cobraRun
 }
 
@@ -55,21 +55,21 @@ func (ctb *ContainerToolCommandBase) AddSubCommands() {
 
 func (ctb *ContainerToolCommandBase) AddCommand(command CLIInterface) {
 	cobraRun := func(c *cobra.Command, args []string) {
-		command.PrintO(c, args)
+		command.printO(c, args)
 	}
-	command.SetRun(cobraRun)
-	ctb.Command.AddCommand(command.GetCommand())
+	command.setRun(cobraRun)
+	ctb.Command.AddCommand(command.getCommand())
 }
 
 func (ctb *ContainerToolCommandBase) AddFlags() {
 	// Add template Flag
 	ctb.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", constants.EmptyTemplate, "Output format")
-	ctb.PersistentFlags().VarP(types.NewLogLevel(constants.DefaultLogLevel, &flags.LogLevel), "logLevel", "l", "LogLevel")
+	ctb.PersistentFlags().VarP(types.NewLogLevel(constants.DefaultLogLevel, &flags.Verbosity), "verbosity", "v",
+		`verbosity. Logs to File when verbosity is set to Debug. For all other levels Logs to StdOut.`)
 	ctb.PersistentFlags().BoolVarP(&flags.UpdateCheck, "updateCheck", "u", true, "Run Update Check") // TODO Add Update Check logic
 	viper.BindPFlag("updateCheck", ctb.PersistentFlags().Lookup("updateCheck"))
-	// Also Log to StdOut
-	ctb.PersistentFlags().BoolVar(&flags.AlsoLogToStdOut, "alsoLogToStdOut", false, "Also Log to Std Out")
 
+	ctb.PersistentFlags().BoolVar(&flags.EnableColors, "enableColors", true, `Enable Colors when displaying logs to Std Out.`)
 	ctb.PersistentFlags().StringVar(&flags.LogDir, "logDir", "/tmp/", "LogDir")
 	viper.BindPFlag("logDir", ctb.PersistentFlags().Lookup("logDir"))
 }

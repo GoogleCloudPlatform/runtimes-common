@@ -17,25 +17,34 @@ limitations under the License.
 package logging
 
 import (
+	"os"
 	"time"
 
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	log "github.com/sirupsen/logrus"
 )
 
-func NewLogger(path string) *log.Logger {
-	writer, _ := rotatelogs.New(
-		path+".%Y%m%d%H%M",
-		rotatelogs.WithLinkName(path),
-		rotatelogs.WithMaxAge(time.Duration(86400)*time.Second),
-		rotatelogs.WithRotationTime(time.Duration(604800)*time.Second),
-	)
-
+func NewLogger(path string, level log.Level, enableColors bool) *log.Logger {
+	if level == log.DebugLevel {
+		// Log to File when verbosity=debug
+		writer, _ := rotatelogs.New(
+			path+".%Y%m%d%H%M",
+			rotatelogs.WithLinkName(path),
+			rotatelogs.WithMaxAge(time.Duration(86400)*time.Second),
+			rotatelogs.WithRotationTime(time.Duration(86400)*time.Second),
+		)
+		return &log.Logger{
+			Out:       writer,
+			Formatter: new(log.JSONFormatter),
+			Hooks:     make(log.LevelHooks),
+			Level:     log.DebugLevel,
+		}
+	}
 	return &log.Logger{
-		Out:       writer,
-		Formatter: new(log.JSONFormatter),
+		Out:       os.Stderr,
+		Formatter: NewCTCLogFormatter(enableColors),
 		Hooks:     make(log.LevelHooks),
-		Level:     log.DebugLevel, //Also needs to come from Command line.
+		Level:     level,
 	}
 }
 

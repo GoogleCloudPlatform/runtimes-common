@@ -20,3 +20,5 @@ const EmptyTemplate = "{{.}}"
 const DefaultLogLevel = "info"
 
 const ConfigType = "json"
+
+const LogFileName = "debug.log"

@@ -26,22 +26,23 @@ import (
 type ContainerToolCommand struct {
 	*ContainerToolCommandBase
 	Output interface{}
-	RunO   func(command *cobra.Command, args []string) (interface{}, error)
+	// RunO Executes cobra.Command.Run and returns an Output
+	RunO func(command *cobra.Command, args []string) (interface{}, error)
 }
 
-func (ctc *ContainerToolCommand) IsRunODefined() bool {
+func (ctc *ContainerToolCommand) isRunODefined() bool {
 	return ctc.RunO != nil
 }
 
 func (ctc *ContainerToolCommand) ValidateCommand() error {
-	if (ctc.Run != nil || ctc.RunE != nil) && ctc.IsRunODefined() {
+	if (ctc.Run != nil || ctc.RunE != nil) && ctc.isRunODefined() {
 		return errors.New(`Cannot provide both Command.Run and RunO implementation.
 Either implement Command.Run implementation or RunO implemetation`)
 	}
 	return nil
 }
 
-func (ctc *ContainerToolCommand) PrintO(c *cobra.Command, args []string) error {
+func (ctc *ContainerToolCommand) printO(c *cobra.Command, args []string) error {
 	obj, _ := ctc.RunO(c, args)
 	ctc.Output = obj
 	return util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),

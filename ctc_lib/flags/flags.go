@@ -22,9 +22,9 @@ import (
 
 // TemplateString  Stores the template which is applied to command output
 var TemplateString string
-var LogLevel types.LogLevel
+var Verbosity types.LogLevel
 
 var UpdateCheck bool
-var AlsoLogToStdOut bool
 
 var LogDir string
+var EnableColors bool

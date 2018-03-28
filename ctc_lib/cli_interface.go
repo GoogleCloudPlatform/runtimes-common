@@ -23,11 +23,11 @@ import (
 )
 
 type CLIInterface interface {
-	PrintO(c *cobra.Command, args []string) error
-	SetRun(func(c *cobra.Command, args []string))
-	GetCommand() *cobra.Command
+	printO(c *cobra.Command, args []string) error
+	setRun(func(c *cobra.Command, args []string))
+	getCommand() *cobra.Command
 	ValidateCommand() error
-	IsRunODefined() bool
+	isRunODefined() bool
 	Init()
 }
 
@@ -42,20 +42,20 @@ func ExecuteE(ctb CLIInterface) (err error) {
 		return err
 	}
 	ctb.Init()
-	if ctb.IsRunODefined() {
+	if ctb.isRunODefined() {
 		cobraRun := func(c *cobra.Command, args []string) {
-			err = ctb.PrintO(c, args)
+			err = ctb.printO(c, args)
 			if err != nil {
 				Log.Error(err)
 			}
 		}
-		ctb.SetRun(cobraRun)
+		ctb.setRun(cobraRun)
 	}
 
-	err = ctb.GetCommand().Execute()
+	err = ctb.getCommand().Execute()
 
 	//Add empty line as template.Execute does not print an empty line
-	ctb.GetCommand().Println()
+	ctb.getCommand().Println()
 	return err
 }
 
