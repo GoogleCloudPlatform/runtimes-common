@@ -33,6 +33,15 @@ const (
 	gray    = 37
 )
 
+var LevelColorMap map[log.Level]int = map[log.Level]int{
+	log.DebugLevel: gray,
+	log.ErrorLevel: red,
+	log.FatalLevel: red,
+	log.PanicLevel: red,
+	log.WarnLevel:  yellow,
+	log.InfoLevel:  green,
+}
+
 // This Files Defines a LogFormatter With Colors. This Format used is
 //<Level>: <Message>
 
@@ -79,16 +88,10 @@ func (f *CTCLogFormatter) getColor(entry *log.Entry) int {
 	if !f.EnableColors {
 		return nocolor
 	}
-	switch entry.Level {
-	case log.DebugLevel:
-		return gray
-	case log.WarnLevel:
-		return yellow
-	case log.ErrorLevel, log.FatalLevel, log.PanicLevel:
-		return red
-	default:
-		return green
+	if color, ok := LevelColorMap[entry.Level]; ok {
+		return color
 	}
+	return green
 }
 
 func (f *CTCLogFormatter) appendKeyValue(b *bytes.Buffer, key string, value interface{}) {
