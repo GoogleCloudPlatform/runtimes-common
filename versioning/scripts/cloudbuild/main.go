@@ -138,7 +138,7 @@ timeout: {{ .TimeoutSeconds }}s
 
 {{- if $parallel }}
 options:
-  machineType: 'N1_HIGHCPU_32'
+  machineType: 'N1_HIGHCPU_8'
 {{- end }}
 `
 
