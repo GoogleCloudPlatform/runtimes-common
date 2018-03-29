@@ -24,7 +24,6 @@ import (
 
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
-	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/logging"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -38,8 +37,6 @@ var ConfigType = constants.ConfigType
 var UpdateCheck bool
 
 var Log *log.Logger
-
-var toolName string
 
 func SetExitOnError(value bool) {
 	exitOnError = value
@@ -79,11 +76,4 @@ You can override it via ctc_lib.ConfigFile pkg variable`)
 		logging.Out.Warningf("Error reading config file at %s: %s. Using Defaults", ConfigFile, err)
 		readDefaultConfig()
 	}
-}
-
-func initLogging() {
-	Log = logging.NewLogger(viper.GetString("logDir"), toolName,
-		flags.Verbosity.Level, flags.EnableColors)
-	Log.SetLevel(flags.Verbosity.Level)
-	Log.AddHook(logging.NewFatalHook(exitOnError))
 }

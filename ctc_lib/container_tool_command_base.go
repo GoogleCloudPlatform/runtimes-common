@@ -19,6 +19,7 @@ package ctc_lib
 import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/logging"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,10 +40,20 @@ func (ctb *ContainerToolCommandBase) setRun(cobraRun func(c *cobra.Command, args
 }
 
 func (ctb *ContainerToolCommandBase) Init() {
-	toolName = ctb.Name()
-	cobra.OnInitialize(initConfig, initLogging)
+	cobra.OnInitialize(initConfig, ctb.initLogging)
 	ctb.AddFlags()
 	ctb.AddSubCommands()
+}
+
+func (ctb *ContainerToolCommandBase) initLogging() {
+	Log = logging.NewLogger(
+		viper.GetString("logDir"), // This is changed to constants in upcoming PR
+		ctb.Name(),
+		flags.Verbosity.Level,
+		flags.EnableColors,
+	)
+	Log.SetLevel(flags.Verbosity.Level)
+	Log.AddHook(logging.NewFatalHook(exitOnError))
 }
 
 func (ctb *ContainerToolCommandBase) AddSubCommands() {

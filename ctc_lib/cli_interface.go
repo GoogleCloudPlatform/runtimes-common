@@ -60,7 +60,6 @@ func ExecuteE(ctb CLIInterface) (err error) {
 	ctb.getCommand().Println()
 	if util.IsDebug(Log.Level) {
 		logFile, ok := logging.GetCurrentFileName(Log)
-		fmt.Println(logFile, ok)
 		if ok {
 			ctb.getCommand().Println("See logs at ", logFile)
 		}
