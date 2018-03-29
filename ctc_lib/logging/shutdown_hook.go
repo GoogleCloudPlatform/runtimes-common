@@ -14,33 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package ctc_lib
+package logging
 
 import (
 	"fmt"
-	"io"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 )
 
 // Hook which exits when Log.Panic and Log.Fatal is Called
 type FatalHook struct {
-	writer io.Writer
+	exitOnError bool
 }
 
-func NewFatalHook(writer io.Writer) *FatalHook {
-	return &FatalHook{
-		writer: writer,
-	}
+func NewFatalHook(exitOnError bool) *FatalHook {
+	return &FatalHook{exitOnError: exitOnError}
 }
 
 func (hook *FatalHook) Fire(entry *log.Entry) error {
-	switch entry.Level {
-	case log.PanicLevel:
-		CommandExit(fmt.Errorf(entry.Message))
-	case log.FatalLevel:
-		CommandExit(fmt.Errorf(entry.Message))
-		log.Warn("Avoid using Log.Fatal. Consider Log.Panic instead to exit gracefully")
+	Out.Error(fmt.Errorf(entry.Message))
+	if hook.exitOnError {
+		os.Exit(1)
 	}
 	return nil
 }

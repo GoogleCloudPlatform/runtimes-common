@@ -18,7 +18,9 @@ package cmd
 
 import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type RootCommandOutput struct {
@@ -33,23 +35,30 @@ var RootCommand = &ctc_lib.ContainerToolCommand{
 			Use:   "echo",
 			Short: "Echo's Message",
 		},
-		Phase: "test",
+		Phase:           "test",
+		DefaultTemplate: "{{.Message}}",
 	},
 	Output: &RootCommandOutput{},
 	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
 		// An Example of Logging.
-		ctc_lib.Log.Info("You are running echo command")
+		ctc_lib.Log.WithFields(log.Fields{
+			"message": viper.GetString("message"),
+		}).Info("You are running echo command with following values ")
 		return RootCommandOutput{
-			Message: Message,
+			Message: viper.GetString("message"),
 		}, nil
 	},
 }
 
 func Execute() {
 	ctc_lib.Version = "1.0.1"
+	ctc_lib.ConfigFile = "demo/ctc/testConfig.json"
 	ctc_lib.Execute(RootCommand)
 }
 
 func init() {
-	RootCommand.Flags().StringVarP(&Message, "message", "m", "text", "Message to Echo")
+	RootCommand.Flags().StringVarP(&Message, "message", "m", "YOUR TEXT TO ECHO", "Message to Echo")
+	//Add Subcommand using AddCommand.
+	RootCommand.AddCommand(PanicCommand)
+	viper.BindPFlag("message", RootCommand.Flags().Lookup("message"))
 }
