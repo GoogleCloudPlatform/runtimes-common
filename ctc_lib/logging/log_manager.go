@@ -38,7 +38,9 @@ func NewLogger(dir string, prefix string, level log.Level, enableColors bool) *l
 		writer, err := rotatelogs.New(
 			path+".%Y%m%d%H%M",
 			rotatelogs.WithLinkName(path),
+			// TODO: Create Constants for these.
 			rotatelogs.WithMaxAge(time.Duration(86400)*time.Second),
+			// TODO: Define this constants from Config.
 			rotatelogs.WithRotationTime(time.Duration(86400)*time.Second),
 		)
 		if err != nil {
