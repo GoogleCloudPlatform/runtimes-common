@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -40,8 +41,9 @@ var RootCommand = &ctc_lib.ContainerToolCommand{
 	Output: &RootCommandOutput{},
 	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
 		// An Example of Logging.
-		ctc_lib.Log.Info("You are running echo command with message ",
-			viper.GetString("message"))
+		ctc_lib.Log.WithFields(log.Fields{
+			"message": viper.GetString("message"),
+		}).Info("You are running echo command with following values ")
 		return RootCommandOutput{
 			Message: viper.GetString("message"),
 		}, nil

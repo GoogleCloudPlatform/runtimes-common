@@ -59,10 +59,6 @@ func NewCTCLogFormatter(enableColors bool) *CTCLogFormatter {
 
 func (f *CTCLogFormatter) Format(entry *log.Entry) ([]byte, error) {
 	var b *bytes.Buffer
-	keys := make([]string, 0, len(entry.Data))
-	for k := range entry.Data {
-		keys = append(keys, k)
-	}
 
 	if entry.Buffer != nil {
 		b = entry.Buffer
@@ -74,12 +70,10 @@ func (f *CTCLogFormatter) Format(entry *log.Entry) ([]byte, error) {
 	if entry.Message != "" {
 		fmt.Fprintf(b, "\x1b[%dm%s:\x1b[0m %-44s ", levelColor, levelText, entry.Message)
 	}
-	for _, k := range keys {
-		v := entry.Data[k]
-		fmt.Fprintf(b, " \x1b[%dm%s\x1b[0m=", levelColor, k)
-		f.appendValue(b, v)
+	dataBytes := f.getKeyValueBytes(entry)
+	if len(dataBytes.String()) > 0 {
+		fmt.Fprintf(b, "\n{%v\n}", dataBytes.String())
 	}
-
 	b.WriteByte('\n')
 	return b.Bytes(), nil
 }
@@ -94,19 +88,10 @@ func (f *CTCLogFormatter) getColor(entry *log.Entry) int {
 	return green
 }
 
-func (f *CTCLogFormatter) appendKeyValue(b *bytes.Buffer, key string, value interface{}) {
-	if b.Len() > 0 {
-		b.WriteByte(' ')
+func (f *CTCLogFormatter) getKeyValueBytes(entry *log.Entry) *bytes.Buffer {
+	b := &bytes.Buffer{}
+	for k, v := range entry.Data {
+		fmt.Fprintf(b, "\n\t%s\x1b[0m=%s,", k, v)
 	}
-	b.WriteString(key)
-	b.WriteByte('=')
-	f.appendValue(b, value)
-}
-
-func (f *CTCLogFormatter) appendValue(b *bytes.Buffer, value interface{}) {
-	stringVal, ok := value.(string)
-	if !ok {
-		stringVal = fmt.Sprint(value)
-	}
-	b.WriteString(stringVal)
+	return b
 }
