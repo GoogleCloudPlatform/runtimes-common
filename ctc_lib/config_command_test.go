@@ -46,9 +46,9 @@ func TestConfigCommandGet(t *testing.T) {
 	Execute(&testConfigCommand)
 	expectedConfig := &ConfigOutput{
 		Config: map[string]interface{}{
-			"message":     "echo", // Make sure user defined config are also returned
-			"updatecheck": "true", // inhertited from the Default Config
-			"logdir":      "/tmp", // This overrides the default Config
+			"message":      "echo", // Make sure user defined config are also returned
+			"update_check": "true", // inhertited from the Default Config
+			"logdir":       "/tmp", // This overrides the default Config
 		},
 	}
 	if reflect.DeepEqual(ConfigCommand.Output, expectedConfig) {

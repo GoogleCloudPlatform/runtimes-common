@@ -18,6 +18,8 @@ package util
 
 import (
 	"io"
+	"os"
+	"path/filepath"
 	"text/template"
 
 	"github.com/sirupsen/logrus"
@@ -33,4 +35,13 @@ func ExecuteTemplate(templateStr string, obj interface{}, out io.Writer) error {
 
 func IsDebug(level logrus.Level) bool {
 	return level == logrus.DebugLevel
+}
+
+func GetToolTempDirOrDefault(tmpDir string, toolName string) string {
+	if tmpDir == "" {
+		tmpDir = os.TempDir()
+	}
+	toolTmpDir := filepath.Join(tmpDir, toolName)
+	os.Mkdir(toolTmpDir, 0700)
+	return toolTmpDir
 }

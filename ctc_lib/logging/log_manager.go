@@ -17,31 +17,26 @@ limitations under the License.
 package logging
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	log "github.com/sirupsen/logrus"
 )
 
-func NewLogger(dir string, prefix string, level log.Level, enableColors bool) *log.Logger {
+func NewLogger(dir string, toolName string, level log.Level, enableColors bool) *log.Logger {
 	if level == log.DebugLevel {
 		// Log to File when verbosity=debug
-		logging_dir, err := ioutil.TempDir(dir, prefix)
-		if err != nil {
-			return handleFileLoggingError(err, level, enableColors)
-		}
+		logging_dir := util.GetToolTempDirOrDefault(dir, toolName)
 		path := filepath.Join(logging_dir, constants.LogFileName)
 		writer, err := rotatelogs.New(
 			path+".%Y%m%d%H%M",
 			rotatelogs.WithLinkName(path),
-			// TODO: Create Constants for these.
-			rotatelogs.WithMaxAge(time.Duration(86400)*time.Second),
-			// TODO: Define this constants from Config.
-			rotatelogs.WithRotationTime(time.Duration(86400)*time.Second),
+			rotatelogs.WithMaxAge(constants.DayInSeconds*time.Second),
+			rotatelogs.WithRotationTime(constants.DayInSeconds*time.Second),
 		)
 		if err != nil {
 			return handleFileLoggingError(err, level, enableColors)
@@ -76,5 +71,13 @@ func GetCurrentFileName(l *log.Logger) (string, bool) {
 }
 
 // Define Explicit StdOut Loggers which can be used to always print to StdOut.
-// This can also add other functionalilty like colored output etc.
 var Out = log.New()
+
+func InitStdOutLogger(enableColors bool, level log.Level) {
+	Out = &log.Logger{
+		Out:       os.Stderr,
+		Formatter: NewCTCLogFormatter(enableColors),
+		Hooks:     make(log.LevelHooks),
+		Level:     level,
+	}
+}

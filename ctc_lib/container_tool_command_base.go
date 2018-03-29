@@ -40,6 +40,10 @@ func (ctb *ContainerToolCommandBase) setRun(cobraRun func(c *cobra.Command, args
 	ctb.Run = cobraRun
 }
 
+func (ctb *ContainerToolCommandBase) toolName() string {
+	return ctb.Name()
+}
+
 func (ctb *ContainerToolCommandBase) Init() {
 	cobra.OnInitialize(initConfig, ctb.initLogging)
 	ctb.AddFlags()
@@ -62,6 +66,7 @@ func (ctb *ContainerToolCommandBase) AddSubCommands() {
 	ctb.AddCommand(VersionCommand)
 	ConfigCommand.Command.AddCommand(SetConfigCommand)
 	ctb.AddCommand(ConfigCommand)
+	ctb.AddCommand(UpdateCheckCommand)
 
 	// Set up Root Command
 	ctb.Command.SetHelpTemplate(HelpTemplate)
@@ -80,7 +85,7 @@ func (ctb *ContainerToolCommandBase) AddFlags() {
 	ctb.PersistentFlags().StringVarP(&flags.TemplateString, "template", "t", constants.EmptyTemplate, "Output format")
 	ctb.PersistentFlags().VarP(types.NewLogLevel(constants.DefaultLogLevel, &flags.Verbosity), "verbosity", "v",
 		`verbosity. Logs to File when verbosity is set to Debug. For all other levels Logs to StdOut.`)
-	ctb.PersistentFlags().BoolVarP(&flags.UpdateCheck, "updateCheck", "u", true, "Run Update Check") // TODO Add Update Check logic
+	ctb.PersistentFlags().BoolVarP(&flags.UpdateCheck, "updateCheck", "u", true, "Run Update Check")
 	viper.BindPFlag("updateCheck", ctb.PersistentFlags().Lookup("updateCheck"))
 
 	ctb.PersistentFlags().BoolVar(&flags.EnableColors, "enableColors", true, `Enable Colors when displaying logs to Std Out.`)

@@ -53,6 +53,7 @@ var RootCommand = &ctc_lib.ContainerToolCommand{
 func Execute() {
 	ctc_lib.Version = "1.0.1"
 	ctc_lib.ConfigFile = "demo/ctc/testConfig.json"
+	ctc_lib.ReleaseUrl = "https://raw.githubusercontent.com/tejal29/runtimes-common/add_update_check_logic/demo/ctc/releases.json"
 	ctc_lib.Execute(RootCommand)
 }
 

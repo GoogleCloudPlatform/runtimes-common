@@ -33,6 +33,8 @@ var exitOnError = true
 var Version string
 var ConfigFile string
 var ConfigType = constants.ConfigType
+var ReleaseUrl string
+var VersionPrefix = ""
 
 var UpdateCheck bool
 
@@ -61,19 +63,20 @@ func readDefaultConfig() {
 }
 
 func initConfig() {
+	// Load Default Config
+	readDefaultConfig()
 	if ConfigFile == "" {
 		logging.Out.Debugf(`No Config provided. Using Tools Defaults.
 You can override it via ctc_lib.ConfigFile pkg variable`)
-		readDefaultConfig()
 		return
 	}
 
 	viper.SetConfigFile(ConfigFile)
 	viper.SetConfigType(ConfigType)
-
-	err := viper.ReadInConfig()
+	// Merge Defined Config with Defaults. The Defaults will be overriden with
+	// settings from ConfigFile.
+	err := viper.MergeInConfig()
 	if err != nil {
 		logging.Out.Warningf("Error reading config file at %s: %s. Using Defaults", ConfigFile, err)
-		readDefaultConfig()
 	}
 }

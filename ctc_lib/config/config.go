@@ -18,16 +18,21 @@ package config
 
 import (
 	"fmt"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
 )
 
 var DefaultConfig = []byte(fmt.Sprintf(`{
 	"%s": true,
-	}`, UpdateCheckConfigKey))
+	"%s": %d
+	}`, UpdateCheckConfigKey, UpdateCheckIntervalInSecs, constants.DayInSeconds))
 
 var DefaultConfigType = "json"
 
 // All Keys are Lower case since Viper converts them to lower case after reading.
 const (
-	UpdateCheckConfigKey = "updatecheck"
-	LogDirConfigKey      = "logdir"
+	UpdateCheckConfigKey      = "updatecheck"
+	LogDirConfigKey           = "logdir"
+	UpdateCheckIntervalInSecs = "update_check_interval_in_secs"
+	TmpDirKey                 = "tmpdir"
 )

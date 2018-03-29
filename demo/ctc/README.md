@@ -32,8 +32,8 @@ Use "echo [command] --help" for more information about a command.
 ```
 * Run echo with command args
 ``` shell
-bazel run demo/ctc:ctc_demo --  --message=ping
-INFO: Running command line: bazel-bin/demo/ctc/linux_amd64_stripped/ctc_demo '--message=ping'
+bazel run demo/ctc:ctc_demo --  --message=ping --alsoLogToStdOut
+INFO: You are running echo command with message ping
 ping
 ```
 
@@ -45,15 +45,13 @@ You can check the logs at
 * Run Version Command.
 ```shell
 bazel run demo/ctc:ctc_demo --  version
-INFO: Running command line: bazel-bin/demo/ctc/linux_amd64_stripped/ctc_demo version
 1.0.1
 ```
 
-* Run panic Subcommand with --alsoLogToStdOut
+* Run panic Subcommand
 ```shell
-bazel run demo/ctc:ctc_demo --  panic --alsoLogToStdOut
-INFO: Running command line: bazel-bin/demo/ctc/linux_amd64_stripped/ctc_demo panic --alsoLogToStdOut
-time="2018-03-20T15:15:53-07:00" level=error msg="Oh you called Panic"
+bazel run demo/ctc:ctc_demo --  panic
+ERROR: Oh you called Panic
 ERROR: Non-zero return code '1' from command: Process exited with status 1
 ```
 
@@ -74,7 +72,7 @@ $cat demo/ctc/testConfig.json
 {
   "logdir": "/tmp",
   "message": "hi",
-  "updatecheck": "false"
+  "update_check": "false"
 }
 ```
 

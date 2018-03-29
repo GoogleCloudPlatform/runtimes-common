@@ -34,7 +34,7 @@ var VersionCommand = &ContainerToolCommand{
 	Output: &VersionOutput{},
 	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
 		var versionOutput = VersionOutput{
-			Version: Version,
+			Version: VersionPrefix + Version,
 		}
 		return versionOutput, nil
 	},
