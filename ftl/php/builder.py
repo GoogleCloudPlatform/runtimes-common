@@ -40,11 +40,23 @@ class PHP(builder.RuntimeBase):
             pkgs.append((k, v))
         return pkgs
 
+    def _parse_composer_lock_pkgs(self):
+        descriptor_contents = ftl_util.descriptor_parser(
+            self._descriptor_files, self._ctx)
+        composer_lock_json = json.loads(descriptor_contents)
+        pkgs = []
+        for pkg in composer_lock_json['packages']:
+            pkgs.append((pkg['name'], pkg['version']))
+        return pkgs
+
     def Build(self):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
-            pkgs = self._parse_composer_pkgs()
+            if self._ctx.Contains(_COMPOSER_LOCK):
+                pkgs = self._parse_composer_lock_pkgs()
+            else:
+                pkgs = self._parse_composer_pkgs()
             # due to image layers limits, we revert to using phase 1 if over
             # the threshold
             if len(pkgs) > 41:
