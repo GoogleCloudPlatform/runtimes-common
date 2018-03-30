@@ -76,10 +76,10 @@ func ExecuteE(ctb CLIInterface) (err error) {
 		"last_updated_check_file": lastUpdatedCheckFilePath,
 		"update_interval_in_sec":  viper.GetFloat64(config.UpdateCheckIntervalInSecs),
 	}).Debug("Checking if Update Check is required")
-	if notify.ShouldCheckURLVersion(lastUpdatedCheckFilePath) {
+	if notify.ShouldCheckURLVersion(lastUpdatedCheckFilePath) && ReleaseUrl != "" {
 		// Calling UpdateCheckCommand Explicitly. Hence no need to pass args.
 		Log.Debug("Running Update Check Command")
-		UpdateCheckCommand.Run(nil, nil)
+		UpdateCheckCommand.Run(ctb.getCommand(), nil)
 		notify.WriteTimeToFile(lastUpdatedCheckFilePath, time.Now().UTC())
 	}
 

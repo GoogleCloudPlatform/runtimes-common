@@ -33,7 +33,7 @@ var exitOnError = true
 var Version string
 var ConfigFile string
 var ConfigType = constants.ConfigType
-var ReleaseUrl string
+var ReleaseUrl = ""
 var VersionPrefix = ""
 
 var UpdateCheck bool

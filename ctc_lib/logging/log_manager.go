@@ -57,6 +57,7 @@ func handleFileLoggingError(err error, level log.Level, enableColors bool) *log.
 Falling back to StdOut Logging`, err)
 	return logger
 }
+
 func getStdOutLogger(level log.Level, enableColors bool) *log.Logger {
 	return &log.Logger{
 		Out:       os.Stderr,
@@ -65,6 +66,7 @@ func getStdOutLogger(level log.Level, enableColors bool) *log.Logger {
 		Level:     level,
 	}
 }
+
 func GetCurrentFileName(l *log.Logger) (string, bool) {
 	rl, ok := l.Out.(*rotatelogs.RotateLogs)
 	return rl.CurrentFileName(), ok

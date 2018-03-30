@@ -59,6 +59,7 @@ func (ctb *ContainerToolCommandBase) initLogging() {
 	)
 	Log.SetLevel(flags.Verbosity.Level)
 	Log.AddHook(logging.NewFatalHook(exitOnError))
+	logging.InitStdOutLogger(flags.EnableColors, flags.Verbosity.Level)
 }
 
 func (ctb *ContainerToolCommandBase) AddSubCommands() {

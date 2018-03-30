@@ -56,6 +56,7 @@ Download it here: {{.DownloadUrl}}{{end}}`,
 			LatestVersion:  latestVersion,
 			DownloadUrl:    ReleaseUrl,
 		}
+
 		return updateCheck, nil
 	},
 }
