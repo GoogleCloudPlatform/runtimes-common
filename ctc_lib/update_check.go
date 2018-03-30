@@ -28,7 +28,7 @@ type UpdateCheckOutput struct {
 var UpdateCheckCommand = &ContainerToolCommand{
 	ContainerToolCommandBase: &ContainerToolCommandBase{
 		Command: &cobra.Command{
-			Use:   "updateCheck",
+			Use:   "updatecheck",
 			Short: "Checks if an update is available",
 			Long:  `Checks if an update is available.`,
 			Args:  cobra.ExactArgs(0),
@@ -41,7 +41,7 @@ Download it here: {{.DownloadUrl}}{{end}}`,
 	Output: &UpdateCheckOutput{},
 	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
 		if ReleaseUrl == "" {
-			Log.Panicf("No ReleaseUrl defined for %s. Cannot Check for Updates.", command.Name())
+			Log.Panicf("No ReleaseUrl defined. Cannot Check for Updates.")
 		}
 		latestVersion, err := notify.GetLatestVersionFromURL(ReleaseUrl, VersionPrefix)
 		if err != nil {
@@ -54,9 +54,8 @@ Download it here: {{.DownloadUrl}}{{end}}`,
 		var updateCheck = UpdateCheckOutput{
 			CurrentVersion: currentVersion,
 			LatestVersion:  latestVersion,
-			DownloadUrl:    ReleaseUrl,
+			DownloadUrl:    DownloadUrl,
 		}
-
 		return updateCheck, nil
 	},
 }

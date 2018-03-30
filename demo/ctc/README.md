@@ -76,4 +76,32 @@ $cat demo/ctc/testConfig.json
 }
 ```
 
+* Provide Periodic Update Checks.
+The Container Tools CommandLine Library you can set up periodic updates for you tools.
+
+In order to do this,
+1. Point ctc_lib.ReleaseUrl varaible to an url whcih lists all your current releases.
+e.g. https://storage.googleapis.com/minikube/releases.json
+2. Point ctc_lib.DownloadUrl to link where all the downloads for your tool are available.
+3. By default the update interval is set to a day. You can override it by
+```shell
+import "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/config"
+viper.SetConfig(config.UpdateCheckIntervalInSecs, <new value>)
+```
+
+You can turn off periodic updates by setting the config "updatecheck" to false.
+```shell
+import "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/config"
+viper.SetConfig(config.UpdateCheckConfigKey, false)
+```
+
+To check for Updates manually, the Container Tools CommandLine provides updatecheck command.
+This command will force check for new updates irrespective of the "updatecheck"
+config key value.
+```shell
+bazel run demo/ctc:ctc_demo  -- updatecheck
+You are at the latest Version.
+No updates Available.
+
+```
 

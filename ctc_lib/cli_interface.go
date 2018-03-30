@@ -68,6 +68,7 @@ func ExecuteE(ctb CLIInterface) (err error) {
 	ctb.getCommand().Println()
 
 	// Run Update Command to see if Updates are available.
+
 	lastUpdatedCheckFilePath := filepath.Join(
 		util.GetToolTempDirOrDefault(viper.GetString(config.TmpDirKey), ctb.toolName()),
 		constants.LastUpdatedCheckFileName)

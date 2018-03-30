@@ -34,6 +34,7 @@ var Version string
 var ConfigFile string
 var ConfigType = constants.ConfigType
 var ReleaseUrl = ""
+var DownloadUrl = ""
 var VersionPrefix = ""
 
 var UpdateCheck bool
