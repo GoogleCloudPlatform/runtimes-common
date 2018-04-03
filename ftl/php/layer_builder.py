@@ -25,27 +25,19 @@ from ftl.common import single_layer_image
 from ftl.common import tar_to_dockerimage
 
 
-class LayerBuilder(single_layer_image.CacheableLayerBuilder):
+class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def __init__(self,
                  ctx=None,
                  descriptor_files=None,
-                 pkg_descriptor=None,
                  destination_path=constants.DEFAULT_DESTINATION_PATH,
                  cache=None):
-        super(LayerBuilder, self).__init__()
+        super(PhaseOneLayerBuilder, self).__init__()
         self._ctx = ctx
         self._descriptor_files = descriptor_files
-        self._pkg_descriptor = pkg_descriptor
         self._destination_path = destination_path
         self._cache = cache
 
     def GetCacheKeyRaw(self):
-        if self._pkg_descriptor:
-            # phase 2 cache key
-            return "%s %s %s" % (self._pkg_descriptor[0],
-                                 self._pkg_descriptor[1],
-                                 self._destination_path)
-        # phase 1 cache key
         return "%s %s" % (
             ftl_util.descriptor_parser(self._descriptor_files, self._ctx),
             self._destination_path)
@@ -68,60 +60,88 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
-        blob, u_blob = self._gen_composer_install_tar(self._pkg_descriptor,
-                                                      self._destination_path)
+        blob, u_blob = self._gen_composer_install_tar(self._destination_path)
         overrides_dct = {'created': str(datetime.date.today()) + 'T00:00:00Z'}
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                    overrides_dct)
 
-    def _gen_composer_install_tar(self, pkg_descriptor, destination_path):
+    def _gen_composer_install_tar(self, destination_path):
         # Create temp directory to write package descriptor to
         pkg_dir = tempfile.mkdtemp()
         app_dir = os.path.join(pkg_dir, destination_path.strip("/"))
         os.makedirs(app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
-        if not pkg_descriptor:
-            # phase 1 copy whole descriptor
-            ftl_util.descriptor_copy(self._ctx, self._descriptor_files,
-                                     app_dir)
+        ftl_util.descriptor_copy(self._ctx, self._descriptor_files, app_dir)
 
         subprocess.check_call(['rm', '-rf', os.path.join(app_dir, 'vendor')])
 
         with ftl_util.Timing('Composer_install'):
-            if not pkg_descriptor:
-                # phase 1 install entire descriptor
-                subprocess.check_call(
-                    ['composer', 'install', '--no-dev', '--no-scripts'],
-                    cwd=app_dir)
-            else:
-                pkg, version = pkg_descriptor
-                subprocess.check_call(
-                    ['composer', 'require',
-                     str(pkg), str(version)],
-                    cwd=app_dir)
+            subprocess.check_call(
+                ['composer', 'install', '--no-dev', '--no-scripts'],
+                cwd=app_dir)
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 
     def _log_cache_result(self, hit):
-        if self._pkg_descriptor:
-            if hit:
-                cache_str = constants.PHASE_2_CACHE_HIT
-            else:
-                cache_str = constants.PHASE_2_CACHE_MISS
-            logging.info(
-                cache_str.format(
-                    key_version=constants.CACHE_KEY_VERSION,
-                    language='PHP',
-                    package_name=self._pkg_descriptor[0],
-                    package_version=self._pkg_descriptor[1],
-                    key=self.GetCacheKey()))
+        if hit:
+            cache_str = constants.PHASE_1_CACHE_HIT
         else:
-            if hit:
-                cache_str = constants.PHASE_1_CACHE_HIT
-            else:
-                cache_str = constants.PHASE_1_CACHE_MISS
-            logging.info(
-                cache_str.format(
-                    key_version=constants.CACHE_KEY_VERSION,
-                    language='PHP',
-                    key=self.GetCacheKey()))
+            cache_str = constants.PHASE_1_CACHE_MISS
+        logging.info(
+            cache_str.format(
+                key_version=constants.CACHE_KEY_VERSION,
+                language='PHP',
+                key=self.GetCacheKey()))
+
+
+class PhaseTwoLayerBuilder(PhaseOneLayerBuilder):
+    def __init__(self,
+                 ctx=None,
+                 descriptor_files=None,
+                 destination_path=constants.DEFAULT_DESTINATION_PATH,
+                 cache=None,
+                 pkg_descriptor=None):
+        super(PhaseTwoLayerBuilder, self).__init__()
+        self._ctx = ctx
+        self._descriptor_files = descriptor_files
+        self._pkg_descriptor = pkg_descriptor
+        self._destination_path = destination_path
+        self._cache = cache
+
+    def GetCacheKeyRaw(self):
+        return "%s %s %s" % (self._pkg_descriptor[0], self._pkg_descriptor[1],
+                             self._destination_path)
+
+    def _build_layer(self):
+        blob, u_blob = self._gen_composer_install_tar(self._destination_path,
+                                                      self._pkg_descriptor)
+        overrides_dct = {'created': str(datetime.date.today()) + 'T00:00:00Z'}
+        self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
+                                                   overrides_dct)
+
+    def _gen_composer_install_tar(self, destination_path, pkg_descriptor):
+        # Create temp directory to write package descriptor to
+        pkg_dir = tempfile.mkdtemp()
+        app_dir = os.path.join(pkg_dir, destination_path.strip("/"))
+        os.makedirs(app_dir)
+        subprocess.check_call(['rm', '-rf', os.path.join(app_dir, 'vendor')])
+
+        with ftl_util.Timing('Composer_install'):
+            pkg, version = pkg_descriptor
+            subprocess.check_call(
+                ['composer', 'require',
+                 str(pkg), str(version)], cwd=app_dir)
+        return ftl_util.zip_dir_to_layer_sha(pkg_dir)
+
+    def _log_cache_result(self, hit):
+        if hit:
+            cache_str = constants.PHASE_2_CACHE_HIT
+        else:
+            cache_str = constants.PHASE_2_CACHE_MISS
+        logging.info(
+            cache_str.format(
+                key_version=constants.CACHE_KEY_VERSION,
+                language='PHP',
+                package_name=self._pkg_descriptor[0],
+                package_version=self._pkg_descriptor[1],
+                key=self.GetCacheKey()))

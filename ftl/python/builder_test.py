@@ -18,6 +18,7 @@ import mock
 import json
 
 from ftl.common import context
+from ftl.common import constants
 from ftl.common import ftl_util
 from ftl.python import builder
 from ftl.python import layer_builder
@@ -57,8 +58,12 @@ class PythonTest(unittest.TestCase):
         args.venv_cmd = 'virtualenv'
         args.tar_base_image_path = None
         self.builder = builder.Python(self.ctx, args)
+
+        # constants.VENV_DIR.replace('/', '') is used as the default path
+        # will give permissions errors in some build environments (eg: kokoro)
         self.interpreter_builder = layer_builder.InterpreterLayerBuilder(
-            self.builder._venv_dir, self.builder._python_cmd,
+            ftl_util.gen_tmp_dir(constants.VENV_DIR.replace('/', '')),
+            self.builder._python_cmd,
             self.builder._venv_cmd)
         self.interpreter_builder._setup_venv = mock.Mock()
         self.builder._pip_install = mock.Mock()

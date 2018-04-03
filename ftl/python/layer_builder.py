@@ -334,8 +334,17 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
     def _build_layer(self):
         self._setup_venv()
-        blob, u_blob = ftl_util.zip_dir_to_layer_sha(
-            os.path.abspath(os.path.join(self._venv_dir, os.pardir)))
+
+        tar_path = tempfile.mktemp(suffix='.tar')
+        with ftl_util.Timing('tar_runtime_package'):
+            subprocess.check_call(['tar', '-cf', tar_path, self._venv_dir])
+
+        u_blob = open(tar_path, 'r').read()
+        # We use gzip for performance instead of python's zip.
+        with ftl_util.Timing('gzip_runtime_tar'):
+            subprocess.check_call(['gzip', tar_path, '-1'])
+        blob = open(os.path.join(tar_path + '.gz'), 'rb').read()
+
         overrides = ftl_util.generate_overrides(True)
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
 

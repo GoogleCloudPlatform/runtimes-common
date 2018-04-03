@@ -22,6 +22,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/spf13/cobra"
 )
 
@@ -32,7 +33,7 @@ type TestListOutput struct {
 var LName string
 
 func RunListCommand(command *cobra.Command, args []string) ([]interface{}, error) {
-	fmt.Println("Running Hello World Command")
+	Log.Debug("Running Hello World Command")
 	var testOutputs []TestListOutput
 	for _, name := range strings.Split(LName, ",") {
 		testOutputs = append(testOutputs, TestListOutput{
@@ -72,5 +73,62 @@ func TestContainerToolCommandListOutput(t *testing.T) {
 	}
 	if !reflect.DeepEqual(s, testCommand.OutputList) {
 		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", s, testCommand.OutputList)
+	}
+}
+
+func TestContainerToolCommandLogging(t *testing.T) {
+	var hook *test.Hook
+	testCommand := ContainerToolListCommand{
+		ContainerToolCommandBase: &ContainerToolCommandBase{
+			Command: &cobra.Command{
+				Use: "Hello Command",
+				PersistentPreRun: func(c *cobra.Command, args []string) {
+					_, hook = test.NewNullLogger()
+					Log.AddHook(hook)
+				},
+			},
+			Phase: "test",
+		},
+		OutputList: make([]interface{}, 0),
+		RunO:       RunListCommand,
+	}
+	testCommand.Flags().StringVarP(&LName, "name", "n", "", "Comma Separated list of Name")
+	testCommand.SetArgs([]string{"--name=John,Jane", "--verbosity=debug"})
+	Execute(&testCommand)
+	if len(hook.Entries) != 1 {
+		t.Errorf("Expected 1 Log Entry. Found %v", len(hook.Entries))
+	}
+	for _, v := range hook.AllEntries() {
+		fmt.Println(v.Message)
+	}
+	if hook.LastEntry().Message != "Running Hello World Command" {
+		t.Errorf("Expected to contain: \n Running Hello World Command\nGot:\n %v\n", hook.LastEntry().Message)
+	}
+}
+
+func TestContainerToolCommandHandlePanicLogging(t *testing.T) {
+	defer SetExitOnError(true)
+	var hook *test.Hook
+	testCommand := ContainerToolListCommand{
+		ContainerToolCommandBase: &ContainerToolCommandBase{
+			Command: &cobra.Command{
+				Use: "kill",
+				PersistentPreRun: func(c *cobra.Command, args []string) {
+					_, hook = test.NewNullLogger()
+					Log.AddHook(hook)
+				},
+			},
+			Phase: "test",
+		},
+		OutputList: make([]interface{}, 0),
+		RunO: func(command *cobra.Command, args []string) ([]interface{}, error) {
+			Log.Panic("Please dont kill me")
+			return nil, nil
+		},
+	}
+	SetExitOnError(false)
+	Execute(&testCommand)
+	if hook.LastEntry().Message != "Please dont kill me" {
+		t.Errorf("Expected to contain: \n Please dont kill me\nGot:\n %v\n", hook.LastEntry().Message)
 	}
 }

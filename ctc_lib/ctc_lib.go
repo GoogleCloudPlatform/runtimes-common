@@ -19,13 +19,24 @@ package ctc_lib
 // This file declares all the package level globals
 
 import (
-	"fmt"
+	"bytes"
 	"os"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/config"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/logging"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 var exitOnError = true
 var Version string
-var emptyTemplate = "{{.}}"
+var ConfigFile string
+var ConfigType = constants.ConfigType
+
+var UpdateCheck bool
+
+var Log *log.Logger
 
 func SetExitOnError(value bool) {
 	exitOnError = value
@@ -36,9 +47,33 @@ func GetExitOnError() bool {
 }
 
 func CommandExit(err error) {
-	if err != nil && exitOnError {
-		// TODO: Change this to Log.Error once Logging is introduced.
-		fmt.Println(err)
-		os.Exit(1)
+	if err != nil {
+		logging.Out.Error(err)
+		if exitOnError {
+			os.Exit(1)
+		}
+	}
+}
+
+func readDefaultConfig() {
+	viper.SetConfigType(config.DefaultConfigType)
+	viper.ReadConfig(bytes.NewBuffer(config.DefaultConfig))
+}
+
+func initConfig() {
+	if ConfigFile == "" {
+		logging.Out.Debugf(`No Config provided. Using Tools Defaults.
+You can override it via ctc_lib.ConfigFile pkg variable`)
+		readDefaultConfig()
+		return
+	}
+
+	viper.SetConfigFile(ConfigFile)
+	viper.SetConfigType(ConfigType)
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		logging.Out.Warningf("Error reading config file at %s: %s. Using Defaults", ConfigFile, err)
+		readDefaultConfig()
 	}
 }

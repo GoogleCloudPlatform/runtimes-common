@@ -5,4 +5,5 @@ go_library(
     srcs = ["flags.go"],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags",
     visibility = ["//visibility:public"],
+    deps = ["//ctc_lib/types:go_default_library"],
 )
