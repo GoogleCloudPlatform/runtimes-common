@@ -227,7 +227,7 @@ func check(e error) {
 func main() {
 	defaultTemplateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template and any other files to copy over")
 	verifyPtr := flag.Bool("verify_only", false, "Verify dockerfiles")
-	var failureCount int
+	failureCount := 0
 	flag.Parse()
 
 	var spec versions.Spec
@@ -247,7 +247,7 @@ func main() {
 		check(err)
 
 		if *verifyPtr {
-			failureCount = verifyDockerfiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir), *tmpl)
+			failureCount += verifyDockerfiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir), *tmpl)
 			failureCount += verifyCopiedFiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir))
 		} else {
 			data := renderDockerfile(version, *tmpl)
