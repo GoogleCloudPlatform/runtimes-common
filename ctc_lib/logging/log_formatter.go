@@ -86,6 +86,7 @@ func (f *CTCLogFormatter) getColor(entry *log.Entry) int {
 		return color
 	}
 	return green
+
 }
 
 func (f *CTCLogFormatter) getKeyValueBytes(entry *log.Entry) *bytes.Buffer {

@@ -32,8 +32,8 @@ Use "echo [command] --help" for more information about a command.
 ```
 * Run echo with command args
 ``` shell
-bazel run demo/ctc:ctc_demo --  --message=ping
-INFO: Running command line: bazel-bin/demo/ctc/linux_amd64_stripped/ctc_demo '--message=ping'
+bazel run demo/ctc:ctc_demo --  --message=ping --alsoLogToStdOut
+INFO: You are running echo command with message ping
 ping
 ```
 
@@ -45,15 +45,13 @@ You can check the logs at
 * Run Version Command.
 ```shell
 bazel run demo/ctc:ctc_demo --  version
-INFO: Running command line: bazel-bin/demo/ctc/linux_amd64_stripped/ctc_demo version
 1.0.1
 ```
 
-* Run panic Subcommand with --alsoLogToStdOut
+* Run panic Subcommand
 ```shell
-bazel run demo/ctc:ctc_demo --  panic --alsoLogToStdOut
-INFO: Running command line: bazel-bin/demo/ctc/linux_amd64_stripped/ctc_demo panic --alsoLogToStdOut
-time="2018-03-20T15:15:53-07:00" level=error msg="Oh you called Panic"
+bazel run demo/ctc:ctc_demo --  panic
+ERROR: Oh you called Panic
 ERROR: Non-zero return code '1' from command: Process exited with status 1
 ```
 
@@ -74,8 +72,36 @@ $cat demo/ctc/testConfig.json
 {
   "logdir": "/tmp",
   "message": "hi",
-  "updatecheck": "false"
+  "update_check": "false"
 }
 ```
 
+* Provide Periodic Update Checks.
+The Container Tools CommandLine Library you can set up periodic updates for you tools.
+
+In order to do this,
+1. Point ctc_lib.ReleaseUrl varaible to an url whcih lists all your current releases.
+e.g. https://storage.googleapis.com/minikube/releases.json
+2. Point ctc_lib.DownloadUrl to link where all the downloads for your tool are available.
+3. By default the update interval is set to a day. You can override it by
+```shell
+import "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/config"
+viper.SetConfig(config.UpdateCheckIntervalInSecs, <new value>)
+```
+
+You can turn off periodic updates by setting the config "updatecheck" to false.
+```shell
+import "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/config"
+viper.SetConfig(config.UpdateCheckConfigKey, false)
+```
+
+To check for Updates manually, the Container Tools CommandLine provides updatecheck command.
+This command will force check for new updates irrespective of the "updatecheck"
+config key value.
+```shell
+bazel run demo/ctc:ctc_demo  -- updatecheck
+You are at the latest Version.
+No updates Available.
+
+```
 

@@ -1,4 +1,4 @@
 {
-  "message": "hi",
-  "updatecheck": "false"
+  "updatecheck": true,
+  "message": "echo"
 }

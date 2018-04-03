@@ -18,10 +18,17 @@ package ctc_lib
 
 import (
 	"fmt"
+	"path/filepath"
+	"time"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/config"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/logging"
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/notify"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 type CLIInterface interface {
@@ -30,6 +37,7 @@ type CLIInterface interface {
 	getCommand() *cobra.Command
 	ValidateCommand() error
 	isRunODefined() bool
+	toolName() string
 	Init()
 }
 
@@ -58,6 +66,24 @@ func ExecuteE(ctb CLIInterface) (err error) {
 
 	//Add empty line as template.Execute does not print an empty line
 	ctb.getCommand().Println()
+
+	// Run Update Command to see if Updates are available.
+
+	lastUpdatedCheckFilePath := filepath.Join(
+		util.GetToolTempDirOrDefault(viper.GetString(config.TmpDirKey), ctb.toolName()),
+		constants.LastUpdatedCheckFileName)
+	Log.WithFields(log.Fields{
+		"updatecheck":             viper.GetString(config.UpdateCheckConfigKey),
+		"last_updated_check_file": lastUpdatedCheckFilePath,
+		"update_interval_in_sec":  viper.GetFloat64(config.UpdateCheckIntervalInSecs),
+	}).Debug("Checking if Update Check is required")
+	if notify.ShouldCheckURLVersion(lastUpdatedCheckFilePath) && ReleaseUrl != "" {
+		// Calling UpdateCheckCommand Explicitly. Hence no need to pass args.
+		Log.Debug("Running Update Check Command")
+		UpdateCheckCommand.Run(ctb.getCommand(), nil)
+		notify.WriteTimeToFile(lastUpdatedCheckFilePath, time.Now().UTC())
+	}
+
 	if util.IsDebug(Log.Level) {
 		logFile, ok := logging.GetCurrentFileName(Log)
 		if ok {

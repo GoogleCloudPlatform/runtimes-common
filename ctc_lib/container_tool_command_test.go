@@ -52,7 +52,6 @@ func RunCommand(command *cobra.Command, args []string) (interface{}, error) {
 }
 
 func TestContainerToolCommandTemplate(t *testing.T) {
-	Version = "1.0.1"
 	testCommand := ContainerToolCommand{
 		ContainerToolCommandBase: &ContainerToolCommandBase{
 			Command: &cobra.Command{
