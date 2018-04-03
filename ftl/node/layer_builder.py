@@ -68,11 +68,11 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                    self._generate_overrides())
 
-    def _gen_npm_install_tar(self, pkg_descriptor, destination_path):
-        # Create temp directory to write package descriptor to
-        pkg_dir = tempfile.mkdtemp()
-        app_dir = os.path.join(pkg_dir, destination_path.strip("/"))
-        os.makedirs(app_dir)
+    def _gen_npm_install_tar(self, pkg_descriptor, app_dir):
+        try:
+            os.makedirs(app_dir)
+        except OSError:
+            logging.info("%s already exists, skipping creation", app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
         ftl_util.descriptor_copy(self._ctx, self._descriptor_files, app_dir)
@@ -90,7 +90,15 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                     ['npm', 'install', '--production', pkg_descriptor],
                     cwd=app_dir)
 
-        return ftl_util.zip_dir_to_layer_sha(pkg_dir)
+        tar_path = tempfile.mktemp(suffix='.tar')
+        with ftl_util.Timing('tar_runtime_package'):
+            subprocess.check_call(['tar', '-cf', tar_path, app_dir])
+
+        u_blob = open(tar_path, 'r').read()
+        # We use gzip for performance instead of python's zip.
+        with ftl_util.Timing('gzip_runtime_tar'):
+            subprocess.check_call(['gzip', tar_path, '-1'])
+        return open(os.path.join(tar_path + '.gz'), 'rb').read(), u_blob
 
     def _generate_overrides(self):
         overrides_dct = {
