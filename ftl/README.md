@@ -28,18 +28,33 @@ o/my-project/cloudcats-node-app:latest
 ```
 
 ## Releases
-Currently FTL is released in .par format for each supported runtime.
-node:
-[FTL Node par (latest)](https://storage.googleapis.com/gcp-container-tools/ftl/node/latest/ftl.par)
-Specific version (based on git $COMMIT_SHA)`https://storage.googleapis.com/gcp-container-tools/ftl/node/$COMMIT_SHA/ftl.par`
+Currently FTL is released in .par format for each supported runtime.  The latest release is v0.2.0, changelog [here](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/ftl/CHANGELOG.md)
 
-python:
-[FTL Python par (latest)](https://storage.googleapis.com/gcp-container-tools/ftl/python/latest/ftl.par)
-Specific version (based on git $COMMIT_SHA)`https://storage.googleapis.com/gcp-container-tools/ftl/python/$COMMIT_SHA/ftl.par`
+### node
 
-php:
-[FTL PHP par (latest)](https://storage.googleapis.com/gcp-container-tools/ftl/php/latest/ftl.par)
-Specific version (based on git $COMMIT_SHA)`https://storage.googleapis.com/gcp-container-tools/ftl/php/$COMMIT_SHA/ftl.par`
+[v0.2.0](https://storage.googleapis.com/gcp-container-tools/ftl/node/node-v0.2.0/ftl.par)
+
+[HEAD](https://storage.googleapis.com/gcp-container-tools/ftl/node/latest/ftl.par)
+
+Specific version (based on git $COMMIT_SHA)
+`https://storage.googleapis.com/gcp-container-tools/ftl/node/$COMMIT_SHA/ftl.par`
+
+### python
+
+[v0.2.0](https://storage.googleapis.com/gcp-container-tools/ftl/node/python-v0.2.0/ftl.par)
+
+[HEAD](https://storage.googleapis.com/gcp-container-tools/ftl/python/latest/ftl.par)
+
+Specific version (based on git $COMMIT_SHA)
+`https://storage.googleapis.com/gcp-container-tools/ftl/python/$COMMIT_SHA/ftl.par`
+
+### php
+[v0.2.0](https://storage.googleapis.com/gcp-container-tools/ftl/php/php-v0.2.0/ftl.par)
+
+[HEAD](https://storage.googleapis.com/gcp-container-tools/ftl/php/latest/ftl.par)
+
+Specific version (based on git $COMMIT_SHA)
+`https://storage.googleapis.com/gcp-container-tools/ftl/php/$COMMIT_SHA/ftl.par`
 
 ## Developing
 To run the FTL integration tests, run the following command locally from the root directory:
@@ -52,4 +67,5 @@ gcloud container builds submit --config ftl/ftl_python_integration_tests.yaml .
 
 ## FTL Runtime Design Documents
 [php](https://docs.google.com/document/d/1AB255g8N-J7IYEbhmiTRf29Ox1afEgs3df8GK4NBhrk/edit?usp=sharing)
+
 [python](https://docs.google.com/document/d/15JOk_IFgaXwTSdge7XlxzzXDVVWKqvI5vJVhtHRNp_k/edit?usp=sharing)
