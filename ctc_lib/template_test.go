@@ -80,3 +80,24 @@ func TestContainerToolTestOutputWithFuncTemplate(t *testing.T) {
 		t.Errorf("Expected to contain: \n HELLO WORLD! \nGot:\n %v\n", OutputBuffer.String())
 	}
 }
+
+func TestContainerToolTestOutputWithNilFuncMap(t *testing.T) {
+	testCommand := ContainerToolCommand{
+		ContainerToolCommandBase: &ContainerToolCommandBase{
+			Command: &cobra.Command{
+				Use: "Hello Command",
+			},
+			Phase:           "test",
+			DefaultTemplate: "{{.Greeting}} {{.Name}}!",
+			TemplateFuncMap: nil,
+		},
+		Output: &TestInterface{},
+		RunO:   RunTemplateCommand,
+	}
+	var OutputBuffer bytes.Buffer
+	testCommand.Command.SetOutput(&OutputBuffer)
+	Execute(&testCommand)
+	if OutputBuffer.String() != "hello world!\n" {
+		t.Errorf("Expected to contain: \n hello world! \nGot:\n %v\n", OutputBuffer.String())
+	}
+}
