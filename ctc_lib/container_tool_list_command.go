@@ -46,5 +46,5 @@ func (ctc *ContainerToolListCommand) printO(c *cobra.Command, args []string) err
 	obj, _ := ctc.RunO(c, args)
 	ctc.OutputList = obj
 	return util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
-		ctc.OutputList, ctc.OutOrStdout())
+		ctc.OutputList, ctc.TemplateFuncMap, ctc.OutOrStdout())
 }

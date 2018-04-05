@@ -46,5 +46,5 @@ func (ctc *ContainerToolCommand) printO(c *cobra.Command, args []string) error {
 	obj, _ := ctc.RunO(c, args)
 	ctc.Output = obj
 	return util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
-		ctc.Output, ctc.OutOrStdout())
+		ctc.Output, ctc.TemplateFuncMap, ctc.OutOrStdout())
 }

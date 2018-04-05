@@ -25,8 +25,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func ExecuteTemplate(templateStr string, obj interface{}, out io.Writer) error {
-	tmpl, err := template.New("Template").Parse(templateStr)
+func ExecuteTemplate(templateStr string, obj interface{}, funcMap template.FuncMap, out io.Writer) error {
+	tmpl, err := template.New("Template").Funcs(funcMap).Parse(templateStr)
 	if err != nil {
 		return err
 	}
