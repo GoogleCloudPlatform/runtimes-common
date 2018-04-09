@@ -17,6 +17,8 @@ limitations under the License.
 package ctc_lib
 
 import (
+	"text/template"
+
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
@@ -29,15 +31,16 @@ import (
 type ContainerToolCommandBase struct {
 	*cobra.Command
 	Phase           string
-	DefaultTemplate string
+	DefaultTemplate string //TODO: Validate Default Config.
+	TemplateFuncMap template.FuncMap
 }
 
 func (ctb *ContainerToolCommandBase) getCommand() *cobra.Command {
 	return ctb.Command
 }
 
-func (ctb *ContainerToolCommandBase) setRun(cobraRun func(c *cobra.Command, args []string)) {
-	ctb.Run = cobraRun
+func (ctb *ContainerToolCommandBase) setRunE(cobraRunE func(c *cobra.Command, args []string) error) {
+	ctb.RunE = cobraRunE
 }
 
 func (ctb *ContainerToolCommandBase) toolName() string {
@@ -74,10 +77,10 @@ func (ctb *ContainerToolCommandBase) AddSubCommands() {
 }
 
 func (ctb *ContainerToolCommandBase) AddCommand(command CLIInterface) {
-	cobraRun := func(c *cobra.Command, args []string) {
-		command.printO(c, args)
+	cobraRunE := func(c *cobra.Command, args []string) error {
+		return command.printO(c, args)
 	}
-	command.setRun(cobraRun)
+	command.setRunE(cobraRunE)
 	ctb.Command.AddCommand(command.getCommand())
 }
 
