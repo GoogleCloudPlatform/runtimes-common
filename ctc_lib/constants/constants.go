@@ -17,7 +17,7 @@ limitations under the License.
 package constants
 
 const (
-	EmptyTemplate            = "{{.}}"
+	EmptyTemplate            = "{{.}}\n"
 	DefaultLogLevel          = "info"
 	ConfigType               = "json"
 	LogFileName              = "debug.log"
