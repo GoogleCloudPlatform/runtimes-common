@@ -27,7 +27,7 @@ import (
 
 type ContainerToolListCommand struct {
 	*ContainerToolCommandBase
-	OutputList      []interface{}
+	OutputList []interface{}
 	// RunO Executes cobra.Command.Run and returns an List[Output]
 	RunO func(command *cobra.Command, args []string) ([]interface{}, error)
 	// When defined, StreamO Executes cobra.Command.Run and streams each item in the List as its added.
@@ -35,9 +35,9 @@ type ContainerToolListCommand struct {
 	StreamO func(command *cobra.Command, args []string)
 	// This function will execute over the output list and return a Summary Object which can be printed.
 	// The SummaryTemplate Field can be used to print the Object.
-	TotalO func(list []interface{}) (interface{}, error)
-        SummaryObject   interface{}
-        SummaryTemplate string
+	TotalO          func(list []interface{}) (interface{}, error)
+	SummaryObject   interface{}
+	SummaryTemplate string
 	// Defines the stream to write objects to when using StreamO
 	Stream chan interface{}
 }
