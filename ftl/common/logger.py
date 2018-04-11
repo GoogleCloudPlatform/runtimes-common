@@ -14,6 +14,7 @@
 """This package defines the shared cli args for ftl binaries."""
 
 import logging
+from ftl.common import constants
 
 LEVEL_MAP = {
     "NOTSET": logging.NOTSET,
@@ -33,6 +34,7 @@ def setup_logging(args):
 
 
 def preamble(runtime, args):
+    logging.info("FTL version %s-%s" % (runtime, constants.FTL_VERSION))
     logging.info("Beginning FTL build for %s" % runtime)
     for arg in vars(args):
         logging.info("FTL arg passed: %s %s" % (arg, getattr(args, arg)))
