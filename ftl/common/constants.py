@@ -20,6 +20,9 @@ DEFAULT_ENTRYPOINT = None
 # docker transport thread config
 THREADS = 32
 
+# ftl version
+FTL_VERSION = "v0.2.0"
+
 # cache constants
 DEFAULT_TTL_WEEKS = 1
 GLOBAL_CACHE_REGISTRY = 'gcr.io/ftl-global-cache'
