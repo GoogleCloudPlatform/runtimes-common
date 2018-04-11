@@ -96,12 +96,15 @@ func (ctc *ContainerToolListCommand) printO(c *cobra.Command, args []string) err
 	// If TotalO function defined and Summary Template provided, print the summary.
 	if ctc.TotalO != nil && ctc.SummaryTemplate != "" {
 		total, err := ctc.TotalO(ctc.OutputList)
+		ctc.SummaryObject = total
+		display_err := util.ExecuteTemplate(ctc.SummaryTemplate, ctc.SummaryObject,
+			ctc.TemplateFuncMap, ctc.OutOrStdout())
 		if err != nil {
 			return err
 		}
-		ctc.SummaryObject = total
-		return util.ExecuteTemplate(ctc.SummaryTemplate, ctc.SummaryObject,
-			ctc.TemplateFuncMap, ctc.OutOrStdout())
+		if display_err != nil {
+			return display_err
+		}
 	}
 	return nil
 }

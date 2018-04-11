@@ -74,6 +74,9 @@ func (ctb *ContainerToolCommandBase) AddSubCommands() {
 
 	// Set up Root Command
 	ctb.Command.SetHelpTemplate(HelpTemplate)
+
+	// Donot display usage when using RunE
+	ctb.SilenceUsage = true
 }
 
 func (ctb *ContainerToolCommandBase) AddCommand(command CLIInterface) {
