@@ -4,9 +4,11 @@ Library for parsing versions.yaml file.
 package versions
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strconv"
 
 	yaml "gopkg.in/yaml.v2"
 )
@@ -35,14 +37,26 @@ type Spec struct {
 	Versions []Version
 }
 
-func LoadVersions(path string) Spec {
+type Config map[string]string
+
+func (c Config) StringOption(name, defaultVal, helper string) *string {
+	if configVal, ok := c[name]; ok {
+		defaultVal = configVal
+	}
+	return flag.String(name, defaultVal, helper)
+}
+
+func ReadFile(path string) []byte {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
+	return []byte(data)
+}
 
+func LoadVersions(path string) Spec {
 	spec := Spec{}
-	err = yaml.Unmarshal([]byte(data), &spec)
+	err := yaml.Unmarshal(ReadFile(path), &spec)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
@@ -50,6 +64,50 @@ func LoadVersions(path string) Spec {
 	validateUniqueTags(spec)
 
 	return spec
+}
+
+func LoadConfig(path, config string) Config {
+	var whole map[string]interface{}
+	err := yaml.Unmarshal(ReadFile(path), &whole)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	if c, k := whole[config]; k {
+		configMap := map[string]string{}
+		mapInterface := c.(map[interface{}]interface{})
+		for key, value := range mapInterface {
+			configMap[key.(string)] = fmt.Sprintf("%v", value)
+		}
+		return configMap
+	}
+	return map[string]string{}
+}
+
+func (c Config) BoolOption(name string, defaultVal bool, helper string) *bool {
+	if configVal, ok := c[name]; ok {
+		b, err := strconv.ParseBool(configVal)
+		if err != nil {
+			log.Fatalf("error: %v", err)
+		}
+		defaultVal = b
+	}
+	return flag.Bool(name, defaultVal, helper)
+}
+
+func (c Config) IntOption(name string, defaultVal int, helper string) *int {
+	if configVal, ok := c[name]; ok {
+		i, err := strconv.Atoi(configVal)
+		if err != nil {
+			log.Fatalf("error: %v", err)
+		}
+		defaultVal = i
+	}
+	return flag.Int(name, defaultVal, helper)
+}
+
+func (c Config) Parse() {
+	flag.Parse()
 }
 
 func validateUniqueTags(spec Spec) {
