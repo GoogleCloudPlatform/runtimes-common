@@ -54,15 +54,13 @@ class Python(builder.RuntimeBase):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
 
-        cache = self._cache if self._args.cache else None
-
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             # build interpreter layer
             interpreter_builder = package_builder.InterpreterLayerBuilder(
                 venv_dir=self._venv_dir,
                 python_cmd=self._python_cmd,
                 venv_cmd=self._venv_cmd,
-                cache=cache)
+                cache=self._cache)
             interpreter_builder.BuildLayer()
             lyr_imgs.append(interpreter_builder.GetImage())
 
@@ -81,7 +79,7 @@ class Python(builder.RuntimeBase):
                         pip_cmd=self._pip_cmd,
                         venv_cmd=self._venv_cmd,
                         dep_img_lyr=interpreter_builder,
-                        cache=cache)
+                        cache=self._cache)
                     pipfile_builder.BuildLayer()
                     lyr_imgs.append(pipfile_builder.GetImage())
 
@@ -96,7 +94,7 @@ class Python(builder.RuntimeBase):
                     pip_cmd=self._pip_cmd,
                     venv_cmd=self._venv_cmd,
                     dep_img_lyr=interpreter_builder,
-                    cache=cache)
+                    cache=self._cache)
                 req_txt_builder.BuildLayer()
                 lyr_imgs.append(req_txt_builder.GetImage())
 
