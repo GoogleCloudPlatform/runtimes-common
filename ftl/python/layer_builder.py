@@ -39,26 +39,14 @@ class PackageLayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._cache = cache
 
     def GetCacheKeyRaw(self):
-        descriptor_contents = ftl_util.descriptor_parser(
-            self._descriptor_files, self._ctx)
-        return '%s %s' % (descriptor_contents,
-                          self._dep_img_lyr.GetCacheKeyRaw())
+        return ""
 
     def BuildLayer(self):
-        cached_img = None
+        with ftl_util.Timing('Building pkg layer'):
+            self._build_layer()
         if self._cache:
-            with ftl_util.Timing('Checking cached pkg layer'):
-                key = self.GetCacheKey()
-                cached_img = self._cache.Get(key)
-                self._log_cache_result(False if cached_img is None else True)
-        if cached_img:
-            self.SetImage(cached_img)
-        else:
-            with ftl_util.Timing('Building pkg layer'):
-                self._build_layer()
-            if self._cache:
-                with ftl_util.Timing('Uploading pkg layer'):
-                    self._cache.Set(self.GetCacheKey(), self.GetImage())
+            with ftl_util.Timing('Uploading pkg layer'):
+                self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
         blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
@@ -130,7 +118,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
                     ctx=self._ctx,
                     descriptor_files=self._descriptor_files,
                     pkg_dir=whl_pkg_dir,
-                    dep_img_lyr=self,
+                    dep_img_lyr=self._dep_img_lyr,
                     cache=self._cache)
                 layer_builder.BuildLayer()
                 req_txt_imgs.append(layer_builder.GetImage())
@@ -140,7 +128,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             self.SetImage(req_txt_image)
 
             if self._cache:
-                with ftl_util.Timing('Uploading req.txt image'):
+                with ftl_util.Timing('Uploading req.txt pkg'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _resolve_whls(self):
@@ -258,7 +246,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
     def BuildLayer(self):
         cached_img = None
         if self._cache:
-            with ftl_util.Timing('Checking cached pkg layer'):
+            with ftl_util.Timing('Checking cached pipfile pkg layer'):
                 key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
                 self._log_cache_result(False if cached_img is None else True)
@@ -319,17 +307,17 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def BuildLayer(self):
         cached_img = None
         if self._cache:
-            with ftl_util.Timing('Checking cached pkg layer'):
+            with ftl_util.Timing('Checking cached interpreter layer'):
                 key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
                 self._log_cache_result(False if cached_img is None else True)
         if cached_img:
             self.SetImage(cached_img)
         else:
-            with ftl_util.Timing('Building pkg layer'):
+            with ftl_util.Timing('Building interpreter layer'):
                 self._build_layer()
             if self._cache:
-                with ftl_util.Timing('Uploading pkg layer'):
+                with ftl_util.Timing('Uploading interpreter layer'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
