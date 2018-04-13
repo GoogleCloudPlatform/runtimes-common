@@ -30,12 +30,11 @@ class Node(builder.RuntimeBase):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
-            cache = self._cache if self._args.cache else None
             layer_builder = node_builder.LayerBuilder(
                 ctx=self._ctx,
                 descriptor_files=self._descriptor_files,
                 destination_path=self._args.destination_path,
-                cache=cache)
+                cache=self._cache)
             layer_builder.BuildLayer()
             lyr_imgs.append(layer_builder.GetImage())
 

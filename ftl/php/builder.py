@@ -62,12 +62,11 @@ class PHP(builder.RuntimeBase):
             if len(pkgs) > 41:
                 # phase 1
                 logging.info('Building package layer')
-                cache = self._cache if self._args.cache else None
                 layer_builder = php_builder.PhaseOneLayerBuilder(
                     ctx=self._ctx,
                     descriptor_files=self._descriptor_files,
                     destination_path=self._args.destination_path,
-                    cache=cache)
+                    cache=self._cache)
                 layer_builder.BuildLayer()
                 lyr_imgs.append(layer_builder.GetImage())
             else:
@@ -75,13 +74,12 @@ class PHP(builder.RuntimeBase):
                 for pkg_txt in pkgs:
                     logging.info('Building package layer: {0} {1}'.format(
                         pkg_txt[0], pkg_txt[1]))
-                    cache = self._cache if self._args.cache else None
                     layer_builder = php_builder.PhaseTwoLayerBuilder(
                         ctx=self._ctx,
                         descriptor_files=self._descriptor_files,
                         pkg_descriptor=pkg_txt,
                         destination_path=self._args.destination_path,
-                        cache=cache)
+                        cache=self._cache)
                     layer_builder.BuildLayer()
                     lyr_imgs.append(layer_builder.GetImage())
 
