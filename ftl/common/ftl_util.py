@@ -20,6 +20,8 @@ import tempfile
 import datetime
 import json
 
+from ftl.common import constants
+
 from containerregistry.client.v2_2 import append
 from containerregistry.transform.v2_2 import metadata
 
@@ -147,16 +149,17 @@ def timestamp_to_time(dt_str):
     return datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
 
 
-def generate_overrides(set_path):
-    env = {
-        'VIRTUAL_ENV': '/env',
-    }
-    if set_path:
-        env['PATH'] = '/env/bin:$PATH'
+def generate_overrides(set_env, venv_dir=constants.VENV_DIR):
     overrides_dct = {
         'created': str(datetime.date.today()) + 'T00:00:00Z',
-        'env': env
     }
+    if set_env:
+        env = {
+            'VIRTUAL_ENV': venv_dir,
+        }
+        path_dir = os.path.join(venv_dir, "bin")
+        env['PATH'] = '%s:$PATH' % path_dir
+        overrides_dct['env'] = venv_dir
     return overrides_dct
 
 

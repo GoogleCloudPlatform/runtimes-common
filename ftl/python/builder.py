@@ -33,7 +33,7 @@ class Python(builder.RuntimeBase):
                 constants.PIPFILE,  # not supported rn
                 constants.REQUIREMENTS_TXT
             ])
-        self._venv_dir = constants.VENV_DIR
+        self._venv_dir = args.venv_dir
         self._wheel_dir = ftl_util.gen_tmp_dir(constants.WHEEL_DIR)
 
         self._python_cmd = args.python_cmd.split(" ")
