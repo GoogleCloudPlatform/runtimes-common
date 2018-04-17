@@ -96,7 +96,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def BuildLayer(self):
         cached_img = None
         if self._cache:
-            with ftl_util.Timing('Checking cached req.txt layer'):
+            with ftl_util.Timing('Checking cached requirements.txt layer'):
                 key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
                 self._log_cache_result(False if cached_img is None else True)
@@ -128,7 +128,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             self.SetImage(req_txt_image)
 
             if self._cache:
-                with ftl_util.Timing('Uploading req.txt pkg'):
+                with ftl_util.Timing('Uploading requirements.txt pkg lyr'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _resolve_whls(self):
@@ -265,6 +265,9 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
                 overrides = ftl_util.generate_overrides(False)
                 self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                            overrides)
+                if self._cache:
+                    with ftl_util.Timing('Uploading pipfile pkg layer'):
+                        self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _pip_install(self, pkg_txt):
         with ftl_util.Timing('pip_download_wheel'):
@@ -349,7 +352,7 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
                 venv_cmd_args,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stderr=subprocess.PIPE
             )
             stdout, stderr = proc_pipe.communicate()
             logging.info("`virtualenv` stdout:\n%s" % stdout)

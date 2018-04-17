@@ -54,8 +54,7 @@ def main():
             },
             # Build the FTL image from source and load it into the daemon.
             {
-                'name':
-                'gcr.io/cloud-builders/bazel',
+                'name': 'gcr.io/cloud-builders/bazel',
                 'args': [
                     'run', '//ftl/node/benchmark:node_benchmark_image', '--',
                     '--norun'

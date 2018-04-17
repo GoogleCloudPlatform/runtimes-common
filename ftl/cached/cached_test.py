@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ftl.cached import cached
 import unittest
 import mock
+
+from ftl.cached import cached
+from ftl.common import ftl_util
 
 
 class cachedTest(unittest.TestCase):
@@ -30,15 +32,15 @@ class cachedTest(unittest.TestCase):
         lyr_shas_1 = set(["a", "b", "c", "d"])
         lyr_shas_2 = set(["a", "b", "c", "e"])
         try:
-            self.c._compare_layers(lyr_shas_1, lyr_shas_2)
-        except RuntimeError:
-            self.fail("_compare_layers raised RuntimeError unexpectedly!")
+            self.c._compare_layers(lyr_shas_1, lyr_shas_2, 1)
+        except ftl_util.FTLException:
+            self.fail("_compare_layers raised FTLException unexpectedly!")
 
     def testCompareLayersError(self):
         lyr_shas_1 = set(["a", "b", "c", "d"])
         lyr_shas_2 = set(["a", "b", "e", "f`"])
-        with self.assertRaises(RuntimeError):
-            self.c._compare_layers(lyr_shas_1, lyr_shas_2)
+        with self.assertRaises(ftl_util.FTLException):
+            self.c._compare_layers(lyr_shas_1, lyr_shas_2, 1)
 
 
 if __name__ == '__main__':

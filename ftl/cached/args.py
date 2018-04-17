@@ -31,6 +31,27 @@ def base_parser():
         dest='label_2',
         action='store',
         default='reupload',
-        help='image label for reuploades image')
+        help='image label for reuploaded image')
+
+    parser.add_argument(
+        '--dir-1',
+        dest='dir_1',
+        action='store',
+        required=True,
+        help='image label for original uploaded image')
+
+    parser.add_argument(
+        '--dir-2',
+        dest='dir_2',
+        action='store',
+        required=True,
+        help='image label for reuploaded image')
+
+    parser.add_argument(
+        '--layer-offset',
+        dest='layer_offset',
+        type=int,
+        action='store',
+        help='the number of expected differing layers')
 
     return parser
