@@ -19,11 +19,18 @@ package ctc_lib
 import (
 	"errors"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
+
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/constants"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util"
 	"github.com/spf13/cobra"
 )
+
+type ListCommandOutputObject struct {
+	OutputList    []interface{}
+	SummaryObject interface{}
+}
 
 type ContainerToolListCommand struct {
 	*ContainerToolCommandBase
@@ -42,22 +49,26 @@ type ContainerToolListCommand struct {
 	Stream chan interface{}
 }
 
-func (commandList ContainerToolListCommand) ReadFromStream() ([]interface{}, error) {
+func (commandList ContainerToolListCommand) ReadFromStream(streamOutput bool) ([]interface{}, error) {
 	results := make([]interface{}, 0)
 	for obj := range commandList.Stream {
 		if _, ok := obj.(string); ok {
 			// Display any Arbitary strings written to the channel as is.
 			// These could be headers or any text.
 			// TODO: Provide a callback for users to overwrite this default behavior.
-			util.ExecuteTemplate(constants.EmptyTemplate,
-				obj, commandList.TemplateFuncMap, commandList.OutOrStdout())
-			continue
+			if streamOutput {
+				util.ExecuteTemplate(constants.EmptyTemplate,
+					obj, commandList.TemplateFuncMap, commandList.OutOrStdout())
+				continue
+			}
 		}
 		results = append(results, obj)
-		err := util.ExecuteTemplate(commandList.ReadTemplateFromFlagOrCmdDefault(),
-			obj, commandList.TemplateFuncMap, commandList.OutOrStdout())
-		if err != nil {
-			return nil, err
+		if streamOutput {
+			err := util.ExecuteTemplate(commandList.ReadTemplateFromFlagOrCmdDefault(),
+				obj, commandList.TemplateFuncMap, commandList.OutOrStdout())
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	return results, nil
@@ -76,35 +87,56 @@ Either implement Command.Run implementation or RunO implemetation`)
 }
 
 func (ctc *ContainerToolListCommand) printO(c *cobra.Command, args []string) error {
-	var err error
+	var commandError error = nil
 	if ctc.StreamO != nil {
-		// Stream Objects
+		// Stream Objects only when outputJson = False
 		ctc.StreamO(c, args)
-		ctc.OutputList, err = ctc.ReadFromStream()
+		ctc.OutputList, commandError = ctc.ReadFromStream(!flags.OutputJson)
 	} else {
 		// Run RunO function.
-		ctc.OutputList, err = ctc.RunO(c, args)
-		if err != nil {
-			return err
-		}
-		err = util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
-			ctc.OutputList, ctc.TemplateFuncMap, ctc.OutOrStdout())
-	}
-	if err != nil {
-		return err
+		ctc.OutputList, commandError = ctc.RunO(c, args)
 	}
 	// If TotalO function defined and Summary Template provided, print the summary.
 	if ctc.TotalO != nil && ctc.SummaryTemplate != "" {
-		total, err := ctc.TotalO(ctc.OutputList)
-		ctc.SummaryObject = total
-		display_err := util.ExecuteTemplate(ctc.SummaryTemplate, ctc.SummaryObject,
-			ctc.TemplateFuncMap, ctc.OutOrStdout())
-		if err != nil {
-			return err
-		}
-		if display_err != nil {
-			return display_err
-		}
+		ctc.SummaryObject, commandError = ctc.TotalO(ctc.OutputList)
+	}
+	if commandError != nil {
+		Log.Errorf("%v", commandError)
+	}
+	displayError := ctc.printResult()
+	if displayError != nil {
+		Log.Errorf("%v", commandError)
+	}
+	if commandError != nil && displayError != nil {
+		return errors.New("One or more errors")
 	}
 	return nil
+}
+
+func (ctc *ContainerToolListCommand) printResult() error {
+	if flags.OutputJson {
+		data := ListCommandOutputObject{
+			OutputList:    ctc.OutputList,
+			SummaryObject: ctc.SummaryObject,
+		}
+		return util.ExecuteTemplate("", data, nil, ctc.OutOrStdout())
+	}
+	var err error
+	// Do not display the object list again.
+	if ctc.StreamO != nil {
+		err = util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
+			ctc.OutputList, ctc.TemplateFuncMap, ctc.OutOrStdout())
+		if err != nil {
+			Log.Errorf("%v", err)
+		}
+	}
+	totalErr := util.ExecuteTemplate(ctc.SummaryTemplate,
+		ctc.SummaryObject, ctc.TemplateFuncMap, ctc.OutOrStdout())
+	if totalErr != nil && err != nil {
+		return nil
+	} else if totalErr != nil {
+		return totalErr
+	} else {
+		return err
+	}
 }

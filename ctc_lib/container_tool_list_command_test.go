@@ -17,6 +17,7 @@ package ctc_lib
 
 import (
 	"bytes"
+	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
@@ -230,5 +231,64 @@ func TestContainerToolCommandHandlePanicLogging(t *testing.T) {
 	Execute(&testCommand)
 	if hook.LastEntry().Message != "Please dont kill me" {
 		t.Errorf("Expected to contain: \n Please dont kill me\nGot:\n %v\n", hook.LastEntry().Message)
+	}
+}
+
+func TestContainerToolCommandStreamOutputValidateJsonResult(t *testing.T) {
+	Channel = make(chan interface{}, 1)
+	testCommand := ContainerToolListCommand{
+		ContainerToolCommandBase: &ContainerToolCommandBase{
+			Command: &cobra.Command{
+				Use: "Hello Command",
+			},
+			Phase:           "test",
+			DefaultTemplate: "{{.}}",
+		},
+		OutputList:      make([]interface{}, 0),
+		SummaryObject:   &TestFooterOutput{},
+		SummaryTemplate: "\n{{.Count}} Names",
+		StreamO:         RunStreamCommand,
+		Stream:          Channel,
+		TotalO: func(list []interface{}) (interface{}, error) {
+			return &TestFooterOutput{Count: len(list)}, nil
+		},
+	}
+	testCommand.Flags().StringVarP(&LName, "name", "n", "", "Comma Separated list of Name")
+	var OutputBuffer bytes.Buffer
+	testCommand.Command.SetOutput(&OutputBuffer)
+	testCommand.SetArgs([]string{"--name=John,Jane", "--json=True"})
+	Execute(&testCommand)
+	var result = []TestListOutput{
+		{Name: "John"},
+		{Name: "Jane"},
+	}
+	s := make([]interface{}, len(result))
+	for i, v := range result {
+		s[i] = v
+	}
+
+	var expectedObj = ListCommandOutputObject{
+		OutputList: s,
+		SummaryObject: TestFooterOutput{
+			Count: 2,
+		},
+	}
+	var expectedOutput, _ = json.MarshalIndent(expectedObj, "", "\t")
+	expectedStr := string(expectedOutput[:]) + "\n"
+	if expectedStr != OutputBuffer.String() {
+		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", string(expectedOutput[:]), OutputBuffer.String())
+	}
+
+	// Make sure you can unmarshall the data and read it.
+	var actualObj ListCommandOutputObject
+	if err := json.Unmarshal([]byte(OutputBuffer.String()), &actualObj); err != nil {
+		t.Errorf("Error while decoding json %v", err)
+	}
+	// TODO fix this error where json.Unmarshal cannot unmarshall nested fields correctly.
+	if !reflect.DeepEqual(actualObj, expectedObj) {
+		//Expected json decoded object: {[{John} {Jane}] {2}}
+		//Got:
+		//{[map[Name:John] map[Name:Jane]] map[Count:2]}
+		t.Logf("Expected json decoded object: \n %v\nGot:\n %v\n", expectedObj, actualObj)
 	}
 }

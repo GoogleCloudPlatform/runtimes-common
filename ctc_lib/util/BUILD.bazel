@@ -5,7 +5,10 @@ go_library(
     srcs = ["util.go"],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util",
     visibility = ["//visibility:public"],
-    deps = ["//vendor/github.com/sirupsen/logrus:go_default_library"],
+    deps = [
+        "//ctc_lib/flags:go_default_library",
+        "//vendor/github.com/sirupsen/logrus:go_default_library",
+    ],
 )
 
 go_test(

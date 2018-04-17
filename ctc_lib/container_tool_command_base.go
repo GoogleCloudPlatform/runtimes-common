@@ -98,6 +98,8 @@ func (ctb *ContainerToolCommandBase) AddFlags() {
 	ctb.PersistentFlags().BoolVar(&flags.EnableColors, "enableColors", true, `Enable Colors when displaying logs to Std Out.`)
 	ctb.PersistentFlags().StringVar(&flags.LogDir, "logDir", "", "LogDir")
 	viper.BindPFlag("logDir", ctb.PersistentFlags().Lookup("logDir"))
+
+	ctb.PersistentFlags().BoolVar(&flags.OutputJson, "json", false, "Output Json format")
 }
 
 func (ctb *ContainerToolCommandBase) ReadTemplateFromFlagOrCmdDefault() string {
