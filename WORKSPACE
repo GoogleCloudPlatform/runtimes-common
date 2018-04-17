@@ -114,7 +114,7 @@ UBUNTU_MAP = {
 
 docker_pull(
     name = "node_base",
-    digest = "sha256:29ad61238dc44b7fc5841d996cc1bbac972e281684d481d5ca7c9ccb8751d2e3",
+    digest = "sha256:daef823d1205081d01dcd6997aa352f4c7090277ffe48e1c1bfc740fbecea8c0",
     registry = "gcr.io",
     repository = "gae-runtimes/nodejs8_app_builder",
 )
@@ -128,7 +128,7 @@ docker_pull(
 
 docker_pull(
     name = "php_base",
-    digest = "sha256:b4a1f5de8156f30ea1a6e6f84afb7ea79013a57d0cae4a530d4806df4a04a1e3",
+    digest = "sha256:194817f8f35b3cf26a706e6825994845c98a4745d61d6dea30fee976ed5aac0d",
     registry = "gcr.io",
     repository = "gae-runtimes/php72_app_builder",
 )
