@@ -35,7 +35,7 @@ args.extra_args(php_parser, args.php_flgs)
 
 def main(cli_args):
     builder_args = php_parser.parse_args(cli_args)
-    logger.setup_logging(builder_args)
+    logger.setup_logging(builder_args.verbosity)
     logger.preamble("php", builder_args)
     with ftl_util.Timing("full build"):
         with ftl_util.Timing("builder initialization"):

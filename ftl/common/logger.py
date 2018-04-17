@@ -14,7 +14,7 @@
 """This package defines the shared cli args for ftl binaries."""
 
 import logging
-from ftl.common import constants
+import constants
 
 LEVEL_MAP = {
     "NOTSET": logging.NOTSET,
@@ -26,8 +26,8 @@ LEVEL_MAP = {
 }
 
 
-def setup_logging(args):
-    logging.getLogger().setLevel(LEVEL_MAP[args.verbosity])
+def setup_logging(verbosity):
+    logging.getLogger().setLevel(LEVEL_MAP[verbosity])
     logging.basicConfig(
         format='%(levelname)-8s %(message)s',
         datefmt='')

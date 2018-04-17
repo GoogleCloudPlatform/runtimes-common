@@ -158,3 +158,55 @@ def generate_overrides(set_path):
         'env': env
     }
     return overrides_dct
+
+
+def parseCacheLogEntry(entry):
+    """
+    This takes an FTL log entry and parses out relevant caching information
+    It returns a map with the information parsed from the entry
+
+    Example entry (truncated for line length):
+        INFO     [CACHE][MISS] v1:PYTHON:click:==6.7->f1ea...
+
+    Return value for this entry:
+        {
+            "key_version": "v1",
+            "language": "python",
+            "phase": 2,
+            "package": "click",
+            "version": "6.7",
+            "key": "f1ea...",
+            "hit": True
+        }
+    """
+    if "->" not in entry or "[CACHE]" not in entry:
+        logging.warn("cannot parse non-cache log entry %s" % entry)
+        return None
+
+    entry = entry.rstrip("\n").lstrip("INFO").lstrip(" ").lstrip("[CACHE]")
+    hit = True if entry.startswith("[HIT]") else False
+    entry = entry.lstrip("[HIT]").lstrip("[MISS]").lstrip(" ")
+
+    parts = entry.split("->")[0]
+    key = entry.split("->")[1]
+    parts = parts.split(":")
+    if len(parts) == 2:
+        # phase 1 entry
+        return {
+            "key_version": parts[0],
+            "language": parts[1],
+            "phase": 1,
+            "key": key,
+            "hit": hit
+        }
+    else:
+        # phase 2 entry
+        return {
+            "key_version": parts[0],
+            "language": parts[1],
+            "phase": 1,
+            "package": parts[2],
+            "version": parts[3],
+            "key": key,
+            "hit": hit
+        }

@@ -36,7 +36,7 @@ args.extra_args(node_parser, args.node_flgs)
 
 def main(cli_args):
     builder_args = node_parser.parse_args(cli_args)
-    logger.setup_logging(builder_args)
+    logger.setup_logging(builder_args.verbosity)
     logger.preamble("node", builder_args)
     with ftl_util.Timing("full build"):
         with ftl_util.Timing("builder initialization"):
