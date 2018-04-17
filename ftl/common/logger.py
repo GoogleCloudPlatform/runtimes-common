@@ -29,8 +29,8 @@ LEVEL_MAP = {
 def setup_logging(args):
     logging.getLogger().setLevel(LEVEL_MAP[args.verbosity])
     logging.basicConfig(
-        format='%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s',
-        datefmt='%Y-%m-%d,%H:%M:%S')
+        format='%(levelname)-8s %(message)s',
+        datefmt='')
 
 
 def preamble(runtime, args):
