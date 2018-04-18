@@ -11,7 +11,7 @@ TEST_DIRS = ['packages_test', 'destination_test', 'metadata_test', 'lock_test']
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
              '6195641f5a5a14c63c7945262066270842150ddb')
 _TEST_DIR = '/workspace/ftl/php/testdata'
-_PHP_BASE = 'gcr.io/gae-runtimes/php72_app_builder:latest'
+_PHP_BASE = 'gcr.io/gae-runtimes/php72_app_builder:argo_current'
 
 
 def main():
