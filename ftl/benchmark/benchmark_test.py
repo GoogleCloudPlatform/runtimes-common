@@ -24,7 +24,7 @@ class BenchmarkTest(unittest.TestCase):
     def testPHPBenchmark(self, bigquery_mock):
         php_main.main([
             '--base',
-            'gcr.io/gae-runtimes/php72_app_builder:latest',
+            'gcr.io/gae-runtimes/php72_app_builder:argo_current',
             '--name',
             'gcr.io/ftl-node-test/benchmark-php-test:test',
             '--directory',

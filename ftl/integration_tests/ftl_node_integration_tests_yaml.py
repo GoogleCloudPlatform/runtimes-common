@@ -12,7 +12,7 @@ TEST_DIRS = [
 ]
 
 _TEST_DIR = '/workspace/ftl/node/testdata'
-_NODE_BASE = 'gcr.io/gae-runtimes/nodejs8_app_builder:latest'
+_NODE_BASE = 'gcr.io/gae-runtimes/nodejs8_app_builder:argo_current'
 
 
 def main():

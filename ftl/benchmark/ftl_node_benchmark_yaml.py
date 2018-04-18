@@ -12,7 +12,7 @@ APP_SIZE_TESTS = {
     'scratch_large': '50000'
 }
 _DATA_DIR = '/workspace/ftl/node/benchmark/data/'
-_NODE_BASE = 'gcr.io/gae-runtimes/nodejs8_app_builder:latest'
+_NODE_BASE = 'gcr.io/gae-runtimes/nodejs8_app_builder:argo_current'
 
 parser = argparse.ArgumentParser(
     description='Generate cloudbuild yaml for FTL benchmarking.')

@@ -8,8 +8,8 @@ _TEST_TEMPLATE = '/workspace/ftl/%s/testdata'
 _BAZEL_TEMPLATE = '//ftl/{0}/cached:{0}_cached_image'
 _IMG_TEMPLATE = 'bazel/ftl/{0}/cached:{0}_cached_image'
 _BASE_MAP = {
-    "node": 'gcr.io/gae-runtimes/nodejs8_app_builder:latest',
-    "php": 'gcr.io/gae-runtimes/php72_app_builder:latest',
+    "node": 'gcr.io/gae-runtimes/nodejs8_app_builder:argo_current',
+    "php": 'gcr.io/gae-runtimes/php72_app_builder:argo_current',
     "python": 'gcr.io/google-appengine/python:latest',
 }
 
