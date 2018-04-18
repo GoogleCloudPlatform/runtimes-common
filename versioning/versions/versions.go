@@ -37,15 +37,6 @@ type Spec struct {
 	Versions []Version
 }
 
-type Config map[string]string
-
-func (c Config) StringOption(name, defaultVal, helper string) *string {
-	if configVal, ok := c[name]; ok {
-		defaultVal = configVal
-	}
-	return flag.String(name, defaultVal, helper)
-}
-
 func ReadFile(path string) []byte {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -66,6 +57,10 @@ func LoadVersions(path string) Spec {
 	return spec
 }
 
+// Config represents setting for a program call. Arguments can be provided in file, as a key-value
+// map, or as a command-line parameters.
+type Config map[string]string
+
 func LoadConfig(path, config string) Config {
 	var whole map[string]interface{}
 	err := yaml.Unmarshal(ReadFile(path), &whole)
@@ -73,7 +68,7 @@ func LoadConfig(path, config string) Config {
 		log.Fatalf("error: %v", err)
 	}
 
-	if c, k := whole[config]; k {
+	if c, ok := whole[config]; ok {
 		configMap := map[string]string{}
 		mapInterface := c.(map[interface{}]interface{})
 		for key, value := range mapInterface {
@@ -82,6 +77,13 @@ func LoadConfig(path, config string) Config {
 		return configMap
 	}
 	return map[string]string{}
+}
+
+func (c Config) StringOption(name, defaultVal, helper string) *string {
+	if configVal, ok := c[name]; ok {
+		defaultVal = configVal
+	}
+	return flag.String(name, defaultVal, helper)
 }
 
 func (c Config) BoolOption(name string, defaultVal bool, helper string) *bool {
