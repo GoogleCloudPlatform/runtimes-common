@@ -75,10 +75,14 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             logging.info("%s already exists, skipping creation", app_dir)
 
         # Copy out the relevant package descriptors to a tempdir.
-        ftl_util.descriptor_copy(self._ctx, self._descriptor_files, app_dir)
+        if self._descriptor_files and self._ctx:
+            ftl_util.descriptor_copy(self._ctx,
+                                     self._descriptor_files,
+                                     app_dir)
 
-        self._check_gcp_build(
-            json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)), app_dir)
+        if self._ctx:
+            self._check_gcp_build(
+                json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)), app_dir)
         subprocess.check_call(
             ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
         with ftl_util.Timing("npm_install"):

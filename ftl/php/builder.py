@@ -17,19 +17,17 @@ import logging
 import json
 
 from ftl.common import builder
+from ftl.common import constants
 from ftl.common import ftl_util
 from ftl.common import layer_builder as base_builder
 from ftl.php import layer_builder as php_builder
 
-_PHP_NAMESPACE = 'php-package-lock-cache'
-_COMPOSER_LOCK = 'composer.lock'
-_COMPOSER_JSON = 'composer.json'
-
 
 class PHP(builder.RuntimeBase):
     def __init__(self, ctx, args):
-        super(PHP, self).__init__(ctx, _PHP_NAMESPACE, args,
-                                  [_COMPOSER_LOCK, _COMPOSER_JSON])
+        super(PHP, self).__init__(ctx, constants.PHP_CACHE_NAMESPACE, args,
+                                  [constants.COMPOSER_LOCK,
+                                   constants.COMPOSER_JSON])
 
     def _parse_composer_pkgs(self):
         descriptor_contents = ftl_util.descriptor_parser(
@@ -53,7 +51,7 @@ class PHP(builder.RuntimeBase):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
-            if self._ctx.Contains(_COMPOSER_LOCK):
+            if self._ctx.Contains(constants.COMPOSER_LOCK):
                 pkgs = self._parse_composer_lock_pkgs()
             else:
                 pkgs = self._parse_composer_pkgs()

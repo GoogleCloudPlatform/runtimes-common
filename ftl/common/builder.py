@@ -67,9 +67,9 @@ class RuntimeBase(JustApp):
     It provides methods for generating appending layers and caching images
     """
 
-    def __init__(self, ctx, namespace, args, descriptor_files):
+    def __init__(self, ctx, cache_namespace, args, descriptor_files):
         super(RuntimeBase, self).__init__(ctx)
-        self._namespace = namespace
+        self._cache_namespace = cache_namespace
         if args.entrypoint:
             args.entrypoint = args.entrypoint.split(" ")
         if args.exposed_ports:
@@ -95,7 +95,7 @@ class RuntimeBase(JustApp):
             cache_repo = self._target_image.as_repository()
         self._cache = cache.Registry(
             repo=cache_repo,
-            namespace=self._namespace,
+            namespace=self._cache_namespace,
             creds=self._target_creds,
             transport=self._transport,
             threads=constants.THREADS,

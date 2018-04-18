@@ -27,8 +27,13 @@ FTL_VERSION = "v0.2.0"
 DEFAULT_TTL_WEEKS = 1
 GLOBAL_CACHE_REGISTRY = 'gcr.io/ftl-global-cache'
 
+# php constants
+PHP_CACHE_NAMESPACE = 'php-cache'
+COMPOSER_LOCK = 'composer.lock'
+COMPOSER_JSON = 'composer.json'
+
 # node constants
-NODE_NAMESPACE = 'node-package-lock-cache'
+NODE_CACHE_NAMESPACE = 'node-cache'
 PACKAGE_LOCK = 'package-lock.json'
 PACKAGE_JSON = 'package.json'
 NODE_DEFAULT_ENTRYPOINT = 'node server.js'
@@ -38,9 +43,12 @@ NPMRC = '.npmrc'
 PIPFILE_LOCK = 'Pipfile.lock'
 PIPFILE = 'Pipfile'
 REQUIREMENTS_TXT = 'requirements.txt'
-PYTHON_NAMESPACE = 'python-requirements-cache'
+PYTHON_CACHE_NAMESPACE = 'python-cache'
 VENV_DIR = '/env'
 WHEEL_DIR = 'wheel'
+PIP_DEFAULT_CMD = 'pip'
+PYTHON_DEFAULT_CMD = 'python2.7'
+VENV_DEFAULT_CMD = 'virtualenv'
 
 # logging constants
 PHASE_1_CACHE_STR = '{key_version}:{language}->{key}'
