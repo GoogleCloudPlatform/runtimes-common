@@ -63,6 +63,14 @@ py_test(
 )
 
 py_test(
+    name = "util_test",
+    srcs = ["common/util_test.py"],
+    deps = [
+        ":ftl_lib",
+    ],
+)
+
+py_test(
     name = "node_builder_test",
     srcs = ["node/builder_test.py"],
     data =
