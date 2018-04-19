@@ -22,4 +22,7 @@ py_test(
         "//ftl/python/cached:python_cached",
     ],
     main = "cached_test.py",
+    deps = [
+        "@mock",
+    ],
 )
