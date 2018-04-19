@@ -21,5 +21,9 @@ py_test(
         "//ftl/php/cached:php_cached",
         "//ftl/python/cached:python_cached",
     ],
+    deps = [
+        "@mock",
+    ],
+
     main = "cached_test.py",
 )
