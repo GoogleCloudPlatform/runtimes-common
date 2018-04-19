@@ -204,7 +204,7 @@ def parseCacheLogEntry(entry):
         return {
             "key_version": parts[0],
             "language": parts[1],
-            "phase": 1,
+            "phase": 2,
             "package": parts[2],
             "version": parts[3],
             "key": key,
