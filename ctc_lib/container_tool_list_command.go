@@ -60,8 +60,8 @@ func (commandList ContainerToolListCommand) ReadFromStream(streamOutput bool) ([
 			if streamOutput {
 				util.ExecuteTemplate(constants.EmptyTemplate,
 					obj, commandList.TemplateFuncMap, commandList.OutOrStdout())
-				continue
 			}
+			continue
 		}
 		results = append(results, obj)
 		if streamOutput {
@@ -88,7 +88,7 @@ Either implement Command.Run implementation or RunO implemetation`)
 }
 
 func (ctc *ContainerToolListCommand) printO(c *cobra.Command, args []string) error {
-	var commandError, totalError error
+	var commandError, totalFuncError, totalDisplayError error
 	var totalDisplayString string
 	if ctc.StreamO != nil {
 		// Stream Objects only when JsonOutput = False
@@ -99,15 +99,22 @@ func (ctc *ContainerToolListCommand) printO(c *cobra.Command, args []string) err
 		ctc.OutputList, commandError = ctc.RunO(c, args)
 		LogIfErr(commandError, Log)
 	}
-	totalDisplayString, commandError, totalError = ctc.runTotalIfDefined()
-	LogIfErr(commandError, Log)
+	totalDisplayString, totalFuncError, totalDisplayError = ctc.runTotalIfDefined()
+	LogIfErr(totalFuncError, Log)
 	ctc.printResult(totalDisplayString)
-	LogIfErr(totalError, Log)
+	LogIfErr(totalDisplayError, Log)
 
-	if commandError != nil && totalError != nil {
-		return errors.New("One or more errors")
+	if commandError == nil && totalDisplayError == nil && totalFuncError == nil {
+		return nil
+	} else if commandError != nil {
+		// Return Command Error if occurred
+		return commandError
+	} else if totalFuncError != nil {
+		// Return TotalFuncError if occurred
+		return totalFuncError
+	} else {
+		return totalDisplayError
 	}
-	return nil
 }
 
 func (ctc *ContainerToolListCommand) runTotalIfDefined() (string, error, error) {
@@ -122,24 +129,22 @@ func (ctc *ContainerToolListCommand) runTotalIfDefined() (string, error, error) 
 	return OutputBuffer.String(), totalCommandError, totalError
 }
 
-func (ctc *ContainerToolListCommand) printResult(totalDisplayString string) error {
+func (ctc *ContainerToolListCommand) printResult(totalDisplayString string) {
 	if flags.JsonOutput {
 		data := ListCommandOutputObject{
 			OutputList:    ctc.OutputList,
 			SummaryObject: ctc.SummaryObject,
 		}
-		return util.PrintJson(data, ctc.OutOrStdout())
+		util.PrintJson(data, ctc.OutOrStdout())
+	} else {
+		if ctc.StreamO == nil {
+			err := util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
+				ctc.OutputList, ctc.TemplateFuncMap, ctc.OutOrStdout())
+			LogIfErr(err, Log)
+		}
+		// Display total if defined.
+		if totalDisplayString != "" {
+			ctc.Println(totalDisplayString)
+		}
 	}
-	var err error
-	// Do not display the object list again.
-	if ctc.StreamO == nil {
-		err = util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
-			ctc.OutputList, ctc.TemplateFuncMap, ctc.OutOrStdout())
-		LogIfErr(err, Log)
-	}
-	// Display total if defined.
-	if totalDisplayString != "" {
-		ctc.Println(totalDisplayString)
-	}
-	return err
 }
