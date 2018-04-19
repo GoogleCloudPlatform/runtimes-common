@@ -6,6 +6,7 @@ go_library(
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/util",
     visibility = ["//visibility:public"],
     deps = [
+        "//ctc_lib/constants:go_default_library",
         "//ctc_lib/flags:go_default_library",
         "//vendor/github.com/sirupsen/logrus:go_default_library",
     ],

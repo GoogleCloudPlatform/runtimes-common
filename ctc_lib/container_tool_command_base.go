@@ -75,7 +75,8 @@ func (ctb *ContainerToolCommandBase) AddSubCommands() {
 	// Set up Root Command
 	ctb.Command.SetHelpTemplate(HelpTemplate)
 
-	// Donot display usage when using RunE
+	// Donot display usage when using RunE.
+	// See https://github.com/spf13/cobra/issues/340 for more information.
 	ctb.SilenceUsage = true
 }
 
@@ -99,7 +100,7 @@ func (ctb *ContainerToolCommandBase) AddFlags() {
 	ctb.PersistentFlags().StringVar(&flags.LogDir, "logDir", "", "LogDir")
 	viper.BindPFlag("logDir", ctb.PersistentFlags().Lookup("logDir"))
 
-	ctb.PersistentFlags().BoolVar(&flags.OutputJson, "json", false, "Output Json format")
+	ctb.PersistentFlags().BoolVar(&flags.JsonOutput, "jsonOutput", false, "Output Json format")
 }
 
 func (ctb *ContainerToolCommandBase) ReadTemplateFromFlagOrCmdDefault() string {

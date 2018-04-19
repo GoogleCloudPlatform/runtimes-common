@@ -242,7 +242,7 @@ func TestContainerToolCommandOutputInJson(t *testing.T) {
 	testCommand.Flags().StringVarP(&Name, "name", "n", "", "Name")
 	var OutputBuffer bytes.Buffer
 	testCommand.Command.SetOutput(&OutputBuffer)
-	testCommand.SetArgs([]string{"--name=Sparks", "--json=True"})
+	testCommand.SetArgs([]string{"--name=Sparks", "--jsonOutput=True"})
 	Execute(&testCommand)
 	var expectedObj = TestInterface{
 		Greeting: "Hello",

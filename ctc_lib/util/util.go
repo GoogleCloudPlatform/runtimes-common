@@ -29,7 +29,7 @@ import (
 )
 
 func ExecuteTemplate(templateStr string, obj interface{}, funcMap template.FuncMap, out io.Writer) error {
-	if flags.OutputJson {
+	if flags.JsonOutput {
 		// Do not execute the template.
 		return PrintJson(obj, out)
 	}

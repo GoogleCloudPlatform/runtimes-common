@@ -17,6 +17,7 @@ limitations under the License.
 package ctc_lib
 
 import (
+	"bytes"
 	"errors"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
@@ -87,56 +88,58 @@ Either implement Command.Run implementation or RunO implemetation`)
 }
 
 func (ctc *ContainerToolListCommand) printO(c *cobra.Command, args []string) error {
-	var commandError error = nil
+	var commandError, totalError error
+	var totalDisplayString string
 	if ctc.StreamO != nil {
-		// Stream Objects only when outputJson = False
+		// Stream Objects only when JsonOutput = False
 		ctc.StreamO(c, args)
-		ctc.OutputList, commandError = ctc.ReadFromStream(!flags.OutputJson)
+		ctc.OutputList, commandError = ctc.ReadFromStream(!flags.JsonOutput)
 	} else {
 		// Run RunO function.
 		ctc.OutputList, commandError = ctc.RunO(c, args)
+		LogIfErr(commandError, Log)
 	}
-	// If TotalO function defined and Summary Template provided, print the summary.
-	if ctc.TotalO != nil && ctc.SummaryTemplate != "" {
-		ctc.SummaryObject, commandError = ctc.TotalO(ctc.OutputList)
-	}
-	if commandError != nil {
-		Log.Errorf("%v", commandError)
-	}
-	displayError := ctc.printResult()
-	if displayError != nil {
-		Log.Errorf("%v", commandError)
-	}
-	if commandError != nil && displayError != nil {
+	totalDisplayString, commandError, totalError = ctc.runTotalIfDefined()
+	LogIfErr(commandError, Log)
+	ctc.printResult(totalDisplayString)
+	LogIfErr(totalError, Log)
+
+	if commandError != nil && totalError != nil {
 		return errors.New("One or more errors")
 	}
 	return nil
 }
 
-func (ctc *ContainerToolListCommand) printResult() error {
-	if flags.OutputJson {
+func (ctc *ContainerToolListCommand) runTotalIfDefined() (string, error, error) {
+	var totalCommandError, totalError error
+	var OutputBuffer bytes.Buffer
+	// If TotalO function defined & Summary Template provided, get the summary text
+	if ctc.TotalO != nil && ctc.SummaryTemplate != "" {
+		ctc.SummaryObject, totalCommandError = ctc.TotalO(ctc.OutputList)
+		totalError = util.ExecuteTemplate(ctc.SummaryTemplate,
+			ctc.SummaryObject, ctc.TemplateFuncMap, &OutputBuffer)
+	}
+	return OutputBuffer.String(), totalCommandError, totalError
+}
+
+func (ctc *ContainerToolListCommand) printResult(totalDisplayString string) error {
+	if flags.JsonOutput {
 		data := ListCommandOutputObject{
 			OutputList:    ctc.OutputList,
 			SummaryObject: ctc.SummaryObject,
 		}
-		return util.ExecuteTemplate("", data, nil, ctc.OutOrStdout())
+		return util.PrintJson(data, ctc.OutOrStdout())
 	}
 	var err error
 	// Do not display the object list again.
-	if ctc.StreamO != nil {
+	if ctc.StreamO == nil {
 		err = util.ExecuteTemplate(ctc.ReadTemplateFromFlagOrCmdDefault(),
 			ctc.OutputList, ctc.TemplateFuncMap, ctc.OutOrStdout())
-		if err != nil {
-			Log.Errorf("%v", err)
-		}
+		LogIfErr(err, Log)
 	}
-	totalErr := util.ExecuteTemplate(ctc.SummaryTemplate,
-		ctc.SummaryObject, ctc.TemplateFuncMap, ctc.OutOrStdout())
-	if totalErr != nil && err != nil {
-		return nil
-	} else if totalErr != nil {
-		return totalErr
-	} else {
-		return err
+	// Display total if defined.
+	if totalDisplayString != "" {
+		ctc.Println(totalDisplayString)
 	}
+	return err
 }

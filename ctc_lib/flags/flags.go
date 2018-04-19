@@ -29,4 +29,4 @@ var UpdateCheck bool
 var LogDir string
 var EnableColors bool
 
-var OutputJson bool
+var JsonOutput bool

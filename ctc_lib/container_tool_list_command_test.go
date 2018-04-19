@@ -111,7 +111,7 @@ func TestContainerToolCommandStreamOutput(t *testing.T) {
 		},
 		OutputList:      make([]interface{}, 0),
 		SummaryObject:   &TestFooterOutput{},
-		SummaryTemplate: "{{.Count}} Names",
+		SummaryTemplate: "\n{{.Count}} Names",
 		StreamO:         RunStreamCommand,
 		Stream:          Channel,
 	}
@@ -256,7 +256,7 @@ func TestContainerToolCommandStreamOutputValidateJsonResult(t *testing.T) {
 	testCommand.Flags().StringVarP(&LName, "name", "n", "", "Comma Separated list of Name")
 	var OutputBuffer bytes.Buffer
 	testCommand.Command.SetOutput(&OutputBuffer)
-	testCommand.SetArgs([]string{"--name=John,Jane", "--json=True"})
+	testCommand.SetArgs([]string{"--name=John,Jane", "--jsonOutput=True"})
 	Execute(&testCommand)
 	var result = []TestListOutput{
 		{Name: "John"},
