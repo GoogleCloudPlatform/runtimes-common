@@ -19,6 +19,7 @@ package ctc_lib
 import (
 	"bytes"
 	"errors"
+	"fmt"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
 
@@ -144,7 +145,7 @@ func (ctc *ContainerToolListCommand) printResult(totalDisplayString string) {
 		}
 		// Display total if defined.
 		if totalDisplayString != "" {
-			ctc.Println(totalDisplayString)
+			fmt.Fprintln(ctc.OutOrStdout(), totalDisplayString)
 		}
 	}
 }
