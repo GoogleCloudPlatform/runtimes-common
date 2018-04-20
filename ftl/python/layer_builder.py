@@ -15,8 +15,8 @@
 
 import logging
 import os
-import subprocess
 import tempfile
+import subprocess
 
 from ftl.common import constants
 from ftl.common import ftl_util
@@ -43,16 +43,15 @@ class PackageLayerBuilder(single_layer_image.CacheableLayerBuilder):
         return ""
 
     def BuildLayer(self):
-        with ftl_util.Timing('Building pkg layer'):
+        with ftl_util.Timing('building_python_pkg_layer'):
             self._build_layer()
         if self._cache:
-            with ftl_util.Timing('Uploading pkg layer'):
+            with ftl_util.Timing('uploading_python_pkg_layer'):
                 self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
         blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
-        overrides = ftl_util.generate_overrides(
-            False)
+        overrides = ftl_util.generate_overrides(False)
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
 
     def _log_cache_result(self, hit):
@@ -98,21 +97,19 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def BuildLayer(self):
         cached_img = None
         if self._cache:
-            with ftl_util.Timing('Checking cached requirements.txt layer'):
+            with ftl_util.Timing('checking_cached_requirements.txt_layer'):
                 key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
                 self._log_cache_result(False if cached_img is None else True)
         if cached_img:
             self.SetImage(cached_img)
         else:
-            with ftl_util.Timing('Installing pip packages'):
-                pkg_descriptor = ftl_util.descriptor_parser(
-                    self._descriptor_files, self._ctx)
-                self._pip_install(pkg_descriptor)
+            pkg_descriptor = ftl_util.descriptor_parser(
+                self._descriptor_files, self._ctx)
+            self._pip_download_wheels(pkg_descriptor)
 
-            with ftl_util.Timing('Resolving whl paths'):
-                whls = self._resolve_whls()
-                pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
+            whls = self._resolve_whls()
+            pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
 
             req_txt_imgs = []
             for whl_pkg_dir in pkg_dirs:
@@ -130,14 +127,15 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             self.SetImage(req_txt_image)
 
             if self._cache:
-                with ftl_util.Timing('Uploading requirements.txt pkg lyr'):
+                with ftl_util.Timing('uploading_requirements.txt_pkg_lyr'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _resolve_whls(self):
-        return [
-            os.path.join(self._wheel_dir, f)
-            for f in os.listdir(self._wheel_dir)
-        ]
+        with ftl_util.Timing('resolving_whl_paths'):
+            return [
+                os.path.join(self._wheel_dir, f)
+                for f in os.listdir(self._wheel_dir)
+            ]
 
     def _whl_to_fslayer(self, whl):
         tmp_dir = tempfile.mkdtemp()
@@ -147,18 +145,22 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         pip_cmd_args = list(self._pip_cmd)
         pip_cmd_args.extend(['install', '--no-deps', '--prefix', pkg_dir, whl])
         pip_cmd_args.extend(constants.PIP_OPTIONS)
-        ftl_util.run_command('pip install', pip_cmd_args,
-                             None, self._gen_pip_env())
+        ftl_util.run_command('pip_install_from_wheels', pip_cmd_args, None,
+                             self._gen_pip_env())
         return tmp_dir
 
-    def _pip_install(self, pkg_txt):
-        with ftl_util.Timing('pip_download_wheels'):
-            pip_cmd_args = list(self._pip_cmd)
-            pip_cmd_args.extend(
-                ['wheel', '-w', self._wheel_dir, '-r', '/dev/stdin'])
-            pip_cmd_args.extend(constants.PIP_OPTIONS)
-            ftl_util.run_command('pip wheel', pip_cmd_args,
-                                 None, self._gen_pip_env(), pkg_txt)
+    def _pip_download_wheels(self, pkg_txt):
+        pip_cmd_args = list(self._pip_cmd)
+        pip_cmd_args.extend(
+            ['wheel', '-w', self._wheel_dir, '-r', '/dev/stdin'])
+        pip_cmd_args.extend(constants.PIP_OPTIONS)
+        ftl_util.run_command(
+            'pip_download_wheels',
+            pip_cmd_args,
+            None,
+            self._gen_pip_env(),
+            pkg_txt,
+            err_type=ftl_error.FTLErrors.USER())
 
     def _gen_pip_env(self):
         pip_env = os.environ.copy()
@@ -225,38 +227,34 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
     def BuildLayer(self):
         cached_img = None
         if self._cache:
-            with ftl_util.Timing('Checking cached pipfile pkg layer'):
+            with ftl_util.Timing('checking_cached_pipfile_pkg_layer'):
                 key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
                 self._log_cache_result(False if cached_img is None else True)
         if cached_img:
             self.SetImage(cached_img)
         else:
-            with ftl_util.Timing('Installing pip packages'):
-                self._pip_install(' '.join(self._pkg_descriptor))
+            self._pip_download_wheels(' '.join(self._pkg_descriptor))
+            whls = self._resolve_whls()
+            if len(whls) != 1:
+                raise Exception("expected one whl for one installed pkg")
+            pkg_dir = self._whl_to_fslayer(whls[0])
+            blob, u_blob = ftl_util.zip_dir_to_layer_sha(pkg_dir)
+            overrides = ftl_util.generate_overrides(False, self._venv_dir)
+            self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
+                                                       overrides)
+            if self._cache:
+                with ftl_util.Timing('uploading_pipfile_pkg_layer'):
+                    self._cache.Set(self.GetCacheKey(), self.GetImage())
 
-            with ftl_util.Timing('Resolving whl paths'):
-                whls = self._resolve_whls()
-                if len(whls) != 1:
-                    raise Exception("expected one whl for one installed pkg")
-                pkg_dir = self._whl_to_fslayer(whls[0])
-                blob, u_blob = ftl_util.zip_dir_to_layer_sha(pkg_dir)
-                overrides = ftl_util.generate_overrides(False, self._venv_dir)
-                self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
-                                                           overrides)
-                if self._cache:
-                    with ftl_util.Timing('Uploading pipfile pkg layer'):
-                        self._cache.Set(self.GetCacheKey(), self.GetImage())
-
-    def _pip_install(self, pkg_txt):
-        with ftl_util.Timing('pip_download_wheel'):
-            pip_cmd_args = list(self._pip_cmd)
-            pip_cmd_args.extend(
-                ['wheel', '-w', self._wheel_dir, '-r', '/dev/stdin'])
-            pip_cmd_args.extend(['--no-deps'])
-            pip_cmd_args.extend(constants.PIP_OPTIONS)
-            ftl_util.run_command('pip wheel', pip_cmd_args,
-                                 None, self._gen_pip_env(), pkg_txt)
+    def _pip_download_wheels(self, pkg_txt):
+        pip_cmd_args = list(self._pip_cmd)
+        pip_cmd_args.extend(
+            ['wheel', '-w', self._wheel_dir, '-r', '/dev/stdin'])
+        pip_cmd_args.extend(['--no-deps'])
+        pip_cmd_args.extend(constants.PIP_OPTIONS)
+        ftl_util.run_command('pip_download_wheel', pip_cmd_args, None,
+                             self._gen_pip_env(), pkg_txt)
 
 
 class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
@@ -300,32 +298,30 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def BuildLayer(self):
         cached_img = None
         if self._cache:
-            with ftl_util.Timing('Checking cached interpreter layer'):
+            with ftl_util.Timing('checking_cached_interpreter_layer'):
                 key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
                 self._log_cache_result(False if cached_img is None else True)
         if cached_img:
             self.SetImage(cached_img)
         else:
-            with ftl_util.Timing('Building interpreter layer'):
+            with ftl_util.Timing('building_interpreter_layer'):
                 self._build_layer()
             if self._cache:
-                with ftl_util.Timing('Uploading interpreter layer'):
+                with ftl_util.Timing('uploading_interpreter_layer'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
         self._setup_venv()
 
         tar_path = tempfile.mktemp(suffix='.tar')
-        with ftl_util.Timing('tar_runtime_package'):
-            tar_cmd = ['tar', '-cf', tar_path, self._venv_dir]
-            ftl_util.run_command('tar', tar_cmd)
+        tar_cmd = ['tar', '-cf', tar_path, self._venv_dir]
+        ftl_util.run_command('tar_venv_interpreter', tar_cmd)
 
         u_blob = open(tar_path, 'r').read()
         # We use gzip for performance instead of python's zip.
-        with ftl_util.Timing('gzip_runtime_tar'):
-            gzip_cmd = ['gzip', tar_path, '-1']
-            ftl_util.run_command('gzip', gzip_cmd)
+        gzip_cmd = ['gzip', tar_path, '-1']
+        ftl_util.run_command('gzip_venv_interpreter', gzip_cmd)
 
         blob = open(os.path.join(tar_path + '.gz'), 'rb').read()
 
@@ -333,15 +329,14 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
 
     def _setup_venv(self):
-        with ftl_util.Timing('create_virtualenv'):
-            venv_cmd_args = list(self._venv_cmd)
-            venv_cmd_args.extend([
-                '--no-download',
-                self._venv_dir,
-                '-p',
-            ])
-            venv_cmd_args.extend(self._python_cmd)
-            ftl_util.run_command('virtualenv', venv_cmd_args)
+        venv_cmd_args = list(self._venv_cmd)
+        venv_cmd_args.extend([
+            '--no-download',
+            self._venv_dir,
+            '-p',
+        ])
+        venv_cmd_args.extend(self._python_cmd)
+        ftl_util.run_command('create_virtualenv', venv_cmd_args)
 
     def _log_cache_result(self, hit):
         if hit:

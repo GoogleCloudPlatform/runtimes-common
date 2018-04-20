@@ -49,17 +49,17 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         """Override."""
         cached_img = None
         if self._cache:
-            with ftl_util.Timing('Checking cached pkg layer'):
+            with ftl_util.Timing('checking_cached_packages_json_layer'):
                 key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
                 self._log_cache_result(False if cached_img is None else True)
         if cached_img:
             self.SetImage(cached_img)
         else:
-            with ftl_util.Timing('Building pkg layer'):
+            with ftl_util.Timing('building_packages_json_layer'):
                 self._build_layer()
             if self._cache:
-                with ftl_util.Timing('Uploading pkg layer'):
+                with ftl_util.Timing('uploading_packages_json_layer'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
@@ -76,38 +76,40 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
 
         # Copy out the relevant package descriptors to a tempdir.
         if self._descriptor_files and self._ctx:
-            ftl_util.descriptor_copy(self._ctx,
-                                     self._descriptor_files,
+            ftl_util.descriptor_copy(self._ctx, self._descriptor_files,
                                      app_dir)
 
         if self._ctx:
             self._check_gcp_build(
                 json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)), app_dir)
-        with ftl_util.Timing("rm node_modules"):
-            rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'node_modules')]
-            ftl_util.run_command('rm', rm_cmd)
+        rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'node_modules')]
+        ftl_util.run_command('rm_node_modules', rm_cmd)
 
-        with ftl_util.Timing("npm_install"):
-            if not pkg_descriptor:
-                npm_install_cmd = ['npm', 'install', '--production']
-                ftl_util.run_command('npm install', npm_install_cmd, app_dir)
-
-            else:
-                npm_install_cmd = ['npm', 'install',
-                                   '--production', pkg_descriptor]
-                ftl_util.run_command('npm install', npm_install_cmd, app_dir)
-
+        if not pkg_descriptor:
+            npm_install_cmd = ['npm', 'install', '--production']
+            ftl_util.run_command(
+                'npm_install',
+                npm_install_cmd,
+                app_dir,
+                err_type=ftl_error.FTLErrors.USER())
+        else:
+            npm_install_cmd = [
+                'npm', 'install', '--production', pkg_descriptor
+            ]
+            ftl_util.run_command(
+                'npm_install',
+                npm_install_cmd,
+                app_dir,
+                err_type=ftl_error.FTLErrors.USER())
 
         tar_path = tempfile.mktemp(suffix='.tar')
-        with ftl_util.Timing('tar_runtime_package'):
-            tar_cmd = ['tar', '-cf', tar_path, app_dir]
-            ftl_util.run_command('tar', tar_cmd)
+        tar_cmd = ['tar', '-cf', tar_path, app_dir]
+        ftl_util.run_command('tar_node_dependencies', tar_cmd)
 
         u_blob = open(tar_path, 'r').read()
         # We use gzip for performance instead of python's zip.
-        with ftl_util.Timing('gzip_runtime_tar'):
-            gzip_cmd = ['gzip', tar_path, '-1']
-            ftl_util.run_command('gzip', gzip_cmd)
+        gzip_cmd = ['gzip', tar_path, '-1']
+        ftl_util.run_command('gzip_node_dependencies', gzip_cmd)
         return open(os.path.join(tar_path + '.gz'), 'rb').read(), u_blob
 
     def _generate_overrides(self):
@@ -126,13 +128,20 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         env = os.environ.copy()
         env["NODE_ENV"] = "development"
         npm_install_cmd = ['npm', 'install']
-        ftl_util.run_command('npm install', npm_install_cmd,
-                                app_dir, env)
+        ftl_util.run_command(
+            'npm_install',
+            npm_install_cmd,
+            app_dir,
+            env,
+            err_type=ftl_error.FTLErrors.USER())
 
-        npm_install_cmd = ['npm', 'install']
-        ftl_util.run_command('npm install', npm_install_cmd,
-                                app_dir, env)
-
+        npm_run_script_cmd = ['npm', 'run-script', 'gcp-build']
+        ftl_util.run_command(
+            'npm_run_script_gcp_build',
+            npm_run_script_cmd,
+            app_dir,
+            env,
+            err_type=ftl_error.FTLErrors.USER())
 
     def _log_cache_result(self, hit):
         if self._pkg_descriptor:

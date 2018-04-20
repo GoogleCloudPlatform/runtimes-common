@@ -63,10 +63,9 @@ class PythonTest(unittest.TestCase):
         # will give permissions errors in some build environments (eg: kokoro)
         self.interpreter_builder = layer_builder.InterpreterLayerBuilder(
             ftl_util.gen_tmp_dir(constants.VENV_DIR.replace('/', '')),
-            self.builder._python_cmd,
-            self.builder._venv_cmd)
+            self.builder._python_cmd, self.builder._venv_cmd)
         self.interpreter_builder._setup_venv = mock.Mock()
-        self.builder._pip_install = mock.Mock()
+        self.builder._pip_download_wheels = mock.Mock()
 
     def test_build_interpreter_layer_ttl_written(self):
         self.interpreter_builder.BuildLayer()

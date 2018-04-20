@@ -46,17 +46,17 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
         """Override."""
         cached_img = None
         if self._cache:
-            with ftl_util.Timing('Checking cached pkg layer'):
+            with ftl_util.Timing('checking_cached_composer_json_layer'):
                 key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
                 self._log_cache_result(False if cached_img is None else True)
         if cached_img:
             self.SetImage(cached_img)
         else:
-            with ftl_util.Timing('Building pkg layer'):
+            with ftl_util.Timing('building_composer_json_layer'):
                 self._build_layer()
             if self._cache:
-                with ftl_util.Timing('Uploading pkg layer'):
+                with ftl_util.Timing('uploading_composer_json_layer'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
@@ -74,15 +74,17 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
         # Copy out the relevant package descriptors to a tempdir.
         ftl_util.descriptor_copy(self._ctx, self._descriptor_files, app_dir)
 
-        with ftl_util.Timing("rm vendor"):
-            rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'vendor')]
-            ftl_util.run_command('rm', rm_cmd)
+        rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'vendor')]
+        ftl_util.run_command('rm_vendor_dir', rm_cmd)
 
-        with ftl_util.Timing('Composer_install'):
-            composer_install_cmd = ['composer', 'install',
-                               '--no-dev', '--no-scripts']
-            ftl_util.run_command('composer install',
-                                 composer_install_cmd, app_dir)
+        composer_install_cmd = [
+            'composer', 'install', '--no-dev', '--no-scripts'
+        ]
+        ftl_util.run_command(
+            'composer_install',
+            composer_install_cmd,
+            app_dir,
+            err_type=ftl_error.FTLErrors.USER())
 
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 
@@ -128,16 +130,16 @@ class PhaseTwoLayerBuilder(PhaseOneLayerBuilder):
         pkg_dir = tempfile.mkdtemp()
         app_dir = os.path.join(pkg_dir, destination_path.strip("/"))
         os.makedirs(app_dir)
-        with ftl_util.Timing("rm vendor"):
-            rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'vendor')]
-            ftl_util.run_command('rm', rm_cmd)
+        rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'vendor')]
+        ftl_util.run_command('rm_vendor_dir', rm_cmd)
 
-        with ftl_util.Timing('Composer_install'):
-            pkg, version = pkg_descriptor
-            composer_install_cmd = ['composer', 'require',
-                                    str(pkg), str(version)]
-            ftl_util.run_command('composer require',
-                                 composer_install_cmd, app_dir)
+        pkg, version = pkg_descriptor
+        composer_install_cmd = ['composer', 'require', str(pkg), str(version)]
+        ftl_util.run_command(
+            'composer_require',
+            composer_install_cmd,
+            app_dir,
+            err_type=ftl_error.FTLErrors.USER())
 
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 

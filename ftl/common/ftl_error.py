@@ -13,22 +13,29 @@
 # limitations under the License.
 
 import os
-import logging
 import shutil
 
 from ftl.common import constants
 
 
+class FTLErrors():
+    @classmethod
+    def USER(self):
+        return "USER"
+
+    @classmethod
+    def INTERNAL(self):
+        return "INTERNAL"
+
+
 class UserError(Exception):
     def __init__(self, message):
         super(UserError, self).__init__(message)
-        logging.error(message)
 
 
 class InternalError(Exception):
     def __init__(self, message):
         super(InternalError, self).__init__(message)
-        logging.error(message)
 
 
 def UserErrorHandler(u_err, log_path):

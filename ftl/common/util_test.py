@@ -44,8 +44,7 @@ class UtilTest(unittest.TestCase):
         phase_1_entry = constants.PHASE_1_CACHE_HIT.format(
             key_version=constants.CACHE_KEY_VERSION,
             language=language,
-            key=key
-        )
+            key=key)
 
         logging.info(phase_1_entry)
         entry = self.log_capture_string.getvalue()
@@ -65,8 +64,7 @@ class UtilTest(unittest.TestCase):
             language=language,
             package_name=package,
             package_version=version,
-            key=key
-        )
+            key=key)
 
         logging.info(phase_2_entry)
         entry = self.log_capture_string.getvalue()

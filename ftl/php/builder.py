@@ -25,9 +25,9 @@ from ftl.php import layer_builder as php_builder
 
 class PHP(builder.RuntimeBase):
     def __init__(self, ctx, args):
-        super(PHP, self).__init__(ctx, constants.PHP_CACHE_NAMESPACE, args,
-                                  [constants.COMPOSER_LOCK,
-                                   constants.COMPOSER_JSON])
+        super(PHP, self).__init__(
+            ctx, constants.PHP_CACHE_NAMESPACE, args,
+            [constants.COMPOSER_LOCK, constants.COMPOSER_JSON])
 
     def _parse_composer_pkgs(self):
         descriptor_contents = ftl_util.descriptor_parser(

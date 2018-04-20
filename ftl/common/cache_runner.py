@@ -49,20 +49,22 @@ def main():
     logging.getLogger().setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--packages',
-                        action='store',
-                        dest='packages',
-                        nargs='*',
-                        required=True,
-                        type=str,
-                        help='')
-    parser.add_argument('--language',
-                        '-l',
-                        action='store',
-                        dest='language',
-                        required=True,
-                        help='',
-                        choices=LANGUAGES)
+    parser.add_argument(
+        '--packages',
+        action='store',
+        dest='packages',
+        nargs='*',
+        required=True,
+        type=str,
+        help='')
+    parser.add_argument(
+        '--language',
+        '-l',
+        action='store',
+        dest='language',
+        required=True,
+        help='',
+        choices=LANGUAGES)
     args = parser.parse_args()
 
     runner = CacheRunner(args.packages, args.language)
@@ -108,11 +110,11 @@ class CacheRunner(object):
         return map of key to package,which we'll use as lookup
         when pushing images"""
 
-        r = requests.get('https://www.googleapis.com/storage/v1'
-                         '/b/{bucket}/o/{file}?alt=media'.format(
-                             bucket=MAPPING_BUCKET,
-                             file=MAPPING_FILE.format(language=self._language)
-                         ))
+        r = requests.get(
+            'https://www.googleapis.com/storage/v1'
+            '/b/{bucket}/o/{file}?alt=media'.format(
+                bucket=MAPPING_BUCKET,
+                file=MAPPING_FILE.format(language=self._language)))
 
         if not r.ok:
             logging.error('Error retrieving mapping: %s' % r.text)
@@ -124,8 +126,7 @@ class CacheRunner(object):
 
     def retrieve_cache_entries(self):
         # returns all images stored in the cache currently
-        with docker_image.FromRegistry(self._cache,
-                                       self._creds,
+        with docker_image.FromRegistry(self._cache, self._creds,
                                        self._transport) as session:
             entries = set(tag.rstrip() for tag in session.tags() if tag)
             logging.info('existing entries in cache: %s' % entries)
@@ -137,8 +138,8 @@ class CacheRunner(object):
         for entry in existing_entries:
             entry_info = self._mappings.get(entry, '')
             if entry_info and entry_info not in self._packages:
-                logging.info('removing entry {0} from cache'.format(
-                    entry_info))
+                logging.info(
+                    'removing entry {0} from cache'.format(entry_info))
                 self._remove_entry(entry)
 
     def _remove_entry(self, entry):
@@ -163,13 +164,12 @@ class CacheRunner(object):
                         # on the version
                         self._build_image_and_push(name, '==' + version)
                 except ValueError:
-                    logging.error('Encountered malformed package: {0}'.format(
-                        package))
+                    logging.error(
+                        'Encountered malformed package: {0}'.format(package))
 
     def _build_image_and_push(self, package_name, package_version):
         logging.info('building package {name}, version {version}'.format(
-            name=package_name,
-            version=package_version))
+            name=package_name, version=package_version))
         image = None
         builder = None
         if self._language == PHP:
@@ -198,8 +198,8 @@ class CacheRunner(object):
         key = builder.GetCacheKey()
         tag = self._tag(key)
 
-        with docker_session.Push(tag, self._creds,
-                                 self._transport, threads=2) as session:
+        with docker_session.Push(
+                tag, self._creds, self._transport, threads=2) as session:
             session.upload(image)
         self._mappings['%s:%s' % (package_name, package_version)] = key
 
