@@ -79,6 +79,7 @@ def CfgDctToOverrides(config_dct):
 
 class Timing(object):
     def __init__(self, descriptor):
+        logging.info("starting: %s" % descriptor)
         self.descriptor = descriptor
 
     def __enter__(self):
