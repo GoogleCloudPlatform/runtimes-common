@@ -49,6 +49,7 @@ WHEEL_DIR = 'wheel'
 PIP_DEFAULT_CMD = 'pip'
 PYTHON_DEFAULT_CMD = 'python2.7'
 VENV_DEFAULT_CMD = 'virtualenv'
+PIP_OPTIONS = ['--disable-pip-version-check']
 
 # logging constants
 PHASE_1_CACHE_STR = '{key_version}:{language}->{key}'

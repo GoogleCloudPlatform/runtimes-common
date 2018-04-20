@@ -15,7 +15,6 @@
 
 import logging
 import os
-import subprocess
 import tempfile
 import datetime
 
@@ -75,28 +74,15 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
         # Copy out the relevant package descriptors to a tempdir.
         ftl_util.descriptor_copy(self._ctx, self._descriptor_files, app_dir)
 
-        subprocess.check_call(['rm', '-rf', os.path.join(app_dir, 'vendor')])
+        with ftl_util.Timing("rm vendor"):
+            rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'vendor')]
+            ftl_util.run_command('rm', rm_cmd)
 
         with ftl_util.Timing('Composer_install'):
-            composer_cmd_args = ['composer', 'install', '--no-dev',
-                                 '--no-scripts']
-            proc_pipe = subprocess.Popen(
-                composer_cmd_args,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=app_dir
-            )
-            stdout, stderr = proc_pipe.communicate()
-            logging.info("`composer require` stdout:\n%s" % stdout)
-            if stderr:
-                err_txt = "`composer require` had error output:\n%s" % stderr
-                raise ftl_error.UserError(err_txt)
-
-            if proc_pipe.returncode:
-                err_txt = "error: `composer require` returned code: %d" % \
-                                proc_pipe.returncode
-                raise ftl_error.UserError(err_txt)
+            composer_install_cmd = ['composer', 'install',
+                               '--no-dev', '--no-scripts']
+            ftl_util.run_command('composer install',
+                                 composer_install_cmd, app_dir)
 
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 
@@ -142,30 +128,16 @@ class PhaseTwoLayerBuilder(PhaseOneLayerBuilder):
         pkg_dir = tempfile.mkdtemp()
         app_dir = os.path.join(pkg_dir, destination_path.strip("/"))
         os.makedirs(app_dir)
-        subprocess.check_call(['rm', '-rf', os.path.join(app_dir, 'vendor')])
+        with ftl_util.Timing("rm vendor"):
+            rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'vendor')]
+            ftl_util.run_command('rm', rm_cmd)
 
         with ftl_util.Timing('Composer_install'):
             pkg, version = pkg_descriptor
-            composer_cmd_args = ['composer', 'require',
-                                 str(pkg), str(version)]
-
-            proc_pipe = subprocess.Popen(
-                composer_cmd_args,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=app_dir
-            )
-            stdout, stderr = proc_pipe.communicate()
-            logging.info("`composer require` stdout:\n%s" % stdout)
-            if stderr:
-                err_txt = "`composer require` had error output:\n%s" % stderr
-                raise ftl_error.UserError(err_txt)
-
-            if proc_pipe.returncode:
-                err_txt = "error: `composer require` returned code: %d" % \
-                                proc_pipe.returncode
-                raise ftl_error.UserError(err_txt)
+            composer_install_cmd = ['composer', 'require',
+                                    str(pkg), str(version)]
+            ftl_util.run_command('composer require',
+                                 composer_install_cmd, app_dir)
 
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
 

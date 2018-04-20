@@ -15,7 +15,6 @@
 
 import logging
 import os
-import subprocess
 import tempfile
 import json
 import datetime
@@ -84,40 +83,31 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         if self._ctx:
             self._check_gcp_build(
                 json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)), app_dir)
-        subprocess.check_call(
-            ['rm', '-rf', os.path.join(app_dir, 'node_modules')])
+        with ftl_util.Timing("rm node_modules"):
+            rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'node_modules')]
+            ftl_util.run_command('rm', rm_cmd)
+
         with ftl_util.Timing("npm_install"):
             if not pkg_descriptor:
-                npm_cmd_args = ['npm', 'install', '--production']
-            else:
-                npm_cmd_args = [
-                    'npm', 'install', '--production', pkg_descriptor
-                ]
-            proc_pipe = subprocess.Popen(
-                npm_cmd_args,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=app_dir)
-            stdout, stderr = proc_pipe.communicate()
-            logging.info("`npm install` stdout:\n%s" % stdout)
-            if stderr:
-                err_txt = "`npm install` had error output:\n%s" % stderr
-                raise ftl_error.UserError(err_txt)
+                npm_install_cmd = ['npm', 'install', '--production']
+                ftl_util.run_command('npm install', npm_install_cmd, app_dir)
 
-            if proc_pipe.returncode:
-                err_txt = "error: `npm install` returned code: %d" % \
-                                proc_pipe.returncode
-                raise ftl_error.UserError(err_txt)
+            else:
+                npm_install_cmd = ['npm', 'install',
+                                   '--production', pkg_descriptor]
+                ftl_util.run_command('npm install', npm_install_cmd, app_dir)
+
 
         tar_path = tempfile.mktemp(suffix='.tar')
         with ftl_util.Timing('tar_runtime_package'):
-            subprocess.check_call(['tar', '-cf', tar_path, app_dir])
+            tar_cmd = ['tar', '-cf', tar_path, app_dir]
+            ftl_util.run_command('tar', tar_cmd)
 
         u_blob = open(tar_path, 'r').read()
         # We use gzip for performance instead of python's zip.
         with ftl_util.Timing('gzip_runtime_tar'):
-            subprocess.check_call(['gzip', tar_path, '-1'])
+            gzip_cmd = ['gzip', tar_path, '-1']
+            ftl_util.run_command('gzip', gzip_cmd)
         return open(os.path.join(tar_path + '.gz'), 'rb').read(), u_blob
 
     def _generate_overrides(self):
@@ -135,9 +125,14 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
 
         env = os.environ.copy()
         env["NODE_ENV"] = "development"
-        subprocess.check_call(['npm', 'install'], cwd=app_dir, env=env)
-        subprocess.check_call(
-            ['npm', 'run-script', 'gcp-build'], cwd=app_dir, env=env)
+        npm_install_cmd = ['npm', 'install']
+        ftl_util.run_command('npm install', npm_install_cmd,
+                                app_dir, env)
+
+        npm_install_cmd = ['npm', 'install']
+        ftl_util.run_command('npm install', npm_install_cmd,
+                                app_dir, env)
+
 
     def _log_cache_result(self, hit):
         if self._pkg_descriptor:

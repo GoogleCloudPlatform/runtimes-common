@@ -214,3 +214,24 @@ def parseCacheLogEntry(entry):
             "key": key,
             "hit": hit
         }
+
+
+def run_command(cmd_name, cmd_args,
+                cmd_cwd=None, cmd_env=None, cmd_input=None):
+    logging.info("`%s` full cmd:\n%s" % (cmd_name, " ".join(cmd_args)))
+    proc_pipe = None
+    proc_pipe = subprocess.Popen(
+        cmd_args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=cmd_cwd,
+        env=cmd_env,
+    )
+    stdout, stderr = proc_pipe.communicate(input=cmd_input)
+    logging.info("`%s` stdout:\n%s" % (cmd_name, stdout))
+    if stderr:
+        logging.error("`%s` had error output:\n%s" % (cmd_name, stderr))
+    if proc_pipe.returncode:
+        raise Exception("error: `%s` returned code: %d" %
+                        (cmd_name, proc_pipe.returncode))

@@ -146,22 +146,9 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
         pip_cmd_args = list(self._pip_cmd)
         pip_cmd_args.extend(['install', '--no-deps', '--prefix', pkg_dir, whl])
-
-        proc_pipe = subprocess.Popen(
-            pip_cmd_args,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            env=self._gen_pip_env(),
-        )
-        stdout, stderr = proc_pipe.communicate()
-        logging.info("`pip install` stdout:\n%s" % stdout)
-        if stderr:
-            err_txt = "`pip install` had error output:\n%s" % stderr
-            raise ftl_error.UserError(err_txt)
-        if proc_pipe.returncode:
-            err_txt = "error: `pip install` returned code: %d" % \
-                      proc_pipe.returncode
-            raise ftl_error.UserError(err_txt)
+        pip_cmd_args.extend(constants.PIP_OPTIONS)
+        ftl_util.run_command('pip install', pip_cmd_args,
+                             None, self._gen_pip_env())
         return tmp_dir
 
     def _pip_install(self, pkg_txt):
@@ -169,24 +156,9 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             pip_cmd_args = list(self._pip_cmd)
             pip_cmd_args.extend(
                 ['wheel', '-w', self._wheel_dir, '-r', '/dev/stdin'])
-
-            proc_pipe = subprocess.Popen(
-                pip_cmd_args,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                env=self._gen_pip_env(),
-            )
-            stdout, stderr = proc_pipe.communicate(input=pkg_txt)
-            logging.info("`pip wheel` stdout:\n%s" % stdout)
-            if stderr:
-                err_txt = "`pip wheel` had error output:\n%s" % stderr
-                raise ftl_error.UserError(err_txt)
-
-            if proc_pipe.returncode:
-                err_txt = "error: `pip wheel` returned code: %d" % \
-                                proc_pipe.returncode
-                raise ftl_error.UserError(err_txt)
+            pip_cmd_args.extend(constants.PIP_OPTIONS)
+            ftl_util.run_command('pip wheel', pip_cmd_args,
+                                 None, self._gen_pip_env(), pkg_txt)
 
     def _gen_pip_env(self):
         pip_env = os.environ.copy()
@@ -234,8 +206,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
         self._pkg_descriptor = pkg_descriptor
 
     def GetCacheKeyRaw(self):
-        return "%s %s %s" % (self._pkg_descriptor[0],
-                             self._pkg_descriptor[1],
+        return "%s %s %s" % (self._pkg_descriptor[0], self._pkg_descriptor[1],
                              self._dep_img_lyr.GetCacheKeyRaw())
 
     def _log_cache_result(self, hit):
@@ -283,24 +254,9 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
             pip_cmd_args.extend(
                 ['wheel', '-w', self._wheel_dir, '-r', '/dev/stdin'])
             pip_cmd_args.extend(['--no-deps'])
-
-            proc_pipe = subprocess.Popen(
-                pip_cmd_args,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                env=self._gen_pip_env(),
-            )
-            stdout, stderr = proc_pipe.communicate(input=pkg_txt)
-            logging.info("`pip wheel` stdout:\n%s" % stdout)
-            if stderr:
-                err_txt = "`pip wheel` had error output:\n%s" % stderr
-                raise ftl_error.UserError(err_txt)
-
-            if proc_pipe.returncode:
-                err_txt = "error: `pip wheel` returned code: %d" % \
-                                proc_pipe.returncode
-                raise ftl_error.UserError(err_txt)
+            pip_cmd_args.extend(constants.PIP_OPTIONS)
+            ftl_util.run_command('pip wheel', pip_cmd_args,
+                                 None, self._gen_pip_env(), pkg_txt)
 
 
 class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
@@ -362,12 +318,15 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
         tar_path = tempfile.mktemp(suffix='.tar')
         with ftl_util.Timing('tar_runtime_package'):
-            subprocess.check_call(['tar', '-cf', tar_path, self._venv_dir])
+            tar_cmd = ['tar', '-cf', tar_path, self._venv_dir]
+            ftl_util.run_command('tar', tar_cmd)
 
         u_blob = open(tar_path, 'r').read()
         # We use gzip for performance instead of python's zip.
         with ftl_util.Timing('gzip_runtime_tar'):
-            subprocess.check_call(['gzip', tar_path, '-1'])
+            gzip_cmd = ['gzip', tar_path, '-1']
+            ftl_util.run_command('gzip', gzip_cmd)
+
         blob = open(os.path.join(tar_path + '.gz'), 'rb').read()
 
         overrides = ftl_util.generate_overrides(True, self._venv_dir)
@@ -382,22 +341,7 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
                 '-p',
             ])
             venv_cmd_args.extend(self._python_cmd)
-            proc_pipe = subprocess.Popen(
-                venv_cmd_args,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE
-            )
-            stdout, stderr = proc_pipe.communicate()
-            logging.info("`virtualenv` stdout:\n%s" % stdout)
-            if stderr:
-                err_txt = "`virtualenv` had error output:\n%s" % stderr
-                raise ftl_error.UserError(err_txt)
-            if proc_pipe.returncode:
-                err_txt = "error: `virtualenv` returned code: %d" % \
-                        proc_pipe.returncode
-                raise ftl_error.UserError(err_txt)
-            subprocess.check_call(venv_cmd_args)
+            ftl_util.run_command('virtualenv', venv_cmd_args)
 
     def _log_cache_result(self, hit):
         if hit:
