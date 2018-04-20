@@ -307,7 +307,30 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._cache = cache
 
     def GetCacheKeyRaw(self):
-        return '%s %s %s' % (self._python_cmd, self._venv_cmd, self._venv_dir)
+        return '%s %s %s' % (self._python_version(),
+                             self._venv_cmd,
+                             self._venv_dir)
+
+    def _python_version(self):
+        with ftl_util.Timing('check python version'):
+            python_version_cmd = list(self._python_cmd)
+            python_version_cmd.append('--version')
+            logging.info("`python version` full cmd:\n%s" %
+                         " ".join(python_version_cmd))
+            proc_pipe = subprocess.Popen(
+                python_version_cmd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            stdout, stderr = proc_pipe.communicate()
+            logging.info("`python version` stdout:\n%s" % stdout)
+            logging.info("`python version` stderr:\n%s" % stderr)
+            if proc_pipe.returncode:
+                raise Exception("error: `python version` returned code: %d" %
+                                proc_pipe.returncode)
+            #  up until Python 3.4 the version info gets written to stderr
+            return stdout if len(stdout) >= len(stderr) else stderr
 
     def BuildLayer(self):
         cached_img = None
