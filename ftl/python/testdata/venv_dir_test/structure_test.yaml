@@ -1,0 +1,24 @@
+schemaVersion: '2.0.0'
+fileExistenceTests:
+- name: 'virtualenv python bin'
+  path: '/alternate-env/bin/python'
+  shouldExist: true
+  isDirectory: false
+
+fileExistenceTests:
+- name: 'flask script'
+  path: '/alternate-env/bin/flask'
+  shouldExist: true
+  isDirectory: false
+
+fileExistenceTests:
+- name: 'flask lib'
+  path: '/alternate-env/lib/python2.7/site-packages/flask'
+  shouldExist: true
+  isDirectory: false
+
+commandTests:
+- name: 'venv setup correctly'
+  command: 'cat'
+  args: ['/alternate-env/bin/activate']
+  expectedOutput: ['"/alternate-env"']

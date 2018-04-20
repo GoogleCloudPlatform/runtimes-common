@@ -121,7 +121,7 @@ def base_parser():
 
 node_flgs = []
 php_flgs = []
-python_flgs = ['python_cmd', 'pip_cmd', 'venv_cmd']
+python_flgs = ['python_cmd', 'pip_cmd', 'venv_cmd', 'venv_dir']
 
 
 def extra_args(parser, opt_list):
@@ -147,6 +147,14 @@ def extra_args(parser, opt_list):
                 "dest": 'venv_cmd',
                 "action": 'store',
                 "default": constants.VENV_DEFAULT_CMD,
+                "help": 'The virtualenv command to be run (ex: virtualenv)'
+            }
+        ],
+        'venv_dir': [
+            '--virtualenv-dir', {
+                "dest": 'venv_dir',
+                "action": 'store',
+                "default": constants.VENV_DIR,
                 "help": 'The virtualenv command to be run (ex: virtualenv)'
             }
         ],

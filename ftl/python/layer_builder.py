@@ -50,7 +50,8 @@ class PackageLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
     def _build_layer(self):
         blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
-        overrides = ftl_util.generate_overrides(False)
+        overrides = ftl_util.generate_overrides(
+            False)
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
 
     def _log_cache_result(self, hit):
@@ -139,7 +140,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
     def _whl_to_fslayer(self, whl):
         tmp_dir = tempfile.mkdtemp()
-        pkg_dir = os.path.join(tmp_dir, 'env')
+        pkg_dir = os.path.join(tmp_dir, self._venv_dir.lstrip('/'))
         os.makedirs(pkg_dir)
 
         pip_cmd_args = list(self._pip_cmd)
@@ -263,7 +264,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
                     raise Exception("expected one whl for one installed pkg")
                 pkg_dir = self._whl_to_fslayer(whls[0])
                 blob, u_blob = ftl_util.zip_dir_to_layer_sha(pkg_dir)
-                overrides = ftl_util.generate_overrides(False)
+                overrides = ftl_util.generate_overrides(False, self._venv_dir)
                 self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                            overrides)
                 if self._cache:
@@ -306,7 +307,7 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._cache = cache
 
     def GetCacheKeyRaw(self):
-        return '%s %s' % (self._python_cmd, self._venv_cmd)
+        return '%s %s %s' % (self._python_cmd, self._venv_cmd, self._venv_dir)
 
     def BuildLayer(self):
         cached_img = None
@@ -337,7 +338,7 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
             subprocess.check_call(['gzip', tar_path, '-1'])
         blob = open(os.path.join(tar_path + '.gz'), 'rb').read()
 
-        overrides = ftl_util.generate_overrides(True)
+        overrides = ftl_util.generate_overrides(True, self._venv_dir)
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
 
     def _setup_venv(self):
