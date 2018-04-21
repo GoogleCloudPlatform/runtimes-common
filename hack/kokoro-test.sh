@@ -40,10 +40,10 @@ pids+=($!)
 python ftl/cached/ftl_cached_yaml.py --runtime=php | gcloud container builds submit --config /dev/fd/0 . > php_cached.log &
 pids+=($!)
 
-python ftl/cached/ftl_cached_yaml.py --runtime=python-requirements | gcloud container builds submit --config /dev/fd/0 . > python_cached.log &
+python ftl/cached/ftl_cached_yaml.py --runtime=python-requirements | gcloud container builds submit --config /dev/fd/0 . > python_requirements_cached.log &
 pids+=($!)
 
-python ftl/cached/ftl_cached_yaml.py --runtime=python-pipfile | gcloud container builds submit --config /dev/fd/0 . > python_cached.log &
+python ftl/cached/ftl_cached_yaml.py --runtime=python-pipfile | gcloud container builds submit --config /dev/fd/0 . > python_pipfile_cached.log &
 pids+=($!)
 
 # Wait for them to finish, and check the exit codes.
