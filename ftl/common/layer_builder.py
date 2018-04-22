@@ -70,6 +70,8 @@ class AppLayerBuilder(single_layer_image.BaseLayerBuilder):
                 overrides_dct['Entrypoint'] = self._entrypoint
             if self._exposed_ports:
                 overrides_dct['ExposedPorts'] = self._exposed_ports
+            if self._exposed_ports:
+                overrides_dct['ExposedPorts'] = self._exposed_ports
             logging.info('Finished gzipping tarfile.')
             self._img = tar_to_dockerimage.FromFSImage([gz], [tar],
                                                        overrides_dct)

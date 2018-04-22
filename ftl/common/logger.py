@@ -13,8 +13,10 @@
 # limitations under the License.
 """This package defines the shared cli args for ftl binaries."""
 
+import os
 import logging
-import constants
+
+from ftl.common import constants
 
 LEVEL_MAP = {
     "NOTSET": logging.NOTSET,
@@ -26,11 +28,15 @@ LEVEL_MAP = {
 }
 
 
-def setup_logging(verbosity):
-    logging.getLogger().setLevel(LEVEL_MAP[verbosity])
-    logging.basicConfig(
-        format='%(levelname)-8s %(message)s',
-        datefmt='')
+def setup_logging(args):
+    logging.getLogger().setLevel(LEVEL_MAP[args.verbosity])
+    if args.log_path:
+        log_path = os.path.join(args.log_path, constants.FTL_FULL_LOG)
+        logging.basicConfig(
+            handlers=[logging.FileHandler(log_path),
+                      logging.StreamHandler()])
+    else:
+        logging.basicConfig(format='%(levelname)-8s %(message)s', datefmt='')
 
 
 def preamble(runtime, args):

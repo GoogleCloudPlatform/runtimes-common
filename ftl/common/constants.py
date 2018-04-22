@@ -49,6 +49,7 @@ WHEEL_DIR = 'wheel'
 PIP_DEFAULT_CMD = 'pip'
 PYTHON_DEFAULT_CMD = 'python2.7'
 VENV_DEFAULT_CMD = 'virtualenv'
+PIP_OPTIONS = ['--disable-pip-version-check']
 
 # logging constants
 PHASE_1_CACHE_STR = '{key_version}:{language}->{key}'
@@ -63,3 +64,7 @@ PHASE_1_CACHE_MISS = CACHE_MISS + PHASE_1_CACHE_STR
 PHASE_2_CACHE_MISS = CACHE_MISS + PHASE_2_CACHE_STR
 
 CACHE_KEY_VERSION = 'v1'
+
+FTL_USER_LOG = 'ftl-user.log'
+FTL_FULL_LOG = 'ftl-full.log'
+FTL_INTERNAL_LOG = 'ftl-internal.log'

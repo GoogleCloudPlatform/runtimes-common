@@ -21,6 +21,7 @@ import datetime
 import json
 
 from ftl.common import constants
+from ftl.common import ftl_error
 
 from containerregistry.client.v2_2 import append
 from containerregistry.transform.v2_2 import metadata
@@ -214,3 +215,38 @@ def parseCacheLogEntry(entry):
             "key": key,
             "hit": hit
         }
+
+
+def run_command(cmd_name,
+                cmd_args,
+                cmd_cwd=None,
+                cmd_env=None,
+                cmd_input=None,
+                err_type=ftl_error.FTLErrors.INTERNAL):
+    with Timing(cmd_name):
+        logging.info("`%s` full cmd:\n%s" % (cmd_name, " ".join(cmd_args)))
+        proc_pipe = None
+        proc_pipe = subprocess.Popen(
+            cmd_args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=cmd_cwd,
+            env=cmd_env,
+        )
+        stdout, stderr = proc_pipe.communicate(input=cmd_input)
+        logging.info("`%s` stdout:\n%s" % (cmd_name, stdout))
+        err_txt = ""
+        if stderr:
+            err_txt = "`%s` had error output:\n%s" % (cmd_name, stderr)
+            logging.error(err_txt)
+        if proc_pipe.returncode:
+            ret_txt = "error: `%s` returned code: %d" % (cmd_name,
+                                                         proc_pipe.returncode)
+            logging.error(ret_txt)
+            if err_type == ftl_error.FTLErrors.USER():
+                raise ftl_error.UserError("%s\n%s" % (err_txt, ret_txt))
+            elif err_type == ftl_error.FTLErrors.INTERNAL():
+                raise ftl_error.InternalError("%s\n%s" % (err_txt, ret_txt))
+            else:
+                raise Exception("Unknown error type passed to run_command")

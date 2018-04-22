@@ -34,6 +34,9 @@ pids+=($!)
 python ftl/integration_tests/ftl_python_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 . > python.log &
 pids+=($!)
 
+gcloud container builds submit --config ftl/integration_tests/ftl_python_error_test.yaml . > python_error.log &
+pids+=($!)
+
 python ftl/cached/ftl_cached_yaml.py --runtime=node | gcloud container builds submit --config /dev/fd/0 . > node_cached.log &
 pids+=($!)
 
@@ -64,7 +67,8 @@ if [[ $failures -gt 0 ]]; then
     cat python.log
     cat php.log
     cat node_cached.log
-    cat python_cached.log
+    cat python_requirements_cached.log
+    cat python_pipfile_cached.log
     cat php_cached.log
     exit 1
 fi

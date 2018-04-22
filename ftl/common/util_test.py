@@ -17,6 +17,7 @@ import unittest
 import constants
 import StringIO
 import logging
+import mock
 
 import ftl_util
 import logger
@@ -24,7 +25,11 @@ import logger
 
 class UtilTest(unittest.TestCase):
     def setUp(self):
-        logger.setup_logging("DEBUG")
+        args = mock.Mock()
+        args.verbosity = "DEBUG"
+        args.log_path = None
+
+        logger.setup_logging(args)
         defaultLogger = logging.getLogger()
 
         self.log_capture_string = StringIO.StringIO()
@@ -39,8 +44,7 @@ class UtilTest(unittest.TestCase):
         phase_1_entry = constants.PHASE_1_CACHE_HIT.format(
             key_version=constants.CACHE_KEY_VERSION,
             language=language,
-            key=key
-        )
+            key=key)
 
         logging.info(phase_1_entry)
         entry = self.log_capture_string.getvalue()
@@ -60,8 +64,7 @@ class UtilTest(unittest.TestCase):
             language=language,
             package_name=package,
             package_version=version,
-            key=key
-        )
+            key=key)
 
         logging.info(phase_2_entry)
         entry = self.log_capture_string.getvalue()
