@@ -1,5 +1,16 @@
 # FTL Release Notes
 
+# Version 0.3.0 - 4/22/2018
+* Added additional test suite to verify cached image/layers work appropriately for each runtime [#583](https://github.com/GoogleCloudPlatform/runtimes-common/pull/583)
+* Added FTL version to logging [#579](https://github.com/GoogleCloudPlatform/runtimes-common/pull/579)
+* Fixed an issue where the --no-cache flag was also not uploading artifacts [#582](https://github.com/GoogleCloudPlatform/runtimes-common/pull/582)
+* Added --log-dir flag to FTL for writing log files (user/internal) that can be used in subsequent cloudbuild steps [#590](https://github.com/GoogleCloudPlatform/runtimes-common/pull/590)
+* Updated all commands FTL shells out for to have better logging (stdout, stderr, return code) [#590](https://github.com/GoogleCloudPlatform/runtimes-common/pull/590)
+* Added library utilities to support populating a global cache using FTL[#578](https://github.com/GoogleCloudPlatform/runtimes-common/pull/578)
+* [Python] Changed python cache keys to include `python --version` output instead of --python-cmd[#588](https://github.com/GoogleCloudPlatform/runtimes-common/pull/588)
+* [Python] Added configurable --virtualenv-dir flag to python[#587](https://github.com/GoogleCloudPlatform/runtimes-common/pull/587)
+
+
 # Version 0.2.0 - 4/3/2018
 * [PHP] fixed composer.lock parsing issue where the deps listed were being parsed incorrectly [#569](https://github.com/GoogleCloudPlatform/runtimes-common/pull/569)
 * [Python] Added Pipfile.lock support to Python: using Pipfile.lock allows for per package caching (FTL Phase 2) [#554](https://github.com/GoogleCloudPlatform/runtimes-common/pull/554)
