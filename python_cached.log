@@ -1,0 +1,544 @@
+Creating temporary tarball archive of 1540 file(s) totalling 138.8 MiB before compression.
+Some files were not included in the source upload.
+
+Check the gcloud log [/usr/local/google/home/aprindle/.config/gcloud/logs/2018.04.23/17.22.02.872118.log] to see which files and the contents of the
+default gcloudignore file used (see `$ gcloud topic gcloudignore` to learn
+more).
+
+Uploading tarball of [.] to [gs://ftl-node-test_cloudbuild/source/1524529322.93-1c1b118ebebb4d9f8acb235967c0e3e3.tgz]
+Created [https://cloudbuild.googleapis.com/v1/projects/ftl-node-test/builds/a255168a-7f53-4bd3-87cb-f663b65bff92].
+Logs are available at [https://console.cloud.google.com/gcr/builds/a255168a-7f53-4bd3-87cb-f663b65bff92?project=935431563186].
+--------------------------------- REMOTE BUILD OUTPUT ---------------------------------
+starting build "a255168a-7f53-4bd3-87cb-f663b65bff92"
+
+FETCHSOURCE
+Fetching storage object: gs://ftl-node-test_cloudbuild/source/1524529322.93-1c1b118ebebb4d9f8acb235967c0e3e3.tgz#1524529354383215
+Copying gs://ftl-node-test_cloudbuild/source/1524529322.93-1c1b118ebebb4d9f8acb235967c0e3e3.tgz#1524529354383215...
+/ [0 files][    0.0 B/ 55.9 MiB]                                                -- [1 files][ 55.9 MiB/ 55.9 MiB]                                                \
+Operation completed over 1 objects/55.9 MiB.                                     
+BUILD
+Starting Step #0
+Step #0: Already have image (with digest): ubuntu
+Finished Step #0
+Starting Step #1
+Step #1: Already have image (with digest): gcr.io/cloud-builders/bazel
+Step #1: Extracting Bazel installation...
+Step #1: ...........................
+Step #1: Loading: 
+Step #1: Loading: 0 packages loaded
+Step #1: Loading: 0 packages loaded
+Step #1: Loading: 0 packages loaded
+Step #1: Loading: 0 packages loaded
+Step #1: Loading: 0 packages loaded
+Step #1: Analyzing: target //ftl:python_builder.par (1 packages loaded)
+Step #1: Analyzing: target //ftl:python_builder.par (2 packages loaded)
+Step #1: Analyzing: target //ftl:python_builder.par (4 packages loaded)
+Step #1: Analyzing: target //ftl:python_builder.par (6 packages loaded)
+Step #1: Analyzing: target //ftl:python_builder.par (15 packages loaded)
+Step #1: INFO: Analysed target //ftl:python_builder.par (24 packages loaded).
+Step #1: INFO: Found 1 target...
+Step #1: [0 / 1] [-----] BazelWorkspaceStatusAction stable-status.txt
+Step #1: Target //ftl:python_builder.par up-to-date:
+Step #1:   bazel-bin/ftl/python_builder.par
+Step #1: INFO: Elapsed time: 19.350s, Critical Path: 0.42s
+Step #1: INFO: Build completed successfully, 16 total actions
+Finished Step #1
+Starting Step #2
+Step #2: Already have image (with digest): gcr.io/cloud-builders/bazel
+Step #2: .
+Step #2: Loading: 
+Step #2: Loading: 0 packages loaded
+Step #2: Loading: 0 packages loaded
+Step #2:     currently loading: ftl/python/cached
+Step #2: Analyzing: target //ftl/python/cached:python_cached_image (3 packages loaded)
+Step #2: Analyzing: target //ftl/python/cached:python_cached_image (6 packages loaded)
+Step #2: Analyzing: target //ftl/python/cached:python_cached_image (7 packages loaded)
+Step #2: Analyzing: target //ftl/python/cached:python_cached_image (7 packages loaded)
+Step #2: Analyzing: target //ftl/python/cached:python_cached_image (13 packages loaded)
+Step #2: Analyzing: target //ftl/python/cached:python_cached_image (18 packages loaded)
+Step #2: Analyzing: target //ftl/python/cached:python_cached_image (25 packages loaded)
+Step #2: Analyzing: target //ftl/python/cached:python_cached_image (28 packages loaded)
+Step #2: INFO: Analysed target //ftl/python/cached:python_cached_image (29 packages loaded).
+Step #2: INFO: Found 1 target...
+Step #2: [0 / 1] [-----] BazelWorkspaceStatusAction stable-status.txt
+Step #2: [16 / 18] GUNZIP external/python_base/image/007.tar.gz.nogz; 2s linux-sandbox
+Step #2: [17 / 19] GUNZIP external/python_base/image/005.tar.gz.nogz; 0s linux-sandbox
+Step #2: [17 / 19] GUNZIP external/python_base/image/005.tar.gz.nogz; 3s linux-sandbox
+Step #2: [17 / 19] GUNZIP external/python_base/image/005.tar.gz.nogz; 9s linux-sandbox
+Step #2: [20 / 22] [-----] GUNZIP external/python_base/image/003.tar.gz.nogz
+Step #2: [28 / 32] [-----] SHA256 external/python_base/image/009.tar.gz.nogz.sha256
+Step #2: Target //ftl/python/cached:python_cached_image up-to-date:
+Step #2:   bazel-bin/ftl/python/cached/python_cached_image-layer.tar
+Step #2: INFO: Elapsed time: 41.802s, Critical Path: 12.61s
+Step #2: INFO: Build completed successfully, 40 total actions
+Step #2: 
+Step #2: INFO: Running command line: bazel-bin/ftl/python/cached/python_cached_image --norun
+Step #2: Loaded image ID: sha256:1817c5fecfb572cdb1a332f621de00b319cf50a89ecc8737f44e6de2860268c5
+Step #2: Tagging 1817c5fecfb572cdb1a332f621de00b319cf50a89ecc8737f44e6de2860268c5 as bazel/ftl/python/cached:python_cached_image
+Finished Step #2
+Starting Step #3
+Step #3: Already have image: bazel/ftl/python/cached:python_cached_image
+Step #3: 2018-04-24,00:25:19.881 INFO     Beginning building python images
+Step #3: 2018-04-24,00:25:19.882 INFO     label: original
+Step #3: 2018-04-24,00:25:19.882 INFO     dir: /workspace/ftl/python/testdata/packages_test
+Step #3: 2018-04-24,00:25:25.035 INFO     output of build original: INFO     FTL version python-v0.3.0
+Step #3: INFO     Beginning FTL build for python
+Step #3: INFO     FTL arg passed: exposed_ports None
+Step #3: INFO     FTL arg passed: cache_repository None
+Step #3: INFO     FTL arg passed: tar_base_image_path None
+Step #3: INFO     FTL arg passed: name gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:original
+Step #3: INFO     FTL arg passed: pip_cmd pip
+Step #3: INFO     FTL arg passed: log_path None
+Step #3: INFO     FTL arg passed: global_cache False
+Step #3: INFO     FTL arg passed: cache True
+Step #3: INFO     FTL arg passed: upload True
+Step #3: INFO     FTL arg passed: venv_dir /env
+Step #3: INFO     FTL arg passed: venv_cmd virtualenv
+Step #3: INFO     FTL arg passed: base gcr.io/google-appengine/python:latest
+Step #3: INFO     FTL arg passed: output_path None
+Step #3: INFO     FTL arg passed: directory /workspace/ftl/python/testdata/packages_test
+Step #3: INFO     FTL arg passed: entrypoint None
+Step #3: INFO     FTL arg passed: destination_path srv
+Step #3: INFO     FTL arg passed: verbosity NOTSET
+Step #3: INFO     FTL arg passed: python_cmd python2.7
+Step #3: INFO     starting: full build
+Step #3: INFO     starting: builder initialization
+Step #3: INFO     Loading Docker credentials for repository 'gcr.io/google-appengine/python:latest'
+Step #3: INFO     Loading Docker credentials for repository 'gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:original'
+Step #3: INFO     builder initialization took 0 seconds
+Step #3: INFO     starting: build process for FTL image
+Step #3: INFO     starting: checking_cached_interpreter_layer
+Step #3: INFO     starting: check python version
+Step #3: INFO     `python version` full cmd:
+Step #3: python2.7 --version
+Step #3: INFO     `python version` stdout:
+Step #3: 
+Step #3: INFO     `python version` stderr:
+Step #3: Python 2.7.9
+Step #3: 
+Step #3: INFO     check python version took 0 seconds
+Step #3: DEBUG    Checking cache for cache_key a503872715b05b23dc49a98d3824197f2c8e58ff3812e162f85e04e4c5123f60
+Step #3: INFO     Found cached base image: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:a503872715b05b23dc49a98d3824197f2c8e58ff3812e162f85e04e4c5123f60.
+Step #3: INFO     Found cached dependency layer for a503872715b05b23dc49a98d3824197f2c8e58ff3812e162f85e04e4c5123f60
+Step #3: INFO     {"architecture": "amd64", "author": "Bazel", "config": {}, "created": "2018-04-24T00:00:00Z", "env": "/env", "history": [{"author": "Bazel", "created": "1970-01-01T00:00:00Z", "created_by": "bazel build ..."}], "os": "linux", "rootfs": {"diff_ids": ["sha256:e4454f892c84e99709a04197d93954dfed345419bc18072399bdae8c8c5f04f3"]}}
+Step #3: INFO     starting: check python version
+Step #3: INFO     `python version` full cmd:
+Step #3: python2.7 --version
+Step #3: INFO     `python version` stdout:
+Step #3: 
+Step #3: INFO     `python version` stderr:
+Step #3: Python 2.7.9
+Step #3: 
+Step #3: INFO     check python version took 0 seconds
+Step #3: INFO     [CACHE][HIT] v1:PYTHON (interpreter)->a503872715b05b23dc49a98d3824197f2c8e58ff3812e162f85e04e4c5123f60
+Step #3: INFO     checking_cached_interpreter_layer took 0 seconds
+Step #3: INFO     starting: checking_cached_requirements.txt_layer
+Step #3: INFO     starting: check python version
+Step #3: INFO     `python version` full cmd:
+Step #3: python2.7 --version
+Step #3: INFO     `python version` stdout:
+Step #3: 
+Step #3: INFO     `python version` stderr:
+Step #3: Python 2.7.9
+Step #3: 
+Step #3: INFO     check python version took 0 seconds
+Step #3: DEBUG    Checking cache for cache_key 0d1ea7a326e7c33c445736d008a1cf0b5190c05109345cc8ef228656872d31ed
+Step #3: INFO     Found cached base image: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:0d1ea7a326e7c33c445736d008a1cf0b5190c05109345cc8ef228656872d31ed.
+Step #3: INFO     Found cached dependency layer for 0d1ea7a326e7c33c445736d008a1cf0b5190c05109345cc8ef228656872d31ed
+Step #3: INFO     {"architecture": "amd64", "author": "Unknown", "config": {}, "created": "2018-04-24T00:00:00Z", "history": [{"author": "Unknown", "created": "2018-04-24T00:00:00Z", "created_by": "//containerregistry/client:python_builder.par"}, {"author": "Unknown", "created": "2018-04-24T00:00:00Z", "created_by": "//containerregistry/client:python_builder.par"}, {"author": "Unknown", "created": "2018-04-24T00:00:00Z", "created_by": "//containerregistry/client:python_builder.par"}, {"author": "Unknown", "created": "2018-04-24T00:00:00Z", "created_by": "//containerregistry/client:python_builder.par"}, {"author": "Unknown", "created": "2018-04-24T00:00:00Z", "created_by": "//containerregistry/client:python_builder.par"}, {"author": "Bazel", "created": "1970-01-01T00:00:00Z", "created_by": "bazel build ..."}], "os": "linux", "rootfs": {"diff_ids": ["sha256:442151943cec0df0a7a4a785f223d67406ec64c0f42b9b41e001a893e13714ca", "sha256:9654f6e1babbf7686241af86015db3f1eff6b712af4e5e336d165336a96017d3", "sha256:9a94868576f074b669bb1397421dfb47a68b5203d782ef58827689989846b85a", "sha256:877723c36b66fb589f1f400caf0b8a44f50c0ebd30873a44800767a6f7771436", "sha256:0ea71ea1be840326695d6da3db6809dc0caa008473bc8b1425d15b38ad8e3712", "sha256:8acc69fed2b80ec0e69c22ccf14e7028bc70d59df5b407bb3bb0df96f821b1a3"], "type": "layers"}}
+Step #3: INFO     starting: check python version
+Step #3: INFO     `python version` full cmd:
+Step #3: python2.7 --version
+Step #3: INFO     `python version` stdout:
+Step #3: 
+Step #3: INFO     `python version` stderr:
+Step #3: Python 2.7.9
+Step #3: 
+Step #3: INFO     check python version took 0 seconds
+Step #3: INFO     [CACHE][HIT] v1:PYTHON (requirements)->0d1ea7a326e7c33c445736d008a1cf0b5190c05109345cc8ef228656872d31ed
+Step #3: INFO     checking_cached_requirements.txt_layer took 0 seconds
+Step #3: INFO     starting: Building app layer
+Step #3: INFO     Starting to generate app layer                 tarfile from context...
+Step #3: INFO     Finished generating app layer tarfile from context.
+Step #3: INFO     Starting to gzip app layer tarfile...
+Step #3: INFO     Finished gzipping tarfile.
+Step #3: INFO     Building app layer took 0 seconds
+Step #3: INFO     starting: Stitching layers into final image
+Step #3: INFO     Stitching layers into final image took 1 seconds
+Step #3: INFO     starting: Uploading final image
+Step #3: INFO     starting: Pushing image to Docker registry
+Step #3: INFO     Pushing final image...
+Step #3: INFO     Layer sha256:779640cc98c629afeeb73eba2e957b9feee5e33ec16b70be8222d58e1d5baa99 exists, skipping
+Step #3: INFO     Layer sha256:906aa868c18125df89a9f009210c67c66a81d088f9eb4d27b3e41d84c8ce0960 exists, skipping
+Step #3: INFO     Layer sha256:a21f4015913a12cddd687f0c0d9d908d66097da0a4085f85370c1a875d1051a2 exists, skipping
+Step #3: INFO     Layer sha256:1c2d9df8968175a1accf73063751dea32880acd45b6938d358583bf83217d63a exists, skipping
+Step #3: INFO     Layer sha256:f75c6b70d8c1da20a7b113e05e592e4c6e791cfd70e5cd2739840cec22c83150 exists, skipping
+Step #3: INFO     Layer sha256:33ebc5896ae68c0eba7685952a9c0a0986549798bb98bfb1351c1d08dce370ad exists, skipping
+Step #3: INFO     Layer sha256:dc133d833ddb78668a304e45f924a28e7427f8234a9dbe9d363c0f23f7e2c1dc exists, skipping
+Step #3: INFO     Layer sha256:0b1e89d574e7f10af9602a394ff20347a32929b708a3a7d5d47da75b742cb441 exists, skipping
+Step #3: INFO     Layer sha256:d54ba0228998be4e20a54782256cfcaf2188b14e69b02438351ac7122931fcd2 exists, skipping
+Step #3: INFO     Layer sha256:c02c13c2dbd384764bcfb6c1f3b3c4fb091cdc6fcf778c54f54458917d8e2fab exists, skipping
+Step #3: INFO     Layer sha256:2c47e587e0e552a28d61ea6c0c3db281e2ec68b7a5b1cddadc19b501623bb025 exists, skipping
+Step #3: INFO     Layer sha256:484fe70988134ef27db53336674d6eb4255455d8533f1e547d3494d8e7831948 exists, skipping
+Step #3: INFO     Layer sha256:adfa59740eebef2500315e0d7242669c19fe5213f125ddb734eda4f6fcee87b0 exists, skipping
+Step #3: INFO     Layer sha256:0bb54261eb7090cef6c7ab0f8ca86b832a2ff25148b673e026852d370f2c6bbc exists, skipping
+Step #3: INFO     Layer sha256:13730e10b54eb25317f90f326a4d867852af504c04f4f6c370fd5fab1403d7ab exists, skipping
+Step #3: INFO     Layer sha256:3bf2469bd9555de09517fd62b468fc59f0d7855cce4bfdb27a15f34569ed6dfd exists, skipping
+Step #3: INFO     Layer sha256:3bcb2ad34a18e70bdf15ef03852c885f241b975b1c1cb8d97c51c578fe4fc7a4 exists, skipping
+Step #3: INFO     Layer sha256:7097af14ebe7678b92392cb67be6da929f645ca93514bad24f8be37dd77bffd8 exists, skipping
+Step #3: INFO     Layer sha256:c54877ce7b63d3ad96e40288b5a419bec0c3a7d0711ffed628676f883c827e49 exists, skipping
+Step #3: INFO     Layer sha256:860711efea7118a3aa02d212c2508ba87ed2a337f9fa81b9a5f2c067e0c3781a exists, skipping
+Step #3: INFO     Layer sha256:48425294537601ebabf89848a30e87e2ec5c8a64aea2019b2833a5f798ecb016 pushed.
+Step #3: INFO     Finished upload of: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:original
+Step #3: INFO     Pushing image to Docker registry took 2 seconds
+Step #3: INFO     Uploading final image took 2 seconds
+Step #3: INFO     build process for FTL image took 4 seconds
+Step #3: INFO     full build took 4 seconds
+Step #3: 
+Step #3: 2018-04-24,00:25:25.037 INFO     Loading Docker credentials for repository 'gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:original'
+Step #3: 2018-04-24,00:25:25.150 INFO     Loading Docker credentials for repository 'gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:original'
+Step #3: 2018-04-24,00:25:25.212 INFO     Deleting tag gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:original
+Step #3: 2018-04-24,00:25:25.422 INFO     Deleting image gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test@sha256:72a4e808e7b2ee3c6bd038f26bf1675c75aa699ceefa5874ce050baa4b4312f7
+Step #3: 2018-04-24,00:25:26.097 INFO     label: reupload
+Step #3: 2018-04-24,00:25:26.097 INFO     dir: /workspace/ftl/python/testdata/packages_test_plus_one
+Step #3: 2018-04-24,00:25:59.297 INFO     output of build reupload: INFO     FTL version python-v0.3.0
+Step #3: INFO     Beginning FTL build for python
+Step #3: INFO     FTL arg passed: exposed_ports None
+Step #3: INFO     FTL arg passed: cache_repository None
+Step #3: INFO     FTL arg passed: tar_base_image_path None
+Step #3: INFO     FTL arg passed: name gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:reupload
+Step #3: INFO     FTL arg passed: pip_cmd pip
+Step #3: INFO     FTL arg passed: log_path None
+Step #3: INFO     FTL arg passed: global_cache False
+Step #3: INFO     FTL arg passed: cache True
+Step #3: INFO     FTL arg passed: upload True
+Step #3: INFO     FTL arg passed: venv_dir /env
+Step #3: INFO     FTL arg passed: venv_cmd virtualenv
+Step #3: INFO     FTL arg passed: base gcr.io/google-appengine/python:latest
+Step #3: INFO     FTL arg passed: output_path None
+Step #3: INFO     FTL arg passed: directory /workspace/ftl/python/testdata/packages_test_plus_one
+Step #3: INFO     FTL arg passed: entrypoint None
+Step #3: INFO     FTL arg passed: destination_path srv
+Step #3: INFO     FTL arg passed: verbosity NOTSET
+Step #3: INFO     FTL arg passed: python_cmd python2.7
+Step #3: INFO     starting: full build
+Step #3: INFO     starting: builder initialization
+Step #3: INFO     Loading Docker credentials for repository 'gcr.io/google-appengine/python:latest'
+Step #3: INFO     Loading Docker credentials for repository 'gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:reupload'
+Step #3: INFO     builder initialization took 0 seconds
+Step #3: INFO     starting: build process for FTL image
+Step #3: INFO     starting: checking_cached_interpreter_layer
+Step #3: INFO     starting: check python version
+Step #3: INFO     `python version` full cmd:
+Step #3: python2.7 --version
+Step #3: INFO     `python version` stdout:
+Step #3: 
+Step #3: INFO     `python version` stderr:
+Step #3: Python 2.7.9
+Step #3: 
+Step #3: INFO     check python version took 0 seconds
+Step #3: DEBUG    Checking cache for cache_key a503872715b05b23dc49a98d3824197f2c8e58ff3812e162f85e04e4c5123f60
+Step #3: INFO     Found cached base image: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:a503872715b05b23dc49a98d3824197f2c8e58ff3812e162f85e04e4c5123f60.
+Step #3: INFO     Found cached dependency layer for a503872715b05b23dc49a98d3824197f2c8e58ff3812e162f85e04e4c5123f60
+Step #3: INFO     {"architecture": "amd64", "author": "Bazel", "config": {}, "created": "2018-04-24T00:00:00Z", "env": "/env", "history": [{"author": "Bazel", "created": "1970-01-01T00:00:00Z", "created_by": "bazel build ..."}], "os": "linux", "rootfs": {"diff_ids": ["sha256:e4454f892c84e99709a04197d93954dfed345419bc18072399bdae8c8c5f04f3"]}}
+Step #3: INFO     starting: check python version
+Step #3: INFO     `python version` full cmd:
+Step #3: python2.7 --version
+Step #3: INFO     `python version` stdout:
+Step #3: 
+Step #3: INFO     `python version` stderr:
+Step #3: Python 2.7.9
+Step #3: 
+Step #3: INFO     check python version took 0 seconds
+Step #3: INFO     [CACHE][HIT] v1:PYTHON (interpreter)->a503872715b05b23dc49a98d3824197f2c8e58ff3812e162f85e04e4c5123f60
+Step #3: INFO     checking_cached_interpreter_layer took 0 seconds
+Step #3: INFO     starting: checking_cached_requirements.txt_layer
+Step #3: INFO     starting: check python version
+Step #3: INFO     `python version` full cmd:
+Step #3: python2.7 --version
+Step #3: INFO     `python version` stdout:
+Step #3: 
+Step #3: INFO     `python version` stderr:
+Step #3: Python 2.7.9
+Step #3: 
+Step #3: INFO     check python version took 0 seconds
+Step #3: DEBUG    Checking cache for cache_key 78eb4a1758d3ff4ba0c8c1d0fa0e2e4066942bf259065e458a7d28f21f9be08b
+Step #3: INFO     No cached base image found for entry: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:78eb4a1758d3ff4ba0c8c1d0fa0e2e4066942bf259065e458a7d28f21f9be08b.
+Step #3: INFO     Cache miss on local cache for gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:78eb4a1758d3ff4ba0c8c1d0fa0e2e4066942bf259065e458a7d28f21f9be08b
+Step #3: INFO     No cached dependency layer for 78eb4a1758d3ff4ba0c8c1d0fa0e2e4066942bf259065e458a7d28f21f9be08b
+Step #3: INFO     starting: check python version
+Step #3: INFO     `python version` full cmd:
+Step #3: python2.7 --version
+Step #3: INFO     `python version` stdout:
+Step #3: 
+Step #3: INFO     `python version` stderr:
+Step #3: Python 2.7.9
+Step #3: 
+Step #3: INFO     check python version took 0 seconds
+Step #3: INFO     [CACHE][MISS] v1:PYTHON (requirements)->78eb4a1758d3ff4ba0c8c1d0fa0e2e4066942bf259065e458a7d28f21f9be08b
+Step #3: INFO     checking_cached_requirements.txt_layer took 0 seconds
+Step #3: INFO     starting: create_virtualenv
+Step #3: INFO     `create_virtualenv` full cmd:
+Step #3: virtualenv --no-download /env -p python2.7
+Step #3: INFO     `create_virtualenv` stdout:
+Step #3: Running virtualenv with interpreter /usr/bin/python2.7
+Step #3: New python executable in /env/bin/python2.7
+Step #3: Also creating executable in /env/bin/python
+Step #3: Installing setuptools, pip, wheel...done.
+Step #3: 
+Step #3: INFO     create_virtualenv took 1 seconds
+Step #3: INFO     starting: pip_download_wheels
+Step #3: INFO     `pip_download_wheels` full cmd:
+Step #3: pip wheel -w /tmp/tmpLoaiDJ/wheel -r /dev/stdin --disable-pip-version-check
+Step #3: INFO     `pip_download_wheels` stdout:
+Step #3: Collecting Flask==0.12.0 (from -r /dev/stdin (line 1))
+Step #3:   Downloading https://files.pythonhosted.org/packages/0e/e9/37ee66dde483dceefe45bb5e92b387f990d4f097df40c400cf816dcebaa4/Flask-0.12-py2.py3-none-any.whl (82kB)
+Step #3:   Saved /tmp/tmpLoaiDJ/wheel/Flask-0.12-py2.py3-none-any.whl
+Step #3: Collecting ujson>=1.35 (from -r /dev/stdin (line 2))
+Step #3:   Downloading https://files.pythonhosted.org/packages/16/c4/79f3409bc710559015464e5f49b9879430d8f87498ecdc335899732e5377/ujson-1.35.tar.gz (192kB)
+Step #3: Collecting itsdangerous>=0.21 (from Flask==0.12.0->-r /dev/stdin (line 1))
+Step #3:   Downloading https://files.pythonhosted.org/packages/dc/b4/a60bcdba945c00f6d608d8975131ab3f25b22f2bcfe1dab221165194b2d4/itsdangerous-0.24.tar.gz (46kB)
+Step #3: Collecting Jinja2>=2.4 (from Flask==0.12.0->-r /dev/stdin (line 1))
+Step #3:   Downloading https://files.pythonhosted.org/packages/7f/ff/ae64bacdfc95f27a016a7bed8e8686763ba4d277a78ca76f32659220a731/Jinja2-2.10-py2.py3-none-any.whl (126kB)
+Step #3:   Saved /tmp/tmpLoaiDJ/wheel/Jinja2-2.10-py2.py3-none-any.whl
+Step #3: Collecting Werkzeug>=0.7 (from Flask==0.12.0->-r /dev/stdin (line 1))
+Step #3:   Downloading https://files.pythonhosted.org/packages/20/c4/12e3e56473e52375aa29c4764e70d1b8f3efa6682bef8d0aae04fe335243/Werkzeug-0.14.1-py2.py3-none-any.whl (322kB)
+Step #3:   Saved /tmp/tmpLoaiDJ/wheel/Werkzeug-0.14.1-py2.py3-none-any.whl
+Step #3: Collecting click>=2.0 (from Flask==0.12.0->-r /dev/stdin (line 1))
+Step #3:   Downloading https://files.pythonhosted.org/packages/34/c1/8806f99713ddb993c5366c362b2f908f18269f8d792aff1abfd700775a77/click-6.7-py2.py3-none-any.whl (71kB)
+Step #3:   Saved /tmp/tmpLoaiDJ/wheel/click-6.7-py2.py3-none-any.whl
+Step #3: Collecting MarkupSafe>=0.23 (from Jinja2>=2.4->Flask==0.12.0->-r /dev/stdin (line 1))
+Step #3:   Downloading https://files.pythonhosted.org/packages/4d/de/32d741db316d8fdb7680822dd37001ef7a448255de9699ab4bfcbdf4172b/MarkupSafe-1.0.tar.gz
+Step #3: Skipping Flask, due to already being wheel.
+Step #3: Skipping Jinja2, due to already being wheel.
+Step #3: Skipping Werkzeug, due to already being wheel.
+Step #3: Skipping click, due to already being wheel.
+Step #3: Building wheels for collected packages: ujson, itsdangerous, MarkupSafe
+Step #3:   Running setup.py bdist_wheel for ujson: started
+Step #3:   Running setup.py bdist_wheel for ujson: finished with status 'done'
+Step #3:   Stored in directory: /tmp/tmpLoaiDJ/wheel
+Step #3:   Running setup.py bdist_wheel for itsdangerous: started
+Step #3:   Running setup.py bdist_wheel for itsdangerous: finished with status 'done'
+Step #3:   Stored in directory: /tmp/tmpLoaiDJ/wheel
+Step #3:   Running setup.py bdist_wheel for MarkupSafe: started
+Step #3:   Running setup.py bdist_wheel for MarkupSafe: finished with status 'done'
+Step #3:   Stored in directory: /tmp/tmpLoaiDJ/wheel
+Step #3: Successfully built ujson itsdangerous MarkupSafe
+Step #3: 
+Step #3: INFO     pip_download_wheels took 4 seconds
+Step #3: INFO     starting: resolving_whl_paths
+Step #3: INFO     resolving_whl_paths took 0 seconds
+Step #3: INFO     starting: pip_install_from_wheels
+Step #3: INFO     `pip_install_from_wheels` full cmd:
+Step #3: pip install --no-deps --prefix /tmp/tmp0AugHy/env /tmp/tmpLoaiDJ/wheel/Flask-0.12-py2.py3-none-any.whl --disable-pip-version-check
+Step #3: INFO     `pip_install_from_wheels` stdout:
+Step #3: Processing /tmp/tmpLoaiDJ/wheel/Flask-0.12-py2.py3-none-any.whl
+Step #3: Installing collected packages: Flask
+Step #3: Successfully installed Flask-0.12
+Step #3: 
+Step #3: INFO     pip_install_from_wheels took 0 seconds
+Step #3: INFO     starting: pip_install_from_wheels
+Step #3: INFO     `pip_install_from_wheels` full cmd:
+Step #3: pip install --no-deps --prefix /tmp/tmpB8KTx9/env /tmp/tmpLoaiDJ/wheel/click-6.7-py2.py3-none-any.whl --disable-pip-version-check
+Step #3: INFO     `pip_install_from_wheels` stdout:
+Step #3: Processing /tmp/tmpLoaiDJ/wheel/click-6.7-py2.py3-none-any.whl
+Step #3: Installing collected packages: click
+Step #3: Successfully installed click-6.7
+Step #3: 
+Step #3: INFO     pip_install_from_wheels took 0 seconds
+Step #3: INFO     starting: pip_install_from_wheels
+Step #3: INFO     `pip_install_from_wheels` full cmd:
+Step #3: pip install --no-deps --prefix /tmp/tmp7Tsn3P/env /tmp/tmpLoaiDJ/wheel/Werkzeug-0.14.1-py2.py3-none-any.whl --disable-pip-version-check
+Step #3: INFO     `pip_install_from_wheels` stdout:
+Step #3: Processing /tmp/tmpLoaiDJ/wheel/Werkzeug-0.14.1-py2.py3-none-any.whl
+Step #3: Installing collected packages: Werkzeug
+Step #3: Successfully installed Werkzeug-0.14.1
+Step #3: 
+Step #3: INFO     pip_install_from_wheels took 0 seconds
+Step #3: INFO     starting: pip_install_from_wheels
+Step #3: INFO     `pip_install_from_wheels` full cmd:
+Step #3: pip install --no-deps --prefix /tmp/tmp2Ysjvs/env /tmp/tmpLoaiDJ/wheel/ujson-1.35-cp27-cp27mu-linux_x86_64.whl --disable-pip-version-check
+Step #3: INFO     `pip_install_from_wheels` stdout:
+Step #3: Processing /tmp/tmpLoaiDJ/wheel/ujson-1.35-cp27-cp27mu-linux_x86_64.whl
+Step #3: Installing collected packages: ujson
+Step #3: Successfully installed ujson-1.35
+Step #3: 
+Step #3: INFO     pip_install_from_wheels took 0 seconds
+Step #3: INFO     starting: pip_install_from_wheels
+Step #3: INFO     `pip_install_from_wheels` full cmd:
+Step #3: pip install --no-deps --prefix /tmp/tmpQ7cNJK/env /tmp/tmpLoaiDJ/wheel/MarkupSafe-1.0-cp27-cp27mu-linux_x86_64.whl --disable-pip-version-check
+Step #3: INFO     `pip_install_from_wheels` stdout:
+Step #3: Processing /tmp/tmpLoaiDJ/wheel/MarkupSafe-1.0-cp27-cp27mu-linux_x86_64.whl
+Step #3: Installing collected packages: MarkupSafe
+Step #3: Successfully installed MarkupSafe-1.0
+Step #3: 
+Step #3: INFO     pip_install_from_wheels took 0 seconds
+Step #3: INFO     starting: pip_install_from_wheels
+Step #3: INFO     `pip_install_from_wheels` full cmd:
+Step #3: pip install --no-deps --prefix /tmp/tmpd5DJfu/env /tmp/tmpLoaiDJ/wheel/Jinja2-2.10-py2.py3-none-any.whl --disable-pip-version-check
+Step #3: INFO     `pip_install_from_wheels` stdout:
+Step #3: Processing /tmp/tmpLoaiDJ/wheel/Jinja2-2.10-py2.py3-none-any.whl
+Step #3: Installing collected packages: Jinja2
+Step #3: Successfully installed Jinja2-2.10
+Step #3: 
+Step #3: INFO     pip_install_from_wheels took 0 seconds
+Step #3: INFO     starting: pip_install_from_wheels
+Step #3: INFO     `pip_install_from_wheels` full cmd:
+Step #3: pip install --no-deps --prefix /tmp/tmpbnnvdW/env /tmp/tmpLoaiDJ/wheel/itsdangerous-0.24-py2-none-any.whl --disable-pip-version-check
+Step #3: INFO     `pip_install_from_wheels` stdout:
+Step #3: Processing /tmp/tmpLoaiDJ/wheel/itsdangerous-0.24-py2-none-any.whl
+Step #3: Installing collected packages: itsdangerous
+Step #3: Successfully installed itsdangerous-0.24
+Step #3: 
+Step #3: INFO     pip_install_from_wheels took 0 seconds
+Step #3: INFO     starting: building_python_pkg_layer
+Step #3: INFO     starting: tar_runtime_package
+Step #3: INFO     tar_runtime_package took 0 seconds
+Step #3: INFO     starting: gzip_runtime_tar
+Step #3: INFO     gzip_runtime_tar took 0 seconds
+Step #3: INFO     building_python_pkg_layer took 0 seconds
+Step #3: INFO     starting: uploading_python_pkg_layer
+Step #3: INFO     Layer sha256:ff06ae19a6ba3d01cb7ea2cdda6ffd04fa81281f384eb67c744d2203bc6837d1 pushed.
+Step #3: INFO     Layer sha256:4cf8a028a819d2c960b926c8a5357eef909c3c1dbc561aeb123197ffb112d789 pushed.
+Step #3: INFO     Finished upload of: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:8d5871a93ecbf60d034c2254b69def5deacf606a76580f628c76383722f7e01f
+Step #3: INFO     uploading_python_pkg_layer took 2 seconds
+Step #3: INFO     starting: building_python_pkg_layer
+Step #3: INFO     starting: tar_runtime_package
+Step #3: INFO     tar_runtime_package took 0 seconds
+Step #3: INFO     starting: gzip_runtime_tar
+Step #3: INFO     gzip_runtime_tar took 0 seconds
+Step #3: INFO     building_python_pkg_layer took 0 seconds
+Step #3: INFO     starting: uploading_python_pkg_layer
+Step #3: INFO     Layer sha256:fa2a5a01cba9646fff5ea1342e2c4cc70310321a5d6816572beec92146481156 pushed.
+Step #3: INFO     Layer sha256:ca403591cf7ab0909539738ef6e4b803a88feb6a019d8b4ea8934f1618039750 pushed.
+Step #3: INFO     Finished upload of: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:8d5871a93ecbf60d034c2254b69def5deacf606a76580f628c76383722f7e01f
+Step #3: INFO     uploading_python_pkg_layer took 2 seconds
+Step #3: INFO     starting: building_python_pkg_layer
+Step #3: INFO     starting: tar_runtime_package
+Step #3: INFO     tar_runtime_package took 0 seconds
+Step #3: INFO     starting: gzip_runtime_tar
+Step #3: INFO     gzip_runtime_tar took 0 seconds
+Step #3: INFO     building_python_pkg_layer took 0 seconds
+Step #3: INFO     starting: uploading_python_pkg_layer
+Step #3: INFO     Layer sha256:e3e5c5ec43960af497647d5439e0fd6da31fcf3d129e8a539bc3c57e8146d0f0 pushed.
+Step #3: INFO     Layer sha256:4f009f52985082fe79f0dd8415f2dbb5b2873e52a1d8470f62d34ae8ab7e31c9 pushed.
+Step #3: INFO     Finished upload of: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:8d5871a93ecbf60d034c2254b69def5deacf606a76580f628c76383722f7e01f
+Step #3: INFO     uploading_python_pkg_layer took 2 seconds
+Step #3: INFO     starting: building_python_pkg_layer
+Step #3: INFO     starting: tar_runtime_package
+Step #3: INFO     tar_runtime_package took 0 seconds
+Step #3: INFO     starting: gzip_runtime_tar
+Step #3: INFO     gzip_runtime_tar took 0 seconds
+Step #3: INFO     building_python_pkg_layer took 0 seconds
+Step #3: INFO     starting: uploading_python_pkg_layer
+Step #3: INFO     Layer sha256:831d81f67f563328bd9c14b2f06509552870941b26fd246e2d3675d53722c688 pushed.
+Step #3: INFO     Layer sha256:0de8d9dffe4c43c3d9167e6a7c18b5e783fbbfec06eaeb8633bc6ee00d430dd6 pushed.
+Step #3: INFO     Finished upload of: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:8d5871a93ecbf60d034c2254b69def5deacf606a76580f628c76383722f7e01f
+Step #3: INFO     uploading_python_pkg_layer took 2 seconds
+Step #3: INFO     starting: building_python_pkg_layer
+Step #3: INFO     starting: tar_runtime_package
+Step #3: INFO     tar_runtime_package took 0 seconds
+Step #3: INFO     starting: gzip_runtime_tar
+Step #3: INFO     gzip_runtime_tar took 0 seconds
+Step #3: INFO     building_python_pkg_layer took 0 seconds
+Step #3: INFO     starting: uploading_python_pkg_layer
+Step #3: INFO     Layer sha256:657215882d7b2a9051e6b4907feb46651618ae92199992ce838937cc002a55da pushed.
+Step #3: INFO     Layer sha256:8bfe2823adef7bf0b49929c65c3ae005304e88b22732ccc28993dd2d2afe8f0b pushed.
+Step #3: INFO     Finished upload of: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:8d5871a93ecbf60d034c2254b69def5deacf606a76580f628c76383722f7e01f
+Step #3: INFO     uploading_python_pkg_layer took 2 seconds
+Step #3: INFO     starting: building_python_pkg_layer
+Step #3: INFO     starting: tar_runtime_package
+Step #3: INFO     tar_runtime_package took 0 seconds
+Step #3: INFO     starting: gzip_runtime_tar
+Step #3: INFO     gzip_runtime_tar took 0 seconds
+Step #3: INFO     building_python_pkg_layer took 0 seconds
+Step #3: INFO     starting: uploading_python_pkg_layer
+Step #3: INFO     Layer sha256:80ec1ae3b5f583411c22a402d643d1b1aeabd7c36995713520e5a13659b11c4b pushed.
+Step #3: INFO     Layer sha256:5e91fc3ef5a300632b411a92122649a05c676192a6d9f266476f0c0c8707a6e4 pushed.
+Step #3: INFO     Finished upload of: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:8d5871a93ecbf60d034c2254b69def5deacf606a76580f628c76383722f7e01f
+Step #3: INFO     uploading_python_pkg_layer took 2 seconds
+Step #3: INFO     starting: building_python_pkg_layer
+Step #3: INFO     starting: tar_runtime_package
+Step #3: INFO     tar_runtime_package took 0 seconds
+Step #3: INFO     starting: gzip_runtime_tar
+Step #3: INFO     gzip_runtime_tar took 0 seconds
+Step #3: INFO     building_python_pkg_layer took 0 seconds
+Step #3: INFO     starting: uploading_python_pkg_layer
+Step #3: INFO     Layer sha256:49b6f928edcd051f973a9b9bc5934e5fc42a2e9f03ca14f40de91a8463536f2c pushed.
+Step #3: INFO     Layer sha256:903a12f1bc97447f4ae82a0c80361e7c9d7e22ba8691e04f84de640d343e9e0f pushed.
+Step #3: INFO     Finished upload of: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:8d5871a93ecbf60d034c2254b69def5deacf606a76580f628c76383722f7e01f
+Step #3: INFO     uploading_python_pkg_layer took 2 seconds
+Step #3: INFO     starting: Stitching layers into final image
+Step #3: INFO     Stitching layers into final image took 0 seconds
+Step #3: INFO     starting: uploading_requirements.txt_pkg_lyr
+Step #3: INFO     starting: check python version
+Step #3: INFO     `python version` full cmd:
+Step #3: python2.7 --version
+Step #3: INFO     `python version` stdout:
+Step #3: 
+Step #3: INFO     `python version` stderr:
+Step #3: Python 2.7.9
+Step #3: 
+Step #3: INFO     check python version took 0 seconds
+Step #3: INFO     Layer sha256:8bfe2823adef7bf0b49929c65c3ae005304e88b22732ccc28993dd2d2afe8f0b exists, skipping
+Step #3: INFO     Layer sha256:5e91fc3ef5a300632b411a92122649a05c676192a6d9f266476f0c0c8707a6e4 exists, skipping
+Step #3: INFO     Layer sha256:ca403591cf7ab0909539738ef6e4b803a88feb6a019d8b4ea8934f1618039750 exists, skipping
+Step #3: INFO     Layer sha256:831d81f67f563328bd9c14b2f06509552870941b26fd246e2d3675d53722c688 exists, skipping
+Step #3: INFO     Layer sha256:4cf8a028a819d2c960b926c8a5357eef909c3c1dbc561aeb123197ffb112d789 exists, skipping
+Step #3: INFO     Layer sha256:49b6f928edcd051f973a9b9bc5934e5fc42a2e9f03ca14f40de91a8463536f2c exists, skipping
+Step #3: INFO     Layer sha256:e3e5c5ec43960af497647d5439e0fd6da31fcf3d129e8a539bc3c57e8146d0f0 exists, skipping
+Step #3: INFO     Layer sha256:2ba07ab529b6bc7005e4e03d4aa9a15d8f05f9c906fc1c2ffaa9dfa7b8b141ad pushed.
+Step #3: INFO     Finished upload of: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test/python-cache:78eb4a1758d3ff4ba0c8c1d0fa0e2e4066942bf259065e458a7d28f21f9be08b
+Step #3: INFO     uploading_requirements.txt_pkg_lyr took 2 seconds
+Step #3: INFO     starting: Building app layer
+Step #3: INFO     Starting to generate app layer                 tarfile from context...
+Step #3: INFO     Finished generating app layer tarfile from context.
+Step #3: INFO     Starting to gzip app layer tarfile...
+Step #3: INFO     Finished gzipping tarfile.
+Step #3: INFO     Building app layer took 0 seconds
+Step #3: INFO     starting: Stitching layers into final image
+Step #3: INFO     Stitching layers into final image took 0 seconds
+Step #3: INFO     starting: Uploading final image
+Step #3: INFO     starting: Pushing image to Docker registry
+Step #3: INFO     Pushing final image...
+Step #3: INFO     Layer sha256:484fe70988134ef27db53336674d6eb4255455d8533f1e547d3494d8e7831948 exists, skipping
+Step #3: INFO     Layer sha256:c02c13c2dbd384764bcfb6c1f3b3c4fb091cdc6fcf778c54f54458917d8e2fab exists, skipping
+Step #3: INFO     Layer sha256:5e91fc3ef5a300632b411a92122649a05c676192a6d9f266476f0c0c8707a6e4 exists, skipping
+Step #3: INFO     Layer sha256:f75c6b70d8c1da20a7b113e05e592e4c6e791cfd70e5cd2739840cec22c83150 exists, skipping
+Step #3: INFO     Layer sha256:a21f4015913a12cddd687f0c0d9d908d66097da0a4085f85370c1a875d1051a2 exists, skipping
+Step #3: INFO     Layer sha256:ca403591cf7ab0909539738ef6e4b803a88feb6a019d8b4ea8934f1618039750 exists, skipping
+Step #3: INFO     Layer sha256:7097af14ebe7678b92392cb67be6da929f645ca93514bad24f8be37dd77bffd8 exists, skipping
+Step #3: INFO     Layer sha256:831d81f67f563328bd9c14b2f06509552870941b26fd246e2d3675d53722c688 exists, skipping
+Step #3: INFO     Layer sha256:1c2d9df8968175a1accf73063751dea32880acd45b6938d358583bf83217d63a exists, skipping
+Step #3: INFO     Layer sha256:4cf8a028a819d2c960b926c8a5357eef909c3c1dbc561aeb123197ffb112d789 exists, skipping
+Step #3: INFO     Layer sha256:2c47e587e0e552a28d61ea6c0c3db281e2ec68b7a5b1cddadc19b501623bb025 exists, skipping
+Step #3: INFO     Layer sha256:49b6f928edcd051f973a9b9bc5934e5fc42a2e9f03ca14f40de91a8463536f2c exists, skipping
+Step #3: INFO     Layer sha256:906aa868c18125df89a9f009210c67c66a81d088f9eb4d27b3e41d84c8ce0960 exists, skipping
+Step #3: INFO     Layer sha256:0bb54261eb7090cef6c7ab0f8ca86b832a2ff25148b673e026852d370f2c6bbc exists, skipping
+Step #3: INFO     Layer sha256:e3e5c5ec43960af497647d5439e0fd6da31fcf3d129e8a539bc3c57e8146d0f0 exists, skipping
+Step #3: INFO     Layer sha256:779640cc98c629afeeb73eba2e957b9feee5e33ec16b70be8222d58e1d5baa99 exists, skipping
+Step #3: INFO     Layer sha256:dc133d833ddb78668a304e45f924a28e7427f8234a9dbe9d363c0f23f7e2c1dc exists, skipping
+Step #3: INFO     Layer sha256:3bf2469bd9555de09517fd62b468fc59f0d7855cce4bfdb27a15f34569ed6dfd exists, skipping
+Step #3: INFO     Layer sha256:8bfe2823adef7bf0b49929c65c3ae005304e88b22732ccc28993dd2d2afe8f0b exists, skipping
+Step #3: INFO     Layer sha256:d54ba0228998be4e20a54782256cfcaf2188b14e69b02438351ac7122931fcd2 exists, skipping
+Step #3: INFO     Layer sha256:f01a285aaa2cd1eb0cabb45873ffe75dfca6d267ca84e442423652e5e17cca59 pushed.
+Step #3: INFO     Layer sha256:05fcfe03024e929b85f05aaed9e7c0c576cc1d2cd8a5a44a7763da736d1f0495 pushed.
+Step #3: INFO     Finished upload of: gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:reupload
+Step #3: INFO     Pushing image to Docker registry took 2 seconds
+Step #3: INFO     Uploading final image took 2 seconds
+Step #3: INFO     build process for FTL image took 32 seconds
+Step #3: INFO     full build took 33 seconds
+Step #3: 
+Step #3: 2018-04-24,00:25:59.301 INFO     Loading Docker credentials for repository 'gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:reupload'
+Step #3: 2018-04-24,00:25:59.411 INFO     Loading Docker credentials for repository 'gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:reupload'
+Step #3: 2018-04-24,00:25:59.481 INFO     Deleting tag gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test:reupload
+Step #3: 2018-04-24,00:25:59.656 INFO     Deleting image gcr.io/ftl-node-test/python-requirements-plus-one/cache/packages_test@sha256:360b977485a6110d6570678fb376df4bd5dbce76223d61ba0a3aa148aedebade
+Step #3: 2018-04-24,00:26:00.061 INFO     Encountered 7 differences between layers
+Step #3: 2018-04-24,00:26:00.061 INFO     Different layer shas: set([u'sha256:0b1e89d574e7f10af9602a394ff20347a32929b708a3a7d5d47da75b742cb441', u'sha256:adfa59740eebef2500315e0d7242669c19fe5213f125ddb734eda4f6fcee87b0', u'sha256:33ebc5896ae68c0eba7685952a9c0a0986549798bb98bfb1351c1d08dce370ad', u'sha256:48425294537601ebabf89848a30e87e2ec5c8a64aea2019b2833a5f798ecb016', u'sha256:3bcb2ad34a18e70bdf15ef03852c885f241b975b1c1cb8d97c51c578fe4fc7a4', u'sha256:c54877ce7b63d3ad96e40288b5a419bec0c3a7d0711ffed628676f883c827e49', u'sha256:860711efea7118a3aa02d212c2508ba87ed2a337f9fa81b9a5f2c067e0c3781a'])
+Finished Step #3
+PUSH
+DONE
+---------------------------------------------------------------------------------------
+
+ID                                    CREATE_TIME                DURATION  SOURCE                                                                                   IMAGES  STATUS
+a255168a-7f53-4bd3-87cb-f663b65bff92  2018-04-24T00:22:34+00:00  3M26S     gs://ftl-node-test_cloudbuild/source/1524529322.93-1c1b118ebebb4d9f8acb235967c0e3e3.tgz  -       SUCCESS

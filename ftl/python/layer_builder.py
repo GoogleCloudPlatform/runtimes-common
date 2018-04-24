@@ -74,6 +74,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
                  dep_img_lyr=None,
                  wheel_dir=constants.WHEEL_DIR,
                  venv_dir=constants.VENV_DIR,
+                 python_cmd=[constants.PYTHON_DEFAULT_CMD],
                  pip_cmd=[constants.PIP_DEFAULT_CMD],
                  venv_cmd=[constants.VENV_DEFAULT_CMD],
                  cache=None):
@@ -82,6 +83,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._pkg_dir = pkg_dir
         self._wheel_dir = wheel_dir
         self._venv_dir = venv_dir
+        self._python_cmd = python_cmd
         self._pip_cmd = pip_cmd
         self._venv_cmd = venv_cmd
         self._descriptor_files = descriptor_files
@@ -104,6 +106,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         if cached_img:
             self.SetImage(cached_img)
         else:
+            self._setup_venv()
             pkg_descriptor = ftl_util.descriptor_parser(
                 self._descriptor_files, self._ctx)
             self._pip_download_wheels(pkg_descriptor)
@@ -129,6 +132,16 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             if self._cache:
                 with ftl_util.Timing('uploading_requirements.txt_pkg_lyr'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
+
+    def _setup_venv(self):
+        venv_cmd_args = list(self._venv_cmd)
+        venv_cmd_args.extend([
+            '--no-download',
+            self._venv_dir,
+            '-p',
+        ])
+        venv_cmd_args.extend(list(self._python_cmd))
+        ftl_util.run_command('create_virtualenv', venv_cmd_args)
 
     def _resolve_whls(self):
         with ftl_util.Timing('resolving_whl_paths'):
@@ -192,6 +205,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
                  dep_img_lyr=None,
                  wheel_dir=constants.WHEEL_DIR,
                  venv_dir=constants.VENV_DIR,
+                 python_cmd=[constants.PYTHON_DEFAULT_CMD],
                  pip_cmd=[constants.PIP_DEFAULT_CMD],
                  venv_cmd=[constants.VENV_DEFAULT_CMD],
                  cache=None):
@@ -200,6 +214,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
         self._pkg_dir = pkg_dir
         self._wheel_dir = wheel_dir
         self._venv_dir = venv_dir
+        self._python_cmd = python_cmd
         self._pip_cmd = pip_cmd
         self._venv_cmd = venv_cmd
         self._descriptor_files = descriptor_files
@@ -234,6 +249,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
         if cached_img:
             self.SetImage(cached_img)
         else:
+            self._setup_venv()
             self._pip_download_wheels(' '.join(self._pkg_descriptor))
             whls = self._resolve_whls()
             if len(whls) != 1:
@@ -329,13 +345,15 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
 
     def _setup_venv(self):
+        if os.path.isdir(self._venv_dir):
+            return
         venv_cmd_args = list(self._venv_cmd)
         venv_cmd_args.extend([
             '--no-download',
             self._venv_dir,
             '-p',
         ])
-        venv_cmd_args.extend(self._python_cmd)
+        venv_cmd_args.extend(list(self._python_cmd))
         ftl_util.run_command('create_virtualenv', venv_cmd_args)
 
     def _log_cache_result(self, hit):

@@ -93,6 +93,7 @@ class Python(builder.RuntimeBase):
                     pkg_dir=None,
                     wheel_dir=self._wheel_dir,
                     venv_dir=self._venv_dir,
+                    python_cmd=self._python_cmd,
                     pip_cmd=self._pip_cmd,
                     venv_cmd=self._venv_cmd,
                     dep_img_lyr=interpreter_builder,

@@ -19,6 +19,7 @@ import httplib2
 import json
 
 from ftl.common import ftl_util
+from ftl.common import constants
 
 from containerregistry.client import docker_creds
 from containerregistry.client import docker_name
@@ -72,6 +73,7 @@ class Cached():
             _, output = cmd.communicate()
             logging.info('output of build {0}: {1}'.format(label, output))
             lyr_shas.append(self._fetch_lyr_shas(img_name))
+            self._cleanup(constants.VENV_DIR)
             self._del_img_from_gcr(img_name)
         try:
             self._compare_layers(lyr_shas[0], lyr_shas[1], self._offset)
@@ -103,6 +105,12 @@ class Cached():
             raise ftl_util.FTLException(
                 "expected {0} different layers, got {1}".format(
                     self._offset, len(lyr_diff)))
+
+    def _cleanup(self, path):
+        try:
+            subprocess.check_call(['rm', '-rf', path])
+        except subprocess.CalledProcessError as e:
+            logging.info(e)
 
     def _del_img_from_gcr(self, img_name):
         img_tag = docker_name.Tag(img_name)
