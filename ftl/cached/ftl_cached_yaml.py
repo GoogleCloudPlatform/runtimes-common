@@ -14,10 +14,17 @@ _BASE_MAP = {
 }
 
 _APP_MAP = {
-    "node": ['packages_test', 'packages_test', '1'],
-    "php": ['packages_test', 'packages_test', '1'],
-    "python-requirements": ['packages_test', 'packages_test', '1'],
-    "python-pipfile": ['pipfile_test', 'pipfile_test_plus_one', '2'],
+    "node-same": ['packages_test', 'packages_test', '1'],
+    "node-plus-one": ['packages_test', 'packages_test_plus_one', '1'],
+    "php-same": ['packages_test', 'packages_test', '1'],
+    "php-lock-same": ['lock_test', 'lock_test', '1'],
+    "php-lock-plus-one": ['lock_test', 'lock_test_plus_one',
+                          '4'],  # should be 2?
+    "python-requirements-same": ['packages_test', 'packages_test', '1'],
+    "python-requirements-plus-one":
+    ['packages_test', 'packages_test_plus_one', '7'],  # should be 2?
+    "python-pipfile-same": ['pipfile_test', 'pipfile_test', '1'],
+    "python-pipfile-plus-one": ['pipfile_test', 'pipfile_test_plus_one', '2'],
 }
 
 parser = argparse.ArgumentParser(
@@ -27,7 +34,7 @@ parser.add_argument(
     '--runtime',
     dest='runtime',
     action='store',
-    choices=['node', 'php', 'python-requirements', 'python-pipfile'],
+    choices=_APP_MAP.keys(),
     default=None,
     required=True,
     help='flag to select the runtime for the cache test')
@@ -46,8 +53,7 @@ def main():
     app_dir_2 = _APP_MAP[args.runtime][1]
     path = 'gcr.io/%s/%s/cache/%s' % (args.project, args.runtime, app_dir_1)
     offset = _APP_MAP[args.runtime][2]
-    if args.runtime.startswith('python'):
-        args.runtime = 'python'
+    args.runtime = args.runtime.split('-')[0]
     name = path + ':latest'
     cloudbuild_yaml = {
         'steps': [
@@ -79,8 +85,8 @@ def main():
                                  app_dir_1), '--dir-1',
                     os.path.join(_TEST_TEMPLATE % args.runtime,
                                  app_dir_1), '--dir-2',
-                    os.path.join(_TEST_TEMPLATE % args.runtime, app_dir_2),
-                    '--layer-offset', offset
+                    os.path.join(_TEST_TEMPLATE % args.runtime,
+                                 app_dir_2), '--layer-offset', offset
                 ]
             },
         ]
