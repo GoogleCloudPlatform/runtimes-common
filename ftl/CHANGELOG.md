@@ -1,5 +1,9 @@
 # FTL Release Notes
 
+# Version 0.3.1 - 4/24/2018
+* Fixed issue with python where if the interpreter layer was cached, other layers wouldn't build properly [#601](https://github.com/GoogleCloudPlatform/runtimes-common/pull/601)
+* Added cache tests for all ups for add one dependency and added cleanup phase in between [#601](https://github.com/GoogleCloudPlatform/runtimes-common/pull/601)
+
 # Version 0.3.0 - 4/22/2018
 * Added additional test suite to verify cached image/layers work appropriately for each runtime [#583](https://github.com/GoogleCloudPlatform/runtimes-common/pull/583)
 * Added FTL version to logging [#579](https://github.com/GoogleCloudPlatform/runtimes-common/pull/579)
