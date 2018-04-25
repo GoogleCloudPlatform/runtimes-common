@@ -259,7 +259,7 @@ def run_command(cmd_name,
         err_txt = ""
         if stderr:
             err_txt = "`%s` had error output:\n%s" % (cmd_name, stderr)
-            logging.error(err_txt)
+            logging.info(err_txt)
         if proc_pipe.returncode:
             ret_txt = "error: `%s` returned code: %d" % (cmd_name,
                                                          proc_pipe.returncode)
