@@ -17,6 +17,7 @@ import logging
 import os
 import tempfile
 import subprocess
+import concurrent.futures
 
 from ftl.common import constants
 from ftl.common import ftl_util
@@ -109,7 +110,16 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             self._setup_venv()
             pkg_descriptor = ftl_util.descriptor_parser(
                 self._descriptor_files, self._ctx)
-            self._pip_download_wheels(pkg_descriptor)
+            with ftl_util.Timing('downloading_all_pip_wheels'):
+                with concurrent.futures.ThreadPoolExecutor(
+                        max_workers=constants.THREADS) as executor:
+                    future_to_params = {executor.submit(
+                            self._pip_download_wheels, pkg): pkg
+                            for pkg in pkg_descriptor
+                    }
+                    for future in concurrent.futures.as_completed(
+                            future_to_params):
+                        future.result()
 
             whls = self._resolve_whls()
             pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
