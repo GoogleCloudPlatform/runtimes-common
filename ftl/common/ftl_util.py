@@ -224,18 +224,24 @@ def run_command(cmd_name,
                 cmd_input=None,
                 err_type=ftl_error.FTLErrors.INTERNAL()):
     with Timing(cmd_name):
-        logging.info("`%s` full cmd:\n%s" % (cmd_name, " ".join(cmd_args)))
+        cmd = "%s %s" % (cmd_name, " ".join(cmd_args))
+        logging.info(cmd)
         proc_pipe = None
-        proc_pipe = subprocess.Popen(
-            cmd_args,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=cmd_cwd,
-            env=cmd_env,
-        )
+        try:
+            proc_pipe = subprocess.Popen(
+                cmd_args,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                cwd=cmd_cwd,
+                env=cmd_env,
+            )
+        except OSError as e:
+            raise ftl_error.InternalError(
+                "%s\nexited with error %s\n%s is likely not on the path" % (
+                    cmd, e, cmd_name))
         stdout, stderr = proc_pipe.communicate(input=cmd_input)
-        logging.info("`%s` stdout:\n%s" % (cmd_name, stdout))
+        logging.info("`%s` stdout:\n%s", cmd_name, stdout)
         err_txt = ""
         if stderr:
             err_txt = "`%s` had error output:\n%s" % (cmd_name, stderr)

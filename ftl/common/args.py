@@ -13,82 +13,75 @@
 # limitations under the License.
 """This package defines the shared cli args for ftl binaries."""
 
+import argparse
+import os
+
 from ftl.common import constants
 from ftl.common import logger
-import argparse
 
 
 def base_parser():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        '--base', action='store', help=('The name of the docker base image.'))
-
+        '--base',
+        action='store',
+        help=('The name of the docker base image.'))
     group.add_argument(
         '--tar_base_image_path',
         dest='tar_base_image_path',
         action='store',
         default=None,
         help='The tar path for the base dockerimage for the FTL build')
-
     parser.add_argument(
         '--name',
         required=True,
         action='store',
         help=('The name of the docker image to push.'))
-
     parser.add_argument(
         '--directory',
         required=True,
         action='store',
         help='The path where the application data sits.')
-
     parser.add_argument(
         '--cache-repository',
         action='store',
         required=False,
         help=('The name of the repository to use as the root for the cache.'))
-
     parser.add_argument(
         '--no-cache',
         dest='cache',
         action='store_false',
         help='Do not check cache during build.')
-
     parser.add_argument(
         '--cache',
         dest='cache',
         default=True,
         action='store_true',
         help='Check cache during build (default).')
-
     parser.add_argument(
         '--global-cache',
         dest='global_cache',
         default=False,
         action='store_true',
         help='Use global cache')
-
     parser.add_argument(
         '--no-upload',
         dest='upload',
         action='store_false',
         help='Do not upload to cache during build.')
-
     parser.add_argument(
         '--upload',
         dest='upload',
         default=True,
         action='store_true',
         help='Upload to cache during build (default).')
-
     parser.add_argument(
         '--output-path',
         dest='output_path',
         action='store',
         help='Store final image as local tarball at output path \
             instead of pushing to registry')
-
     parser.add_argument(
         "-v",
         "--verbosity",
@@ -96,7 +89,6 @@ def base_parser():
         nargs="?",
         action='store',
         choices=logger.LEVEL_MAP.keys())
-
     parser.add_argument(
         '--destination',
         dest='destination_path',
@@ -117,10 +109,11 @@ def base_parser():
         default=None,
         help='The port to expose for the dockerimage')
     parser.add_argument(
-        '--log-path',
-        dest='log_path',
+        '--builder-output-path',
+        dest='builder_output_path',
         action='store',
-        default=None,
+        default=(os.environ.get(constants.BUILDER_OUTPUT)
+                 if os.environ.get(constants.BUILDER_OUTPUT) else None),
         help='The path to store FTL logs')
 
     return parser

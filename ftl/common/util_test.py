@@ -27,7 +27,7 @@ class UtilTest(unittest.TestCase):
     def setUp(self):
         args = mock.Mock()
         args.verbosity = "DEBUG"
-        args.log_path = None
+        args.builder_output_path = None
 
         logger.setup_logging(args)
         defaultLogger = logging.getLogger()

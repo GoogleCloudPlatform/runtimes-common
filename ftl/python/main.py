@@ -45,10 +45,10 @@ def main(cli_args):
                     context.Workspace(builder_args.directory), builder_args)
             with ftl_util.Timing("build process for FTL image"):
                 python_ftl.Build()
-    except ftl_error.UserError as u_err:
-        ftl_error.UserErrorHandler(u_err, builder_args.log_path)
-    except ftl_error.InternalError:
-        ftl_error.InternalErrorHandler(builder_args.log_path)
+    except ftl_error.UserError as e:
+        ftl_error.UserErrorHandler(e, builder_args.builder_output_path)
+    except ftl_error.InternalError as e:
+        ftl_error.InternalErrorHandler(e, builder_args.builder_output_path)
 
 
 if __name__ == '__main__':
