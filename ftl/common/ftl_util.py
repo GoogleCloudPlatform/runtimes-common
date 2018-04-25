@@ -222,7 +222,7 @@ def run_command(cmd_name,
                 cmd_cwd=None,
                 cmd_env=None,
                 cmd_input=None,
-                err_type=ftl_error.FTLErrors.INTERNAL):
+                err_type=ftl_error.FTLErrors.INTERNAL()):
     with Timing(cmd_name):
         logging.info("`%s` full cmd:\n%s" % (cmd_name, " ".join(cmd_args)))
         proc_pipe = None
