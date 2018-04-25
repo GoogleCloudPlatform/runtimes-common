@@ -15,6 +15,7 @@
 
 import logging
 import json
+import concurrent.futures
 
 from ftl.common import builder
 from ftl.common import constants
@@ -69,17 +70,16 @@ class PHP(builder.RuntimeBase):
                 lyr_imgs.append(layer_builder.GetImage())
             else:
                 # phase 2
-                for pkg_txt in pkgs:
-                    logging.info('Building package layer: {0} {1}'.format(
-                        pkg_txt[0], pkg_txt[1]))
-                    layer_builder = php_builder.PhaseTwoLayerBuilder(
-                        ctx=self._ctx,
-                        descriptor_files=self._descriptor_files,
-                        pkg_descriptor=pkg_txt,
-                        destination_path=self._args.destination_path,
-                        cache=self._cache)
-                    layer_builder.BuildLayer()
-                    lyr_imgs.append(layer_builder.GetImage())
+                with ftl_util.Timing('uploading_all_package_layers'):
+                    with concurrent.futures.ThreadPoolExecutor(
+                            max_workers=constants.THREADS) as executor:
+                        future_to_params = {executor.submit(
+                                self._build_pkg, pkg_txt, lyr_imgs): pkg_txt
+                                for pkg_txt in pkgs
+                        }
+                        for future in concurrent.futures.as_completed(
+                                future_to_params):
+                            future.result()
 
         app = base_builder.AppLayerBuilder(
             ctx=self._ctx,
@@ -90,3 +90,15 @@ class PHP(builder.RuntimeBase):
         lyr_imgs.append(app.GetImage())
         ftl_image = ftl_util.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)
+
+    def _build_pkg(self, pkg_txt, lyr_imgs):
+        logging.info('Building package layer: {0} {1}'.format(
+            pkg_txt[0], pkg_txt[1]))
+        layer_builder = php_builder.PhaseTwoLayerBuilder(
+            ctx=self._ctx,
+            descriptor_files=self._descriptor_files,
+            pkg_descriptor=pkg_txt,
+            destination_path=self._args.destination_path,
+            cache=self._cache)
+        layer_builder.BuildLayer()
+        lyr_imgs.append(layer_builder.GetImage())
