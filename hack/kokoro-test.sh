@@ -89,6 +89,6 @@ if [[ $failures -gt 0 ]]; then
     cat python_requirements_same_cached.log
     cat python_requirements_plus_one_cached.log
     cat python_pipfile_same_cached.log
-    cat python_pipfile_plus_onecached.log
+    cat python_pipfile_plus_one_cached.log
     exit 1
 fi
