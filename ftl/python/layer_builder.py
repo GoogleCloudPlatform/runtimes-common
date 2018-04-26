@@ -337,7 +337,9 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
                                self._python_cmd)
 
         tar_path = tempfile.mktemp(suffix='.tar')
-        tar_cmd = ['tar', '-cf', tar_path, self._venv_dir]
+        tar_cmd = ['tar',
+                   '-cf', tar_path,
+                   '-C', '/', self._venv_dir.lstrip('/')]
         ftl_util.run_command('tar_venv_interpreter', tar_cmd)
 
         u_blob = open(tar_path, 'r').read()
