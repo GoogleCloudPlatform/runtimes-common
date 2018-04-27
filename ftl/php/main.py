@@ -49,8 +49,6 @@ def main(cli_args):
         ftl_error.UserErrorHandler(u_err, builder_args.log_path)
     except ftl_error.InternalError:
         ftl_error.InternalErrorHandler(builder_args.log_path)
-        if builder_args.log_path:
-            exit(0)
 
 
 if __name__ == '__main__':

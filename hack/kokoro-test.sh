@@ -64,15 +64,25 @@ pids+=($!)
 python ftl/cached/ftl_cached_yaml.py --runtime=python-pipfile-plus-one | gcloud container builds submit --config /dev/fd/0 . > python_pipfile_plus_one_cached.log &
 pids+=($!)
 
+gcloud container builds submit --config ftl/integration_tests/ftl_python_error_test_2.yaml . > python_error_2.log &
+f_pids+=($!)
+
 # Wait for them to finish, and check the exit codes.
 
 failures=0
+f_failures=0
 set +e
 
 for pid in "${pids[@]}"; do
     wait "$pid"
     status=$?
     failures+=$status
+done
+
+for f_pid in "${f_pids[@]}"; do
+    wait "$f_pid"
+    status=$?
+    f_failures+=$status
 done
 set -e
 
@@ -81,6 +91,7 @@ if [[ $failures -gt 0 ]]; then
     cat node.log
     cat python.log
     cat php.log
+    cat python_error.log
     cat node_same_cached.log
     cat node_plus_one_cached.log
     cat php_same_cached.log
@@ -90,5 +101,11 @@ if [[ $failures -gt 0 ]]; then
     cat python_requirements_plus_one_cached.log
     cat python_pipfile_same_cached.log
     cat python_pipfile_plus_one_cached.log
+    exit 1
+fi
+
+if [[ $f_failures -lt 1 ]]; then
+    echo "Integration test failure."
+    cat python_error_2.log
     exit 1
 fi

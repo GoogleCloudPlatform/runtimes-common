@@ -1,0 +1,17 @@
+steps:
+- args: [chmod, a+rx, -R, /workspace]
+  id: chmod
+  name: ubuntu
+- args: [run, '//ftl:python_builder_image', --, --norun]
+  id: build-builder
+  name: gcr.io/cloud-builders/bazel
+- args: [--base, 'gcr.io/google-appengine/python:latest', --name, 'gcr.io/ftl-node-test/error_test-image:latest',
+    --directory, /workspace/ftl/python/testdata/error_test, --no-cache]
+  id: build-image-gcr.io/ftl-node-test/error_test-image:latest
+  name: bazel/ftl:python_builder_image
+- args: ['ls', '/workspace/ftl-user.log']
+  id: check-user-logfile-exists
+  name: ubuntu
+- args: ['ls', '/workspace/ftl-full.log']
+  id: check-full-logfile-exists
+  name: ubuntu
