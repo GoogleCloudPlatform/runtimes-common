@@ -1,0 +1,20 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "generate_key.go",
+        "root.go",
+        "upload_secrets.go",
+    ],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/cmd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//ctc_lib:go_default_library",
+        "//tuf/config:go_default_library",
+        "//tuf/deployment:go_default_library",
+        "//tuf/scheme:go_default_library",
+        "//tuf/types:go_default_library",
+        "//vendor/github.com/spf13/cobra:go_default_library",
+    ],
+)

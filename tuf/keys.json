@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "my-encryption-prject",
+  "private_key_id": "fa494905abbcb7d8b8887e9239c129b03ee0eb6a",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCipj+Arm03Wk8s\nmc/lG/Nx60ZsieyHh3bETueeAAus69WxG2nTzzrl6Hk92UBN4hf3DliUGhzT7NdY\nLhv9B0SgtMYCnGMy8KzJFUQuOZrY2sY2ndWdPYd0HFV6vzO9zugUoRSLgglPiQ2R\nhr4myZC/dVcCCnEBZd1lL2Us2whCKOJnSnGE713eUzyHiFlCaipl6hSrS6Pyx6xF\noRSdCXfDnb9fE1kklZfNM1YBWW6bukuv6I1l+mUsUEe9wU0KGlJ0eF9GsIcJBPjZ\nwDFgRG3aqjHZo7I6onm9a0aSNezEDErOZ0Bmtmgq4wZ98JN/nwd+aOSdjWA31/fS\n7YwRmJ2HAgMBAAECggEAARMKQBnEhIeMdD1IvSAINryxxw2FNFW8INWjhbC1dcQy\nsdGaUYZR9JIX47Wyt1vpuh/t0VKs4gZEsw4lpgLjLoFbYd+ePX7mnRaw8klqloHT\nchbpi1CSnE/bgPuyyI3Fvrr+PuUtj35TdjQ2W1aycLvbbC2QpkMB0tEcxMhHQ+gE\nPOGlzXwxAopZFSlh3GRh0hI8SegosqepHu0DMh1cDFHpRBDlvrn5NlIAlK8QK8kH\nHpV8ezoKuiUSdOH7/O+lA0kxPFxiOSphu1OW4CAIfBmGp//9kyLJKw0IweG9nBY/\n4vcpsGUsQupnWZjJiN+jqAFbBMWaUcATpgb8gUGAeQKBgQDXXNXDIx7UY16t2lx9\nnPcL6IhQ4GiZhxMtam16Kvw/tZpj3TqlJCHW5Bz5e8JyRcYBeuNkDcTjm9zujLGd\nby+ab+pXfK4A/0AREioc8UvUtw0KsSRU6fiwU/f5gB6rt8ZEfWfdS0ggyhs9yFTc\ndRKP3jWfcTYBtxnJC/Jm3jL7LQKBgQDBVxUnlukRHgt32Ibp5nEalkWzUsr//MAn\nBHXHID7pfiZc1U3rBLqx7Ima0HwDaAKVAWMP6bDWrnCn+/fDDTVYuHc4tAmQGSH/\nKMhmGB/bxL7CatoUSXvIs2UFGsSFAwKrPFBrfSThKkVMLYs1hKelFP5Z6SaBsGE4\nGve+dtncAwKBgQDQ6XdbYjhH41U25LoQCDIGVT3W5rnRJJzP04v7lLM5whrQgQyg\nodpJsOMCiLFpVJHtYZ4vssOp38qDhevOQss0zxfOYl4RDYrChJJhnRjoceGu24PY\n81aRBgNo/oXCIfWs/tHAc4S2ehfO6QSZDuBAu1fdIV84brwOsQ4mB6oAyQKBgAhm\nHw4kOSW8N2VSa7H3h8xO4OJEY3sxYKuRPwiSdwkvqLz5qzPddbrK+sNV8T04pHwS\nnloPndYFp/E0OfQoO7wJ72vwLkYrQVXTULlWrPOgHWVWvPiKpKz4VhgdrJHWqqQD\nr76rphF+A5qmk9iUVbAPNGl1fm292stUKJUGlro/AoGBAL6RJJ525Bp3//MMqaS9\nEwIi4O+nmr44clpWqPdZavGt2z722N9/c30mI0KiGgfLkVllZuBhH4eplI1c4KwQ\n6abiNMAyuK9EAVVIkgycZw6yY/6c/YHUP3aQsCPNGqZhhKsAX1LI94bNUzceEYON\n92IzQMUpFU9Dhwy/mrF/VxIY\n-----END PRIVATE KEY-----\n",
+  "client_email": "test-account@my-encryption-prject.iam.gserviceaccount.com",
+  "client_id": "108570275694092384089",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/test-account%40my-encryption-prject.iam.gserviceaccount.com"
+}
+
