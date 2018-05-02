@@ -13,13 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package test_util
+package testutil
 
 import (
-//	cloudkms "google.golang.org/api/cloudkms"
-//	"cloud.google.com/go/storage"
+	"io"
 
+	"cloud.google.com/go/storage"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kms"
+	cloudkms "google.golang.org/api/cloudkms/v1"
 )
+
 // Mock Store
 type MockStore struct {
 }
