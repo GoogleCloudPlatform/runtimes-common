@@ -18,7 +18,7 @@ package config
 import (
 	"io/ioutil"
 
-	"github.com/GoogleCloudPlatform/runtimes-common1/tuf/config"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 	yaml "gopkg.in/yaml.v2"
 )
 

@@ -5,8 +5,4 @@ go_library(
     srcs = ["mock_util.go"],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/test_util",
     visibility = ["//visibility:public"],
-    deps = [
-        "//vendor/cloud.google.com/go/storage:go_default_library",
-        "//vendor/google.golang.org/api/cloudkms:go_default_library",
-    ],
 )

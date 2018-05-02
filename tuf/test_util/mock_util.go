@@ -16,8 +16,8 @@ limitations under the License.
 package test_util
 
 import (
-	cloudkms "google.golang.org/api/cloudkms"
-	"cloud.google.com/go/storage"
+//	cloudkms "google.golang.org/api/cloudkms"
+//	"cloud.google.com/go/storage"
 
 )
 // Mock Store
