@@ -21,7 +21,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/gcs"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kms"
@@ -32,24 +31,28 @@ type KeyPair struct {
 	Private string
 }
 
-type Deployer struct {
-	kmsService kms.KMService
-	storage    gcs.Storage
+type DeployTool interface {
+	UpdateSecrets(config.TUFConfig, string, string, string) error
 }
 
-func New() *Deployer {
+type Deployer struct {
+	KmsService kms.KMService
+	Storage    gcs.Storage
+}
+
+func New() (DeployTool, error) {
 	kmsService, err := kms.New()
 	if err != nil {
-		ctc_lib.Log.Panicf("Error initializing Google Key management Service: %v", err)
+		return nil, err
 	}
 	gcsClient, err := gcs.New()
 	if err != nil {
-		ctc_lib.Log.Panicf("Error initializing GCS Client: %v", err)
+		return nil, err
 	}
 	return &Deployer{
-		kmsService: kmsService,
-		storage:    gcsClient,
-	}
+		KmsService: kmsService,
+		Storage:    gcsClient,
+	}, nil
 }
 
 func (d *Deployer) UpdateSecrets(tufConfig config.TUFConfig, rootKeyFile string, targetKeyFile string, snapshotKeyFile string) error {
@@ -80,7 +83,7 @@ func (d *Deployer) uploadSecret(file string, tufConfig config.TUFConfig, name st
 		return err
 	}
 
-	encyptedResponse, err := d.kmsService.Encrypt(kms.CryptoKeyFromConfig(tufConfig), string(text))
+	encyptedResponse, err := d.KmsService.Encrypt(kms.CryptoKeyFromConfig(tufConfig), string(text))
 	tmpFile, errWrite := ioutil.TempFile("", "key")
 	defer os.Remove(tmpFile.Name())
 	if errWrite != nil {
@@ -89,6 +92,6 @@ func (d *Deployer) uploadSecret(file string, tufConfig config.TUFConfig, name st
 	ioutil.WriteFile(tmpFile.Name(), []byte(encyptedResponse.Ciphertext), os.ModePerm)
 	tmpFile.Close()
 
-	_, _, err = d.storage.Upload(tufConfig.GCSProjectID, tufConfig.GCSBucketID, name, tmpFile)
+	_, _, err = d.Storage.Upload(tufConfig.GCSProjectID, tufConfig.GCSBucketID, name, tmpFile)
 	return err
 }

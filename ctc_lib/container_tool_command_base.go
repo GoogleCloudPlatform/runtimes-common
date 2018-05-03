@@ -40,7 +40,9 @@ func (ctb *ContainerToolCommandBase) getCommand() *cobra.Command {
 }
 
 func (ctb *ContainerToolCommandBase) setRunE(cobraRunE func(c *cobra.Command, args []string) error) {
-	ctb.RunE = cobraRunE
+	if ctb.RunE != nil && ctb.Run != nil {
+		ctb.RunE = cobraRunE
+	}
 }
 
 func (ctb *ContainerToolCommandBase) toolName() string {

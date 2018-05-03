@@ -15,19 +15,11 @@ limitations under the License.
 */
 package scheme
 
-import (
-	"crypto"
-	"io"
-	"math/big"
-)
-
 const (
 	ECDSA256 string = "ECDSA256"
 	RSA256   string = "RSA256"
 )
 
 type Scheme interface {
-	Sign(rand io.Reader, priv *crypto.PrivateKey, hash []byte) (r, s *big.Int, err error)
-	Verify(pub *crypto.PublicKey, hash []byte, r, s *big.Int) bool
 	Store(filename string) error
 }

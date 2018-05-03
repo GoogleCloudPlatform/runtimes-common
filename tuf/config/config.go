@@ -18,7 +18,6 @@ package config
 import (
 	"io/ioutil"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -42,9 +41,9 @@ const (
 	TimelineSecretFileName = "encrypted-timeline.key"
 )
 
-func ReadConfig(filename string) (config.TUFConfig, error) {
+func ReadConfig(filename string) (TUFConfig, error) {
 	buf, err := ioutil.ReadFile(filename)
-	tufConfig := config.TUFConfig{}
+	tufConfig := TUFConfig{}
 	if err != nil {
 		return tufConfig, err
 	}

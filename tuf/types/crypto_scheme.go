@@ -43,10 +43,13 @@ func (scheme *CryptoScheme) Type() string {
 	return "types.CryptoScheme"
 }
 
-func NewCryptoScheme(val string) *CryptoScheme {
+func NewCryptoScheme(val string, p *CryptoScheme) *CryptoScheme {
 	value, ok := VALID_CRYPTO_SCHEMES[val]
 	if ok && value {
-		return &CryptoScheme{Scheme: val}
+		*p = CryptoScheme{
+			Scheme: val,
+		}
+		return p
 	}
 	return nil
 }

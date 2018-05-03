@@ -30,7 +30,7 @@ var filename string
 var GenerateKeyCommand = &ctc_lib.ContainerToolCommand{
 	ContainerToolCommandBase: &ctc_lib.ContainerToolCommandBase{
 		Command: &cobra.Command{
-			Use: "Generate Secrets.",
+			Use: "generate-secret key value pair",
 			RunE: func(command *cobra.Command, args []string) error {
 				var err error
 				switch cryptoScheme.Scheme {
@@ -42,12 +42,11 @@ var GenerateKeyCommand = &ctc_lib.ContainerToolCommand{
 				return err
 			},
 		},
-		Phase:           "test",
-		DefaultTemplate: "{{.}}",
+		Phase: "test",
 	},
 }
 
 func init() {
-	RootCommand.Flags().VarP(types.NewCryptoScheme("ECDSA256"), "scheme", "ECDSA256", "Generate Public/Private key pair and store it")
-	RootCommand.Flags().StringVar(&filename, "file", "keys.json", "File name to store the secret in json format")
+	GenerateKeyCommand.Flags().Var(types.NewCryptoScheme("ECDSA256", &cryptoScheme), "scheme", "Generate Public/Private key pair and store it")
+	GenerateKeyCommand.Flags().StringVar(&filename, "file", "keys.json", "File name to store the secret in json format")
 }

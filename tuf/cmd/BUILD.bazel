@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -12,9 +12,23 @@ go_library(
     deps = [
         "//ctc_lib:go_default_library",
         "//tuf/config:go_default_library",
-        "//tuf/deployment:go_default_library",
+        "//tuf/deployer:go_default_library",
         "//tuf/scheme:go_default_library",
         "//tuf/types:go_default_library",
         "//vendor/github.com/spf13/cobra:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "generate_key_test.go",
+        "upload_secrets_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//tuf/config:go_default_library",
+        "//tuf/deployer:go_default_library",
+        "//tuf/testutil:go_default_library",
     ],
 )

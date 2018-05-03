@@ -19,7 +19,7 @@ package cmd
 import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/deployment"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/deployer"
 
 	"github.com/spf13/cobra"
 )
@@ -29,27 +29,31 @@ var rootKey = "~/root.json"
 var targetKey = "~/target.json"
 var snapshotKey = "~/snapshot.json"
 
+var DefaultDeployTool = deployer.New
+
 // Command To upload Secrets to GCS store and Renegerate all the MetaData.
 var UploadSecretsCommand = &ctc_lib.ContainerToolCommand{
 	ContainerToolCommandBase: &ctc_lib.ContainerToolCommandBase{
 		Command: &cobra.Command{
-			Use: "Prototype GCS Update Keys to Google Cloud Storage.",
+			Use: "upload-secrets Upload Encrypted Secrets to Google Cloud Storage.",
+			RunE: func(command *cobra.Command, args []string) error {
+				tufConfig, err := config.ReadConfig(tufConfigFilename)
+				if err != nil {
+					return err
+				}
+				deployerTool, err := DefaultDeployTool()
+				if err != nil {
+					return err
+				}
+				return deployerTool.UpdateSecrets(tufConfig, rootKey, targetKey, snapshotKey)
+			},
 		},
-		Phase:           "test",
-		DefaultTemplate: "{{.}}",
-	},
-	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
-		tufConfig, err := config.ReadConfig(tufConfigFilename)
-		if err != nil {
-			return nil, err
-		}
-		deployment.UpdateSecrets(tufConfig, rootKey, targetKey, snapshotKey)
-		return nil, nil
+		Phase: "test",
 	},
 }
 
 func init() {
-	RootCommand.Flags().StringVar(&rootKey, "root-key", "", "Secret key.json for Root role")
-	RootCommand.Flags().StringVar(&targetKey, "target-key", "", "Secret key.json for Snapshot role")
-	RootCommand.Flags().StringVar(&snapshotKey, "snapshot-key", "", "Secret key.json for Target role")
+	UploadSecretsCommand.Flags().StringVar(&rootKey, "root-key", "", "Secret key.json for Root role")
+	UploadSecretsCommand.Flags().StringVar(&targetKey, "target-key", "", "Secret key.json for Snapshot role")
+	UploadSecretsCommand.Flags().StringVar(&snapshotKey, "snapshot-key", "", "Secret key.json for Target role")
 }

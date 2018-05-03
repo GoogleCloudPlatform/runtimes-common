@@ -21,14 +21,13 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/json"
-	"io"
 	"io/ioutil"
-	"math/big"
 )
 
 type ECDSA struct {
 	PrivateKey *ecdsa.PrivateKey
 	PublicKey  crypto.PublicKey
+	KeyType    string
 }
 
 func NewECDSA() *ECDSA {
@@ -39,16 +38,8 @@ func NewECDSA() *ECDSA {
 	return &ECDSA{
 		PrivateKey: privateKey,
 		PublicKey:  privateKey.Public(),
+		KeyType:    ECDSA256,
 	}
-}
-
-func (ecdsa *ECDSA) Sign(rand io.Reader, priv *crypto.PrivateKey, hash []byte) (r, s *big.Int, err error) {
-	return nil, nil, nil
-
-}
-
-func (ecdsa *ECDSA) Verify(pub *crypto.PublicKey, hash []byte, r, s *big.Int) bool {
-	return true
 }
 
 func (ecdsa *ECDSA) Store(filename string) error {

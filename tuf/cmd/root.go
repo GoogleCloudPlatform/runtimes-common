@@ -17,6 +17,8 @@ limitations under the License.
 package cmd
 
 import (
+	"errors"
+
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
 	"github.com/spf13/cobra"
 )
@@ -24,22 +26,27 @@ import (
 // Flags
 var tufConfigFilename string
 
-// Command
+// RootCommand
 var RootCommand = &ctc_lib.ContainerToolCommand{
 	ContainerToolCommandBase: &ctc_lib.ContainerToolCommandBase{
 		Command: &cobra.Command{
-			Use: "Prototype GCS TuF",
+			Use: "TUF command",
 		},
 		Phase:           "test",
 		DefaultTemplate: "{{.}}",
 	},
 	RunO: func(command *cobra.Command, args []string) (interface{}, error) {
-		return nil, nil
+		return nil, errors.New("Please Specify a Sub Command")
 	},
 }
 
 func init() {
-	RootCommand.PersistentFlags().StringVarP(&tufConfigFilename, "config", "c", "tuf.yaml", "File name for Tool config")
+	RootCommand.PersistentFlags().StringVar(&tufConfigFilename, "config", "tuf.yaml", "File name for Tool config")
 	RootCommand.AddCommand(GenerateKeyCommand)
 	RootCommand.AddCommand(UploadSecretsCommand)
+}
+
+func Execute() {
+	ctc_lib.Version = "0.0.1"
+	ctc_lib.Execute(RootCommand)
 }
