@@ -39,3 +39,14 @@ go_test(
         "//vendor/github.com/golang/protobuf/jsonpb:go_default_library",
     ],
 )
+
+go_test(
+    name = "go_default_test",
+    srcs = ["spec_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
+    deps = [
+        "//vendor/github.com/ghodss/yaml:go_default_library",
+        "//vendor/github.com/golang/protobuf/jsonpb:go_default_library",
+    ],
+)

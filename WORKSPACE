@@ -1,22 +1,16 @@
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "4b14d8dd31c6dbaf3ff871adcd03f28c3274e42abc855cb8fb4d01233c0154dc",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.10.1/rules_go-0.10.1.tar.gz",
+    sha256 = "1868ff68d6079e31b2f09b828b58d62e57ca8e9636edff699247c9108518570b",
+    url = "https://github.com/bazelbuild/rules_go/releases/download/0.11.1/rules_go-0.11.1.tar.gz",
 )
 
-# To use Gazelle in a new project, we need to add the bazel_gazelle repository and its dependencies before go_rules_dependencies is called
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "6228d9618ab9536892aa69082c063207c91e777e51bd3c5544c9c060cafe1bd8",
-    url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.10.0/bazel-gazelle-0.10.0.tar.gz",
+    sha256 = "92a3c59734dad2ef85dc731dbcb2bc23c4568cded79d4b87ebccd787eb89e8d0",
+    url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.11.0/bazel-gazelle-0.11.0.tar.gz",
 )
 
-load(
-    "@io_bazel_rules_go//go:def.bzl",
-    "go_rules_dependencies",
-    "go_register_toolchains",
-    "go_repository",
-)
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
 
 go_rules_dependencies()
 
@@ -34,16 +28,21 @@ git_repository(
 
 git_repository(
     name = "io_bazel_rules_python",
-    remote = "https://github.com/bazelbuild/rules_python.git",
     commit = "115e3a0dab4291184fdcb0d4e564a0328364571a",
+    remote = "https://github.com/bazelbuild/rules_python.git",
 )
+
 load("@io_bazel_rules_python//python:pip.bzl", "pip_repositories", "pip_import")
+
 pip_repositories()
+
 pip_import(
     name = "requests",
-    requirements = "//ftl:requirements.txt"
+    requirements = "//ftl:requirements.txt",
 )
+
 load("@requests//:requirements.bzl", "pip_install")
+
 pip_install()
 
 git_repository(
