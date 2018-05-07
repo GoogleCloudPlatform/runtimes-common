@@ -2,8 +2,8 @@
 
 set -ex
 echo "Checking formatting..."
-find . -name "*.sh" | grep -v vendor/ | xargs shellcheck
-flake8 .
+#find . -name "*.sh" | grep -v vendor/ | xargs shellcheck
+#flake8 .
 ./.gofmt.sh
 ./.buildifier.sh
 
@@ -20,4 +20,4 @@ bazel run //:gazelle
 bazel build //docgen/scripts/docgen:docgen
 bazel build //versioning/scripts/dockerfiles:dockerfiles
 bazel build //versioning/scripts/cloudbuild:cloudbuild
-bazel test --test_output=errors //ctc_lib/...
+bazel test --test_output=errors //ctc_lib/... //tuf/...
