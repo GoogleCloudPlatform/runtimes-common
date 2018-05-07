@@ -13,6 +13,11 @@ if [ -f "$KOKORO_GFILE_DIR"/shellcheck-latest.linux ]; then
     sudo chmod +x /usr/local/bin/shellcheck
 fi
 
+# Add the keys.json from keystore to expected bazel target
+if [ -f "" ]; then
+  cp "$KOKORO_KEYSTORE_DIR"/72508_tuf_integration_test tuf/keys.json
+fi
+
 pushd github/runtimes-common
 # Install deps.
 sudo pip install --upgrade -r requirements.txt
