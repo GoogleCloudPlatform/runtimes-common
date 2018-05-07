@@ -6,6 +6,7 @@ go_library(
         "interface.go",
         "rotatelogs.go",
     ],
+    importmap = "vendor/github.com/lestrrat-go/file-rotatelogs",
     importpath = "github.com/lestrrat-go/file-rotatelogs",
     visibility = ["//visibility:public"],
     deps = [
