@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -e keys.json ]
+if [ -e "tuf/keys.json" ]
 then
     echo "PASS"
 else
