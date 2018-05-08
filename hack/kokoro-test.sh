@@ -15,7 +15,7 @@ fi
 
 # Add the keys.json from keystore to expected bazel target
 if [ -f "$KOKORO_KEYSTORE_DIR"/72508_tuf_integration_test ]; then
-  cp "$KOKORO_KEYSTORE_DIR"/72508_tuf_integration_test tuf/keys.json
+  export TUF_INTEGRATION_TEST="$KOKORO_KEYSTORE_DIR"/72508_tuf_integration_test
 fi
 
 pushd github/runtimes-common
