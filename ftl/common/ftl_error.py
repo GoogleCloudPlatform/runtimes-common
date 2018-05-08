@@ -42,6 +42,9 @@ def UserErrorHandler(u_err, log_path):
     if log_path:
         with open(os.path.join(log_path, constants.FTL_USER_LOG), "w") as f:
             f.write(str(u_err))
+        exit(0)
+    else:
+        exit(1)
 
 
 def InternalErrorHandler(log_path):
@@ -49,3 +52,5 @@ def InternalErrorHandler(log_path):
         shutil.copyfile(
             os.path.join(log_path, constants.FTL_FULL_LOG),
             os.path.join(log_path, constants.FTL_INTERNAL_LOG))
+    else:
+        exit(1)
