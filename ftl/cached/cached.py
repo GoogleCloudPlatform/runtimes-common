@@ -65,10 +65,7 @@ class Cached():
             if label == "original":
                 ftl_args.extend(['--no-cache'])
             cmd = subprocess.Popen(
-                [
-                    builder_path, '--base', self._base, '--name', img_name,
-                    '--directory', dir
-                ],
+                ftl_args,
                 stderr=subprocess.PIPE)
             _, output = cmd.communicate()
             logging.info('output of build {0}: {1}'.format(label, output))
