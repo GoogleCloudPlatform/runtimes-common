@@ -14,7 +14,7 @@ if [ -f "$KOKORO_GFILE_DIR"/shellcheck-latest.linux ]; then
 fi
 
 # Add the keys.json from keystore to expected bazel target
-if [ -f "" ]; then
+if [ -f "$KOKORO_KEYSTORE_DIR"/72508_tuf_integration_test ]; then
   cp "$KOKORO_KEYSTORE_DIR"/72508_tuf_integration_test tuf/keys.json
 fi
 
