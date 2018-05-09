@@ -17,6 +17,7 @@ import logging
 import os
 import tempfile
 import subprocess
+import concurrent.futures
 
 from ftl.common import constants
 from ftl.common import ftl_util
@@ -115,15 +116,17 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
 
             req_txt_imgs = []
-            for whl_pkg_dir in pkg_dirs:
-                layer_builder = PackageLayerBuilder(
-                    ctx=self._ctx,
-                    descriptor_files=self._descriptor_files,
-                    pkg_dir=whl_pkg_dir,
-                    dep_img_lyr=self._dep_img_lyr,
-                    cache=self._cache)
-                layer_builder.BuildLayer()
-                req_txt_imgs.append(layer_builder.GetImage())
+            with ftl_util.Timing('uploading_all_package_layers'):
+                with concurrent.futures.ThreadPoolExecutor(
+                        max_workers=constants.THREADS) as executor:
+                    future_to_params = {executor.submit(
+                            self._build_pkg, whl_pkg_dir,
+                            req_txt_imgs): whl_pkg_dir
+                            for whl_pkg_dir in pkg_dirs
+                    }
+                    for future in concurrent.futures.as_completed(
+                            future_to_params):
+                        future.result()
 
             req_txt_image = ftl_util.AppendLayersIntoImage(req_txt_imgs)
 
@@ -132,6 +135,16 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             if self._cache:
                 with ftl_util.Timing('uploading_requirements.txt_pkg_lyr'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
+
+    def _build_pkg(self, whl_pkg_dir, req_txt_imgs):
+        layer_builder = PackageLayerBuilder(
+            ctx=self._ctx,
+            descriptor_files=self._descriptor_files,
+            pkg_dir=whl_pkg_dir,
+            dep_img_lyr=self._dep_img_lyr,
+            cache=self._cache)
+        layer_builder.BuildLayer()
+        req_txt_imgs.append(layer_builder.GetImage())
 
     def _setup_venv(self):
         venv_cmd_args = list(self._venv_cmd)

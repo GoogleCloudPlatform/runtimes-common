@@ -14,6 +14,7 @@
 """This package defines the interface for orchestrating image builds."""
 
 import json
+import concurrent.futures
 
 from ftl.common import builder
 from ftl.common import constants
@@ -43,6 +44,7 @@ class Python(builder.RuntimeBase):
         self._is_phase2 = ctx.Contains(constants.PIPFILE_LOCK)
 
     def _parse_pipfile_pkgs(self):
+
         pkg_descriptor = ftl_util.descriptor_parser(self._descriptor_files,
                                                     self._ctx)
         pipfile_json = json.loads(pkg_descriptor)
@@ -70,21 +72,17 @@ class Python(builder.RuntimeBase):
                 # do a phase 2 build of the package layers w/ Pipfile.lock
                 # iterate over package/version Pipfile.lock
                 pkgs = self._parse_pipfile_pkgs()
-                for pkg in pkgs:
-                    pipfile_builder = package_builder.PipfileLayerBuilder(
-                        ctx=self._ctx,
-                        descriptor_files=self._descriptor_files,
-                        pkg_descriptor=pkg,
-                        pkg_dir=None,
-                        wheel_dir=ftl_util.gen_tmp_dir(constants.WHEEL_DIR),
-                        venv_dir=self._venv_dir,
-                        pip_cmd=self._pip_cmd,
-                        venv_cmd=self._venv_cmd,
-                        dep_img_lyr=interpreter_builder,
-                        cache=self._cache)
-                    pipfile_builder.BuildLayer()
-                    lyr_imgs.append(pipfile_builder.GetImage())
-
+                with ftl_util.Timing('uploading_all_package_layers'):
+                    with concurrent.futures.ThreadPoolExecutor(
+                            max_workers=constants.THREADS) as executor:
+                        future_to_params = {executor.submit(
+                                self._build_pkg, pkg,
+                                interpreter_builder, lyr_imgs): pkg
+                                for pkg in pkgs
+                        }
+                        for future in concurrent.futures.as_completed(
+                                future_to_params):
+                            future.result()
             else:
                 # do a phase 1 build of the package layers w/ requirements.txt
                 req_txt_builder = package_builder.RequirementsLayerBuilder(
@@ -110,3 +108,18 @@ class Python(builder.RuntimeBase):
         lyr_imgs.append(app.GetImage())
         ftl_image = ftl_util.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)
+
+    def _build_pkg(self, pkg, interpreter_builder, lyr_imgs):
+        pipfile_builder = package_builder.PipfileLayerBuilder(
+            ctx=self._ctx,
+            descriptor_files=self._descriptor_files,
+            pkg_descriptor=pkg,
+            pkg_dir=None,
+            wheel_dir=ftl_util.gen_tmp_dir(constants.WHEEL_DIR),
+            venv_dir=self._venv_dir,
+            pip_cmd=self._pip_cmd,
+            venv_cmd=self._venv_cmd,
+            dep_img_lyr=interpreter_builder,
+            cache=self._cache)
+        pipfile_builder.BuildLayer()
+        lyr_imgs.append(pipfile_builder.GetImage())
