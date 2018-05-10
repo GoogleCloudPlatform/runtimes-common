@@ -53,6 +53,7 @@ class PythonTest(unittest.TestCase):
         args = mock.Mock()
         args.name = 'gcr.io/test/test:latest'
         args.base = 'gcr.io/google-appengine/python:latest'
+        args.entrypoint = None
         args.python_cmd = 'python2.7'
         args.pip_cmd = 'pip'
         args.venv_cmd = 'virtualenv'

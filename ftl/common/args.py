@@ -103,6 +103,12 @@ def base_parser():
         default=constants.DEFAULT_ENTRYPOINT,
         help='The entrypoint for the dockerimage')
     parser.add_argument(
+        '--sh-c-prefix',
+        dest='sh_c_prefix',
+        action='store',
+        default=None,
+        help='If sh -c should be prepended to the entrypoint')
+    parser.add_argument(
         '--exposed-ports',
         dest='exposed_ports',
         action='store',
