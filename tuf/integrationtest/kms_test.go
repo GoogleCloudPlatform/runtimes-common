@@ -20,35 +20,27 @@ import (
 	"os"
 	"testing"
 
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kms"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/testutil"
 )
 
-var CredentialsFile = "keys.json"
-
 func TestKMSIntegration(t *testing.T) {
-	tufConfig := config.TUFConfig{
-		KMSProjectID: "my-encryption-prject",
-		KMSLocation:  "global",
-		KeyRingID:    "testkeyring",
-		CryptoKeyID:  "testkey",
-	}
-
-	os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", CredentialsFile)
-	defer os.Setenv("GOOGLE_APPLICATION_CREDENTIALS", "")
+	prevCred := os.Getenv(testutil.GoogleCredConstant)
+	os.Setenv(testutil.GoogleCredConstant, os.Getenv(testutil.TufIntegrationConstant))
+	defer os.Setenv(testutil.GoogleCredConstant, prevCred)
 
 	kmsService, err := kms.New()
 
 	if err != nil {
 		t.Fatalf("Failed creating KMS client. %v", err)
 	}
-	encryptResp, err := kmsService.Encrypt(kms.CryptoKeyFromConfig(tufConfig), "this is secret")
+	encryptResp, err := kmsService.Encrypt(kms.CryptoKeyFromConfig(testutil.IntegrationTufConfig), "this is secret")
 	if err != nil {
 		t.Fatalf("Unexpected error when encrypting. %v", err)
 	}
-	plainText, dispErr := kmsService.Decrypt(kms.CryptoKeyFromConfig(tufConfig), encryptResp.Ciphertext)
-	if dispErr != nil {
-		t.Fatalf("Unexpected error. %v", dispErr)
+	plainText, decryptErr := kmsService.Decrypt(kms.CryptoKeyFromConfig(testutil.IntegrationTufConfig), encryptResp.Ciphertext)
+	if decryptErr != nil {
+		t.Fatalf("Unexpected error. %v", decryptErr)
 	}
 	if plainText != "this is secret" {
 		t.Fatalf("Expected: this is secret\nGot: %v", plainText)

@@ -5,4 +5,5 @@ go_library(
     srcs = ["util.go"],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/testutil",
     visibility = ["//visibility:public"],
+    deps = ["//tuf/config:go_default_library"],
 )

@@ -58,13 +58,22 @@ func New() (DeployTool, error) {
 func (d *Deployer) UpdateSecrets(tufConfig config.TUFConfig, rootKeyFile string, targetKeyFile string, snapshotKeyFile string) error {
 	errorStr := make([]string, 0)
 	if rootKeyFile != "" {
-		errorStr = append(errorStr, d.uploadSecret(rootKeyFile, tufConfig, config.RootSecretFileName).Error())
+		err := d.uploadSecret(rootKeyFile, tufConfig, config.RootSecretFileName)
+		if err != nil {
+			errorStr = append(errorStr, err.Error())
+		}
 	}
 	if targetKeyFile != "" {
-		errorStr = append(errorStr, d.uploadSecret(targetKeyFile, tufConfig, config.TargetSecretFileName).Error())
+		err := d.uploadSecret(targetKeyFile, tufConfig, config.TargetSecretFileName)
+		if err != nil {
+			errorStr = append(errorStr, err.Error())
+		}
 	}
 	if snapshotKeyFile != "" {
-		errorStr = append(errorStr, d.uploadSecret(snapshotKeyFile, tufConfig, config.SnapshotSecretFileName).Error())
+		err := d.uploadSecret(snapshotKeyFile, tufConfig, config.SnapshotSecretFileName)
+		if err != nil {
+			errorStr = append(errorStr, err.Error())
+		}
 	}
 	if len(errorStr) > 0 {
 		// Exit if there were errors uploading secrets.
@@ -90,8 +99,6 @@ func (d *Deployer) uploadSecret(file string, tufConfig config.TUFConfig, name st
 		return err
 	}
 	ioutil.WriteFile(tmpFile.Name(), []byte(encyptedResponse.Ciphertext), os.ModePerm)
-	tmpFile.Close()
-
-	_, _, err = d.Storage.Upload(tufConfig.GCSProjectID, tufConfig.GCSBucketID, name, tmpFile)
+	_, _, err = d.Storage.Upload(tufConfig.GCSBucketID, name, tmpFile)
 	return err
 }

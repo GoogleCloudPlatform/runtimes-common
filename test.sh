@@ -20,4 +20,4 @@ bazel run //:gazelle
 bazel build //docgen/scripts/docgen:docgen
 bazel build //versioning/scripts/dockerfiles:dockerfiles
 bazel build //versioning/scripts/cloudbuild:cloudbuild
-bazel test --test_output=errors //ctc_lib/... //tuf/...
+bazel test --test_output=errors //ctc_lib/... //tuf/... --action_env=TUF_INTEGRATION_TEST

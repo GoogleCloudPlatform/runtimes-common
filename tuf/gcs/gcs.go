@@ -17,6 +17,7 @@ package gcs
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -26,8 +27,9 @@ import (
 )
 
 type Storage interface {
-	Upload(string, string, string, io.Reader) (*storage.ObjectHandle, *storage.ObjectAttrs, error)
-	Download(string, string, string, string) error
+	Upload(string, string, io.Reader) (*storage.ObjectHandle, *storage.ObjectAttrs, error)
+	Download(string, string, string) error
+	Delete(string, string) error
 }
 
 type GCSStore struct {
@@ -47,13 +49,13 @@ func New() (*GCSStore, error) {
 	}, nil
 }
 
-func (gcs *GCSStore) Upload(projectId string, bucket string, name string, r io.Reader) (*storage.ObjectHandle, *storage.ObjectAttrs, error) {
+func (gcs *GCSStore) Upload(bucket string, name string, r io.Reader) (*storage.ObjectHandle, *storage.ObjectAttrs, error) {
 
 	bh := gcs.Client.Bucket(bucket)
 	// Next check if the bucket exists
 	if _, err := bh.Attrs(gcs.Context); err != nil {
 		// TODO: Create a new bucket with read permissions for "project-team-<projectId>"
-		return nil, nil, errors.New("Please create the bucket first e.g. with `gsutil mb`")
+		return nil, nil, errors.New(fmt.Sprintf("Error checking for bucket. %v", err))
 	}
 
 	obj := bh.Object(name)
@@ -69,7 +71,7 @@ func (gcs *GCSStore) Upload(projectId string, bucket string, name string, r io.R
 	return obj, attrs, err
 }
 
-func (gcs *GCSStore) Download(projectId string, bucketId string, objectName string, destPath string) error {
+func (gcs *GCSStore) Download(bucketId string, objectName string, destPath string) error {
 	bh := gcs.Client.Bucket(bucketId)
 
 	rc, err := bh.Object(objectName).NewReader(gcs.Context)
@@ -82,4 +84,12 @@ func (gcs *GCSStore) Download(projectId string, bucketId string, objectName stri
 		return err
 	}
 	return ioutil.WriteFile(destPath, slurp, os.ModePerm) // Create a file with 777 mode.
+}
+
+func (gcs *GCSStore) Delete(bucketId string, objectName string) error {
+	o := gcs.Client.Bucket(bucketId).Object(objectName)
+	if err := o.Delete(gcs.Context); err != nil {
+		return err
+	}
+	return nil
 }

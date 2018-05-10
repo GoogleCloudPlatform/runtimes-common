@@ -47,6 +47,6 @@ func ReadConfig(filename string) (TUFConfig, error) {
 	if err != nil {
 		return tufConfig, err
 	}
-	err = yaml.Unmarshal(buf, tufConfig)
+	err = yaml.Unmarshal(buf, &tufConfig)
 	return tufConfig, err
 }

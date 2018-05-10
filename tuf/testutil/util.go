@@ -18,6 +18,8 @@ package testutil
 
 import (
 	"strings"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 )
 
 var TestTUFConfig = `
@@ -28,6 +30,14 @@ kmsKeyringID: testKeyRing
 cryptoKey: testKey
 gcsBucketID: testBucket
 `
+var IntegrationTufConfig = config.TUFConfig{
+	KMSProjectID: "my-encryption-prject",
+	KMSLocation:  "global",
+	KeyRingID:    "testkeyring",
+	CryptoKeyID:  "testkey",
+	GCSProjectID: "my-encryption-prject",
+	GCSBucketID:  "test-tuf-int",
+}
 
 func IsErrorEqualOrContains(err error, subErr error) bool {
 	if err == nil && subErr == nil {
@@ -39,3 +49,6 @@ func IsErrorEqualOrContains(err error, subErr error) bool {
 	}
 	return false // Return false
 }
+
+const GoogleCredConstant = "GOOGLE_APPLICATION_CREDENTIALS"
+const TufIntegrationConstant = "TUF_INTEGRATION_TEST"
