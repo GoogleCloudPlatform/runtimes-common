@@ -6,9 +6,6 @@ go_test(
         "kms_test.go",
         "upload_secrets_test.go",
     ],
-    data = [
-        "//tuf/integrationtest:testdata",
-    ],
     deps = [
         "//tuf/cmd:go_default_library",
         "//tuf/config:go_default_library",
@@ -17,11 +14,4 @@ go_test(
         "//tuf/testutil:go_default_library",
         "//vendor/gopkg.in/yaml.v2:go_default_library",
     ],
-)
-
-filegroup(
-    name = "testdata",
-    srcs = glob([
-        "keys.*",
-    ]),
 )
