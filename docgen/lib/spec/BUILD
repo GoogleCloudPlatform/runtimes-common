@@ -30,17 +30,6 @@ go_test(
 )
 
 go_test(
-    name = "go_default_xtest",
-    srcs = ["spec_test.go"],
-    data = glob(["testdata/**"]),
-    deps = [
-        ":go_default_library",
-        "//vendor/github.com/ghodss/yaml:go_default_library",
-        "//vendor/github.com/golang/protobuf/jsonpb:go_default_library",
-    ],
-)
-
-go_test(
     name = "go_default_test",
     srcs = ["spec_test.go"],
     data = glob(["testdata/**"]),
