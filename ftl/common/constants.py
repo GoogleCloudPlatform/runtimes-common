@@ -25,6 +25,12 @@ FTL_VERSION = "v0.3.1"
 
 # cache constants
 DEFAULT_TTL_WEEKS = 1
+
+# Google Cloud Builder env options
+BUILDER_OUTPUT = 'BUILDER_OUTPUT'
+BUILDER_OUTPUT_FILE = 'output'
+
+# Google Cloud Builder Args
 GLOBAL_CACHE_REGISTRY = 'gcr.io/ftl-global-cache'
 
 # php constants
@@ -64,7 +70,3 @@ PHASE_1_CACHE_MISS = CACHE_MISS + PHASE_1_CACHE_STR
 PHASE_2_CACHE_MISS = CACHE_MISS + PHASE_2_CACHE_STR
 
 CACHE_KEY_VERSION = 'v1'
-
-FTL_USER_LOG = 'ftl-user.log'
-FTL_FULL_LOG = 'ftl-full.log'
-FTL_INTERNAL_LOG = 'ftl-internal.log'

@@ -34,9 +34,6 @@ pids+=($!)
 python ftl/integration_tests/ftl_python_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 . > python.log &
 pids+=($!)
 
-gcloud container builds submit --config ftl/integration_tests/ftl_python_error_test.yaml . > python_error.log &
-pids+=($!)
-
 python ftl/cached/ftl_cached_yaml.py --runtime=node-same | gcloud container builds submit --config /dev/fd/0 . > node_same_cached.log &
 pids+=($!)
 
@@ -64,7 +61,7 @@ pids+=($!)
 python ftl/cached/ftl_cached_yaml.py --runtime=python-pipfile-plus-one | gcloud container builds submit --config /dev/fd/0 . > python_pipfile_plus_one_cached.log &
 pids+=($!)
 
-gcloud container builds submit --config ftl/integration_tests/ftl_python_error_test_2.yaml . > python_error_2.log &
+gcloud container builds submit --config ftl/integration_tests/ftl_python_error_test.yaml . > python_error.log &
 f_pids+=($!)
 
 # Wait for them to finish, and check the exit codes.
@@ -91,7 +88,6 @@ if [[ $failures -gt 0 ]]; then
     cat node.log
     cat python.log
     cat php.log
-    cat python_error.log
     cat node_same_cached.log
     cat node_plus_one_cached.log
     cat php_same_cached.log
@@ -106,6 +102,6 @@ fi
 
 if [[ $f_failures -lt 1 ]]; then
     echo "Integration test failure."
-    cat python_error_2.log
+    cat python_error.log
     exit 1
 fi
