@@ -13,7 +13,7 @@ jdk:
   - oraclejdk8
 
 env:
-  - NODE_VERSION="6.11.4"
+- NODE_VERSION="6.11.4"
 
 before_install:
   - pip install --user --upgrade -r requirements.txt
