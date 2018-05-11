@@ -6,4 +6,3 @@ config/*
 .cfg/
 **/bazel-*
 .vscode
-keys.json
