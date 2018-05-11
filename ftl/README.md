@@ -66,6 +66,6 @@ gcloud container builds submit --config ftl/ftl_python_integration_tests.yaml .
 ```
 
 ## FTL Runtime Design Documents
-[php](https://docs.google.com/document/d/1jCd0lwkPMeDGOl4uz7u5aGU3fNdrvr7eIntKnpZWIso/edit?usp=sharing)
+[php](https://docs.google.com/document/d/1cbf3DUpNQxdmhxo2AEhp-L34_BEsuNF8rEVGI8z7Esg/edit?usp=sharing)
 
 [python](https://docs.google.com/document/d/1pXfg6pLPpQoIb5_E6PeVWHLttL2YgUPX6ysoqmyVzik/edit?usp=sharing)
