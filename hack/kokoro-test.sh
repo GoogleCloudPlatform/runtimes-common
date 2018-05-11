@@ -13,11 +13,6 @@ if [ -f "$KOKORO_GFILE_DIR"/shellcheck-latest.linux ]; then
     sudo chmod +x /usr/local/bin/shellcheck
 fi
 
-# Add the keys.json from keystore to expected bazel target
-if [ -f "$KOKORO_KEYSTORE_DIR"/72508_tuf_integration_test ]; then
-  export TUF_INTEGRATION_TEST="$KOKORO_KEYSTORE_DIR"/72508_tuf_integration_test
-fi
-
 pushd github/runtimes-common
 # Install deps.
 sudo pip install --upgrade -r requirements.txt
@@ -63,8 +58,7 @@ pids+=($!)
 gcloud container builds submit --config ftl/integration_tests/ftl_python_error_test.yaml . > python_error.log &
 f_pids+=($!)
 
-bazel test integrationtest/... > integrationtest.log &
-f_pids+=($!)
+bazel test integrationtest/tuf/...
 
 # Wait for them to finish, and check the exit codes.
 

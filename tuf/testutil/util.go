@@ -31,12 +31,12 @@ cryptoKey: testKey
 gcsBucketID: testBucket
 `
 var IntegrationTufConfig = config.TUFConfig{
-	KMSProjectID: "my-encryption-prject",
+	KMSProjectID: "gcp-runtimes",
 	KMSLocation:  "global",
-	KeyRingID:    "testkeyring",
+	KeyRingID:    "tuftestkeyring",
 	CryptoKeyID:  "testkey",
-	GCSProjectID: "my-encryption-prject",
-	GCSBucketID:  "test-tuf-int",
+	GCSProjectID: "gcp-runtimes",
+	GCSBucketID:  "tuf-integration",
 }
 
 func IsErrorEqualOrContains(err error, subErr error) bool {
@@ -49,6 +49,3 @@ func IsErrorEqualOrContains(err error, subErr error) bool {
 	}
 	return false // Return false
 }
-
-const GoogleCredConstant = "GOOGLE_APPLICATION_CREDENTIALS"
-const TufIntegrationConstant = "TUF_INTEGRATION_TEST"
