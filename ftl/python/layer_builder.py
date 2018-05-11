@@ -25,6 +25,8 @@ from ftl.common import ftl_error
 from ftl.common import single_layer_image
 from ftl.common import tar_to_dockerimage
 
+from ftl.python import python_util
+
 
 class PackageLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def __init__(self,
@@ -107,7 +109,9 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         if cached_img:
             self.SetImage(cached_img)
         else:
-            self._setup_venv()
+            python_util.setup_venv(self._venv_dir, self._venv_cmd,
+                                   self._python_cmd)
+
             pkg_descriptor = ftl_util.descriptor_parser(
                 self._descriptor_files, self._ctx)
             self._pip_download_wheels(pkg_descriptor)
@@ -119,10 +123,10 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             with ftl_util.Timing('uploading_all_package_layers'):
                 with concurrent.futures.ThreadPoolExecutor(
                         max_workers=constants.THREADS) as executor:
-                    future_to_params = {executor.submit(
-                            self._build_pkg, whl_pkg_dir,
-                            req_txt_imgs): whl_pkg_dir
-                            for whl_pkg_dir in pkg_dirs
+                    future_to_params = {
+                        executor.submit(self._build_pkg, whl_pkg_dir,
+                                        req_txt_imgs): whl_pkg_dir
+                        for whl_pkg_dir in pkg_dirs
                     }
                     for future in concurrent.futures.as_completed(
                             future_to_params):
@@ -145,16 +149,6 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             cache=self._cache)
         layer_builder.BuildLayer()
         req_txt_imgs.append(layer_builder.GetImage())
-
-    def _setup_venv(self):
-        venv_cmd_args = list(self._venv_cmd)
-        venv_cmd_args.extend([
-            '--no-download',
-            self._venv_dir,
-            '-p',
-        ])
-        venv_cmd_args.extend(list(self._python_cmd))
-        ftl_util.run_command('create_virtualenv', venv_cmd_args)
 
     def _resolve_whls(self):
         with ftl_util.Timing('resolving_whl_paths'):
@@ -262,7 +256,6 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
         if cached_img:
             self.SetImage(cached_img)
         else:
-            self._setup_venv()
             self._pip_download_wheels(' '.join(self._pkg_descriptor))
             whls = self._resolve_whls()
             if len(whls) != 1:
@@ -299,8 +292,7 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._cache = cache
 
     def GetCacheKeyRaw(self):
-        return '%s %s %s' % (self._python_version(),
-                             self._venv_cmd,
+        return '%s %s %s' % (self._python_version(), self._venv_cmd,
                              self._venv_dir)
 
     def _python_version(self):
@@ -341,7 +333,8 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
-        self._setup_venv()
+        python_util.setup_venv(self._venv_dir, self._venv_cmd,
+                               self._python_cmd)
 
         tar_path = tempfile.mktemp(suffix='.tar')
         tar_cmd = ['tar', '-cf', tar_path, self._venv_dir]
@@ -356,18 +349,6 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
         overrides = ftl_util.generate_overrides(True, self._venv_dir)
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
-
-    def _setup_venv(self):
-        if os.path.isdir(self._venv_dir):
-            return
-        venv_cmd_args = list(self._venv_cmd)
-        venv_cmd_args.extend([
-            '--no-download',
-            self._venv_dir,
-            '-p',
-        ])
-        venv_cmd_args.extend(list(self._python_cmd))
-        ftl_util.run_command('create_virtualenv', venv_cmd_args)
 
     def _log_cache_result(self, hit):
         if hit:
