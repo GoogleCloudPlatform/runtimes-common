@@ -20,7 +20,9 @@ from ftl.common import builder
 from ftl.common import constants
 from ftl.common import ftl_util
 from ftl.common import layer_builder as base_builder
+
 from ftl.python import layer_builder as package_builder
+from ftl.python import python_util
 
 
 class Python(builder.RuntimeBase):
@@ -71,6 +73,9 @@ class Python(builder.RuntimeBase):
             if self._is_phase2:
                 # do a phase 2 build of the package layers w/ Pipfile.lock
                 # iterate over package/version Pipfile.lock
+                python_util.setup_venv(self._venv_dir,
+                                       self._venv_cmd,
+                                       self._python_cmd)
                 pkgs = self._parse_pipfile_pkgs()
                 with ftl_util.Timing('uploading_all_package_layers'):
                     with concurrent.futures.ThreadPoolExecutor(
