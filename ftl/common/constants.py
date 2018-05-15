@@ -21,7 +21,7 @@ DEFAULT_ENTRYPOINT = None
 THREADS = 32
 
 # ftl version
-FTL_VERSION = "v0.3.1"
+FTL_VERSION = "v0.4.0"
 
 # cache constants
 DEFAULT_TTL_WEEKS = 1
