@@ -64,19 +64,21 @@ class Cached():
             ]
             if label == "original":
                 ftl_args.extend(['--no-cache'])
-            cmd = subprocess.Popen(
-                ftl_args,
-                stderr=subprocess.PIPE)
-            _, output = cmd.communicate()
-            logging.info('output of build {0}: {1}'.format(label, output))
-            lyr_shas.append(self._fetch_lyr_shas(img_name))
-            self._cleanup(constants.VENV_DIR)
-            self._del_img_from_gcr(img_name)
-        try:
-            self._compare_layers(lyr_shas[0], lyr_shas[1], self._offset)
-        except ftl_util.FTLException as e:
-            logging.error(e)
+            try:
+                ftl_util.run_command(
+                    "cached-ftl-build-%s" % img_name,
+                    ftl_args)
+                lyr_shas.append(self._fetch_lyr_shas(img_name))
+            except ftl_util.FTLException as e:
+                logging.error(e)
+                exit(1)
+            finally:
+                self._cleanup(constants.VENV_DIR)
+                # self._del_img_from_gcr(img_name)
+        if len(lyr_shas) is not 2:
+            logging.error("Incorrect number of layers to compare")
             exit(1)
+        self._compare_layers(lyr_shas[0], lyr_shas[1], self._offset)
 
     def _fetch_lyr_shas(self, img_name):
         name = docker_name.Tag(img_name)
@@ -90,6 +92,7 @@ class Cached():
             return set(lyr_shas)
 
     def _compare_layers(self, lyr_shas_1, lyr_shas_2, offset):
+        logging.info("Comparing layers \n%s\n%s" % (lyr_shas_1, lyr_shas_2))
         lyr_diff = 0
         if len(lyr_shas_1) <= len(lyr_shas_2):
             lyr_diff = lyr_shas_1 - lyr_shas_2
