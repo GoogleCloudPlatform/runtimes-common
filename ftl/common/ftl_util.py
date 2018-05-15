@@ -113,6 +113,20 @@ def has_pkg_descriptor(descriptor_files, ctx):
     return False
 
 
+def all_descriptor_contents(descriptor_files, ctx):
+    descriptor = None
+    descriptor_contents = ""
+    for f in descriptor_files:
+        if ctx.Contains(f):
+            descriptor = f
+            descriptor_contents += ctx.GetFile(descriptor)
+            break
+    if not descriptor:
+        logging.info("No package descriptor found. No packages installed.")
+        return None
+    return descriptor_contents
+
+
 def descriptor_parser(descriptor_files, ctx):
     descriptor = None
     for f in descriptor_files:
