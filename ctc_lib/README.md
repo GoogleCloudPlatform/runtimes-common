@@ -10,5 +10,5 @@ TODO: Verify this
 dep ensure -add github.com/GoogleCloudPlatform/runtime-common/ctc_lib
 ```
 
-1. Refer [Examples](examples/README.md) for usage.
+1. Refer [Examples](../demo/ctc/README.md) for usage.
 
