@@ -40,9 +40,6 @@ pids+=($!)
 python ftl/cached/ftl_cached_yaml.py --runtime=node-plus-one | gcloud container builds submit --config /dev/fd/0 . > node_plus_one_cached.log &
 pids+=($!)
 
-python ftl/cached/ftl_cached_yaml.py --runtime=php-same | gcloud container builds submit --config /dev/fd/0 . > php_same_cached.log &
-pids+=($!)
-
 python ftl/cached/ftl_cached_yaml.py --runtime=php-lock-same | gcloud container builds submit --config /dev/fd/0 . > php_lock_same_cached.log &
 pids+=($!)
 
@@ -90,7 +87,6 @@ if [[ $failures -gt 0 ]]; then
     cat php.log
     cat node_same_cached.log
     cat node_plus_one_cached.log
-    cat php_same_cached.log
     cat php_lock_same_cached.log
     cat php_lock_plus_one_cached.log
     cat python_requirements_same_cached.log
