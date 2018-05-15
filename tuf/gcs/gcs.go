@@ -20,17 +20,10 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"os"
 
 	"cloud.google.com/go/storage"
 	"golang.org/x/net/context"
 )
-
-type Storage interface {
-	Upload(string, string, io.Reader) (*storage.ObjectHandle, *storage.ObjectAttrs, error)
-	Download(string, string, string) error
-	Delete(string, string) error
-}
 
 type GCSStore struct {
 	Client  *storage.Client
@@ -71,19 +64,19 @@ func (gcs *GCSStore) Upload(bucket string, name string, r io.Reader) (*storage.O
 	return obj, attrs, err
 }
 
-func (gcs *GCSStore) Download(bucketId string, objectName string, destPath string) error {
+func (gcs *GCSStore) Download(bucketId string, objectName string) ([]byte, error) {
 	bh := gcs.Client.Bucket(bucketId)
 
 	rc, err := bh.Object(objectName).NewReader(gcs.Context)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer rc.Close()
 	slurp, err := ioutil.ReadAll(rc)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return ioutil.WriteFile(destPath, slurp, os.ModePerm) // Create a file with 777 mode.
+	return slurp, nil
 }
 
 func (gcs *GCSStore) Delete(bucketId string, objectName string) error {

@@ -37,7 +37,7 @@ type DeployTool interface {
 
 type Deployer struct {
 	KmsService kms.KMService
-	Storage    gcs.Storage
+	Storage    *gcs.GCSStore
 }
 
 func New() (DeployTool, error) {

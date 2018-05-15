@@ -26,19 +26,20 @@ import (
 func TestKMSIntegration(t *testing.T) {
 
 	kmsService, err := kms.New()
+	testText := "this is secret"
 
 	if err != nil {
 		t.Fatalf("Failed creating KMS client. %v", err)
 	}
-	encryptResp, err := kmsService.Encrypt(kms.CryptoKeyFromConfig(testutil.IntegrationTufConfig), "this is secret")
+	encryptResp, err := kmsService.Encrypt(kms.CryptoKeyFromConfig(testutil.IntegrationTufConfig), testText)
 	if err != nil {
 		t.Fatalf("Unexpected error when encrypting. %v", err)
 	}
-	plainText, decryptErr := kmsService.Decrypt(kms.CryptoKeyFromConfig(testutil.IntegrationTufConfig), encryptResp.Ciphertext)
-	if decryptErr != nil {
-		t.Fatalf("Unexpected error. %v", decryptErr)
+	plainText, err := kmsService.Decrypt(kms.CryptoKeyFromConfig(testutil.IntegrationTufConfig), encryptResp.Ciphertext)
+	if err != nil {
+		t.Fatalf("Unexpected error. %v", err)
 	}
-	if plainText != "this is secret" {
+	if plainText != testText {
 		t.Fatalf("Expected: this is secret\nGot: %v", plainText)
 	}
 

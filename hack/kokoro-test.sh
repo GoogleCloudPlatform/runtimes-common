@@ -58,7 +58,7 @@ pids+=($!)
 gcloud container builds submit --config ftl/integration_tests/ftl_python_error_test.yaml . > python_error.log &
 f_pids+=($!)
 
-bazel test integrationtest/tuf/...
+bazel test --test_output=errors integrationtest/tuf/...
 
 # Wait for them to finish, and check the exit codes.
 

@@ -38,33 +38,44 @@ var rootSecret = fmt.Sprintf("This is root file secret number %d", rand.Int())
 var targetSecret = fmt.Sprintf("This is target file secret number %d", rand.Int())
 var snapshotSecret = fmt.Sprintf("This is snapshot file secret number %d", rand.Int())
 
+var testFiles = make([]string, 0)
+
+func createAndWriteFile(filename string, text string) string {
+	tmpFile, err := ioutil.TempFile("", filename)
+	if err != nil {
+		panic(fmt.Sprintf("Cannot run tests due to %v", err))
+	}
+	testFiles = append(testFiles, tmpFile.Name())
+	if text != "" {
+		ioutil.WriteFile(tmpFile.Name(), []byte(text), 644)
+	}
+	return tmpFile.Name()
+}
+
+func cleanUpFiles() {
+	for _, file := range testFiles {
+		os.Remove(file)
+	}
+}
+
 func TestUploadSecretsCommand(t *testing.T) {
-	rootFile, _ := ioutil.TempFile("", "rawSecret1.json")
-	defer os.Remove(rootFile.Name())
-	ioutil.WriteFile(rootFile.Name(), []byte(rootSecret), 644)
-
-	targetFile, _ := ioutil.TempFile("", "rawSecret2.json")
-	defer os.Remove(targetFile.Name())
-	ioutil.WriteFile(targetFile.Name(), []byte(targetSecret), 644)
-
-	snapshotFile, _ := ioutil.TempFile("", "rawSecret3.json")
-	defer os.Remove(snapshotFile.Name())
-	ioutil.WriteFile(snapshotFile.Name(), []byte(snapshotSecret), 644)
-
-	tufConfig, _ := ioutil.TempFile("", "tufConfig.yaml")
-	defer os.Remove(tufConfig.Name())
+	rootFile := createAndWriteFile("rawSecret1.json", rootSecret)
+	targetFile := createAndWriteFile("rawSecret1.json", targetSecret)
+	snapshotFile := createAndWriteFile("rawSecret1.json", snapshotSecret)
 
 	buf, err := yaml.Marshal(&testutil.IntegrationTufConfig)
 	if err != nil {
 		t.Fatalf("Error while writing config %v", err)
 	}
-	ioutil.WriteFile(tufConfig.Name(), buf, 644)
+	tufConfig := createAndWriteFile("tufConfig.yaml", string(buf))
+
+	defer cleanUpFiles()
 
 	cmd.RootCommand.SetArgs([]string{"upload-secrets",
-		"--config", tufConfig.Name(),
-		"--root-key", rootFile.Name(),
-		"--target-key", targetFile.Name(),
-		"--snapshot-key", snapshotFile.Name()})
+		"--config", tufConfig,
+		"--root-key", rootFile,
+		"--target-key", targetFile,
+		"--snapshot-key", snapshotFile})
 
 	err = cmd.RootCommand.Execute()
 
@@ -72,22 +83,7 @@ func TestUploadSecretsCommand(t *testing.T) {
 		t.Fatalf("Unexpected Err: %v", err)
 	}
 
-	// Download Files from GCS
-	rootFileEncrypt, _ := ioutil.TempFile("", "encryptSecret1.json")
-	defer os.Remove(rootFileEncrypt.Name())
-
-	targetFileEncrypt, _ := ioutil.TempFile("", "encryptSecret2.json")
-	defer os.Remove(targetFileEncrypt.Name())
-
-	snapshotFileEncrpyt, _ := ioutil.TempFile("", "encryptSecret3.json")
-	defer os.Remove(snapshotFile.Name())
-
-	err = downloadAndVerifyFiles(
-		testutil.IntegrationTufConfig,
-		rootFileEncrypt.Name(),
-		targetFileEncrypt.Name(),
-		snapshotFileEncrpyt.Name(),
-	)
+	err = downloadAndVerifySecrets(testutil.IntegrationTufConfig)
 
 	if err != nil {
 		t.Fatalf("Unexpected Error %v", err)
@@ -95,42 +91,44 @@ func TestUploadSecretsCommand(t *testing.T) {
 
 }
 
-func downloadAndVerifyFiles(tufConfig config.TUFConfig, rootFile string, targetFile string, snapshotFile string) error {
+func downloadAndVerifySecrets(tufConfig config.TUFConfig) error {
 	errorStrings := make([]string, 0)
 	gcsService, err := gcs.New()
 	if err != nil {
 		return err
 	}
 	defer cleanAllStorage(gcsService, tufConfig.GCSBucketID)
-	errorStrings = appendErrorIfExists(errorStrings, downloadFile(gcsService, tufConfig.GCSBucketID, config.RootSecretFileName, rootFile))
-	errorStrings = appendErrorIfExists(errorStrings, downloadFile(gcsService, tufConfig.GCSBucketID, config.TargetSecretFileName, targetFile))
-	errorStrings = appendErrorIfExists(errorStrings, downloadFile(gcsService, tufConfig.GCSBucketID, config.SnapshotSecretFileName, snapshotFile))
+	rootBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, config.RootSecretFileName)
+	errorStrings = appendErrorIfExists(errorStrings, err)
+	targetBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, config.TargetSecretFileName)
+	errorStrings = appendErrorIfExists(errorStrings, err)
+	snapshotBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, config.SnapshotSecretFileName)
+	errorStrings = appendErrorIfExists(errorStrings, err)
 
 	// Decrypt the file and see if its same as.
 	kmsService, err := kms.New()
 	if err != nil {
 		return err
 	}
-	errorStrings = appendErrorIfExists(errorStrings, decryptFile(kmsService, tufConfig, rootFile, rootSecret))
-	errorStrings = appendErrorIfExists(errorStrings, decryptFile(kmsService, tufConfig, targetFile, targetSecret))
-	errorStrings = appendErrorIfExists(errorStrings, decryptFile(kmsService, tufConfig, snapshotFile, snapshotSecret))
+	errorStrings = appendErrorIfExists(errorStrings, decryptFile(kmsService, tufConfig, rootBytes, rootSecret))
+	errorStrings = appendErrorIfExists(errorStrings, decryptFile(kmsService, tufConfig, targetBytes, targetSecret))
+	errorStrings = appendErrorIfExists(errorStrings, decryptFile(kmsService, tufConfig, snapshotBytes, snapshotSecret))
 	if len(errorStrings) > 0 {
 		return errors.New(strings.Join(errorStrings, "\n"))
 	}
 	return nil
 }
 
-func downloadFile(gcsService *gcs.GCSStore, bucketID string, key string, dest string) error {
-	err := gcsService.Download(bucketID, key, dest)
+func downloadFile(gcsService *gcs.GCSStore, bucketID string, key string) ([]byte, error) {
+	bytes, err := gcsService.Download(bucketID, key)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return bytes, nil
 }
 
-func decryptFile(kmsService *kms.KMS, tufConfig config.TUFConfig, decryptFile string, plainTextExp string) error {
-	bytes, _ := ioutil.ReadFile(decryptFile)
-	plainText, decryptErr := kmsService.Decrypt(kms.CryptoKeyFromConfig(tufConfig), string(bytes))
+func decryptFile(kmsService *kms.KMS, tufConfig config.TUFConfig, decryptBytes []byte, plainTextExp string) error {
+	plainText, decryptErr := kmsService.Decrypt(kms.CryptoKeyFromConfig(tufConfig), string(decryptBytes))
 	if decryptErr != nil {
 		return decryptErr
 	} else if plainText != plainTextExp {
