@@ -17,8 +17,6 @@ limitations under the License.
 package integrationtest
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kms"
@@ -29,8 +27,6 @@ func TestKMSIntegration(t *testing.T) {
 
 	kmsService, err := kms.New()
 	testText := "this is secret"
-
-	fmt.Println(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
 
 	if err != nil {
 		t.Fatalf("Failed creating KMS client. %v", err)
