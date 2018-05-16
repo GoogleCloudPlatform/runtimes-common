@@ -1,5 +1,13 @@
 # FTL Release Notes
 
+# Version 0.4.0 - 5/15/2018
+* Fix issue where FTL was returning successful on builds w/ errors [#617](https://github.com/GoogleCloudPlatform/runtimes-common/pull/617)
+* Support writing error logs to --builder-output-path or $BUILDER_OUTPUT [#613](https://github.com/GoogleCloudPlatform/runtimes-common/pull/613)
+* [NODE] Changed node to cache on all descriptor files vs a single file [#630](https://github.com/GoogleCloudPlatform/runtimes-common/pull/630)
+* [PYTHON] Parallelized layer uploads done in python builds [#607](https://github.com/GoogleCloudPlatform/runtimes-common/pull/607)
+* [PHP] Parallelized layer uploads done in  builds [#612](https://github.com/GoogleCloudPlatform/runtimes-common/pull/612)
+
+
 # Version 0.3.1 - 4/24/2018
 * Fixed issue with python where if the interpreter layer was cached, other layers wouldn't build properly [#601](https://github.com/GoogleCloudPlatform/runtimes-common/pull/601)
 * Added cache tests for all runtimes for add one dependency and added cleanup phase in between [#601](https://github.com/GoogleCloudPlatform/runtimes-common/pull/601)
