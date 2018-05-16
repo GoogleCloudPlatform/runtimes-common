@@ -1,0 +1,20 @@
+steps:
+- args: [chmod, a+rx, -R, /workspace]
+  name: ubuntu
+- args: [run, '//ftl/node/benchmark:node_benchmark_image', --, --norun]
+  name: gcr.io/cloud-builders/bazel
+- args: [build, 'ftl:node_builder.par']
+  name: gcr.io/cloud-builders/bazel
+- args: [--base, 'gcr.io/gae-runtimes/nodejs8_app_builder:argo_current', --name, 'gcr.io/ftl-node-test/benchmark_small_app:latest',
+    --directory, /workspace/ftl/node/benchmark/data/small_app, --description, small_app,
+    --iterations, '5']
+  name: bazel/ftl/node/benchmark:node_benchmark_image
+- args: [--base, 'gcr.io/gae-runtimes/nodejs8_app_builder:argo_current', --name, 'gcr.io/ftl-node-test/benchmark_medium_app:latest',
+    --directory, /workspace/ftl/node/benchmark/data/medium_app, --description, medium_app,
+    --iterations, '5']
+  name: bazel/ftl/node/benchmark:node_benchmark_image
+- args: [--base, 'gcr.io/gae-runtimes/nodejs8_app_builder:argo_current', --name, 'gcr.io/ftl-node-test/benchmark_large_app:latest',
+    --directory, /workspace/ftl/node/benchmark/data/large_app, --description, large_app,
+    --iterations, '5']
+  name: bazel/ftl/node/benchmark:node_benchmark_image
+
