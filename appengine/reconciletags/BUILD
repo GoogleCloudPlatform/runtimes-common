@@ -3,8 +3,8 @@ package(default_visibility = ["//visibility:public"])
 load("@subpar//:subpar.bzl", "par_binary")
 load(
     "@io_bazel_rules_docker//docker:docker.bzl",
-    "docker_push",
     "docker_build",
+    "docker_push",
 )
 load("@io_bazel_rules_docker//python:image.bzl", "py_image")
 
