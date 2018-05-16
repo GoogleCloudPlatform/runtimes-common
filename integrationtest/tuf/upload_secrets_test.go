@@ -38,38 +38,34 @@ var rootSecret = fmt.Sprintf("This is root file secret number %d", rand.Int())
 var targetSecret = fmt.Sprintf("This is target file secret number %d", rand.Int())
 var snapshotSecret = fmt.Sprintf("This is snapshot file secret number %d", rand.Int())
 
-var testFiles = make([]string, 0)
-
-func createAndWriteFile(filename string, text string) string {
-	tmpFile, err := ioutil.TempFile("", filename)
+func createAndWriteFile(dir string, filename string, text string) string {
+	tmpFile, err := ioutil.TempFile(dir, filename)
 	if err != nil {
 		panic(fmt.Sprintf("Cannot run tests due to %v", err))
 	}
-	testFiles = append(testFiles, tmpFile.Name())
+
 	if text != "" {
 		ioutil.WriteFile(tmpFile.Name(), []byte(text), 644)
 	}
 	return tmpFile.Name()
 }
 
-func cleanUpFiles() {
-	for _, file := range testFiles {
-		os.Remove(file)
-	}
-}
-
 func TestUploadSecretsCommand(t *testing.T) {
-	rootFile := createAndWriteFile("rawSecret1.json", rootSecret)
-	targetFile := createAndWriteFile("rawSecret1.json", targetSecret)
-	snapshotFile := createAndWriteFile("rawSecret1.json", snapshotSecret)
+	tmpdir, err := ioutil.TempDir("", "upload_")
+	if err != nil {
+		panic(fmt.Sprintf("Cannot run tests due to %v", err))
+	}
+	defer os.Remove(tmpdir)
+
+	rootFile := createAndWriteFile(tmpdir, "rawSecret1.json", rootSecret)
+	targetFile := createAndWriteFile(tmpdir, "rawSecret1.json", targetSecret)
+	snapshotFile := createAndWriteFile(tmpdir, "rawSecret1.json", snapshotSecret)
 
 	buf, err := yaml.Marshal(&testutil.IntegrationTufConfig)
 	if err != nil {
 		t.Fatalf("Error while writing config %v", err)
 	}
-	tufConfig := createAndWriteFile("tufConfig.yaml", string(buf))
-
-	defer cleanUpFiles()
+	tufConfig := createAndWriteFile(tmpdir, "tufConfig.yaml", string(buf))
 
 	cmd.RootCommand.SetArgs([]string{"upload-secrets",
 		"--config", tufConfig,
@@ -77,27 +73,22 @@ func TestUploadSecretsCommand(t *testing.T) {
 		"--target-key", targetFile,
 		"--snapshot-key", snapshotFile})
 
-	err = cmd.RootCommand.Execute()
-
-	if err != nil {
+	if err := cmd.RootCommand.Execute(); err != nil {
 		t.Fatalf("Unexpected Err: %v", err)
 	}
 
-	err = downloadAndVerifySecrets(testutil.IntegrationTufConfig)
-
-	if err != nil {
+	if err = downloadAndVerifySecrets(testutil.IntegrationTufConfig, t); err != nil {
 		t.Fatalf("Unexpected Error %v", err)
 	}
-
 }
 
-func downloadAndVerifySecrets(tufConfig config.TUFConfig) error {
+func downloadAndVerifySecrets(tufConfig config.TUFConfig, t *testing.T) error {
 	errorStrings := make([]string, 0)
 	gcsService, err := gcs.New()
 	if err != nil {
 		return err
 	}
-	defer cleanAllStorage(gcsService, tufConfig.GCSBucketID)
+	defer cleanAllStorage(gcsService, tufConfig.GCSBucketID, t)
 	rootBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, config.RootSecretFileName)
 	errorStrings = appendErrorIfExists(errorStrings, err)
 	targetBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, config.TargetSecretFileName)
@@ -137,12 +128,12 @@ func decryptFile(kmsService *kms.KMS, tufConfig config.TUFConfig, decryptBytes [
 	return nil
 }
 
-func cleanAllStorage(gcsService *gcs.GCSStore, bucketID string) {
-	err1 := gcsService.Delete(bucketID, config.RootSecretFileName)
-	err2 := gcsService.Delete(bucketID, config.TargetSecretFileName)
-	err3 := gcsService.Delete(bucketID, config.SnapshotSecretFileName)
-	if err1 != nil || err2 != nil || err3 != nil {
-		panic(fmt.Sprintf("Error cleaning buckts %v, %v, %v", err1, err2, err3))
+func cleanAllStorage(gcsService *gcs.GCSStore, bucketID string, t *testing.T) {
+	for _, obj := range []string{config.RootSecretFileName,
+		config.TargetSecretFileName, config.SnapshotSecretFileName} {
+		if err := gcsService.Delete(bucketID, obj); err != nil {
+			t.Logf("Error cleaning buckts %v", err)
+		}
 	}
 }
 
