@@ -2,8 +2,8 @@
 
 set -ex
 echo "Checking formatting..."
-#find . -name "*.sh" | grep -v vendor/ | xargs shellcheck
-#flake8 .
+find . -name "*.sh" | grep -v vendor/ | xargs shellcheck
+flake8 .
 ./.gofmt.sh
 ./.buildifier.sh
 
