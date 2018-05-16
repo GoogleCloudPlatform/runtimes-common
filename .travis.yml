@@ -9,11 +9,12 @@ language: go
 go:
         - 1.8.1
 go_import_path: github.com/GoogleCloudPlatform/runtimes-common
+
 jdk:
   - oraclejdk8
 
 env:
-- NODE_VERSION="6.11.4"
+  - NODE_VERSION="6.11.4"
 
 before_install:
   - pip install --user --upgrade -r requirements.txt

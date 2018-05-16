@@ -6,4 +6,3 @@ config/*
 .cfg/
 **/bazel-*
 .vscode
-tuf/integrationtest/keys.json
