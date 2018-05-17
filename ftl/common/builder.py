@@ -35,6 +35,7 @@ from ftl.common import ftl_util
 # See http://bugs.python.org/issue7980
 datetime.datetime.strptime('', '')
 
+
 class Base(object):
     """Base is an abstract base class representing a container builder.
     It provides methods for generating runtime layers and an application
