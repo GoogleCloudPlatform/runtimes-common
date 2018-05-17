@@ -26,6 +26,10 @@
 
 
 [[constraint]]
+  name = "github.com/blang/semver"
+  version = "3.5.1"
+
+[[constraint]]
   name = "github.com/ghodss/yaml"
   version = "1.0.0"
 
@@ -33,9 +37,9 @@
   name = "github.com/golang/protobuf"
   version = "1.1.0"
 
-[prune]
-  go-tests = true
-  unused-packages = true
+[[constraint]]
+  name = "github.com/lestrrat-go/file-rotatelogs"
+  version = "2.1.0"
 
 [[override]]
   name = "github.com/spf13/cobra"
@@ -46,13 +50,25 @@
   version = "1.0.5"
 
 [[constraint]]
+  branch = "master"
+  name = "github.com/spf13/cobra"
+
+[[constraint]]
   name = "github.com/spf13/viper"
-  version = "1.0.1"
+  version = "1.0.2"
 
 [[constraint]]
-  name = "github.com/lestrrat-go/file-rotatelogs"
-  version = "2.1.0"
+  name = "gopkg.in/yaml.v2"
+  version = "2.2.1"
+
+[prune]
+  go-tests = true
+  unused-packages = true
 
 [[constraint]]
-  name = "github.com/blang/semver"
-  version = "3.5.1"
+  name = "cloud.google.com/go"
+  version = "0.21.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"

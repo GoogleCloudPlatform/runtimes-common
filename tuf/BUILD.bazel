@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf",
+    visibility = ["//visibility:private"],
+    deps = ["//tuf/cmd:go_default_library"],
+)
+
+go_binary(
+    name = "tuf",
+    embed = [":go_default_library"],
+    visibility = ["//visibility:public"],
+)
