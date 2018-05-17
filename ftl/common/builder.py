@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import abc
+import datetime
 import tarfile
 import logging
 import httplib2
@@ -28,6 +29,11 @@ from ftl.common import cache
 from ftl.common import constants
 from ftl.common import ftl_util
 
+# Do not Remove. Fix for strptime not being thread safe.
+# Initialize datetime in the base class RuntimeBase. The Build calls
+# datetime.datetime.strptime in threads.
+# See http://bugs.python.org/issue7980
+datetime.datetime.strptime('', '')
 
 class Base(object):
     """Base is an abstract base class representing a container builder.
