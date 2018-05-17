@@ -17,6 +17,8 @@ limitations under the License.
 package testutil
 
 import (
+	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
@@ -48,4 +50,16 @@ func IsErrorEqualOrContains(err error, subErr error) bool {
 		return true // Return true if Messages are equal
 	}
 	return false // Return false
+}
+
+func CreateAndWriteFile(dir string, filename string, text string) string {
+	tmpFile, err := ioutil.TempFile(dir, filename)
+	if err != nil {
+		panic(fmt.Sprintf("Cannot run tests due to %v", err))
+	}
+
+	if text != "" {
+		ioutil.WriteFile(tmpFile.Name(), []byte(text), 644)
+	}
+	return tmpFile.Name()
 }

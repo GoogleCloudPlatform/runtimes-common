@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -51,30 +52,40 @@ var uploadSecretsTC = []struct {
 	config      string
 	deployErr   bool
 	expectedErr error
+	emptyArgs   bool
 }{
-	{"updateSecretsSuccess", testutil.TestTUFConfig, false, nil},
-	{"invalidConfig", "invalidYaml", false, errors.New("yaml: unmarshal errors")},
-	{"deployError", testutil.TestTUFConfig, true, errors.New("Some err")},
+	// Since flag variables are set, we need run this always as first test case.
+	{"emptyArgs", testutil.TestTUFConfig, false,
+		errors.New("Please specify atleast on secret to upload"), true},
+	{"updateSecretsSuccess", testutil.TestTUFConfig, false, nil, false},
+	{"invalidConfig", "invalidYaml", false, errors.New("yaml: unmarshal errors"), false},
+	{"deployError", testutil.TestTUFConfig, true, errors.New("Some err"), false},
 }
 
 func TestUpdateSecrets(t *testing.T) {
 	for _, tc := range uploadSecretsTC {
 		t.Run(tc.name, func(t *testing.T) {
-			tmpfile, _ := ioutil.TempFile("", "encrtypedKey.json")
-			defer os.Remove(tmpfile.Name())
+			tmpdir, err := ioutil.TempDir("", "upload_")
+			if err != nil {
+				panic(fmt.Sprintf("Cannot run tests due to %v", err))
+			}
+			defer os.Remove(tmpdir)
 
-			tufConfig, _ := ioutil.TempFile("", "tufConfig.yaml")
-			defer os.Remove(tmpfile.Name())
-			ioutil.WriteFile(tufConfig.Name(), []byte(tc.config), 644)
-
-			RootCommand.SetArgs([]string{"upload-secrets",
-				"--config", tufConfig.Name(),
-				"--root-key", tmpfile.Name(),
-				"--target-key", tmpfile.Name(),
-				"--snapshot-key", tmpfile.Name()})
+			tufConfig := testutil.CreateAndWriteFile(tmpdir, "tufConfig.yaml", tc.config)
+			if !tc.emptyArgs {
+				tmpfile := testutil.CreateAndWriteFile(tmpdir, "encrtypedKey.json", "")
+				RootCommand.SetArgs([]string{"upload-secrets",
+					"--config", tufConfig,
+					"--root-key", tmpfile,
+					"--target-key", tmpfile,
+					"--snapshot-key", tmpfile})
+			} else {
+				RootCommand.SetArgs([]string{"upload-secrets",
+					"--config", tufConfig})
+			}
 			deployerError = tc.deployErr
 			DefaultDeployTool = NewMockDeployer
-			err := RootCommand.Execute()
+			err = RootCommand.Execute()
 
 			if !testutil.IsErrorEqualOrContains(err, tc.expectedErr) {
 				t.Fatalf("Expected Err: %v\nGot: %v", tc.expectedErr, err)

@@ -17,6 +17,9 @@ limitations under the License.
 package cmd
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/deployer"
@@ -25,9 +28,7 @@ import (
 )
 
 // Flags
-var rootKey = "~/root.json"
-var targetKey = "~/target.json"
-var snapshotKey = "~/snapshot.json"
+var rootKey, targetKey, snapshotKey string
 
 var DefaultDeployTool = deployer.New
 
@@ -37,6 +38,11 @@ var UploadSecretsCommand = &ctc_lib.ContainerToolCommand{
 		Command: &cobra.Command{
 			Use: "upload-secrets Upload Encrypted Secrets to Google Cloud Storage.",
 			RunE: func(command *cobra.Command, args []string) error {
+				fmt.Println(rootKey, targetKey, snapshotKey)
+				if rootKey == "" && targetKey == "" && snapshotKey == "" {
+					fmt.Println("came here!!!!")
+					return errors.New("Please specify atleast on secret to upload")
+				}
 				tufConfig, err := config.ReadConfig(tufConfigFilename)
 				if err != nil {
 					return err

@@ -38,18 +38,6 @@ var rootSecret = fmt.Sprintf("This is root file secret number %d", rand.Int())
 var targetSecret = fmt.Sprintf("This is target file secret number %d", rand.Int())
 var snapshotSecret = fmt.Sprintf("This is snapshot file secret number %d", rand.Int())
 
-func createAndWriteFile(dir string, filename string, text string) string {
-	tmpFile, err := ioutil.TempFile(dir, filename)
-	if err != nil {
-		panic(fmt.Sprintf("Cannot run tests due to %v", err))
-	}
-
-	if text != "" {
-		ioutil.WriteFile(tmpFile.Name(), []byte(text), 644)
-	}
-	return tmpFile.Name()
-}
-
 func TestUploadSecretsCommand(t *testing.T) {
 	tmpdir, err := ioutil.TempDir("", "upload_")
 	if err != nil {
@@ -57,15 +45,15 @@ func TestUploadSecretsCommand(t *testing.T) {
 	}
 	defer os.Remove(tmpdir)
 
-	rootFile := createAndWriteFile(tmpdir, "rawSecret1.json", rootSecret)
-	targetFile := createAndWriteFile(tmpdir, "rawSecret1.json", targetSecret)
-	snapshotFile := createAndWriteFile(tmpdir, "rawSecret1.json", snapshotSecret)
+	rootFile := testutil.CreateAndWriteFile(tmpdir, "rawSecret1.json", rootSecret)
+	targetFile := testutil.CreateAndWriteFile(tmpdir, "rawSecret1.json", targetSecret)
+	snapshotFile := testutil.CreateAndWriteFile(tmpdir, "rawSecret1.json", snapshotSecret)
 
 	buf, err := yaml.Marshal(&testutil.IntegrationTufConfig)
 	if err != nil {
 		t.Fatalf("Error while writing config %v", err)
 	}
-	tufConfig := createAndWriteFile(tmpdir, "tufConfig.yaml", string(buf))
+	tufConfig := testutil.CreateAndWriteFile(tmpdir, "tufConfig.yaml", string(buf))
 
 	cmd.RootCommand.SetArgs([]string{"upload-secrets",
 		"--config", tufConfig,
