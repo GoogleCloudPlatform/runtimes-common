@@ -258,8 +258,8 @@ def run_command(cmd_name,
         logging.info("`%s` stdout:\n%s", cmd_name, stdout)
         err_txt = ""
         if stderr:
-            err_txt = "`%s` had error output:\n%s" % (cmd_name, stderr)
-            logging.info(err_txt)
+            err_txt = "`%s` had stderr output:\n%s" % (cmd_name, stderr)
+            logging.error(err_txt)
         if proc_pipe.returncode:
             ret_txt = "error: `%s` returned code: %d" % (cmd_name,
                                                          proc_pipe.returncode)
