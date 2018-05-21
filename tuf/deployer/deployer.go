@@ -21,6 +21,7 @@ import (
 	"os"
 	"strings"
 
+	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/gcs"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kms"
@@ -57,12 +58,22 @@ func New() (DeployTool, error) {
 
 func (d *Deployer) UpdateSecrets(tufConfig config.TUFConfig, rootKeyFile string, targetKeyFile string, snapshotKeyFile string) error {
 	errorStr := make([]string, 0)
+	var oldRootSecretBytes []byte
+	var err error
 	if rootKeyFile != "" {
-		err := d.uploadSecret(rootKeyFile, tufConfig, config.RootSecretFileName)
+		// If root secret is changed, first download the old root secret.
+		// We need to sign the metadata with old as well as new root secret.
+		oldRootSecretBytes, err = d.Storage.Download(tufConfig.GCSBucketID, config.RootSecretFileName)
+		if err != nil && err != storage.ErrObjectNotExist {
+			// The old root file exists but there was an error reading it. This is fatal hence return error
+			return err
+		}
+		err = d.uploadSecret(rootKeyFile, tufConfig, config.RootSecretFileName)
 		if err != nil {
 			errorStr = append(errorStr, err.Error())
 		}
 	}
+
 	if targetKeyFile != "" {
 		err := d.uploadSecret(targetKeyFile, tufConfig, config.TargetSecretFileName)
 		if err != nil {
@@ -80,7 +91,7 @@ func (d *Deployer) UpdateSecrets(tufConfig config.TUFConfig, rootKeyFile string,
 		return fmt.Errorf("Encountered following errors %s", strings.Join(errorStr, "\n"))
 	}
 
-	// TODO Generate all the Metadata.
+	d.GenerateMetadata()
 
 	// TODO Write Consistent Snapshots
 	return nil

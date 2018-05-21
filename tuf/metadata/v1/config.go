@@ -13,21 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package scheme
+package v1
 
 import (
-	"crypto"
-	"io"
-	"math/big"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata"
 )
 
-const (
-	ECDSA256 string = "ECDSA256"
-	RSA256   string = "RSA256"
-)
+type RootMetadata struct {
+	Signatures []metadata.Signature
+	Signed     metadata.RootSigned
+}
 
-type Scheme interface {
-	Sign(rand io.Reader, priv *crypto.PrivateKey, hash []byte) (r, s *big.Int, err error)
-	Verify(pub *crypto.PublicKey, hash []byte, r, s *big.Int) bool
-	Store(filename string) error
+type SnapshotMetadata struct {
+	Signatures []metadata.Signature
+	Signed     metadata.SnapshotSigned
+}
+
+type TargetMetadata struct {
+	Signatures []metadata.Signature
+	Signed     metadata.TargetSigned
 }

@@ -21,7 +21,9 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/json"
+	"io"
 	"io/ioutil"
+	"math/big"
 )
 
 type ECDSA struct {
@@ -48,4 +50,12 @@ func (ecdsa *ECDSA) Store(filename string) error {
 		return err
 	}
 	return ioutil.WriteFile(filename, keyJson, 0644)
+}
+
+func (ecdsa *ECDSA) Sign(rand io.Reader, priv *crypto.PrivateKey, hash []byte) (r, s *big.Int, err error) {
+	return nil, nil, nil
+}
+
+func (ecdsa *ECDSA) Verify(pub *crypto.PublicKey, hash []byte, r, s *big.Int) bool {
+	return true
 }
