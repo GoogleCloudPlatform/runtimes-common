@@ -263,3 +263,31 @@ func TestContainerToolCommandOutputInJson(t *testing.T) {
 		t.Errorf("Expected to contain: \n %v\nGot:\n %v\n", expectedObj, actualObj)
 	}
 }
+
+func TestContainerToolCommandLogNotNull(t *testing.T) {
+	defer SetExitOnError(true)
+	testCommand := ContainerToolCommand{
+		ContainerToolCommandBase: &ContainerToolCommandBase{
+			Command: &cobra.Command{
+				Use:   "loggingError",
+				Short: "Logging not nil",
+			},
+		},
+		Output: "",
+		RunO: func(command *cobra.Command, args []string) (interface{}, error) {
+			return nil, nil
+		},
+	}
+	SetExitOnError(false)
+	var OutputBuffer bytes.Buffer
+	testCommand.Command.SetOutput(&OutputBuffer)
+	testCommand.SetArgs([]string{"--name=Sparks"})
+	err := ExecuteE(&testCommand)
+	expectedError := ("unknown flag: --name")
+	if Log == nil {
+		t.Errorf("Expected Log to be not nil. Got nil")
+	}
+	if err.Error() != expectedError {
+		t.Errorf("Expected Error: \n %q \nGot:\n %q\n", expectedError, err.Error())
+	}
+}

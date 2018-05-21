@@ -24,6 +24,7 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/logging"
 	"github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/types"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -50,6 +51,14 @@ func (ctb *ContainerToolCommandBase) toolName() string {
 }
 
 func (ctb *ContainerToolCommandBase) Init() {
+	// Init Logging with info level with colors disabled since initLogging gets called
+	// only after arguments are parsed correctly.
+	Log = logging.NewLogger(
+		viper.GetString(config.LogDirConfigKey),
+		ctb.Name(),
+		log.InfoLevel,
+		false,
+	)
 	cobra.OnInitialize(initConfig, ctb.initLogging)
 	ctb.AddFlags()
 	ctb.AddSubCommands()
