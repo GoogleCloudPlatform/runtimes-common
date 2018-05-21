@@ -23,6 +23,7 @@ import (
 	"os"
 	"os/exec"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -286,6 +287,35 @@ func TestContainerToolCommandLogNotNull(t *testing.T) {
 	expectedError := ("unknown flag: --name")
 	if Log == nil {
 		t.Errorf("Expected Log to be not nil. Got nil")
+	}
+	if !strings.Contains(OutputBuffer.String(), "Usage:") {
+		t.Error("Expected to contain Usage. However Usage is not displayed")
+	}
+	if err.Error() != expectedError {
+		t.Errorf("Expected Error: \n %q \nGot:\n %q\n", expectedError, err.Error())
+	}
+}
+
+func TestContainerToolCommandDoesNotDisplayUsage(t *testing.T) {
+	defer SetExitOnError(true)
+	testCommand := ContainerToolCommand{
+		ContainerToolCommandBase: &ContainerToolCommandBase{
+			Command: &cobra.Command{
+				Use: "fail Command",
+			},
+		},
+		Output: "",
+		RunO: func(command *cobra.Command, args []string) (interface{}, error) {
+			return nil, errors.New("Command failed")
+		},
+	}
+	SetExitOnError(false)
+	var OutputBuffer bytes.Buffer
+	testCommand.Command.SetOutput(&OutputBuffer)
+	err := ExecuteE(&testCommand)
+	expectedError := ("Command failed")
+	if strings.Contains(OutputBuffer.String(), "Usage:") {
+		t.Error("Expected to not display usage when Command Fails. However Usage is displayed")
 	}
 	if err.Error() != expectedError {
 		t.Errorf("Expected Error: \n %q \nGot:\n %q\n", expectedError, err.Error())

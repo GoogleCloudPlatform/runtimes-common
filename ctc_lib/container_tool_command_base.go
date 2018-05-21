@@ -59,9 +59,15 @@ func (ctb *ContainerToolCommandBase) Init() {
 		log.InfoLevel,
 		false,
 	)
-	cobra.OnInitialize(initConfig, ctb.initLogging)
+	cobra.OnInitialize(initConfig, ctb.initLogging, ctb.SetSilenceUsage)
 	ctb.AddFlags()
 	ctb.AddSubCommands()
+}
+
+func (ctb *ContainerToolCommandBase) SetSilenceUsage() {
+	// Donot display usage when using RunE after args are parsed.
+	// See https://github.com/spf13/cobra/issues/340 for more information.
+	ctb.SilenceUsage = true
 }
 
 func (ctb *ContainerToolCommandBase) initLogging() {
@@ -85,10 +91,6 @@ func (ctb *ContainerToolCommandBase) AddSubCommands() {
 
 	// Set up Root Command
 	ctb.Command.SetHelpTemplate(HelpTemplate)
-
-	// Donot display usage when using RunE.
-	// See https://github.com/spf13/cobra/issues/340 for more information.
-	ctb.SilenceUsage = true
 }
 
 func (ctb *ContainerToolCommandBase) AddCommand(command CLIInterface) {
