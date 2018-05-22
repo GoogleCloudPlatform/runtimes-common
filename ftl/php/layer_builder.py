@@ -24,6 +24,8 @@ from ftl.common import ftl_error
 from ftl.common import single_layer_image
 from ftl.common import tar_to_dockerimage
 
+from ftl.php import php_util
+
 
 class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def __init__(self,
@@ -78,12 +80,14 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
         ftl_util.run_command('rm_vendor_dir', rm_cmd)
 
         composer_install_cmd = [
-            'composer', 'install', '--no-dev', '--no-scripts'
+            'composer', 'install', '--no-dev', '--no-scripts', '--no-progress',
+            '--no-suggest', '--no-interaction'
         ]
         ftl_util.run_command(
             'composer_install',
             composer_install_cmd,
-            app_dir,
+            cmd_cwd=app_dir,
+            cmd_env=php_util.gen_composer_env(),
             err_type=ftl_error.FTLErrors.USER())
 
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
@@ -138,7 +142,8 @@ class PhaseTwoLayerBuilder(PhaseOneLayerBuilder):
         ftl_util.run_command(
             'composer_require',
             composer_install_cmd,
-            app_dir,
+            cmd_cwd=app_dir,
+            cmd_env=php_util.gen_composer_env(),
             err_type=ftl_error.FTLErrors.USER())
 
         return ftl_util.zip_dir_to_layer_sha(pkg_dir)
