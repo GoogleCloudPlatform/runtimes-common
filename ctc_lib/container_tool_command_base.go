@@ -65,7 +65,7 @@ func (ctb *ContainerToolCommandBase) Init() {
 }
 
 func (ctb *ContainerToolCommandBase) SetSilenceUsage() {
-	// Donot display usage when using RunE after args are parsed.
+	// Do not display usage when using RunE after args are parsed.
 	// See https://github.com/spf13/cobra/issues/340 for more information.
 	ctb.SilenceUsage = true
 }
