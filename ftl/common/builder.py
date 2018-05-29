@@ -79,6 +79,8 @@ class RuntimeBase(JustApp):
         self._cache_namespace = cache_namespace
         if args.entrypoint:
             args.entrypoint = args.entrypoint.split(" ")
+            if args.sh_c_prefix:
+                args.entrypoint = ['sh', '-c'] + args.entrypoint
         if args.exposed_ports:
             args.exposed_ports = args.exposed_ports.split(",")
         self._args = args

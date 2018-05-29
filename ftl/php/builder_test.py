@@ -72,6 +72,7 @@ class PHPTest(unittest.TestCase):
         args = mock.Mock()
         args.name = 'gcr.io/test/test:latest'
         args.base = 'gcr.io/google-appengine/php:latest'
+        args.entrypoint = None
         args.tar_base_image_path = None
         self.builder = builder.PHP(self.ctx, args)
         self.layer_builder = layer_builder.PhaseOneLayerBuilder(
