@@ -1,49 +1,63 @@
+/*
+Copyright 2018 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package types
 
 import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strings"
-
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/scheme"
 )
 
-var VALID_CRYPTO_SCHEMES = map[string]bool{
-	scheme.ECDSA256: true,
-	scheme.RSA256:   false, // Not implemented.
+var VALID_CRYPTO_SCHEMES = map[KeyScheme]bool{
+	ECDSA256: true,
+	RSA256:   false, // Not implemented.
 }
 
-var CryptoSchemes []string
-var ImplementedSchemes []string
+var CryptoSchemes []KeyScheme
+var ImplementedSchemes []KeyScheme
 
 type CryptoScheme struct {
-	Scheme string
+	Scheme KeyScheme
 }
 
 func (scheme *CryptoScheme) String() string {
-	return scheme.Scheme
+	return string(scheme.Scheme)
 }
 
 func (scheme *CryptoScheme) Set(s string) error {
-	value, ok := VALID_CRYPTO_SCHEMES[s]
+	keyScheme := KeyScheme(s)
+	value, ok := VALID_CRYPTO_SCHEMES[keyScheme]
 	if ok && value {
-		scheme.Scheme = s
+		scheme.Scheme = keyScheme
 		return nil
 	}
 	if !ok {
 		return fmt.Errorf(`%s is not a valid CryptoScheme.
-		Please Provide one of %s`, s, strings.Join(CryptoSchemes, ", "))
+		Please Provide one of %s`, s, JoinKeyScheme(CryptoSchemes, ", "))
 	}
 	return fmt.Errorf(`%s is not a Not Implemented Yet!
-		Please Provide one of %s`, s, strings.Join(ImplementedSchemes, ", "))
+		Please Provide one of %s`, s, JoinKeyScheme(ImplementedSchemes, ", "))
 }
 
 func (scheme *CryptoScheme) Type() string {
 	return "types.CryptoScheme"
 }
 
-func NewCryptoScheme(val string, p *CryptoScheme) *CryptoScheme {
+func NewCryptoScheme(val KeyScheme, p *CryptoScheme) *CryptoScheme {
 	value, ok := VALID_CRYPTO_SCHEMES[val]
 	if ok && value {
 		*p = CryptoScheme{

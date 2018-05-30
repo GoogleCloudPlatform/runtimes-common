@@ -16,20 +16,51 @@ limitations under the License.
 package v1
 
 import (
+	"time"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/constants"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/types"
 )
 
 type RootMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.RootSigned
+	Signatures []metadata.Signature `json:"signatures"`
+	Signed     metadata.RootSigned  `json:"signed"`
 }
 
 type SnapshotMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.SnapshotSigned
+	Signatures []metadata.Signature    `json:"signatures"`
+	Signed     metadata.SnapshotSigned `json:"signed"`
 }
 
 type TargetMetadata struct {
-	Signatures []metadata.Signature
-	Signed     metadata.TargetSigned
+	Signatures []metadata.Signature  `json:"signatures"`
+	Signed     metadata.TargetSigned `json:"signed"`
+}
+
+func PopulateRootMetadata(rootKey types.Scheme, targetKey types.Scheme, snapshotKey types.Scheme) RootMetadata {
+	rootMetadata := RootMetadata{}
+	rootMetadata.Signed = metadata.RootSigned{
+		BaseSigned: &metadata.BaseSigned{
+			Type:    constants.RootType,
+			Expires: time.Now().AddDate(10, 0, 0), // 10 years later.
+		},
+		ConsistentSnapshot: false,
+		Keys: map[types.KeyId]metadata.KeysDef{
+			rootKey.GetKeyId(): metadata.KeysDef{
+				KeyidHashAlgorithms: rootKey.GetKeyIdHashAlgo(),
+				Scheme:              rootKey.GetScheme(),
+				Val: map[string]string{
+					"public": rootKey.GetPublicKey(),
+				},
+			},
+		},
+	}
+	rootMetadata.Signatures = []metadata.Signature{
+		metadata.Signature{
+			KeyId: rootKey.GetKeyId(),
+			//	Sig:   rootKey.Sign(rootMetadata.Signed),
+		},
+	}
+	return rootMetadata
 }

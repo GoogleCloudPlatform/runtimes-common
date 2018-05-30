@@ -1,4 +1,4 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -7,7 +7,26 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//tuf/config:go_default_library",
+        "//tuf/constants:go_default_library",
         "//tuf/gcs:go_default_library",
         "//tuf/kms:go_default_library",
+        "//tuf/metadata:go_default_library",
+        "//tuf/metadata/v1:go_default_library",
+        "//tuf/scheme:go_default_library",
+        "//tuf/types:go_default_library",
+        "//vendor/cloud.google.com/go/storage:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["deployer_test.go"],
+    data = glob(["testdata/**"]),
+    embed = [":go_default_library"],
+    data = glob(["testdata/**"]),
+    deps = [
+        "//tuf/scheme:go_default_library",
+        "//tuf/testutil:go_default_library",
+        "//vendor/cloud.google.com/go/storage:go_default_library",
     ],
 )

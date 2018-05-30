@@ -2,8 +2,10 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = ["crypto_scheme.go"],
+    srcs = [
+        "crypto_scheme.go",
+        "types.go",
+    ],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/types",
     visibility = ["//visibility:public"],
-    deps = ["//tuf/scheme:go_default_library"],
 )

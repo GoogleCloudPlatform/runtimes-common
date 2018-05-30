@@ -17,70 +17,39 @@ package metadata
 
 import (
 	"time"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/types"
 )
-
-type KeyType string
-
-const (
-	RSAKey KeyType = "rsa"
-)
-
-type HashAlgo string
-
-const (
-	SHA256 HashAlgo = "sha256"
-	SHA512 HashAlgo = "sha512"
-)
-
-type KeyScheme string
-
-const (
-	RSA KeyScheme = "rsa"
-	ED  KeyScheme = "ed25519"
-)
-
-type RoleType string
-
-const (
-	RootRole      RoleType = "root"
-	TargetRole    RoleType = "target"
-	SnapshotRole  RoleType = "snapshot"
-	TimestampRole RoleType = "timestamp"
-)
-
-type KeyId string
 
 type Signature struct {
-	KeyId string
-	Sig   string
+	KeyId types.KeyId `json:"keyid"`
+	Sig   string      `json:"sig"`
 }
 
 type BaseSigned struct {
-	Type        RoleType
-	Expires     time.Time
-	Version     int
-	SpecVersion int
+	Type        types.RoleType `json:"_type"`
+	Expires     time.Time      `json:"expires"`
+	Version     int            `json:"version"`
+	SpecVersion int            `json:"spec_version"`
 }
 
 type RootSigned struct {
 	*BaseSigned
-	ConsistentSnapshot bool
-	Keys               []KeysDef
-	Roles              []Role
+	ConsistentSnapshot bool                    `json:"consistent_snapshot"`
+	Keys               map[types.KeyId]KeysDef `json:"keys"`
+	Roles              map[types.RoleType]Role `json:"roles"`
 }
 
 type KeysDef struct {
-	KeyId               KeyId
-	KeyidHashAlgorithms []HashAlgo
-	Keytype             KeyType
-	PrivateKey          string
-	Scheme              KeyScheme
+	KeyidHashAlgorithms []types.HashAlgo  `json:"keyid_hash_algorithms"`
+	Keytype             types.KeyType     `json:"keytype"`
+	Val                 map[string]string `json:"keyval"`
+	Scheme              types.KeyScheme   `json:"scheme"`
 }
 
 type Role struct {
-	Type      RoleType
-	Keyids    []KeyId
-	Threshold int
+	Keyids    []types.KeyId `json:"keyids"`
+	Threshold int           `json:"threshold"`
 }
 
 type SnapshotSigned struct {
@@ -89,7 +58,7 @@ type SnapshotSigned struct {
 }
 
 type SnapshotMeta struct {
-	Type    RoleType
+	Type    types.RoleType
 	Version int
 }
 
