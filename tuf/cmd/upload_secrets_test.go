@@ -25,6 +25,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/deployer"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata/v1"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/testutil"
 )
 
@@ -48,8 +49,8 @@ func (d MockDeployer) UpdateSecrets(tufConfig config.TUFConfig, rootKeyFile stri
 }
 
 func (d MockDeployer) GenerateMetadata(tufConfig config.TUFConfig, root string,
-	target string, snapshot string, oldroot []byte) error {
-	return nil
+	target string, snapshot string, oldroot []byte) (*v1.Metadata, error) {
+	return nil, nil
 }
 
 var uploadSecretsTC = []struct {

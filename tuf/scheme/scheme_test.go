@@ -16,12 +16,9 @@ limitations under the License.
 package scheme
 
 import (
-	"crypto"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"math/big"
 	"os"
 	"reflect"
 	"testing"
@@ -42,11 +39,11 @@ func (tmp *TempKey) Store(filename string) error {
 	return ioutil.WriteFile(filename, keyJson, 0644)
 }
 
-func (tmp *TempKey) Sign(rand io.Reader, priv *crypto.PrivateKey, hash []byte) (r, s *big.Int, err error) {
-	return nil, nil, nil
+func (tmp *TempKey) Sign(singedMetadata interface{}) (string, error) {
+	return "sig", nil
 }
 
-func (tmp *TempKey) Verify(pub *crypto.PublicKey, hash []byte, r, s *big.Int) bool {
+func (tmp *TempKey) Verify(signingstring string, signature string) bool {
 	return true
 }
 

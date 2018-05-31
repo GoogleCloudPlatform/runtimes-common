@@ -22,6 +22,11 @@ import (
 	"io/ioutil"
 )
 
+const (
+	ECDSA256 KeyScheme = "ECDSA256"
+	RSA256   KeyScheme = "RSA256"
+)
+
 var VALID_CRYPTO_SCHEMES = map[KeyScheme]bool{
 	ECDSA256: true,
 	RSA256:   false, // Not implemented.

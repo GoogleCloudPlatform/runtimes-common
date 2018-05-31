@@ -17,9 +17,6 @@ limitations under the License.
 package types
 
 import (
-	"crypto"
-	"io"
-	"math/big"
 	"strings"
 )
 
@@ -32,27 +29,6 @@ type RoleType string
 
 type HashAlgo string
 
-const (
-	RSAKey KeyType = "rsa"
-)
-
-const (
-	SHA256 HashAlgo = "sha256"
-	SHA512 HashAlgo = "sha512"
-)
-
-const (
-	ECDSA256 KeyScheme = "ECDSA256"
-	RSA256   KeyScheme = "RSA256"
-)
-
-const (
-	RootRole      RoleType = "root"
-	TargetRole    RoleType = "target"
-	SnapshotRole  RoleType = "snapshot"
-	TimestampRole RoleType = "timestamp"
-)
-
 func JoinKeyScheme(schemes []KeyScheme, sep string) string {
 	schemesString := make([]string, len(schemes))
 	for i, scheme := range schemes {
@@ -62,8 +38,8 @@ func JoinKeyScheme(schemes []KeyScheme, sep string) string {
 }
 
 type Scheme interface {
-	Sign(rand io.Reader, priv *crypto.PrivateKey, hash []byte) (r, s *big.Int, err error)
-	Verify(pub *crypto.PublicKey, hash []byte, r, s *big.Int) bool
+	Sign(singedMetadata interface{}) (string, error)
+	Verify(signingString string, signature string) bool
 	Store(filename string) error
 	GetPublicKey() string
 	GetKeyId() KeyId

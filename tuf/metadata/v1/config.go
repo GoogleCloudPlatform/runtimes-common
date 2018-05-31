@@ -16,51 +16,67 @@ limitations under the License.
 package v1
 
 import (
-	"time"
-
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/constants"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/types"
 )
 
 type RootMetadata struct {
 	Signatures []metadata.Signature `json:"signatures"`
-	Signed     metadata.RootSigned  `json:"signed"`
+	Signed     RootSigned           `json:"signed"`
+}
+
+type RootSigned struct {
+	*metadata.BaseSigned
+	ConsistentSnapshot bool                    `json:"consistent_snapshot"`
+	Keys               map[types.KeyId]KeysDef `json:"keys"`
+	Roles              map[types.RoleType]Role `json:"roles"`
+}
+
+type KeysDef struct {
+	KeyidHashAlgorithms []types.HashAlgo  `json:"keyid_hash_algorithms"`
+	Keytype             types.KeyType     `json:"keytype"`
+	Val                 map[string]string `json:"keyval"`
+	Scheme              types.KeyScheme   `json:"scheme"`
+}
+
+type Role struct {
+	Keyids    []types.KeyId `json:"keyids"`
+	Threshold int           `json:"threshold"`
 }
 
 type SnapshotMetadata struct {
-	Signatures []metadata.Signature    `json:"signatures"`
-	Signed     metadata.SnapshotSigned `json:"signed"`
+	Signatures []metadata.Signature `json:"signatures"`
+	Signed     SnapshotSigned       `json:"signed"`
+}
+
+type SnapshotSigned struct {
+	*metadata.BaseSigned
+	Meta SnapshotMeta
+}
+
+type SnapshotMeta struct {
+	Type    types.RoleType
+	Version int
 }
 
 type TargetMetadata struct {
-	Signatures []metadata.Signature  `json:"signatures"`
-	Signed     metadata.TargetSigned `json:"signed"`
+	Signatures []metadata.Signature `json:"signatures"`
+	Signed     TargetSigned         `json:"signed"`
+}
+type TargetSigned struct {
+	*metadata.BaseSigned
+	Targets []Target
 }
 
-func PopulateRootMetadata(rootKey types.Scheme, targetKey types.Scheme, snapshotKey types.Scheme) RootMetadata {
-	rootMetadata := RootMetadata{}
-	rootMetadata.Signed = metadata.RootSigned{
-		BaseSigned: &metadata.BaseSigned{
-			Type:    constants.RootType,
-			Expires: time.Now().AddDate(10, 0, 0), // 10 years later.
-		},
-		ConsistentSnapshot: false,
-		Keys: map[types.KeyId]metadata.KeysDef{
-			rootKey.GetKeyId(): metadata.KeysDef{
-				KeyidHashAlgorithms: rootKey.GetKeyIdHashAlgo(),
-				Scheme:              rootKey.GetScheme(),
-				Val: map[string]string{
-					"public": rootKey.GetPublicKey(),
-				},
-			},
-		},
-	}
-	rootMetadata.Signatures = []metadata.Signature{
-		metadata.Signature{
-			KeyId: rootKey.GetKeyId(),
-			//	Sig:   rootKey.Sign(rootMetadata.Signed),
-		},
-	}
-	return rootMetadata
+type Target struct {
+	Filename string
+	Custom   interface{}
+	Hashes   []string
+	Length   int
+}
+
+type Metadata struct {
+	RootMetadata     RootMetadata
+	TargetMetadata   TargetMetadata
+	SnapshotMetadata SnapshotMetadata
 }

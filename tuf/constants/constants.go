@@ -15,8 +15,23 @@ limitations under the License.
 */
 package constants
 
+import (
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/types"
+)
+
 const (
-	RootType     = "root"
-	TargetType   = "target"
-	SnapshotType = "snapshot"
+	RootType                             = "root"
+	TargetType                           = "target"
+	SnapshotType                         = "snapshot"
+	RootSecretFileKey                    = "encrypted-root.key"
+	TargetSecretFileKey                  = "encrypted-target.key"
+	SnapshotSecretFileKey                = "encrypted-snapshot.key"
+	TimelineSecretFileKey                = "encrypted-timeline.key"
+	RSAKey                types.KeyType  = "rsa"
+	SHA256                types.HashAlgo = "sha256"
+	SHA512                types.HashAlgo = "sha512"
+	RootRole              types.RoleType = "root"
+	TargetRole            types.RoleType = "target"
+	SnapshotRole          types.RoleType = "snapshot"
+	TimestampRole         types.RoleType = "timestamp"
 )

@@ -8,12 +8,18 @@ go_library(
     ],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/scheme",
     visibility = ["//visibility:public"],
-    deps = ["//tuf/types:go_default_library"],
+    deps = [
+        "//tuf/constants:go_default_library",
+        "//tuf/types:go_default_library",
+    ],
 )
 
 go_test(
     name = "go_default_test",
-    srcs = ["scheme_test.go"],
+    srcs = [
+        "ecdsa_sha256_test.go",
+        "scheme_test.go",
+    ],
     embed = [":go_default_library"],
     deps = ["//tuf/types:go_default_library"],
 )
