@@ -1,0 +1,1 @@
+cmd_Release/obj.target/execer.node := g++ -shared -pthread -rdynamic -m64  -Wl,-soname=execer.node -o Release/obj.target/execer.node -Wl,--start-group Release/obj.target/execer/execer.o -Wl,--end-group 
