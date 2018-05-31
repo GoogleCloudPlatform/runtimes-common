@@ -33,6 +33,7 @@ class Node(builder.RuntimeBase):
             layer_builder = node_builder.LayerBuilder(
                 ctx=self._ctx,
                 descriptor_files=self._descriptor_files,
+                directory=self._args.directory,
                 destination_path=self._args.destination_path,
                 cache=self._cache)
             layer_builder.BuildLayer()
