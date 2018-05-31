@@ -43,8 +43,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
     def GetCacheKeyRaw(self):
         all_descriptor_contents = ftl_util.all_descriptor_contents(
             self._descriptor_files, self._ctx)
-        return '%s %s' % (all_descriptor_contents,
-                          self._destination_path)
+        return '%s %s' % (all_descriptor_contents, self._destination_path)
 
     def BuildLayer(self):
         """Override."""
@@ -81,8 +80,10 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                                      app_dir)
 
         if self._ctx:
-            self._check_gcp_build(
-                json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)), app_dir)
+            if self._ctx.Contains(constants.PACKAGE_JSON):
+                self._check_gcp_build(
+                    json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)),
+                    app_dir)
         rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'node_modules')]
         ftl_util.run_command('rm_node_modules', rm_cmd)
 
