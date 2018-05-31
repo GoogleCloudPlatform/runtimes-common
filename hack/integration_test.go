@@ -5,7 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
+	"time"
 )
 
 type Test struct {
@@ -86,11 +88,32 @@ func TestAll(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			out, err := command(fmt.Sprintf("%s | gcloud container builds submit --config=/dev/stdin ../", tc.cmd))
-			if err != nil {
-				t.Logf(out)
-				t.Fatalf("error running build: %s", err)
-			}
+			doBuild(t, tc.cmd)
 		})
+	}
+}
+
+func doBuild(t *testing.T, cmd string) {
+	out, err := command(fmt.Sprintf("%s | gcloud container builds submit --async --format='value(id)' --config=/dev/stdin ../", cmd))
+	if err != nil {
+		t.Fatalf("error starting build: %s", err)
+	}
+	buildId := strings.TrimSpace(out)
+
+	for {
+		out, err := command(fmt.Sprintf("gcloud container builds describe %s --format='value(status)'", buildId))
+		if err != nil {
+			t.Logf("error checking build status: %s", err)
+			continue
+		}
+		status := strings.TrimSpace(out)
+		t.Logf("Status for Build:%s %s\n", buildId, status)
+		switch status {
+		case "SUCCESS":
+			return
+		case "FAILURE":
+			t.Fatalf("Build %s failed.", buildId)
+		}
+		time.Sleep(15 * time.Second)
 	}
 }
