@@ -25,11 +25,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type Store interface {
-	Upload(string, string, io.Reader) (*storage.ObjectHandle, *storage.ObjectAttrs, error)
-	Download(string, string) ([]byte, error)
-}
-
 type GCSStore struct {
 	Client  *storage.Client
 	Context context.Context
