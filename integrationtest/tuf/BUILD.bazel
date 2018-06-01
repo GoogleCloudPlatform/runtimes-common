@@ -9,6 +9,7 @@ go_test(
     deps = [
         "//tuf/cmd:go_default_library",
         "//tuf/config:go_default_library",
+        "//tuf/constants:go_default_library",
         "//tuf/gcs:go_default_library",
         "//tuf/kms:go_default_library",
         "//tuf/testutil:go_default_library",
