@@ -34,7 +34,7 @@ var GenerateKeyCommand = &ctc_lib.ContainerToolCommand{
 			RunE: func(command *cobra.Command, args []string) error {
 				var err error
 				switch cryptoScheme.Scheme {
-				case types.ECDSA256:
+				case scheme.ECDSA256:
 					err = scheme.NewECDSA().Store(filename)
 				default:
 					err = scheme.NewECDSA().Store(filename)

@@ -15,39 +15,11 @@ limitations under the License.
 */
 package scheme
 
-import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/types"
+const (
+	ECDSA256 string = "ECDSA256"
+	RSA256   string = "RSA256"
 )
 
-type SchemeKey struct {
-	PrivateKey string          `json:"PrivateKey"`
-	PublicKey  string          `json:"PublicKey"`
-	KeyType    types.KeyScheme `json:"KeyType"`
-}
-
-func Read(filename string) (types.Scheme, error) {
-	text, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	return ReadBytes(text)
-}
-
-func ReadBytes(text []byte) (types.Scheme, error) {
-	var schemeKey SchemeKey
-	err := json.Unmarshal(text, &schemeKey)
-	if err != nil {
-		return nil, err
-	}
-	switch schemeKey.KeyType {
-	case types.ECDSA256:
-		ecdsaKey := &ECDSA{}
-		ecdsaKey.decode(schemeKey.PrivateKey)
-		return ecdsaKey, err
-	}
-	return nil, fmt.Errorf("Could not parse key %v", schemeKey.KeyType)
+type Scheme interface {
+	Store(filename string) error
 }
