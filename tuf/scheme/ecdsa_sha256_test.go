@@ -43,7 +43,13 @@ var ecdsaTC = []struct {
 				"1": "one",
 				"2": "two",
 			},
-		}, nil, nil, true,
+		}, testinterface{
+			Foo: "foostring",
+			FooMap: map[string]string{
+				"1": "one",
+				"2": "two",
+			},
+		}, nil, true,
 	},
 	{"success_empty_interface", testinterface{}, testinterface{}, nil, true},
 	{"success_native_string", "abc", "abc", nil, true},
@@ -65,11 +71,9 @@ func TestSignVerify(t *testing.T) {
 				t.Fatalf("Expected a error while signing %v\n Got %v", tc.expectedSignErr, err)
 			}
 			if tc.expectedSignErr == nil {
-				if tc.verifyMetadata == nil {
-					tc.verifyMetadata = tc.metadata
-				}
 				var buf bytes.Buffer
 				enc := gob.NewEncoder(&buf)
+
 				err = enc.Encode(tc.verifyMetadata)
 				if err != nil {
 					t.Fatalf("Cannot Verify due to %v", err)
