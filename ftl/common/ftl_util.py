@@ -252,14 +252,14 @@ def run_command(cmd_name,
             )
         except OSError as e:
             raise ftl_error.InternalError(
-                "%s\nexited with error %s\n%s is likely not on the path" % (
-                    cmd, e, cmd_name))
+                "%s\nexited with error %s\n%s is likely not on the path" %
+                (cmd, e, cmd_name))
         stdout, stderr = proc_pipe.communicate(input=cmd_input)
         logging.info("`%s` stdout:\n%s", cmd_name, stdout)
         err_txt = ""
         if stderr:
             err_txt = "`%s` had stderr output:\n%s" % (cmd_name, stderr)
-            logging.error(err_txt)
+            logging.info(err_txt)
         if proc_pipe.returncode:
             ret_txt = "error: `%s` returned code: %d" % (cmd_name,
                                                          proc_pipe.returncode)

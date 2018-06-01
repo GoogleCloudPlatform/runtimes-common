@@ -1,5 +1,11 @@
 # FTL Release Notes
 
+# Version 0.5.0 - 5/30/2018
+* Add --sh-c-prefix flag to add a "sh -c" prefix to --entrypoint [#632] (https://github.com/GoogleCloudPlatform/runtimes-common/pull/632)
+* [NODE] Change Node build context to support npm local packages [#650] (https://github.com/GoogleCloudPlatform/runtimes-common/pull/650)
+* [PHP/PYTHON] Fixed threading issue with unsafe strptime [#645](https://github.com/GoogleCloudPlatform/runtimes-common/pull/645)
+* [PYTHON] Fixed virtualenv issue with Pipfile.lock and parallel python installation [#635](https://github.com/GoogleCloudPlatform/runtimes-common/pull/635)
+
 # Version 0.4.0 - 5/15/2018
 * Fix issue where FTL was returning successful on builds w/ errors [#617](https://github.com/GoogleCloudPlatform/runtimes-common/pull/617)
 * Support writing error logs to --builder-output-path or $BUILDER_OUTPUT [#613](https://github.com/GoogleCloudPlatform/runtimes-common/pull/613)

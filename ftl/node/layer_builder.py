@@ -31,20 +31,21 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                  ctx=None,
                  descriptor_files=None,
                  pkg_descriptor=None,
+                 directory=None,
                  destination_path=constants.DEFAULT_DESTINATION_PATH,
                  cache=None):
         super(LayerBuilder, self).__init__()
         self._ctx = ctx
         self._descriptor_files = descriptor_files
         self._pkg_descriptor = pkg_descriptor
+        self._directory = directory
         self._destination_path = destination_path
         self._cache = cache
 
     def GetCacheKeyRaw(self):
         all_descriptor_contents = ftl_util.all_descriptor_contents(
             self._descriptor_files, self._ctx)
-        return '%s %s' % (all_descriptor_contents,
-                          self._destination_path)
+        return '%s %s' % (all_descriptor_contents, self._destination_path)
 
     def BuildLayer(self):
         """Override."""
@@ -65,24 +66,16 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
 
     def _build_layer(self):
         blob, u_blob = self._gen_npm_install_tar(self._pkg_descriptor,
-                                                 self._destination_path)
+                                                 self._directory)
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                    self._generate_overrides())
 
     def _gen_npm_install_tar(self, pkg_descriptor, app_dir):
-        try:
-            os.makedirs(app_dir)
-        except OSError:
-            logging.info("%s already exists, skipping creation", app_dir)
-
-        # Copy out the relevant package descriptors to a tempdir.
-        if self._descriptor_files and self._ctx:
-            ftl_util.descriptor_copy(self._ctx, self._descriptor_files,
-                                     app_dir)
-
         if self._ctx:
-            self._check_gcp_build(
-                json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)), app_dir)
+            if self._ctx.Contains(constants.PACKAGE_JSON):
+                self._check_gcp_build(
+                    json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)),
+                    app_dir)
         rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'node_modules')]
         ftl_util.run_command('rm_node_modules', rm_cmd)
 
@@ -104,8 +97,12 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 err_type=ftl_error.FTLErrors.USER())
 
         tar_path = tempfile.mktemp(suffix='.tar')
-        tar_cmd = ['tar', '-cf', tar_path, app_dir]
-        ftl_util.run_command('tar_node_dependencies', tar_cmd)
+        tar_cmd = ['tar',
+                   '-cvf', tar_path,
+                   '--transform', 's,^,%s/,' % self._destination_path,
+                   '.']
+
+        ftl_util.run_command('tar_node_dependencies', tar_cmd, cmd_cwd=app_dir)
 
         u_blob = open(tar_path, 'r').read()
         # We use gzip for performance instead of python's zip.
