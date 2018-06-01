@@ -104,7 +104,7 @@ func (ecdsaKey *ECDSA) Sign(singedMetadata interface{}) (string, error) {
 	}
 	// Calculate hash of string using SHA256 algo
 	sha256Sum := sha256.Sum256(buf.Bytes())
-	r, s, err := ecdsa.Sign(rand.Reader, ecdsaKey.PrivateKey, sha256Sum[0:len(sha256Sum)])
+	r, s, err := ecdsa.Sign(rand.Reader, ecdsaKey.PrivateKey, sha256Sum[0:])
 	if err != nil {
 		return "", err
 	}
@@ -150,7 +150,7 @@ func (ecdsaKey *ECDSA) Verify(signingstring string, signature string) bool {
 	// Calculate hash of string using SHA256 algo
 	sha256Sum := sha256.Sum256([]byte(signingstring))
 	// Verify the signature
-	return ecdsa.Verify(&ecdsaKey.PublicKey, sha256Sum[0:len(sha256Sum)], r, s)
+	return ecdsa.Verify(&ecdsaKey.PublicKey, sha256Sum[0:], r, s)
 }
 
 func (ecdsaKey *ECDSA) GetPublicKey() string {
@@ -160,7 +160,7 @@ func (ecdsaKey *ECDSA) GetPublicKey() string {
 
 func (ecdsaKey *ECDSA) GetKeyId() types.KeyId {
 	var bytes = sha256.Sum256([]byte(ecdsaKey.GetPublicKey()))
-	var b = bytes[0:len(bytes)]
+	var b = bytes[0:]
 	return types.KeyId(fmt.Sprintf("%x", b))
 }
 
