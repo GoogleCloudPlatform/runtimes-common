@@ -1,8 +1,28 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = ["ecdsa_sha256.go"],
+    srcs = [
+        "ecdsa_sha256.go",
+        "scheme.go",
+    ],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/scheme",
     visibility = ["//visibility:public"],
+    deps = [
+        "//tuf/constants:go_default_library",
+        "//tuf/types:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "ecdsa_sha256_test.go",
+        "scheme_test.go",
+    ],
+    embed = [":go_default_library"],
+    deps = [
+        "//tuf/testutil:go_default_library",
+        "//tuf/types:go_default_library",
+    ],
 )

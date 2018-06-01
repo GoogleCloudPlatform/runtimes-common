@@ -39,4 +39,10 @@ func JoinKeyScheme(schemes []KeyScheme, sep string) string {
 
 type Scheme interface {
 	Store(filename string) error
+	GetPublicKey() string
+	GetKeyId() KeyId
+	GetKeyIdHashAlgo() []HashAlgo
+	GetScheme() KeyScheme
+	Sign(singedMetadata interface{}) (string, error)
+	Verify(signingstring string, signature string) bool
 }

@@ -28,6 +28,7 @@ const (
 	SnapshotSecretFileKey                = "encrypted-snapshot.key"
 	TimelineSecretFileKey                = "encrypted-timeline.key"
 	RSAKey                types.KeyType  = "rsa"
+	ECDSA256Key           types.KeyType  = "ecdsa256"
 	SHA256                types.HashAlgo = "sha256"
 	SHA512                types.HashAlgo = "sha512"
 	RootRole              types.RoleType = "root"
