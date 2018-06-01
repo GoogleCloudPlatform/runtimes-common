@@ -25,7 +25,6 @@ import (
 
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/deployer"
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata/v1"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/testutil"
 )
 
@@ -48,11 +47,6 @@ func (d MockDeployer) UpdateSecrets(tufConfig config.TUFConfig, rootKeyFile stri
 	return nil
 }
 
-func (d MockDeployer) GenerateMetadata(tufConfig config.TUFConfig, root string,
-	target string, snapshot string, oldroot []byte) (*v1.Metadata, error) {
-	return nil, nil
-}
-
 var uploadSecretsTC = []struct {
 	name        string
 	config      string
@@ -61,11 +55,11 @@ var uploadSecretsTC = []struct {
 	emptyArgs   bool
 }{
 	// Since flag variables are set, we need run this always as first test case.
-	{"emptyArgs", testutil.MarshalledTUFConfig(), false,
+	{"emptyArgs", testutil.TestTUFConfig, false,
 		errors.New("Please specify atleast on secret to upload"), true},
-	{"updateSecretsSuccess", testutil.MarshalledTUFConfig(), false, nil, false},
+	{"updateSecretsSuccess", testutil.TestTUFConfig, false, nil, false},
 	{"invalidConfig", "invalidYaml", false, errors.New("yaml: unmarshal errors"), false},
-	{"deployError", testutil.MarshalledTUFConfig(), true, errors.New("Some err"), false},
+	{"deployError", testutil.TestTUFConfig, true, errors.New("Some err"), false},
 }
 
 func TestUpdateSecrets(t *testing.T) {

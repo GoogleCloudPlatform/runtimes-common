@@ -29,7 +29,6 @@ go_test(
     deps = [
         "//tuf/config:go_default_library",
         "//tuf/deployer:go_default_library",
-        "//tuf/metadata/v1:go_default_library",
         "//tuf/testutil:go_default_library",
     ],
 )
