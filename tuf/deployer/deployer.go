@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/constants"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/gcs"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kms"
 )
@@ -58,19 +59,19 @@ func New() (DeployTool, error) {
 func (d *Deployer) UpdateSecrets(tufConfig config.TUFConfig, rootKeyFile string, targetKeyFile string, snapshotKeyFile string) error {
 	errorStr := make([]string, 0)
 	if rootKeyFile != "" {
-		err := d.uploadSecret(rootKeyFile, tufConfig, config.RootSecretFileName)
+		err := d.uploadSecret(rootKeyFile, tufConfig, constants.RootSecretFileKey)
 		if err != nil {
 			errorStr = append(errorStr, err.Error())
 		}
 	}
 	if targetKeyFile != "" {
-		err := d.uploadSecret(targetKeyFile, tufConfig, config.TargetSecretFileName)
+		err := d.uploadSecret(targetKeyFile, tufConfig, constants.TargetSecretFileKey)
 		if err != nil {
 			errorStr = append(errorStr, err.Error())
 		}
 	}
 	if snapshotKeyFile != "" {
-		err := d.uploadSecret(snapshotKeyFile, tufConfig, config.SnapshotSecretFileName)
+		err := d.uploadSecret(snapshotKeyFile, tufConfig, constants.SnapshotSecretFileKey)
 		if err != nil {
 			errorStr = append(errorStr, err.Error())
 		}

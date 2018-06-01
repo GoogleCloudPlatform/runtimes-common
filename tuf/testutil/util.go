@@ -27,12 +27,17 @@ import (
 )
 
 var TestTUFConfig = config.TUFConfig{
-	GCSProjectID: "testProjectID",
-	KMSProjectID: "testKmsProjectID",
-	KMSLocation:  "global",
-	KeyRingID:    "testKeyRing",
-	CryptoKeyID:  "testKey",
-	GCSBucketID:  "testBucket",
+	GCSProjectID:      "testProjectID",
+	KMSProjectID:      "testKmsProjectID",
+	KMSLocation:       "global",
+	KeyRingID:         "testKeyRing",
+	CryptoKeyID:       "testKey",
+	GCSBucketID:       "testBucket",
+	RootThreshold:     1,
+	TargetThreshold:   1,
+	SnapshotThreshold: 1,
+	SpecVersion:       1,
+	Targets:           []string{"file1.txt", "file22.txt"},
 }
 
 var IntegrationTufConfig = config.TUFConfig{

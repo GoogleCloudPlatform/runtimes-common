@@ -20,7 +20,8 @@ Please do not upload to github or share raw secret key.json file.
 If you wish to use your own secrets, Please create a json file with following fields.
 ```
 {"PrivateKey":"-----BEGIN PRIVATE KEY-----\nMHcCAQEEIH4gyo6eaWqnwO+YsurNXFfe0Rqh5mozLIvI4lXz/YVdoAoGCCqGSM49\nAwEHoUQDQgAExBEiFrsujWB8x++q2VtV25IpAIcp/Vx7r3FuFeUU9C1i+EL8QAWl\nY99L3oaODeTMqcDaf4MMD8Iodr6bMI7Mvw==\n-----END PRIVATE KEY-----\n",
-"PublicKey":"-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExBEiFrsujWB8x++q2VtV25IpAIcp\n/Vx7r3FuFeUU9C1i+EL8QAWlY99L3oaODeTMqcDaf4MMD8Iodr6bMI7Mvw==\n-----END PUBLIC KEY-----\n","KeyYype":"ECDSA256"}
+"PublicKey":"-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExBEiFrsujWB8x++q2VtV25IpAIcp\n/Vx7r3FuFeUU9C1i+EL8QAWlY99L3oaODeTMqcDaf4MMD8Iodr6bMI7Mvw==\n-----END PUBLIC KEY-----\n",
+"KeyType":"ECDSA256"}
 ```
 
 2. Upload Secrets.

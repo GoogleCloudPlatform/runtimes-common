@@ -51,12 +51,11 @@ type SnapshotMetadata struct {
 
 type SnapshotSigned struct {
 	*metadata.BaseSigned
-	Meta SnapshotMeta
+	Meta map[string]MetaVersionInfo `json:"meta"`
 }
 
-type SnapshotMeta struct {
-	Type    types.RoleType
-	Version int
+type MetaVersionInfo struct {
+	Version int `json:"version"`
 }
 
 type TargetMetadata struct {
@@ -65,14 +64,13 @@ type TargetMetadata struct {
 }
 type TargetSigned struct {
 	*metadata.BaseSigned
-	Targets []Target
+	Targets map[string]Target `json:"targets"`
 }
 
 type Target struct {
-	Filename string
-	Custom   interface{}
-	Hashes   []string
-	Length   int
+	Custom map[string]string `json:"custom"`
+	Hashes []string          `json:"hashes"`
+	Length int               `json:"length"`
 }
 
 type Metadata struct {

@@ -14,29 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package types
+package v1
 
-import (
-	"strings"
-)
+import "github.com/GoogleCloudPlatform/runtimes-common/tuf/types"
 
-type KeyId string
-
-type KeyType string
-
-type KeyScheme string
-type RoleType string
-
-type HashAlgo string
-
-func JoinKeyScheme(schemes []KeyScheme, sep string) string {
-	schemesString := make([]string, len(schemes))
-	for i, scheme := range schemes {
-		schemesString[i] = string(scheme)
-	}
-	return strings.Join(schemesString, sep)
-}
-
-type Scheme interface {
-	Store(filename string) error
+type TargetMetadataFetcher interface {
+	FetchTargetMetadata(filename string, algos []types.HashAlgo) (Target, error)
 }

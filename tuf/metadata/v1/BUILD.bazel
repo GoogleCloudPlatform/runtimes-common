@@ -4,7 +4,9 @@ go_library(
     name = "go_default_library",
     srcs = [
         "config.go",
+        "target_metadata.go",
         "tuf.go",
+        "tuf_testutil.go",
     ],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata/v1",
     visibility = ["//visibility:public"],
@@ -20,4 +22,9 @@ go_test(
     name = "go_default_test",
     srcs = ["tuf_test.go"],
     embed = [":go_default_library"],
+    deps = [
+        "//tuf/metadata:go_default_library",
+        "//tuf/testutil:go_default_library",
+        "//tuf/types:go_default_library",
+    ],
 )
