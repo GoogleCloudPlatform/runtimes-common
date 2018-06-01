@@ -126,7 +126,7 @@ def base_parser():
 
 
 node_flgs = []
-php_flgs = []
+php_flgs = ['php_phase_1']
 python_flgs = ['python_cmd', 'pip_cmd', 'venv_cmd', 'venv_dir']
 
 
@@ -164,6 +164,15 @@ def extra_args(parser, opt_list):
                 "help": 'The virtualenv command to be run (ex: virtualenv)'
             }
         ],
+        'php_phase_1': [
+            '--php-phase-1', {
+                "dest": 'php_phase_1',
+                "action": 'store_true',
+                "default": False,
+                "help": 'Flag to force using phase 1 caching for PHP'
+            }
+        ],
+
     }
     for opt in opt_list:
         arg_vars = opt_dict[opt]

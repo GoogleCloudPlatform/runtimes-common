@@ -58,7 +58,7 @@ class PHP(builder.RuntimeBase):
                 pkgs = self._parse_composer_pkgs()
             # due to image layers limits, we revert to using phase 1 if over
             # the threshold
-            if len(pkgs) > 41:
+            if self._args.php_phase_1 or len(pkgs) > 41:
                 # phase 1
                 logging.info('Building package layer')
                 layer_builder = php_builder.PhaseOneLayerBuilder(
