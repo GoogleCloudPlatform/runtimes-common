@@ -72,7 +72,7 @@ func TestSignVerify(t *testing.T) {
 			}
 			if tc.expectedSignErr == nil {
 				var buf bytes.Buffer
-				enc := gob.NewEncoder(&buf)
+				err := gob.NewEncoder(&buf).Encode(tc.verifyMetadata)
 
 				err = enc.Encode(tc.verifyMetadata)
 				if err != nil {
