@@ -1,0 +1,222 @@
+Creating temporary tarball archive of 1456 file(s) totalling 145.6 MiB before compression.
+Some files were not included in the source upload.
+
+Check the gcloud log [/usr/local/google/home/aprindle/.config/gcloud/logs/2018.06.01/14.49.19.846624.log] to see which files and the contents of the
+default gcloudignore file used (see `$ gcloud topic gcloudignore` to learn
+more).
+
+Uploading tarball of [.] to [gs://ftl-node-test_cloudbuild/source/1527889759.91-d619cba4b41e472899fda63307026dd6.tgz]
+Created [https://cloudbuild.googleapis.com/v1/projects/ftl-node-test/builds/8a4bb727-44a9-4b24-b835-7778d839f3fb].
+Logs are available at [https://console.cloud.google.com/gcr/builds/8a4bb727-44a9-4b24-b835-7778d839f3fb?project=935431563186].
+----------------------------------------- REMOTE BUILD OUTPUT -----------------------------------------
+starting build "8a4bb727-44a9-4b24-b835-7778d839f3fb"
+
+FETCHSOURCE
+Fetching storage object: gs://ftl-node-test_cloudbuild/source/1527889759.91-d619cba4b41e472899fda63307026dd6.tgz#1527889791667523
+Copying gs://ftl-node-test_cloudbuild/source/1527889759.91-d619cba4b41e472899fda63307026dd6.tgz#1527889791667523...
+/ [0 files][    0.0 B/ 57.4 MiB]                                                -- [1 files][ 57.4 MiB/ 57.4 MiB]                                                
+Operation completed over 1 objects/57.4 MiB.                                     
+BUILD
+Starting Step #0 - "chmod"
+Step #0 - "chmod": Already have image (with digest): ubuntu
+Finished Step #0 - "chmod"
+Starting Step #1 - "build-builder"
+Step #1 - "build-builder": Already have image (with digest): gcr.io/cloud-builders/bazel
+Step #1 - "build-builder": Extracting Bazel installation...
+Step #1 - "build-builder": Starting local Bazel server and connecting to it...
+Step #1 - "build-builder": ................................
+Step #1 - "build-builder": Loading: 
+Step #1 - "build-builder": Loading: 0 packages loaded
+Step #1 - "build-builder": Loading: 0 packages loaded
+Step #1 - "build-builder": Loading: 0 packages loaded
+Step #1 - "build-builder": Loading: 0 packages loaded
+Step #1 - "build-builder": Loading: 0 packages loaded
+Step #1 - "build-builder": Loading: 0 packages loaded
+Step #1 - "build-builder": Loading: 0 packages loaded
+Step #1 - "build-builder": Analyzing: target //ftl:php_builder_image (1 packages loaded)
+Step #1 - "build-builder": Analyzing: target //ftl:php_builder_image (2 packages loaded)
+Step #1 - "build-builder": Analyzing: target //ftl:php_builder_image (6 packages loaded)
+Step #1 - "build-builder": Analyzing: target //ftl:php_builder_image (9 packages loaded)
+Step #1 - "build-builder": Analyzing: target //ftl:php_builder_image (9 packages loaded)
+Step #1 - "build-builder": Analyzing: target //ftl:php_builder_image (28 packages loaded)
+Step #1 - "build-builder": Analyzing: target //ftl:php_builder_image (33 packages loaded)
+Step #1 - "build-builder": INFO: Analysed target //ftl:php_builder_image (33 packages loaded).
+Step #1 - "build-builder": INFO: Found 1 target...
+Step #1 - "build-builder": [0 / 1] [-----] BazelWorkspaceStatusAction stable-status.txt
+Step #1 - "build-builder": [17 / 26] [-----] GUNZIP external/php_base/image/005.tar.gz.nogz
+Step #1 - "build-builder": [23 / 31] [-----] GUNZIP external/php_base/image/000.tar.gz.nogz
+Step #1 - "build-builder": [29 / 37] GUNZIP external/php_base/image/003.tar.gz.nogz; 3s linux-sandbox
+Step #1 - "build-builder": [29 / 37] GUNZIP external/php_base/image/003.tar.gz.nogz; 10s linux-sandbox
+Step #1 - "build-builder": [30 / 37] [-----] SHA256 external/php_base/image/003.tar.gz.nogz.sha256
+Step #1 - "build-builder": Target //ftl:php_builder_image up-to-date:
+Step #1 - "build-builder":   bazel-bin/ftl/php_builder_image-layer.tar
+Step #1 - "build-builder": INFO: Elapsed time: 73.485s, Critical Path: 24.98s
+Step #1 - "build-builder": INFO: 52 processes: 47 linux-sandbox, 5 local.
+Step #1 - "build-builder": INFO: Build completed successfully, 68 total actions
+Step #1 - "build-builder": 
+Step #1 - "build-builder": INFO: Running command line: bazel-bin/ftl/php_builder_image --norun
+Step #1 - "build-builder": Loaded image ID: sha256:bbbd821a0c4c5ffdab8bd592265eee7276c3d4a031696549bdd853d5401b551d
+Step #1 - "build-builder": Tagging bbbd821a0c4c5ffdab8bd592265eee7276c3d4a031696549bdd853d5401b551d as bazel/ftl:php_builder_image
+Finished Step #1 - "build-builder"
+Starting Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest"
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": Already have image: bazel/ftl:php_builder_image
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL version php-v0.5.0
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Beginning FTL build for php
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: exposed_ports None
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: cache_repository None
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: tar_base_image_path None
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: builder_output_path /builder/outputs
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: name gcr.io/ftl-node-test/php_phase_1_test-image:latest
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: global_cache False
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: cache False
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: upload True
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: sh_c_prefix None
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: base gcr.io/gae-runtimes/php72_app_builder:argo_current
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: output_path None
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: directory /workspace/ftl/php/testdata/php_phase_1_test
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: entrypoint None
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: destination_path srv
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: verbosity NOTSET
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     FTL arg passed: php_phase_1 True
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: full build
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: builder initialization
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Loading Docker credentials for repository 'gcr.io/gae-runtimes/php72_app_builder:argo_current'
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Loading Docker credentials for repository 'gcr.io/ftl-node-test/php_phase_1_test-image:latest'
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     builder initialization took 0 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: build process for FTL image
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Building package layer
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: checking_cached_composer_json_layer
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     --no-cache flag set, cache won't be checked
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     [CACHE][MISS] v1:PHP->3e0c7148afb1a26e782c3a03f48ad255f2b0f4527383d1d2359ce66bafb40bce
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     checking_cached_composer_json_layer took 0 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: building_composer_json_layer
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: rm_vendor_dir
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     rm_vendor_dir rm -rf /tmp/tmpjTh6Bn/srv/vendor
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     `rm_vendor_dir` stdout:
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     rm_vendor_dir took 0 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: composer_install
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     composer_install composer install --no-dev --no-scripts --no-progress --no-suggest --no-interaction
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     `composer_install` stdout:
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     `composer_install` had stderr output:
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": Loading composer repositories with package information
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": Installing dependencies from lock file
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": Warning: The lock file is not up to date with the latest changes in composer.json. You may be getting outdated dependencies. Run update to update them.
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": Package operations: 11 installs, 0 updates, 0 removals
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing firebase/php-jwt (v5.0.0): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing rize/uri-template (0.3.2): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing psr/http-message (1.0.1): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing psr/log (1.0.2): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing monolog/monolog (1.23.0): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing guzzlehttp/psr7 (1.4.2): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing guzzlehttp/promises (v1.3.1): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing guzzlehttp/guzzle (6.3.0): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing psr/cache (1.0.1): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing google/auth (v1.1.0): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest":   - Installing google/cloud-core (v1.13.2): Downloading (100%)
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": Generating autoload files
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     composer_install took 4 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: tar_runtime_package
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     tar_runtime_package took 0 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: gzip_runtime_tar
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     gzip_runtime_tar took 0 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     building_composer_json_layer took 4 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: uploading_composer_json_layer
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:7fd41dcf9da18fd2f770904bf42c6b7d943ee6a5ce278878eaa20b443d5ca608 pushed.
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:dcb5e68638071651f1fafd08253562b12323465941cee0a21d32832076aa7a3c pushed.
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Finished upload of: gcr.io/ftl-node-test/php_phase_1_test-image/php-cache:3e0c7148afb1a26e782c3a03f48ad255f2b0f4527383d1d2359ce66bafb40bce
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     uploading_composer_json_layer took 6 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: Building app layer
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Starting to generate app layer                 tarfile from context...
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Finished generating app layer tarfile from context.
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Starting to gzip app layer tarfile...
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Finished gzipping tarfile.
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Building app layer took 0 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: Stitching layers into final image
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Stitching layers into final image took 0 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: Uploading final image
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     starting: Pushing image to Docker registry
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Pushing final image...
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:d3cd4f8c5e840e642531aeba3f0d3b53e3a9e24b953b0ce55f04d580ad1da16b exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:62c17e5523414c68ff92994f62a1705c25747eaa11da737420b390777fe6ff5d exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:1c4e81456a02b943007a60a1b62257f41b6762e07a7e8dcdd08c7cd56ce1f670 exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:8c35819f6775677abd35180b349d59b3f2c7948bbf8e66e96cf54d579264da8e exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:dcb5e68638071651f1fafd08253562b12323465941cee0a21d32832076aa7a3c exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:5aca4de4c0cb2b97dc470646fdc6899fb548265e494401bfaa370a73216fbaa4 exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:f3d2e146ba353d998161ed20858ec877c93fbde2186ce700f1fff9aa25907ba3 exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:04ee99c6d95bc989e8a9472ea74cc79bf9a7d77e3aff7f5339c4cb9beb2222a5 exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:fc67a85fa0e7d7600ef127e450d291bf3eb88b3a9f17f309c807f6edfd89b9a4 exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:9d69b688a75686b12e0ad0aa7d6a19fdbc376219b4dcfcdd9331917e83b387f6 exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:4011ec0a29ae1c574b55c2005b2a5eac98f2fc8cd062c1fbaaf038bea72915ab exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:0976172eade04287fb825d779b5d189d4fa37a4055d349d55a333e9b3da0d178 exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:3c2cba919283a210665e480bcbf943eaaf4ed87a83f02e81bb286b8bdead0e75 exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:39b468012310a823fc8bfc16ebe0de45d1f6c6641b7a2d30fa273c737d64ab97 exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:2825b6a93854e0daef7519a19d3c9d00695e0b9f226f21268cfba63a84f4472c exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:9a16d7af07fced5fcadc258fa6c65734ecc21fd2e8ec666eace8f12dcb834bf7 exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:011bed8d7f0545a4c0d92e307e697efab6b00ed9b79692c3af222d5f5e831ded exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:993d5c953a325a0dd8152dfbefa3b483c103df9208b5e492f75b33294c37ae9e exists, skipping
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:a16f6817308e12f26cea544320913141d96ab6c411111c175906a677f1f48b28 pushed.
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Layer sha256:67673ab264c09e96225873de5d6af08843c812b50bfa45382a5557e04a248ab6 pushed.
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Finished upload of: gcr.io/ftl-node-test/php_phase_1_test-image:latest
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Pushing image to Docker registry took 4 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     Uploading final image took 4 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     build process for FTL image took 15 seconds
+Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": INFO     full build took 15 seconds
+Finished Step #2 - "build-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest"
+Starting Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest"
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": Already have image (with digest): gcr.io/cloud-builders/docker
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": latest: Pulling from ftl-node-test/php_phase_1_test-image
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": f3d2e146ba35: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 62c17e552341: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 3c2cba919283: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 011bed8d7f05: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 04ee99c6d95b: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 8c35819f6775: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 4011ec0a29ae: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 9a16d7af07fc: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 39b468012310: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 2825b6a93854: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 9d69b688a756: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": d3cd4f8c5e84: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": d3cd4f8c5e84: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 5aca4de4c0cb: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": fc67a85fa0e7: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 993d5c953a32: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 0976172eade0: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": 1c4e81456a02: Already exists
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": dcb5e6863807: Pulling fs layer
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": a16f6817308e: Pulling fs layer
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": a16f6817308e: Verifying Checksum
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": a16f6817308e: Download complete
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": dcb5e6863807: Verifying Checksum
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": dcb5e6863807: Download complete
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": dcb5e6863807: Pull complete
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": a16f6817308e: Pull complete
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": Digest: sha256:129062f57d6327d185383cf62b8a3b5ef0063173c610699dd0a78860326b0d65
+Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest": Status: Downloaded newer image for gcr.io/ftl-node-test/php_phase_1_test-image:latest
+Finished Step #3 - "pull-image-gcr.io/ftl-node-test/php_phase_1_test-image:latest"
+Starting Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest"
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": Pulling image: gcr.io/gcp-runtimes/structure-test:6195641f5a5a14c63c7945262066270842150ddb
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": 6195641f5a5a14c63c7945262066270842150ddb: Pulling from gcp-runtimes/structure-test
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": c1e0a68c3999: Pulling fs layer
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": 18dfc494f5ee: Pulling fs layer
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": c1e0a68c3999: Verifying Checksum
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": c1e0a68c3999: Download complete
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": 18dfc494f5ee: Verifying Checksum
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": 18dfc494f5ee: Download complete
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": c1e0a68c3999: Pull complete
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": 18dfc494f5ee: Pull complete
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": Digest: sha256:c641b4d7199645644decf911f1c44a2dab247c51b0af54b5551dd232445504c7
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": Status: Downloaded newer image for gcr.io/gcp-runtimes/structure-test:6195641f5a5a14c63c7945262066270842150ddb
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": Using driver docker
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": 2018/06/01 21:51:49 Running tests for file /workspace/ftl/php/testdata/php_phase_1_test/structure_test.yaml
+Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest": PASS
+Finished Step #4 - "test-imagegcr.io/ftl-node-test/php_phase_1_test-image:latest"
+PUSH
+DONE
+-------------------------------------------------------------------------------------------------------
+
+ID                                    CREATE_TIME                DURATION  SOURCE                                                                                   IMAGES  STATUS
+8a4bb727-44a9-4b24-b835-7778d839f3fb  2018-06-01T21:49:51+00:00  1M58S     gs://ftl-node-test_cloudbuild/source/1527889759.91-d619cba4b41e472899fda63307026dd6.tgz  -       SUCCESS
