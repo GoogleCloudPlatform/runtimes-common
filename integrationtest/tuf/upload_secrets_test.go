@@ -118,8 +118,8 @@ func decryptFile(kmsService *kms.KMS, tufConfig config.TUFConfig, decryptBytes [
 }
 
 func cleanAllStorage(gcsService *gcs.GCSStore, bucketID string, t *testing.T) {
-	for _, obj := range []string{config.RootSecretFileName,
-		config.TargetSecretFileName, config.SnapshotSecretFileName} {
+	for _, obj := range []string{constants.RootSecretFileKey,
+		constants.TargetSecretFileKey, constants.SnapshotSecretFileKey} {
 		if err := gcsService.Delete(bucketID, obj); err != nil {
 			t.Logf("Error cleaning buckts %v", err)
 		}
