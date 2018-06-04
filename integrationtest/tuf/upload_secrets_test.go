@@ -78,11 +78,11 @@ func downloadAndVerifySecrets(tufConfig config.TUFConfig, t *testing.T) error {
 		return err
 	}
 	defer cleanAllStorage(gcsService, tufConfig.GCSBucketID, t)
-	rootBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, constants.RootSecretFileName)
+	rootBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, constants.RootSecretFileKey)
 	errorStrings = appendErrorIfExists(errorStrings, err)
-	targetBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, constants.TargetSecretFileName)
+	targetBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, constants.TargetSecretFileKey)
 	errorStrings = appendErrorIfExists(errorStrings, err)
-	snapshotBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, constants.SnapshotSecretFileName)
+	snapshotBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, constants.SnapshotSecretFileKey)
 	errorStrings = appendErrorIfExists(errorStrings, err)
 
 	// Decrypt the file and see if its same as.
