@@ -1,0 +1,6 @@
+schemaVersion: '2.0.0'
+fileExistenceTests:
+- name: 'execer dependency'
+  path: '/srv/node_modules/execer'
+  shouldExist: true
+  isDirectory: true
