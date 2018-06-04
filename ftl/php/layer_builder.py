@@ -17,6 +17,7 @@ import logging
 import os
 import tempfile
 import datetime
+import json
 
 from ftl.common import constants
 from ftl.common import ftl_util
@@ -110,11 +111,13 @@ class PhaseTwoLayerBuilder(PhaseOneLayerBuilder):
                  descriptor_files=None,
                  destination_path=constants.DEFAULT_DESTINATION_PATH,
                  cache=None,
-                 pkg_descriptor=None):
+                 pkg_descriptor=None,
+                 pkg_list=None):
         super(PhaseTwoLayerBuilder, self).__init__()
         self._ctx = ctx
         self._descriptor_files = descriptor_files
         self._pkg_descriptor = pkg_descriptor
+        self._pkg_list = pkg_list
         self._destination_path = destination_path
         self._cache = cache
 
@@ -123,13 +126,31 @@ class PhaseTwoLayerBuilder(PhaseOneLayerBuilder):
                              self._destination_path)
 
     def _build_layer(self):
-        blob, u_blob = self._gen_composer_install_tar(self._destination_path,
-                                                      self._pkg_descriptor)
+        blob, u_blob = self._gen_composer_install_tar(
+            self._destination_path, self._pkg_descriptor, self._pkg_list
+            )
         overrides_dct = {'created': str(datetime.date.today()) + 'T00:00:00Z'}
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                    overrides_dct)
 
-    def _gen_composer_install_tar(self, destination_path, pkg_descriptor):
+
+    def _update_json_file(self, pkg_list, app_dir):
+        json_path = os.path.join(app_dir, constants.COMPOSER_JSON)
+        json_file = open(json_path, "r") # Open the JSON file for reading
+        data = json.load(json_file) # Read the JSON into the buffer
+        json_file.close() # Close the JSON file
+
+        ## Working with buffered content
+        req = data['require'].keys()[0]
+        replace_dict = {pkg: "*" for pkg in pkg_list if pkg != req}
+        data['replace'] = replace_dict
+
+        ## Save our changes to JSON file
+        json_file = open(json_path, "w+")
+        json_file.write(json.dumps(data))
+        json_file.close()
+
+    def _gen_composer_install_tar(self, destination_path, pkg_descriptor, pkg_list):
         # Create temp directory to write package descriptor to
         pkg_dir = tempfile.mkdtemp()
         app_dir = os.path.join(pkg_dir, destination_path.strip("/"))
@@ -138,9 +159,24 @@ class PhaseTwoLayerBuilder(PhaseOneLayerBuilder):
         ftl_util.run_command('rm_vendor_dir', rm_cmd)
 
         pkg, version = pkg_descriptor
-        composer_install_cmd = ['composer', 'require', str(pkg), str(version)]
+        composer_install_cmd = [
+            'composer', 'require', '--no-update', str(pkg), str(version)
+            ]
         ftl_util.run_command(
-            'composer_require',
+            'composer_require_no_update',
+            composer_install_cmd,
+            cmd_cwd=app_dir,
+            cmd_env=php_util.gen_composer_env(),
+            err_type=ftl_error.FTLErrors.USER())
+        # modify composer.json w/ replace
+        self._update_json_file(pkg_list, app_dir)
+
+        composer_install_cmd = [
+            'composer', 'install', '--no-dev', '--no-scripts', '--no-progress',
+            '--no-suggest', '--no-interaction'
+        ]
+        ftl_util.run_command(
+            'composer_install',
             composer_install_cmd,
             cmd_cwd=app_dir,
             cmd_env=php_util.gen_composer_env(),

@@ -48,12 +48,31 @@ class PHP(builder.RuntimeBase):
             pkgs.append((pkg['name'], pkg['version']))
         return pkgs
 
+    def _list_composer_lock_pkgs(self):
+        descriptor_contents = ftl_util.descriptor_parser(
+            self._descriptor_files, self._ctx)
+        composer_lock_json = json.loads(descriptor_contents)
+        pkg_list = []
+        for pkg in composer_lock_json['packages']:
+            pkg_list.append(pkg['name'])
+        return pkg_list
+
+    def _parse_composer_lock_pkgs(self):
+        descriptor_contents = ftl_util.descriptor_parser(
+            self._descriptor_files, self._ctx)
+        composer_lock_json = json.loads(descriptor_contents)
+        pkgs = []
+        for pkg in composer_lock_json['packages']:
+            pkgs.append((pkg['name'], pkg['version']))
+        return pkgs
+
     def Build(self):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             if self._ctx.Contains(constants.COMPOSER_LOCK):
                 pkgs = self._parse_composer_lock_pkgs()
+                pkg_list = self._list_composer_lock_pkgs()
             else:
                 pkgs = self._parse_composer_pkgs()
             # due to image layers limits, we revert to using phase 1 if over
@@ -74,7 +93,7 @@ class PHP(builder.RuntimeBase):
                     with concurrent.futures.ThreadPoolExecutor(
                             max_workers=constants.THREADS) as executor:
                         future_to_params = {executor.submit(
-                                self._build_pkg, pkg_txt, lyr_imgs): pkg_txt
+                                self._build_pkg, pkg_txt, lyr_imgs, pkg_list): pkg_txt
                                 for pkg_txt in pkgs
                         }
                         for future in concurrent.futures.as_completed(
@@ -91,13 +110,14 @@ class PHP(builder.RuntimeBase):
         ftl_image = ftl_util.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)
 
-    def _build_pkg(self, pkg_txt, lyr_imgs):
+    def _build_pkg(self, pkg_txt, lyr_imgs, pkg_list):
         logging.info('Building package layer: {0} {1}'.format(
             pkg_txt[0], pkg_txt[1]))
         layer_builder = php_builder.PhaseTwoLayerBuilder(
             ctx=self._ctx,
             descriptor_files=self._descriptor_files,
             pkg_descriptor=pkg_txt,
+            pkg_list=pkg_list,
             destination_path=self._args.destination_path,
             cache=self._cache)
         layer_builder.BuildLayer()
