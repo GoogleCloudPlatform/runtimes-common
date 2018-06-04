@@ -77,6 +77,7 @@ class Registry(Base):
             should_upload=True,
             mount=None,
             use_global=False,
+            use_minimum_ttl=False,
     ):
         super(Registry, self).__init__()
         self._repo = repo
@@ -94,6 +95,7 @@ class Registry(Base):
         self._mount = mount or []
         self._should_cache = should_cache
         self._should_upload = should_upload
+        self._use_minimum_ttl = use_minimum_ttl
 
     def _tag(self, cache_key, repo=None):
         return docker_name.Tag('{repo}/{namespace}:{tag}'.format(
@@ -110,7 +112,7 @@ class Registry(Base):
         hit = self._getEntry(cache_key)
         if hit:
             logging.info('Found cached dependency layer for %s' % cache_key)
-            if Registry.checkTTL(hit):
+            if Registry.checkTTL(hit, self._use_minimum_ttl):
                 return hit
             else:
                 logging.info(
@@ -169,11 +171,14 @@ class Registry(Base):
             logging.info('No cached base image found for entry: %s.' % entry)
 
     @staticmethod
-    def checkTTL(entry):
+    def checkTTL(entry, use_minimum_ttl):
         """Check TTL of cache entry.
         Return whether or not the entry is expired."""
         last_created = ftl_util.timestamp_to_time(
             ftl_util.creation_time(entry))
         now = datetime.datetime.now()
+        if use_minimum_ttl:
+            return last_created > now - datetime.timedelta(
+                hours=constants.DEFAULT_TTL_HOURS)
         return last_created > now - datetime.timedelta(
             weeks=constants.DEFAULT_TTL_WEEKS)

@@ -147,6 +147,12 @@ def descriptor_copy(ctx, descriptor_files, app_dir):
                 w.write(ctx.GetFile(f))
 
 
+def use_minimum_ttl(descriptor_files, ctx):
+    for f in descriptor_files:
+        if ctx.Contains(f):
+            return f in constants.MINIMUM_TTL_FILES
+
+
 def gen_tmp_dir(dirr):
     tmp_dir = tempfile.mkdtemp()
     dir_name = os.path.join(tmp_dir, dirr)
