@@ -5,7 +5,6 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -287,15 +286,16 @@ func check(e error) {
 }
 
 func main() {
-	registryPtr := flag.String("registry", "gcr.io/$PROJECT_ID", "Registry, e.g: 'gcr.io/my-project'")
-	dirsPtr := flag.String("dirs", "", "Comma separated list of Dockerfile dirs to use.")
-	testsPtr := flag.Bool("tests", true, "Run tests.")
-	newTagsPtr := flag.Bool("new_tags", false, "Require that image tags do not already exist.")
-	firstTagOnly := flag.Bool("first_tag", false, "Build only the first per version.")
-	timeoutPtr := flag.Int("timeout", 0, "Timeout in seconds. If not set, the default Cloud Build timeout is used.")
-	enableParallel := flag.Bool("enable_parallel", false, "Enable parallel build and bigger VM")
-	forceParallel := flag.Bool("force_parallel", false, "Force parallel build and bigger VM")
-	flag.Parse()
+	config := versions.LoadConfig("versions.yaml", "cloudbuild")
+	registryPtr := config.StringOption("registry", "gcr.io/$PROJECT_ID", "Registry, e.g: 'gcr.io/my-project'")
+	dirsPtr := config.StringOption("dirs", "", "Comma separated list of Dockerfile dirs to use.")
+	testsPtr := config.BoolOption("tests", true, "Run tests.")
+	newTagsPtr := config.BoolOption("new_tags", false, "Require that image tags do not already exist.")
+	firstTagOnly := config.BoolOption("first_tag", false, "Build only the first per version.")
+	timeoutPtr := config.IntOption("timeout", 0, "Timeout in seconds. If not set, the default Cloud Build timeout is used.")
+	enableParallel := config.BoolOption("enable_parallel", false, "Enable parallel build and bigger VM")
+	forceParallel := config.BoolOption("force_parallel", false, "Force parallel build and bigger VM")
+	config.Parse()
 
 	if *registryPtr == "" {
 		log.Fatalf("--registry flag is required")
