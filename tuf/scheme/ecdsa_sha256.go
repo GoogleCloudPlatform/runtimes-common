@@ -101,7 +101,6 @@ func (ecdsaKey *ECDSA) Sign(singedMetadata interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("while encoding gob encoder bytes", buf.Bytes())
 	// Calculate hash of string using SHA256 algo because only first 32 bytes are verified.
 	sha256Sum := sha256.Sum256(buf.Bytes())
 	r, s, err := ecdsa.Sign(rand.Reader, ecdsaKey.PrivateKey, sha256Sum[0:])

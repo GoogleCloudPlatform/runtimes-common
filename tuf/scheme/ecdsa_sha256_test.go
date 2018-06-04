@@ -73,8 +73,6 @@ func TestSignVerify(t *testing.T) {
 			if tc.expectedSignErr == nil {
 				var buf bytes.Buffer
 				err := gob.NewEncoder(&buf).Encode(tc.verifyMetadata)
-
-				err = enc.Encode(tc.verifyMetadata)
 				if err != nil {
 					t.Fatalf("Cannot Verify due to %v", err)
 				}
