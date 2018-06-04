@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -73,6 +74,7 @@ func TestSignVerify(t *testing.T) {
 			if tc.expectedSignErr == nil {
 				var buf bytes.Buffer
 				err := gob.NewEncoder(&buf).Encode(tc.verifyMetadata)
+				fmt.Println("encoding bytes when testing", buf.Bytes())
 				if err != nil {
 					t.Fatalf("Cannot Verify due to %v", err)
 				}
