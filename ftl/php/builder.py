@@ -14,8 +14,6 @@
 """This package defines the interface for orchestrating image builds."""
 
 import logging
-import json
-import concurrent.futures
 
 from ftl.common import builder
 from ftl.common import constants
@@ -30,56 +28,18 @@ class PHP(builder.RuntimeBase):
             ctx, constants.PHP_CACHE_NAMESPACE, args,
             [constants.COMPOSER_LOCK, constants.COMPOSER_JSON])
 
-    def _parse_composer_pkgs(self):
-        descriptor_contents = ftl_util.descriptor_parser(
-            self._descriptor_files, self._ctx)
-        composer_json = json.loads(descriptor_contents)
-        pkgs = []
-        for k, v in composer_json['require'].iteritems():
-            pkgs.append((k, v))
-        return pkgs
-
-    def _parse_composer_lock_pkgs(self):
-        descriptor_contents = ftl_util.descriptor_parser(
-            self._descriptor_files, self._ctx)
-        composer_lock_json = json.loads(descriptor_contents)
-        pkgs = []
-        for pkg in composer_lock_json['packages']:
-            pkgs.append((pkg['name'], pkg['version']))
-        return pkgs
-
     def Build(self):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
-            if self._ctx.Contains(constants.COMPOSER_LOCK):
-                pkgs = self._parse_composer_lock_pkgs()
-            else:
-                pkgs = self._parse_composer_pkgs()
-            # due to image layers limits, we revert to using phase 1 if over
-            # the threshold
-            if self._args.php_phase_1 or len(pkgs) > 41:
-                # phase 1
-                logging.info('Building package layer')
-                layer_builder = php_builder.PhaseOneLayerBuilder(
-                    ctx=self._ctx,
-                    descriptor_files=self._descriptor_files,
-                    destination_path=self._args.destination_path,
-                    cache=self._cache)
-                layer_builder.BuildLayer()
-                lyr_imgs.append(layer_builder.GetImage())
-            else:
-                # phase 2
-                with ftl_util.Timing('uploading_all_package_layers'):
-                    with concurrent.futures.ThreadPoolExecutor(
-                            max_workers=constants.THREADS) as executor:
-                        future_to_params = {executor.submit(
-                                self._build_pkg, pkg_txt, lyr_imgs): pkg_txt
-                                for pkg_txt in pkgs
-                        }
-                        for future in concurrent.futures.as_completed(
-                                future_to_params):
-                            future.result()
+            logging.info('Building package layer')
+            layer_builder = php_builder.PhaseOneLayerBuilder(
+                ctx=self._ctx,
+                descriptor_files=self._descriptor_files,
+                destination_path=self._args.destination_path,
+                cache=self._cache)
+            layer_builder.BuildLayer()
+            lyr_imgs.append(layer_builder.GetImage())
 
         app = base_builder.AppLayerBuilder(
             ctx=self._ctx,
@@ -90,15 +50,3 @@ class PHP(builder.RuntimeBase):
         lyr_imgs.append(app.GetImage())
         ftl_image = ftl_util.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)
-
-    def _build_pkg(self, pkg_txt, lyr_imgs):
-        logging.info('Building package layer: {0} {1}'.format(
-            pkg_txt[0], pkg_txt[1]))
-        layer_builder = php_builder.PhaseTwoLayerBuilder(
-            ctx=self._ctx,
-            descriptor_files=self._descriptor_files,
-            pkg_descriptor=pkg_txt,
-            destination_path=self._args.destination_path,
-            cache=self._cache)
-        layer_builder.BuildLayer()
-        lyr_imgs.append(layer_builder.GetImage())
