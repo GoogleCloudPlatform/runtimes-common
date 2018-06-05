@@ -34,13 +34,6 @@ type TUFConfig struct {
 	Targets           []string
 }
 
-const (
-	RootSecretFileName     = "encrypted-root.key"
-	TargetSecretFileName   = "encrypted-target.key"
-	SnapshotSecretFileName = "encrypted-snapshot.key"
-	TimelineSecretFileName = "encrypted-timeline.key"
-)
-
 func ReadConfig(filename string) (TUFConfig, error) {
 	buf, err := ioutil.ReadFile(filename)
 	tufConfig := TUFConfig{}

@@ -29,6 +29,7 @@ import (
 
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/cmd"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/constants"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/gcs"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/kms"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/testutil"
@@ -77,11 +78,11 @@ func downloadAndVerifySecrets(tufConfig config.TUFConfig, t *testing.T) error {
 		return err
 	}
 	defer cleanAllStorage(gcsService, tufConfig.GCSBucketID, t)
-	rootBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, config.RootSecretFileName)
+	rootBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, constants.RootSecretFileKey)
 	errorStrings = appendErrorIfExists(errorStrings, err)
-	targetBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, config.TargetSecretFileName)
+	targetBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, constants.TargetSecretFileKey)
 	errorStrings = appendErrorIfExists(errorStrings, err)
-	snapshotBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, config.SnapshotSecretFileName)
+	snapshotBytes, err := downloadFile(gcsService, tufConfig.GCSBucketID, constants.SnapshotSecretFileKey)
 	errorStrings = appendErrorIfExists(errorStrings, err)
 
 	// Decrypt the file and see if its same as.
@@ -117,8 +118,8 @@ func decryptFile(kmsService *kms.KMS, tufConfig config.TUFConfig, decryptBytes [
 }
 
 func cleanAllStorage(gcsService *gcs.GCSStore, bucketID string, t *testing.T) {
-	for _, obj := range []string{config.RootSecretFileName,
-		config.TargetSecretFileName, config.SnapshotSecretFileName} {
+	for _, obj := range []string{constants.RootSecretFileKey,
+		constants.TargetSecretFileKey, constants.SnapshotSecretFileKey} {
 		if err := gcsService.Delete(bucketID, obj); err != nil {
 			t.Logf("Error cleaning buckts %v", err)
 		}

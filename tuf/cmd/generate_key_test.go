@@ -19,7 +19,6 @@ package cmd
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -62,9 +61,8 @@ func TestGenerateKey(t *testing.T) {
 				}
 				c := map[string]interface{}{}
 				json.Unmarshal(raw, &c)
-				fmt.Println(c)
 				if s := c["KeyType"]; s != tc.scheme {
-					t.Fatalf("Expected File to contain Scheme: %s.\nGot: %s", s, tc.scheme)
+					t.Fatalf("Expected File to contain Scheme: %s.\nGot: %s", tc.scheme, s)
 				}
 			}
 		})
