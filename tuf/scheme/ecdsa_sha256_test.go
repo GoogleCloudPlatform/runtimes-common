@@ -16,10 +16,8 @@ limitations under the License.
 package scheme
 
 import (
-	"bytes"
-	"encoding/gob"
+	"encoding/json"
 	"errors"
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -60,7 +58,16 @@ var ecdsaTC = []struct {
 		testinterface{Foo: "foostring"},
 		testinterface{Foo: "barstring"}, nil, false,
 	},
-	{"sign_err", nil, nil, errors.New("gob: cannot encode nil value"), false},
+	{"sign_err", make(chan int), nil, errors.New("json: unsupported type: chan int"), false},
+}
+
+func isEqualError(err1 error, err2 error) bool {
+	if err1 == err2 {
+		return true
+	} else if err1 == nil || err2 == nil {
+		return false
+	}
+	return err1.Error() == err2.Error()
 }
 
 func TestSignVerify(t *testing.T) {
@@ -68,17 +75,15 @@ func TestSignVerify(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ecdsaKey := NewECDSA()
 			sig, err := ecdsaKey.Sign(tc.metadata)
-			if !reflect.DeepEqual(tc.expectedSignErr, err) {
-				t.Fatalf("Expected a error while signing %v\n Got %v", tc.expectedSignErr, err)
+			if !isEqualError(tc.expectedSignErr, err) {
+				t.Fatalf("Expected a error while signing\n%v\n Got\n%v", tc.expectedSignErr, err)
 			}
 			if tc.expectedSignErr == nil {
-				var buf bytes.Buffer
-				err := gob.NewEncoder(&buf).Encode(tc.verifyMetadata)
-				fmt.Println("encoding bytes when testing", buf.Bytes())
+				b, err := json.Marshal(tc.verifyMetadata)
 				if err != nil {
 					t.Fatalf("Cannot Verify due to %v", err)
 				}
-				actualVerifyResult := ecdsaKey.Verify(string(buf.Bytes()), sig)
+				actualVerifyResult := ecdsaKey.Verify(string(b), sig)
 				if tc.expectedVerifyResult != actualVerifyResult {
 					t.Fatalf("%s : Expected Verify result to be %t. \n Got %t", tc.name, tc.expectedVerifyResult, actualVerifyResult)
 				}

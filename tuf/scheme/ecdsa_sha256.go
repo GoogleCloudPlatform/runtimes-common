@@ -16,13 +16,12 @@ limitations under the License.
 package scheme
 
 import (
-	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/x509"
-	"encoding/gob"
+	"encoding/asn1"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/pem"
@@ -34,13 +33,13 @@ import (
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/types"
 )
 
-var CURVESIZE = 256
-var KEYSIZE = CURVESIZE / 8
-var ErrInvalidKey = fmt.Errorf("Invalid Key Type. Curve bit size not %d", CURVESIZE)
-
 type ECDSA struct {
 	*ecdsa.PrivateKey
 	KeyType types.KeyScheme
+}
+
+type ecdsaSignature struct {
+	R, S *big.Int
 }
 
 func NewECDSA() *ECDSA {
@@ -96,40 +95,20 @@ func (ecdsaKey *ECDSA) Store(filename string) error {
 
 func (ecdsaKey *ECDSA) Sign(singedMetadata interface{}) (string, error) {
 	// Convert singedMetadata to bytes.
-	var buf bytes.Buffer
-	err := gob.NewEncoder(&buf).Encode(singedMetadata)
+	b, err := json.Marshal(singedMetadata)
 	if err != nil {
 		return "", err
 	}
-	fmt.Println("while encoding gob encoder bytes", buf.Bytes())
+
 	// Calculate hash of string using SHA256 algo because only first 32 bytes are verified.
-	sha256Sum := sha256.Sum256(buf.Bytes())
+	sha256Sum := sha256.Sum256(b)
 	r, s, err := ecdsa.Sign(rand.Reader, ecdsaKey.PrivateKey, sha256Sum[0:])
 	if err != nil {
 		return "", err
 	}
-	curveBits := ecdsaKey.Curve.Params().BitSize
-
-	if CURVESIZE != curveBits {
-		return "", ErrInvalidKey
-	}
-	keyBytes := KEYSIZE
-	if curveBits%8 > 0 {
-		keyBytes++
-	}
-	// We serialize the outpus (r and s) into big-endian byte arrays and pad
-	// them with zeros on the left to make sure the sizes work out. Both arrays
-	// must be KEYSIZE long, and the output must be 2*KEYSIZE long.
-	rBytes := r.Bytes()
-	rBytesPadded := make([]byte, keyBytes)
-	copy(rBytesPadded[keyBytes-len(rBytes):], rBytes)
-
-	sBytes := s.Bytes()
-	sBytesPadded := make([]byte, keyBytes)
-	copy(sBytesPadded[keyBytes-len(sBytes):], sBytes)
-
-	out := append(rBytesPadded, sBytesPadded...)
-	return hex.EncodeToString(out), nil
+	// Use asn1.Marshall as json.Marshal cannot unmarshall big ints.
+	out, marshalError := asn1.Marshal(ecdsaSignature{r, s})
+	return hex.EncodeToString(out), marshalError
 }
 
 func (ecdsaKey *ECDSA) Verify(signingstring string, signature string) bool {
@@ -139,18 +118,15 @@ func (ecdsaKey *ECDSA) Verify(signingstring string, signature string) bool {
 	if err != nil {
 		return false
 	}
-	if len(decSignatureString) != 2*KEYSIZE {
+	es := ecdsaSignature{}
+	_, err = asn1.Unmarshal([]byte(decSignatureString), &es)
+	if err != nil {
 		return false
 	}
-	// Read secrets r and s from the signature.
-	sigBytes := []byte(decSignatureString)
-	r := big.NewInt(0).SetBytes(sigBytes[:KEYSIZE])
-	s := big.NewInt(0).SetBytes(sigBytes[KEYSIZE:])
-
 	// Calculate hash of string using SHA256 algo
 	sha256Sum := sha256.Sum256([]byte(signingstring))
 	// Verify the signature
-	return ecdsa.Verify(&ecdsaKey.PublicKey, sha256Sum[0:], r, s)
+	return ecdsa.Verify(&ecdsaKey.PublicKey, sha256Sum[0:], es.R, es.S)
 }
 
 func (ecdsaKey *ECDSA) GetPublicKey() string {
