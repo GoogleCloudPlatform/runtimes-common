@@ -93,9 +93,9 @@ func (ecdsaKey *ECDSA) Store(filename string) error {
 	return ioutil.WriteFile(filename, jsonBytes, 0644)
 }
 
-func (ecdsaKey *ECDSA) Sign(singedMetadata interface{}) (string, error) {
-	// Convert singedMetadata to bytes.
-	b, err := json.Marshal(singedMetadata)
+func (ecdsaKey *ECDSA) Sign(signedMetadata interface{}) (string, error) {
+	// Convert signedMetadata to bytes.
+	b, err := json.Marshal(signedMetadata)
 	if err != nil {
 		return "", err
 	}
@@ -106,7 +106,7 @@ func (ecdsaKey *ECDSA) Sign(singedMetadata interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// Use asn1.Marshall as json.Marshal cannot unmarshall big ints.
+	// Use asn1.Marshall as json.Unmarshal cannot unmarshall big ints.
 	out, marshalError := asn1.Marshal(ecdsaSignature{r, s})
 	return hex.EncodeToString(out), marshalError
 }
