@@ -6,7 +6,9 @@ import yaml
 import util
 
 # Add directories for new tests here.
-TEST_DIRS = ['destination_test', 'metadata_test', 'lock_test']
+TEST_DIRS = [
+    'destination_test', 'metadata_test', 'lock_test'
+]
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
              '6195641f5a5a14c63c7945262066270842150ddb')

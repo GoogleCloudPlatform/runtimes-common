@@ -17,7 +17,7 @@ _APP_MAP = {
     "node-same": ['packages_test', 'packages_test', '1'],
     "node-plus-one": ['packages_test', 'packages_test_plus_one', '1'],
     "php-lock-plus-one": ['lock_test', 'lock_test_plus_one',
-                          '4'],  # should be 2?
+                          '2'],
     "python-requirements-same": ['packages_test', 'packages_test', '1'],
     "python-requirements-plus-one":
     ['packages_test', 'packages_test_plus_one', '7'],  # should be 2?
