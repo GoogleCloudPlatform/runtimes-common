@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["base.go"],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/metadata",
+    visibility = ["//visibility:public"],
+    deps = ["//tuf/types:go_default_library"],
+)
