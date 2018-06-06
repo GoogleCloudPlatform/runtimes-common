@@ -118,7 +118,8 @@ def zip_dir_to_layer_sha(app_dir, destination_path, alter_symlinks=True):
 def has_pkg_descriptor(descriptor_files, ctx):
     for f in descriptor_files:
         if ctx.Contains(f):
-            return True
+            if len(ctx.GetFile(f)) > 0:
+                return True
     return False
 
 

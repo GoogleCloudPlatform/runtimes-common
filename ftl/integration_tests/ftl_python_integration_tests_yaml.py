@@ -9,7 +9,7 @@ import util
 TEST_DIRS = [
     'packages_test', 'metadata_test',
     'python3_test', 'pipfile_test',
-    'venv_dir_test']
+    'venv_dir_test', 'empty_req_test', 'no_req_test']
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
              '6195641f5a5a14c63c7945262066270842150ddb')
