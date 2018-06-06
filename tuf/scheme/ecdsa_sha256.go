@@ -16,7 +16,6 @@ limitations under the License.
 package scheme
 
 import (
-<<<<<<< HEAD
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -24,20 +23,19 @@ import (
 	"crypto/x509"
 	"encoding/asn1"
 	"encoding/hex"
-=======
-	"crypto"
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rand"
->>>>>>> minimal diff 2
 	"encoding/json"
+	"encoding/pem"
+	"fmt"
 	"io/ioutil"
+	"math/big"
+
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/constants"
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/types"
 )
 
 type ECDSA struct {
-	PrivateKey *ecdsa.PrivateKey
-	PublicKey  crypto.PublicKey
-	KeyType    string
+	*ecdsa.PrivateKey
+	KeyType types.KeyScheme
 }
 
 type ecdsaSignature struct {
@@ -51,13 +49,28 @@ func NewECDSA() *ECDSA {
 	}
 	return &ECDSA{
 		PrivateKey: privateKey,
-		PublicKey:  privateKey.Public(),
-		KeyType:    ECDSA256,
+		KeyType:    types.ECDSA256,
 	}
 }
 
-func (ecdsa *ECDSA) Store(filename string) error {
-	keyJson, err := json.Marshal(ecdsa)
+func (ecdsaKey *ECDSA) encode() (string, string, error) {
+	x509Encoded, err := x509.MarshalECPrivateKey(ecdsaKey.PrivateKey)
+	if err != nil {
+		return "", "", err
+	}
+	pemEncoded := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: x509Encoded})
+
+	x509EncodedPub, err := x509.MarshalPKIXPublicKey(&ecdsaKey.PrivateKey.PublicKey)
+	if err != nil {
+		return "", "", err
+	}
+	pemEncodedPub := pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: x509EncodedPub})
+	return string(pemEncoded), string(pemEncodedPub), nil
+}
+
+func (ecdsaKey *ECDSA) decode(pemEncoded string) error {
+	block, _ := pem.Decode([]byte(pemEncoded))
+	privateKey, err := x509.ParseECPrivateKey(block.Bytes)
 	if err != nil {
 		return err
 	}
