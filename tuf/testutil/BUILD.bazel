@@ -11,5 +11,6 @@ go_library(
     deps = [
         "//tuf/config:go_default_library",
         "//tuf/types:go_default_library",
+        "//vendor/gopkg.in/yaml.v2:go_default_library",
     ],
 )

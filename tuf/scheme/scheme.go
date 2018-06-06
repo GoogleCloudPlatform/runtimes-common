@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/GoogleCloudPlatform/runtimes-common/tuf/constants"
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/types"
 )
 
@@ -44,7 +45,7 @@ func ReadBytes(text []byte) (types.Scheme, error) {
 		return nil, err
 	}
 	switch schemeKey.KeyType {
-	case types.ECDSA256:
+	case constants.ECDSA256Scheme:
 		ecdsaKey := &ECDSA{}
 		ecdsaKey.decode(schemeKey.PrivateKey)
 		return ecdsaKey, err

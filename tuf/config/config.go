@@ -22,16 +22,20 @@ import (
 )
 
 type TUFConfig struct {
-	GCSProjectID      string `yaml: "gcsProjectID"`
-	KMSProjectID      string `yaml: "kmsProjectID"`
-	KMSLocation       string `yaml: "kmlLocation"`
-	KeyRingID         string `yaml: "kmsKeyringID"`
-	CryptoKeyID       string `yaml: "cryptoKey"`
-	GCSBucketID       string `yaml: "gcsBucketID"`
-	RootThreshold     int    `yaml: "rootThreshold"`
-	SnapshotThreshold int    `yaml: "snapshotThreshold"`
-	TargetThreshold   int    `yaml: "targetThreshold"`
-	Targets           []string
+	GCSProjectID                 string   `yaml: "gcsProjectID"`
+	KMSProjectID                 string   `yaml: "kmsProjectID"`
+	KMSLocation                  string   `yaml: "kmlLocation"`
+	KeyRingID                    string   `yaml: "kmsKeyringID"`
+	CryptoKeyID                  string   `yaml: "cryptoKey"`
+	GCSBucketID                  string   `yaml: "gcsBucketID"`
+	RootThreshold                int      `yaml: "rootThreshold"`
+	SnapshotThreshold            int      `yaml: "snapshotThreshold"`
+	TargetThreshold              int      `yaml: "targetThreshold"`
+	Targets                      []string `yaml: "targets"`
+	RootSecretExpiryDuration     string   `yaml: "rootExpiryDuration"`
+	TargetSecretExpiryDuration   string   `yaml: "targetExpiryDuration"`
+	SnapshotSecretExpiryDuration string   `yaml: "snapshotExpiryDuration"`
+	SpecVersion                  int      `yaml: "specVersion"`
 }
 
 func ReadConfig(filename string) (TUFConfig, error) {
