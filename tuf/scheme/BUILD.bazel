@@ -16,6 +16,13 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["ecdsa_sha256_test.go"],
+    srcs = [
+        "ecdsa_sha256_test.go",
+        "scheme_test.go",
+    ],
     embed = [":go_default_library"],
+    deps = [
+        "//tuf/testutil:go_default_library",
+        "//tuf/types:go_default_library",
+    ],
 )
