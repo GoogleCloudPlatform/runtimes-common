@@ -27,13 +27,10 @@ import (
 )
 
 func TestRootMetadata(t *testing.T) {
-	tuf := TUF{
-		TufConfig:       testutil.TestTUFConfig,
-		OldRootSecrets:  []types.Scheme{},
-		RootSecrets:     []types.Scheme{},
-		TargetSecrets:   []types.Scheme{},
-		SnapshotSecrets: []types.Scheme{},
-	}
+	tuf := TUF{testutil.TestTUFConfig,
+		[]types.Scheme{},
+		[]types.Scheme{},
+		[]types.Scheme{}, []types.Scheme{}}
 	rootMetadata, err := tuf.PopulateRootMetadata()
 	if err != nil {
 		t.Fatalf("Did not expect error %v", err)

@@ -21,17 +21,25 @@ import (
 	"io/ioutil"
 	"strings"
 
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/GoogleCloudPlatform/runtimes-common/tuf/config"
 )
 
-var TestTUFConfig = `
-gcsProjectID: testProjectID
-kmsProjectID: testKmsProjectID
-kmlLocation: global
-kmsKeyringID: testKeyRing
-cryptoKey: testKey
-gcsBucketID: testBucket
-`
+var TestTUFConfig = config.TUFConfig{
+	GCSProjectID:      "testProjectID",
+	KMSProjectID:      "testKmsProjectID",
+	KMSLocation:       "global",
+	KeyRingID:         "testKeyRing",
+	CryptoKeyID:       "testKey",
+	GCSBucketID:       "testBucket",
+	RootThreshold:     1,
+	TargetThreshold:   1,
+	SnapshotThreshold: 1,
+	SpecVersion:       1,
+	Targets:           []string{"file1.txt", "file22.txt"},
+}
+
 var IntegrationTufConfig = config.TUFConfig{
 	KMSProjectID: "gcp-runtimes",
 	KMSLocation:  "global",
@@ -62,4 +70,12 @@ func CreateAndWriteFile(dir string, filename string, text string) string {
 		ioutil.WriteFile(tmpFile.Name(), []byte(text), 644)
 	}
 	return tmpFile.Name()
+}
+
+func MarshalledTUFConfig() string {
+	bytes, err := yaml.Marshal(TestTUFConfig)
+	if err != nil {
+		panic(fmt.Sprintf("Cannot run tests due to %v", err))
+	}
+	return string(bytes)
 }

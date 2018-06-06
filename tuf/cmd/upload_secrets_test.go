@@ -55,11 +55,11 @@ var uploadSecretsTC = []struct {
 	emptyArgs   bool
 }{
 	// Since flag variables are set, we need run this always as first test case.
-	{"emptyArgs", testutil.TestTUFConfig, false,
+	{"emptyArgs", testutil.MarshalledTUFConfig(), false,
 		errors.New("Please specify atleast on secret to upload"), true},
-	{"updateSecretsSuccess", testutil.TestTUFConfig, false, nil, false},
+	{"updateSecretsSuccess", testutil.MarshalledTUFConfig(), false, nil, false},
 	{"invalidConfig", "invalidYaml", false, errors.New("yaml: unmarshal errors"), false},
-	{"deployError", testutil.TestTUFConfig, true, errors.New("Some err"), false},
+	{"deployError", testutil.MarshalledTUFConfig(), true, errors.New("Some err"), false},
 }
 
 func TestUpdateSecrets(t *testing.T) {

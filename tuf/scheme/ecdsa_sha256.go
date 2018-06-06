@@ -49,7 +49,7 @@ func NewECDSA() *ECDSA {
 	}
 	return &ECDSA{
 		PrivateKey: privateKey,
-		KeyType:    types.ECDSA256,
+		KeyType:    constants.ECDSA256Scheme,
 	}
 }
 
@@ -75,7 +75,7 @@ func (ecdsaKey *ECDSA) decode(pemEncoded string) error {
 		return err
 	}
 	ecdsaKey.PrivateKey = privateKey
-	ecdsaKey.KeyType = types.ECDSA256
+	ecdsaKey.KeyType = constants.ECDSA256Scheme
 	return nil
 }
 
@@ -145,5 +145,5 @@ func (ecdsaKey *ECDSA) GetKeyIdHashAlgo() []types.HashAlgo {
 }
 
 func (ecdsaKey *ECDSA) GetScheme() types.KeyScheme {
-	return types.ECDSA256
+	return constants.ECDSA256Scheme
 }

@@ -8,5 +8,4 @@ go_library(
     ],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/tuf/types",
     visibility = ["//visibility:public"],
-    deps = ["//tuf/scheme:go_default_library"],
 )

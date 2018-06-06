@@ -5,13 +5,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+)
 
-	"github.com/GoogleCloudPlatform/runtimes-common/tuf/scheme"
+const (
+	ECDSA256 string = "ECDSA256"
+	RSA256   string = "RSA256"
 )
 
 var VALID_CRYPTO_SCHEMES = map[string]bool{
-	scheme.ECDSA256: true,
-	scheme.RSA256:   false, // Not implemented.
+	ECDSA256: true,
+	RSA256:   false, // Not implemented.
 }
 
 var CryptoSchemes []string
