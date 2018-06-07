@@ -14,10 +14,9 @@
 """Unit tests for cache.py"""
 
 import unittest
-
 import cache
-
 import mock
+import constants
 
 
 class RegistryTest(unittest.TestCase):
@@ -39,7 +38,8 @@ class RegistryTest(unittest.TestCase):
             repo='fake.gcr.io/google-appengine',
             namespace='namespace',
             creds=None,
-            transport=None)
+            transport=None,
+            ttl=constants.DEFAULT_TTL_WEEKS)
         self.assertEquals(c._getEntry('abc123'), mock_img)
 
         # Test when it does not exist
@@ -48,7 +48,8 @@ class RegistryTest(unittest.TestCase):
             repo='fake.gcr.io/google-appengine',
             namespace='namespace',
             creds=None,
-            transport=None)
+            transport=None,
+            ttl=constants.DEFAULT_TTL_WEEKS)
         self.assertIsNone(c._getEntry('abc123'))
 
 

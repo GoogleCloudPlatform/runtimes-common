@@ -147,10 +147,14 @@ def descriptor_copy(ctx, descriptor_files, app_dir):
                 w.write(ctx.GetFile(f))
 
 
-def use_minimum_ttl(descriptor_files, ctx):
+#  Return minimum ttl if the descriptor file has unspecified deps
+def get_ttl(descriptor_files, ctx):
     for f in descriptor_files:
         if ctx.Contains(f):
-            return f in constants.MINIMUM_TTL_FILES
+            if f in constants.UNSPECIFIED_DEPS_FILES:
+                return constants.MINIMUM_TTL_WEEKS
+            return constants.DEFAULT_TTL_WEEKS
+    return constants.DEFAULT_TTL_WEEKS
 
 
 def gen_tmp_dir(dirr):

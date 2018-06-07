@@ -56,8 +56,10 @@ PIP_OPTIONS = ['--disable-pip-version-check']
 
 # cache constants
 DEFAULT_TTL_WEEKS = 1
-DEFAULT_TTL_HOURS = 6
-MINIMUM_TTL_FILES = [REQUIREMENTS_TXT, PACKAGE_JSON, COMPOSER_JSON]
+MINIMUM_TTL_WEEKS = 0.03571428571   # 6 hrs in terms of weeks
+
+# descriptor files with unspecified dependencies
+UNSPECIFIED_DEPS_FILES = [REQUIREMENTS_TXT, PACKAGE_JSON, COMPOSER_JSON]
 
 # logging constants
 PHASE_1_CACHE_STR = '{key_version}:{language}->{key}'

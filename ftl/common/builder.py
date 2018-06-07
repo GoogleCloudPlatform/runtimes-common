@@ -102,18 +102,18 @@ class RuntimeBase(JustApp):
         cache_repo = args.cache_repository
         if not cache_repo:
             cache_repo = self._target_image.as_repository()
-        use_minimum_ttl = ftl_util.use_minimum_ttl(descriptor_files, ctx)
+        ttl = ftl_util.get_ttl(descriptor_files, ctx)
         self._cache = cache.Registry(
             repo=cache_repo,
             namespace=self._cache_namespace,
             creds=self._target_creds,
             transport=self._transport,
+            ttl=ttl,
             threads=constants.THREADS,
             mount=[self._base_name],
             use_global=args.global_cache,
             should_cache=args.cache,
-            should_upload=args.upload,
-            use_minimum_ttl=use_minimum_ttl)
+            should_upload=args.upload)
         self._descriptor_files = descriptor_files
 
     def Build(self):
