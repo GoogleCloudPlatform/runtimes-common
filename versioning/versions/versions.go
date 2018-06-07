@@ -15,6 +15,7 @@ import (
 
 type Package struct {
 	Version string
+	Minor   string
 	Major   string
 	Gpg     string
 	Sha1    string
