@@ -38,12 +38,15 @@ class InternalError(Exception):
         super(InternalError, self).__init__(message)
 
 
-def UserErrorHandler(err, path):
+def UserErrorHandler(err, path, fail_on_error):
     logging.error(err)
     if path:
         with open(os.path.join(path, constants.BUILDER_OUTPUT_FILE), "w") as f:
             f.write("USER ERROR:\n%s" % str(err))
-    exit(1)
+    if  fail_on_error:
+        exit(1)
+    else:
+        exit(0)
 
 
 def InternalErrorHandler(err, path):
@@ -51,4 +54,7 @@ def InternalErrorHandler(err, path):
     if path:
         with open(os.path.join(path, constants.BUILDER_OUTPUT_FILE), "w") as f:
             f.write("INTERNAL ERROR:\n%s" % str(err))
-    exit(1)
+    if  fail_on_error:
+        exit(1)
+    else:
+        exit(0)
