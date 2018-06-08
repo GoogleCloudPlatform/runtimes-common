@@ -46,9 +46,11 @@ def main(cli_args):
             with ftl_util.Timing("build process for FTL image"):
                 php_ftl.Build()
     except ftl_error.UserError as e:
-        ftl_error.UserErrorHandler(e, builder_args.builder_output_path)
+        ftl_error.UserErrorHandler(
+            e, builder_args.builder_output_path, builder_args.fail_on_error)
     except ftl_error.InternalError as e:
-        ftl_error.InternalErrorHandler(e, builder_args.builder_output_path)
+        ftl_error.InternalErrorHandler(
+            e, builder_args.builder_output_path, builder_args.fail_on_error)
 
 
 if __name__ == '__main__':

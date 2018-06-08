@@ -109,6 +109,12 @@ def base_parser():
         default=False,
         help='If sh -c should be prepended to the entrypoint')
     parser.add_argument(
+        '--succeed-on-error',
+        dest='fail_on_error',
+        action='store_false',
+        default=True,
+        help='If sh -c should be prepended to the entrypoint')
+    parser.add_argument(
         '--exposed-ports',
         dest='exposed_ports',
         action='store',
