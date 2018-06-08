@@ -23,9 +23,6 @@ THREADS = 32
 # ftl version
 FTL_VERSION = "v0.5.0"
 
-# cache constants
-DEFAULT_TTL_WEEKS = 1
-
 # Google Cloud Builder env options
 BUILDER_OUTPUT = 'BUILDER_OUTPUT'
 BUILDER_OUTPUT_FILE = 'output'
@@ -56,6 +53,13 @@ PIP_DEFAULT_CMD = 'pip'
 PYTHON_DEFAULT_CMD = 'python2.7'
 VENV_DEFAULT_CMD = 'virtualenv'
 PIP_OPTIONS = ['--disable-pip-version-check']
+
+# cache constants
+DEFAULT_TTL_WEEKS = 1
+MINIMUM_TTL_WEEKS = 0.03571428571   # 6 hrs in terms of weeks
+
+# descriptor files with unspecified dependencies
+UNSPECIFIED_DEPS_FILES = [REQUIREMENTS_TXT, PACKAGE_JSON, COMPOSER_JSON]
 
 # logging constants
 PHASE_1_CACHE_STR = '{key_version}:{language}->{key}'

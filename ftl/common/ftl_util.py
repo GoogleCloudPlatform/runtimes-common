@@ -147,6 +147,16 @@ def descriptor_copy(ctx, descriptor_files, app_dir):
                 w.write(ctx.GetFile(f))
 
 
+#  Return minimum ttl if the descriptor file has unspecified deps
+def get_ttl(descriptor_files, ctx):
+    for f in descriptor_files:
+        if ctx.Contains(f):
+            if f in constants.UNSPECIFIED_DEPS_FILES:
+                return constants.MINIMUM_TTL_WEEKS
+            return constants.DEFAULT_TTL_WEEKS
+    return constants.DEFAULT_TTL_WEEKS
+
+
 def gen_tmp_dir(dirr):
     tmp_dir = tempfile.mkdtemp()
     dir_name = os.path.join(tmp_dir, dirr)
@@ -166,8 +176,9 @@ def timestamp_to_time(dt_str):
 
 
 def generate_overrides(set_env, venv_dir=constants.VENV_DIR):
+    created_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:') + '00:00Z'
     overrides_dct = {
-        'created': str(datetime.date.today()) + 'T00:00:00Z',
+        'created': created_time,
     }
     if set_env:
         env = {
