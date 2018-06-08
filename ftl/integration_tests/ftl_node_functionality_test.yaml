@@ -1,0 +1,15 @@
+steps:
+- args: [chmod, a+rx, -R, /workspace]
+  id: chmod
+  name: ubuntu
+- args: [run, '//ftl:node_builder_image', --, --norun]
+  id: build-builder
+  name: gcr.io/cloud-builders/bazel
+- args: [--base, 'gcr.io/gae-runtimes/nodejs8_app_builder:argo_current', --name, 'gcr.io/ftl-node-test/node_functionality_test-image:latest',
+    --directory, /workspace/ftl/node/testdata/functionality_test,
+    --entrypoint, sh /srv/start.sh, --sh-c-prefix,
+    --no-cache, --exposed-ports, '8000']
+  id: build-image-gcr.io/ftl-node-test/node_functionality_test-image:latest
+  name: bazel/ftl:node_builder_image
+- id: verify-node-functionality
+  name: gcr.io/ftl-node-test/node_functionality_test-image:latest

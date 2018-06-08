@@ -15,7 +15,7 @@ _BASE_MAP = {
 
 _APP_MAP = {
     "node-same": ['packages_test', 'packages_test', '1'],
-    "node-plus-one": ['packages_test', 'packages_test_plus_one', '1'],
+    "node-plus-one": ['packages_test', 'packages_test_plus_one', '2'],
     "php-lock-plus-one": ['lock_test', 'lock_test_plus_one',
                           '2'],
     "python-requirements-same": ['packages_test', 'packages_test', '1'],

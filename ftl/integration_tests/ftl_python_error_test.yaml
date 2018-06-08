@@ -5,9 +5,9 @@ steps:
 - args: [run, '//ftl:python_builder_image', --, --norun]
   id: build-builder
   name: gcr.io/cloud-builders/bazel
-- args: [--base, 'gcr.io/google-appengine/python:latest', --name, 'gcr.io/ftl-node-test/functionality_test-image:latest',
-    --directory, /workspace/ftl/python/testdata/functionality_test, --no-cache]
-  id: build-image-gcr.io/ftl-node-test/functionality_test-image:latest
+- args: [--base, 'gcr.io/google-appengine/python:latest', --name, 'gcr.io/ftl-node-test/python_error_test-image:latest',
+    --directory, /workspace/ftl/python/testdata/error_test, --no-cache]
+  id: build-image-gcr.io/ftl-node-test/python_error_test-image:latest
   name: bazel/ftl:python_builder_image
 - args: ['curl', '/workspace/output']
   id: check-user-build-output-file-exists
