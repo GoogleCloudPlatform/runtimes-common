@@ -57,6 +57,18 @@ var tests = []Test{
 		cmd:  "python ../ftl/cached/ftl_cached_yaml.py --runtime=python-pipfile-same",
 		name: "ftl cached pipfile same",
 	},
+	{
+		cmd:  "cat ../ftl/integration_tests/ftl_node_functionality_test.yaml",
+		name: "ftl cached node functionality",
+	},
+	{
+		cmd:  "cat ../ftl/integration_tests/ftl_php_functionality_test.yaml",
+		name: "ftl cached php functionality",
+	},
+	{
+		cmd:  "cat ../ftl/integration_tests/ftl_python_functionality_test.yaml",
+		name: "ftl cached python functionality",
+	},
 	// {
 	// 	cmd:  "cat ../ftl/integration_tests/ftl_python_error_test.yaml",
 	// 	name: "ftl cached python error",

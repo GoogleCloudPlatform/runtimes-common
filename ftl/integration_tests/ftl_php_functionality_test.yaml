@@ -2,14 +2,14 @@ steps:
 - args: [chmod, a+rx, -R, /workspace]
   id: chmod
   name: ubuntu
-- args: [run, '//ftl:python_builder_image', --, --norun]
+- args: [run, '//ftl:php_builder_image', --, --norun]
   id: build-builder
   name: gcr.io/cloud-builders/bazel
-- args: [--base, 'cr.io/google-appengine/php:latest', --name, 'gcr.io/ftl-node-test/functionality_test-image:latest',
+- args: [--base, 'gcr.io/google-appengine/php:latest', --name, 'gcr.io/ftl-node-test/php_functionality_test-image:latest',
     --directory, /workspace/ftl/php/testdata/functionality_test,
     --entrypoint, chmod +x /srv/start.sh && sh /srv/start.sh, --sh-c-prefix,
     --no-cache, --exposed-ports, '8000']
-  id: build-image-gcr.io/ftl-node-test/functionality_test-image:latest
-  name: bazel/ftl:python_builder_image
-- id: verify-python-functionality
-  name: gcr.io/ftl-node-test/functionality_test-image:latest
+  id: build-image-gcr.io/ftl-node-test/php_functionality_test-image:latest
+  name: bazel/ftl:php_builder_image
+- id: verify-php-functionality
+  name: gcr.io/ftl-node-test/php_functionality_test-image:latest

@@ -5,11 +5,11 @@ steps:
 - args: [run, '//ftl:python_builder_image', --, --norun]
   id: build-builder
   name: gcr.io/cloud-builders/bazel
-- args: [--base, 'gcr.io/google-appengine/python:latest', --name, 'gcr.io/ftl-node-test/functionality_test-image:latest',
+- args: [--base, 'gcr.io/google-appengine/python:latest', --name, 'gcr.io/ftl-node-test/python_functionality_test-image:latest',
     --directory, /workspace/ftl/python/testdata/functionality_test,
     --entrypoint, chmod +x /srv/start.sh /env/bin/activate && source /env/bin/activate && sh /srv/start.sh, --sh-c-prefix,
     --no-cache, --exposed-ports, '8080']
-  id: build-image-gcr.io/ftl-node-test/functionality_test-image:latest
+  id: build-image-gcr.io/ftl-node-test/python_functionality_test-image:latest
   name: bazel/ftl:python_builder_image
 - id: verify-python-functionality
-  name: gcr.io/ftl-node-test/functionality_test-image:latest
+  name: gcr.io/ftl-node-test/python_functionality_test-image:latest

@@ -37,12 +37,13 @@ class PHP(builder.RuntimeBase):
                 ctx=self._ctx,
                 descriptor_files=self._descriptor_files,
                 destination_path=self._args.destination_path,
+                directory=self._args.directory,
                 cache=self._cache)
             layer_builder.BuildLayer()
             lyr_imgs.append(layer_builder.GetImage())
 
         app = base_builder.AppLayerBuilder(
-            ctx=self._ctx,
+            directory=self._args.directory,
             destination_path=self._args.destination_path,
             entrypoint=self._args.entrypoint,
             exposed_ports=self._args.exposed_ports)

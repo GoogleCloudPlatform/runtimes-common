@@ -40,8 +40,10 @@ class Node(builder.RuntimeBase):
             lyr_imgs.append(layer_builder.GetImage())
 
         app = base_builder.AppLayerBuilder(
-            self._ctx, self._args.destination_path, self._args.entrypoint,
-            self._args.exposed_ports)
+            directory=self._args.directory,
+            destination_path=self._args.destination_path,
+            entrypoint=self._args.entrypoint,
+            exposed_ports=self._args.exposed_ports)
         app.BuildLayer()
         lyr_imgs.append(app.GetImage())
         ftl_image = ftl_util.AppendLayersIntoImage(lyr_imgs)
