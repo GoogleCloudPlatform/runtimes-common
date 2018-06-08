@@ -176,8 +176,9 @@ def timestamp_to_time(dt_str):
 
 
 def generate_overrides(set_env, venv_dir=constants.VENV_DIR):
+    created_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:') + '00:00Z'
     overrides_dct = {
-        'created': str(datetime.date.today()) + 'T00:00:00Z',
+        'created': created_time,
     }
     if set_env:
         env = {
