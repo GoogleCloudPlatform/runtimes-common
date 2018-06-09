@@ -93,6 +93,7 @@ class Python(builder.RuntimeBase):
                 req_txt_builder = package_builder.RequirementsLayerBuilder(
                     ctx=self._ctx,
                     descriptor_files=self._descriptor_files,
+                    directory=self._args.directory,
                     pkg_dir=None,
                     wheel_dir=self._wheel_dir,
                     venv_dir=self._venv_dir,
@@ -118,6 +119,7 @@ class Python(builder.RuntimeBase):
         pipfile_builder = package_builder.PipfileLayerBuilder(
             ctx=self._ctx,
             descriptor_files=self._descriptor_files,
+            directory=self._args.directory,
             pkg_descriptor=pkg,
             pkg_dir=None,
             wheel_dir=ftl_util.gen_tmp_dir(constants.WHEEL_DIR),

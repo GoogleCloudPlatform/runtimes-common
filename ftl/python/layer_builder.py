@@ -73,6 +73,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def __init__(self,
                  ctx=None,
                  descriptor_files=None,
+                 directory=None,
                  pkg_dir=None,
                  dep_img_lyr=None,
                  wheel_dir=constants.WHEEL_DIR,
@@ -90,6 +91,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._pip_cmd = pip_cmd
         self._venv_cmd = venv_cmd
         self._descriptor_files = descriptor_files
+        self._directory = directory
         self._dep_img_lyr = dep_img_lyr
         self._cache = cache
 
@@ -177,9 +179,9 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         ftl_util.run_command(
             'pip_download_wheels',
             pip_cmd_args,
-            None,
-            self._gen_pip_env(),
-            pkg_txt,
+            cmd_cwd=self._directory,
+            cmd_env=self._gen_pip_env(),
+            cmd_input=pkg_txt,
             err_type=ftl_error.FTLErrors.USER())
 
     def _gen_pip_env(self):
@@ -207,6 +209,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
     def __init__(self,
                  ctx=None,
                  descriptor_files=None,
+                 directory=None,
                  pkg_descriptor=None,
                  pkg_dir=None,
                  dep_img_lyr=None,
@@ -225,6 +228,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
         self._pip_cmd = pip_cmd
         self._venv_cmd = venv_cmd
         self._descriptor_files = descriptor_files
+        self._directory = directory
         self._dep_img_lyr = dep_img_lyr
         self._cache = cache
         self._pkg_descriptor = pkg_descriptor
@@ -275,8 +279,13 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
             ['wheel', '-w', self._wheel_dir, '-r', '/dev/stdin'])
         pip_cmd_args.extend(['--no-deps'])
         pip_cmd_args.extend(constants.PIP_OPTIONS)
-        ftl_util.run_command('pip_download_wheel', pip_cmd_args, None,
-                             self._gen_pip_env(), pkg_txt)
+        ftl_util.run_command(
+            'pip_download_wheels',
+            pip_cmd_args,
+            cmd_cwd=self._directory,
+            cmd_env=self._gen_pip_env(),
+            cmd_input=pkg_txt,
+            err_type=ftl_error.FTLErrors.USER())
 
 
 class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
