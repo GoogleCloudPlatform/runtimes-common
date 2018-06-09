@@ -60,15 +60,16 @@ class Python(builder.RuntimeBase):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
 
+        interpreter_builder = package_builder.InterpreterLayerBuilder(
+            venv_dir=self._venv_dir,
+            python_cmd=self._python_cmd,
+            venv_cmd=self._venv_cmd,
+            cache=self._cache)
+        interpreter_builder.BuildLayer()
+        lyr_imgs.append(interpreter_builder.GetImage())
+
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             # build interpreter layer
-            interpreter_builder = package_builder.InterpreterLayerBuilder(
-                venv_dir=self._venv_dir,
-                python_cmd=self._python_cmd,
-                venv_cmd=self._venv_cmd,
-                cache=self._cache)
-            interpreter_builder.BuildLayer()
-            lyr_imgs.append(interpreter_builder.GetImage())
 
             if self._is_phase2:
                 # do a phase 2 build of the package layers w/ Pipfile.lock
