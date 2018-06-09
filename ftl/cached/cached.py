@@ -74,7 +74,6 @@ class Cached():
                 exit(1)
             finally:
                 self._cleanup(constants.VENV_DIR)
-                self._del_img_from_gcr(img_name)
         if len(lyr_shas) is not 2:
             logging.error("Incorrect number of layers to compare")
             exit(1)

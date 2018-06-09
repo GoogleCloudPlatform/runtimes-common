@@ -4,5 +4,6 @@
 *.pydevproject
 config/*
 .cfg/
+!ftl/php/testdata/functionality_test/config/*
 **/bazel-*
 .vscode

@@ -94,16 +94,25 @@ class Timing(object):
         logging.info('%s took %d seconds', self.descriptor, end - self.start)
 
 
-def zip_dir_to_layer_sha(pkg_dir):
+def zip_dir_to_layer_sha(app_dir, destination_path, alter_symlinks=True):
+    tar_dir = tempfile.mkdtemp()
+
     tar_path = tempfile.mktemp(suffix='.tar')
-    with Timing('tar_runtime_package'):
-        subprocess.check_call(['tar', '-C', pkg_dir, '-cf', tar_path, '.'])
+    txfrm_regex = 's,^,%s/,' % destination_path
+    if alter_symlinks:
+        txfrm_regex = 'flags=r;s,^,%s/,' % destination_path
+    tar_cmd = [
+        'tar', '-pcvf', tar_path, '--transform',
+        txfrm_regex, '.'
+    ]
+
+    run_command('tar_runtime_package', tar_cmd, cmd_cwd=app_dir)
 
     u_blob = open(tar_path, 'r').read()
     # We use gzip for performance instead of python's zip.
-    with Timing('gzip_runtime_tar'):
-        subprocess.check_call(['gzip', tar_path, '-1'])
-    return open(os.path.join(pkg_dir, tar_path + '.gz'), 'rb').read(), u_blob
+    gzip_cmd = ['gzip', tar_path, '-1']
+    run_command('gzip_tar_runtime_package', gzip_cmd)
+    return open(os.path.join(tar_dir, tar_path + '.gz'), 'rb').read(), u_blob
 
 
 def has_pkg_descriptor(descriptor_files, ctx):
@@ -133,6 +142,7 @@ def descriptor_parser(descriptor_files, ctx):
         if ctx.Contains(f):
             descriptor = f
             descriptor_contents = ctx.GetFile(descriptor)
+            logging.info("descriptor_contents:\n%s", descriptor_contents)
             break
     if not descriptor:
         logging.info("No package descriptor found. No packages installed.")

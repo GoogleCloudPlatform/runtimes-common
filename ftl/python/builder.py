@@ -105,7 +105,7 @@ class Python(builder.RuntimeBase):
                 lyr_imgs.append(req_txt_builder.GetImage())
 
         app = base_builder.AppLayerBuilder(
-            ctx=self._ctx,
+            directory=self._args.directory,
             destination_path=self._args.destination_path,
             entrypoint=self._args.entrypoint,
             exposed_ports=self._args.exposed_ports)

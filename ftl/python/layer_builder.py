@@ -53,7 +53,7 @@ class PackageLayerBuilder(single_layer_image.CacheableLayerBuilder):
                 self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
-        blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._pkg_dir)
+        blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._pkg_dir, "")
         overrides = ftl_util.generate_overrides(False)
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
 
@@ -261,7 +261,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
             if len(whls) != 1:
                 raise Exception("expected one whl for one installed pkg")
             pkg_dir = self._whl_to_fslayer(whls[0])
-            blob, u_blob = ftl_util.zip_dir_to_layer_sha(pkg_dir)
+            blob, u_blob = ftl_util.zip_dir_to_layer_sha(pkg_dir, "")
             overrides = ftl_util.generate_overrides(False, self._venv_dir)
             self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                        overrides)
@@ -308,7 +308,6 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
                 stderr=subprocess.PIPE,
             )
             stdout, stderr = proc_pipe.communicate()
-            logging.info("`python version` stdout:\n%s" % stdout)
             logging.info("`python version` stderr:\n%s" % stderr)
             if proc_pipe.returncode:
                 raise Exception("error: `python version` returned code: %d" %
@@ -336,16 +335,8 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
         python_util.setup_venv(self._venv_dir, self._venv_cmd,
                                self._python_cmd)
 
-        tar_path = tempfile.mktemp(suffix='.tar')
-        tar_cmd = ['tar', '-cf', tar_path, self._venv_dir]
-        ftl_util.run_command('tar_venv_interpreter', tar_cmd)
-
-        u_blob = open(tar_path, 'r').read()
-        # We use gzip for performance instead of python's zip.
-        gzip_cmd = ['gzip', tar_path, '-1']
-        ftl_util.run_command('gzip_venv_interpreter', gzip_cmd)
-
-        blob = open(os.path.join(tar_path + '.gz'), 'rb').read()
+        blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._venv_dir,
+                                                     self._venv_dir)
 
         overrides = ftl_util.generate_overrides(True, self._venv_dir)
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
