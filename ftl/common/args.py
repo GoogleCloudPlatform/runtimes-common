@@ -105,8 +105,8 @@ def base_parser():
     parser.add_argument(
         '--sh-c-prefix',
         dest='sh_c_prefix',
-        action='store',
-        default=None,
+        action='store_true',
+        default=False,
         help='If sh -c should be prepended to the entrypoint')
     parser.add_argument(
         '--exposed-ports',

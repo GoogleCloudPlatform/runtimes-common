@@ -18,5 +18,4 @@ import os
 def gen_composer_env():
     composer_env = os.environ.copy()
     composer_env['COMPOSER_ALLOW_SUPERUSER'] = '1'
-    composer_env['COMPOSER_NO_INTERACTION'] = '1'
     return composer_env

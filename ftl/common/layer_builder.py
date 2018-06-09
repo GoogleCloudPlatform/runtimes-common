@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cStringIO
 import datetime
-import os
-import tarfile
 import logging
-import subprocess
 
 from ftl.common import constants
 from ftl.common import ftl_util
@@ -27,11 +23,11 @@ from ftl.common import tar_to_dockerimage
 
 class AppLayerBuilder(single_layer_image.BaseLayerBuilder):
     def __init__(self,
-                 ctx,
+                 directory,
                  destination_path=constants.DEFAULT_DESTINATION_PATH,
                  entrypoint=constants.DEFAULT_ENTRYPOINT,
                  exposed_ports=None):
-        self._ctx = ctx
+        self._directory = directory
         self._destination_path = destination_path
         self._entrypoint = entrypoint
         self._exposed_ports = exposed_ports
@@ -42,27 +38,9 @@ class AppLayerBuilder(single_layer_image.BaseLayerBuilder):
     def BuildLayer(self):
         """Override."""
         with ftl_util.Timing('Building app layer'):
-            buf = cStringIO.StringIO()
-            logging.info('Starting to generate app layer \
-                tarfile from context...')
-            with tarfile.open(fileobj=buf, mode='w') as out:
-                for name in self._ctx.ListFiles():
-                    content = self._ctx.GetFile(name)
-                    info = tarfile.TarInfo(
-                        os.path.join(self._destination_path.strip("/"), name))
-                    info.size = len(content)
-                    out.addfile(info, fileobj=cStringIO.StringIO(content))
-            logging.info('Finished generating app layer tarfile from context.')
+            gz, tar = ftl_util.zip_dir_to_layer_sha(self._directory,
+                                                    self._destination_path)
 
-            tar = buf.getvalue()
-
-            logging.info('Starting to gzip app layer tarfile...')
-            gzip_process = subprocess.Popen(
-                ['gzip', '-f'],
-                stdout=subprocess.PIPE,
-                stdin=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-            gz = gzip_process.communicate(input=tar)[0]
             overrides_dct = {
                 'created': str(datetime.date.today()) + 'T00:00:00Z'
             }

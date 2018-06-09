@@ -15,7 +15,6 @@
 
 import logging
 import os
-import tempfile
 import json
 import datetime
 
@@ -84,7 +83,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             ftl_util.run_command(
                 'npm_install',
                 npm_install_cmd,
-                app_dir,
+                cmd_cwd=app_dir,
                 err_type=ftl_error.FTLErrors.USER())
         else:
             npm_install_cmd = [
@@ -93,22 +92,11 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             ftl_util.run_command(
                 'npm_install',
                 npm_install_cmd,
-                app_dir,
+                cmd_cwd=app_dir,
                 err_type=ftl_error.FTLErrors.USER())
 
-        tar_path = tempfile.mktemp(suffix='.tar')
-        tar_cmd = ['tar',
-                   '-cvf', tar_path,
-                   '--transform', 's,^,%s/,' % self._destination_path,
-                   '.']
-
-        ftl_util.run_command('tar_node_dependencies', tar_cmd, cmd_cwd=app_dir)
-
-        u_blob = open(tar_path, 'r').read()
-        # We use gzip for performance instead of python's zip.
-        gzip_cmd = ['gzip', tar_path, '-1']
-        ftl_util.run_command('gzip_node_dependencies', gzip_cmd)
-        return open(os.path.join(tar_path + '.gz'), 'rb').read(), u_blob
+        return ftl_util.zip_dir_to_layer_sha(app_dir,
+                                             self._destination_path)
 
     def _generate_overrides(self):
         overrides_dct = {

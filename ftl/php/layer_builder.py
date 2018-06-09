@@ -15,7 +15,6 @@
 
 import logging
 import os
-import tempfile
 import datetime
 
 from ftl.common import constants
@@ -32,11 +31,13 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
                  ctx=None,
                  descriptor_files=None,
                  destination_path=constants.DEFAULT_DESTINATION_PATH,
+                 directory=None,
                  cache=None):
         super(PhaseOneLayerBuilder, self).__init__()
         self._ctx = ctx
         self._descriptor_files = descriptor_files
         self._destination_path = destination_path
+        self._directory = directory
         self._cache = cache
 
     def GetCacheKeyRaw(self):
@@ -62,26 +63,20 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
-        blob, u_blob = self._gen_composer_install_tar(self._destination_path)
+        blob, u_blob = self._gen_composer_install_tar(self._directory,
+                                                      self._destination_path)
         overrides_dct = {'created': str(datetime.date.today()) + 'T00:00:00Z'}
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                    overrides_dct)
 
-    def _gen_composer_install_tar(self, destination_path):
-        # Create temp directory to write package descriptor to
-        pkg_dir = tempfile.mkdtemp()
-        app_dir = os.path.join(pkg_dir, destination_path.strip("/"))
-        os.makedirs(app_dir)
-
-        # Copy out the relevant package descriptors to a tempdir.
-        ftl_util.descriptor_copy(self._ctx, self._descriptor_files, app_dir)
-
-        rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'vendor')]
+    def _gen_composer_install_tar(self, app_dir, destination_path):
+        vendor_dir = os.path.join(app_dir, 'vendor')
+        rm_cmd = ['rm', '-rf', vendor_dir]
         ftl_util.run_command('rm_vendor_dir', rm_cmd)
 
         composer_install_cmd = [
-            'composer', 'install', '--no-dev', '--no-scripts', '--no-progress',
-            '--no-suggest', '--no-interaction'
+            'composer', 'install', '--no-dev', '--no-progress', '--no-suggest',
+            '--no-interaction'
         ]
         ftl_util.run_command(
             'composer_install',
@@ -90,7 +85,8 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
             cmd_env=php_util.gen_composer_env(),
             err_type=ftl_error.FTLErrors.USER())
 
-        return ftl_util.zip_dir_to_layer_sha(pkg_dir)
+        vendor_destination = os.path.join(destination_path, 'vendor')
+        return ftl_util.zip_dir_to_layer_sha(vendor_dir, vendor_destination)
 
     def _log_cache_result(self, hit):
         if hit:
