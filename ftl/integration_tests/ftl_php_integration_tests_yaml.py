@@ -7,7 +7,8 @@ import util
 
 # Add directories for new tests here.
 TEST_DIRS = [
-    'destination_test', 'metadata_test', 'lock_test'
+    'destination_test', 'metadata_test', 'lock_test',
+    'empty_descriptor_test', 'no_descriptor_test'
 ]
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
