@@ -1,8 +1,17 @@
 # FTL Release Notes
 
+# Version 0.6.0 - 6/9/2018
+* Added functionality tests for all runtimes to ensure images built with FTL are runnable.  Previously tests ensured that packages were installed but this is not sufficient [#672](https://github.com/GoogleCloudPlatform/runtimes-common/pull/672)
+* Fixed issue where app file permissions were not being respected by FTL [#672](https://github.com/GoogleCloudPlatform/runtimes-common/pull/672/files#diff-68efcbd4de1f61dcfc12ab3948b88f34R41)
+* Changed TTL for dependencies that are not fully specified (e.g. package.json, composer.json, requirements.txt) to be 6hr, previously 1 week [#667](https://github.com/GoogleCloudPlatform/runtimes-common/pull/667)
+* [PYTHON] Fix issue where FTL errored when building python images with an empty requirementst.txt file [#669](https://github.com/GoogleCloudPlatform/runtimes-common/pull/669)
+* [PYTHON] Added python support for local packages [#674](https://github.com/GoogleCloudPlatform/runtimes-common/pull/674)
+* [PHP] Fixed breaking issue with PHP where apps were not able to be run properly due to autoloads.php files not being created correctly.  This was resolved by reverting FTL PHP to ‘phase 1’ caching where app installation is done with a single ‘composer install’ call [#661](https://github.com/GoogleCloudPlatform/runtimes-common/pull/661) [#672](https://github.com/GoogleCloudPlatform/runtimes-common/pull/672/files#diff-f21f9bdff4d4bbeebae09c8ae5f95448R89)
+
+
 # Version 0.5.0 - 5/30/2018
-* Add --sh-c-prefix flag to add a "sh -c" prefix to --entrypoint [#632] (https://github.com/GoogleCloudPlatform/runtimes-common/pull/632)
-* [NODE] Change Node build context to support npm local packages [#650] (https://github.com/GoogleCloudPlatform/runtimes-common/pull/650)
+* Add --sh-c-prefix flag to add a "sh -c" prefix to --entrypoint [#632](https://github.com/GoogleCloudPlatform/runtimes-common/pull/632)
+* [NODE] Change Node build context to support npm local packages [#650](https://github.com/GoogleCloudPlatform/runtimes-common/pull/650)
 * [PHP/PYTHON] Fixed threading issue with unsafe strptime [#645](https://github.com/GoogleCloudPlatform/runtimes-common/pull/645)
 * [PYTHON] Fixed virtualenv issue with Pipfile.lock and parallel python installation [#635](https://github.com/GoogleCloudPlatform/runtimes-common/pull/635)
 
