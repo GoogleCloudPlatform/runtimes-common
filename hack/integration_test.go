@@ -69,10 +69,10 @@ var tests = []Test{
 		cmd:  "cat ../ftl/integration_tests/ftl_python_functionality_test.yaml",
 		name: "ftl cached python functionality",
 	},
-	// {
-	// 	cmd:  "cat ../ftl/integration_tests/ftl_python_error_test.yaml",
-	// 	name: "ftl cached python error",
-	// },
+	{
+		cmd:  "cat ../ftl/integration_tests/ftl_python_error_test.yaml",
+		name: "ftl cached python error",
+	},
 }
 
 func command(command string) (string, error) {
