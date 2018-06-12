@@ -34,9 +34,6 @@ class BaseLayerBuilder(object):
         self._img = None
 
     def GetImage(self):
-        if self._img is None:
-            raise Exception('error: layer image was not built yet so ' +
-                            'image cannot be accessed')
         return self._img
 
     def SetImage(self, img):

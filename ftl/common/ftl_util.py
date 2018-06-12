@@ -32,6 +32,9 @@ class FTLException(Exception):
 
 
 def AppendLayersIntoImage(imgs):
+    if len(imgs) <= 0:
+        logging.info("requirements.txt file with no deps used")
+        return None
     with Timing('Stitching layers into final image'):
         for i, img in enumerate(imgs):
             if i == 0:

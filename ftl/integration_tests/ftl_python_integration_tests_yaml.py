@@ -9,7 +9,9 @@ import util
 TEST_DIRS = [
     'packages_test', 'metadata_test',
     'python3_test', 'pipfile_test',
-    'venv_dir_test', 'empty_descriptor_test', 'no_descriptor_test']
+    'venv_dir_test', 'no_descriptor_test',
+    'empty_descriptor_test',
+    'commented_descriptor_test']
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
              '6195641f5a5a14c63c7945262066270842150ddb')
