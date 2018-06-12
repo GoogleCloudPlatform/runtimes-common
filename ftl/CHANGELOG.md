@@ -1,5 +1,8 @@
 # FTL Release Notes
 
+# Version 0.6.1 - 6/12/2018
+* [PYTHON] Fixed issue where if a requirements.txt file had comments but no dependencies FTL would fail [#680](https://github.com/GoogleCloudPlatform/runtimes-common/pull/680)
+
 # Version 0.6.0 - 6/9/2018
 * Added functionality tests for all runtimes to ensure images built with FTL are runnable.  Previously tests ensured that packages were installed but this is not sufficient [#672](https://github.com/GoogleCloudPlatform/runtimes-common/pull/672)
 * Fixed issue where app file permissions were not being respected by FTL [#672](https://github.com/GoogleCloudPlatform/runtimes-common/pull/672/files#diff-68efcbd4de1f61dcfc12ab3948b88f34R41)

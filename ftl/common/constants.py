@@ -21,7 +21,7 @@ DEFAULT_ENTRYPOINT = None
 THREADS = 32
 
 # ftl version
-FTL_VERSION = "v0.6.0"
+FTL_VERSION = "v0.6.1"
 
 # Google Cloud Builder env options
 BUILDER_OUTPUT = 'BUILDER_OUTPUT'
