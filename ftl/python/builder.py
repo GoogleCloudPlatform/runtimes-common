@@ -104,7 +104,8 @@ class Python(builder.RuntimeBase):
                     dep_img_lyr=interpreter_builder,
                     cache=self._cache)
                 req_txt_builder.BuildLayer()
-                lyr_imgs.append(req_txt_builder.GetImage())
+                if req_txt_builder.GetImage():
+                    lyr_imgs.append(req_txt_builder.GetImage())
 
         app = base_builder.AppLayerBuilder(
             directory=self._args.directory,

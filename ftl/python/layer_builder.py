@@ -136,11 +136,12 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
             req_txt_image = ftl_util.AppendLayersIntoImage(req_txt_imgs)
 
-            self.SetImage(req_txt_image)
+            if req_txt_image:
+                self.SetImage(req_txt_image)
 
-            if self._cache:
-                with ftl_util.Timing('uploading_requirements.txt_pkg_lyr'):
-                    self._cache.Set(self.GetCacheKey(), self.GetImage())
+                if self._cache:
+                    with ftl_util.Timing('uploading_requirements.txt_pkg_lyr'):
+                        self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_pkg(self, whl_pkg_dir, req_txt_imgs):
         layer_builder = PackageLayerBuilder(
