@@ -44,6 +44,10 @@ def base_parser():
         action='store',
         help='The path where the application data sits.')
     parser.add_argument(
+        '--additional-directory',
+        action='store',
+        help='Additional path whose contents gets appended to the final image.')
+    parser.add_argument(
         '--cache-repository',
         action='store',
         required=False,
