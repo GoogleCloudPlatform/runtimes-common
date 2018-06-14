@@ -8,6 +8,7 @@ steps:
 - args: [--base, 'gcr.io/google-appengine/python:latest', --name, 'gcr.io/ftl-node-test/python_functionality_test-image:latest',
     --directory, /workspace/ftl/python/testdata/functionality_test,
     --entrypoint, chmod +x /srv/start.sh /env/bin/activate && source /env/bin/activate && sh /srv/start.sh, --sh-c-prefix,
+    --additional-directory, /workspace/ftl/python/testdata/additional_directory
     --no-cache, --exposed-ports, '8080']
   id: build-image-gcr.io/ftl-node-test/python_functionality_test-image:latest
   name: bazel/ftl:python_builder_image
