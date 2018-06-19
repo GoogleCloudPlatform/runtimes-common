@@ -46,7 +46,8 @@ def base_parser():
     parser.add_argument(
         '--additional-directory',
         action='store',
-        help='Additional path whose contents gets appended to the final image.')
+        help=
+        'Additional path whose contents gets appended to the final image.')
     parser.add_argument(
         '--cache-repository',
         action='store',
