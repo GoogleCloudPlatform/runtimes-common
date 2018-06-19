@@ -8,7 +8,7 @@ import util
 # Add directories for new tests here.
 TEST_DIRS = [
     'destination_test', 'metadata_test', 'lock_test',
-    'empty_descriptor_test', 'no_descriptor_test'
+    'empty_descriptor_test', 'no_descriptor_test', 'additional_directory'
 ]
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
@@ -39,6 +39,7 @@ def main():
     test_map['destination_test'].extend(['--destination', '/alternative-app'])
     test_map['metadata_test'].extend(['--entrypoint', '/bin/echo'])
     test_map['metadata_test'].extend(['--exposed-ports', '8090,8091'])
+    test_map['additional_directory'].extend(['--additional-directory', '/workspace/ftl/php/testdata/additional_directory'])
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(
             'php_builder_image', 'gcr.io/ftl-node-test/%s-image:latest' % test,
