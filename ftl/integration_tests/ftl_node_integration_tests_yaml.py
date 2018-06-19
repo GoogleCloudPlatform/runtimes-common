@@ -39,7 +39,10 @@ def main():
     test_map['destination_test'].extend(['--destination', '/alternative-app'])
     test_map['metadata_test'].extend(['--entrypoint', '/bin/echo'])
     test_map['metadata_test'].extend(['--exposed-ports', '8090,8091'])
-    test_map['additional_directory'].extend(['--additional-directory', '/workspace/ftl/node/testdata/additional_directory'])
+    test_map['additional_directory'].extend([
+        '--additional-directory',
+        '/workspace/ftl/node/testdata/additional_directory'
+    ])
 
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(

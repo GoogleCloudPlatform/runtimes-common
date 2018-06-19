@@ -41,7 +41,10 @@ def main():
     test_map['python3_test'].extend(['--python-cmd', 'python3.6'])
     test_map['python3_test'].extend(['--pip-cmd', 'python3.6 -m pip'])
     test_map['venv_dir_test'].extend(['--virtualenv-dir', '/alternate-env'])
-    test_map['additional_directory'].extend(['--additional-directory', '/workspace/ftl/python/testdata/additional_directory'])
+    test_map['additional_directory'].extend([
+        '--additional-directory',
+        '/workspace/ftl/python/testdata/additional_directory'
+    ])
 
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(
