@@ -117,7 +117,6 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             pkg_descriptor = ftl_util.descriptor_parser(
                 self._descriptor_files, self._ctx)
             self._pip_download_wheels(pkg_descriptor)
-
             whls = self._resolve_whls()
             pkg_dirs = [self._whl_to_fslayer(whl) for whl in whls]
 
