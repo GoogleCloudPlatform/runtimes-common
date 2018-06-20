@@ -114,6 +114,14 @@ class Python(builder.RuntimeBase):
             exposed_ports=self._args.exposed_ports)
         app.BuildLayer()
         lyr_imgs.append(app.GetImage())
+        if self._args.additional_directory:
+            additional_directory = base_builder.AppLayerBuilder(
+                directory=self._args.additional_directory,
+                destination_path=self._args.additional_directory,
+                entrypoint=self._args.entrypoint,
+                exposed_ports=self._args.exposed_ports)
+            additional_directory.BuildLayer()
+            lyr_imgs.append(additional_directory.GetImage())
         ftl_image = ftl_util.AppendLayersIntoImage(lyr_imgs)
         self.StoreImage(ftl_image)
 
