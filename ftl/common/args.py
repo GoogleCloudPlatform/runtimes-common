@@ -44,6 +44,11 @@ def base_parser():
         action='store',
         help='The path where the application data sits.')
     parser.add_argument(
+        '--additional-directory',
+        action='store',
+        help='Additional \
+        path whose contents gets appended to the final image.')
+    parser.add_argument(
         '--cache-repository',
         action='store',
         required=False,
@@ -107,6 +112,12 @@ def base_parser():
         dest='sh_c_prefix',
         action='store_true',
         default=False,
+        help='If sh -c should be prepended to the entrypoint')
+    parser.add_argument(
+        '--succeed-on-error',
+        dest='fail_on_error',
+        action='store_false',
+        default=True,
         help='If sh -c should be prepended to the entrypoint')
     parser.add_argument(
         '--exposed-ports',
