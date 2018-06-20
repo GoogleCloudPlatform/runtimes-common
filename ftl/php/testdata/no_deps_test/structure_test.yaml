@@ -1,0 +1,6 @@
+schemaVersion: '2.0.0'
+fileExistenceTests:
+- name: 'app files exist'
+  path: '/srv/app.php'
+  shouldExist: true
+  isDirectory: false

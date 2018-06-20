@@ -98,16 +98,14 @@ class Timing(object):
 
 
 def zip_dir_to_layer_sha(app_dir, destination_path, alter_symlinks=True):
+
     tar_dir = tempfile.mkdtemp()
 
     tar_path = tempfile.mktemp(suffix='.tar')
     txfrm_regex = 's,^,%s/,' % destination_path
     if alter_symlinks:
         txfrm_regex = 'flags=r;s,^,%s/,' % destination_path
-    tar_cmd = [
-        'tar', '-pcvf', tar_path, '--transform',
-        txfrm_regex, '.'
-    ]
+    tar_cmd = ['tar', '-pcvf', tar_path, '--transform', txfrm_regex, '.']
 
     run_command('tar_runtime_package', tar_cmd, cmd_cwd=app_dir)
 

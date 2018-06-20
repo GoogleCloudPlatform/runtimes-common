@@ -73,6 +73,7 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
         vendor_dir = os.path.join(app_dir, 'vendor')
         rm_cmd = ['rm', '-rf', vendor_dir]
         ftl_util.run_command('rm_vendor_dir', rm_cmd)
+        os.makedirs(os.path.join(vendor_dir))
 
         composer_install_cmd = [
             'composer', 'install', '--no-dev', '--no-progress', '--no-suggest',

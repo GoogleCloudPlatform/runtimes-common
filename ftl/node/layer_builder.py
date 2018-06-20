@@ -75,8 +75,10 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 self._check_gcp_build(
                     json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)),
                     app_dir)
-        rm_cmd = ['rm', '-rf', os.path.join(app_dir, 'node_modules')]
+        modules_dir = os.path.join(app_dir, "node_modules")
+        rm_cmd = ['rm', '-rf', modules_dir]
         ftl_util.run_command('rm_node_modules', rm_cmd)
+        os.makedirs(os.path.join(modules_dir))
 
         if not pkg_descriptor:
             npm_install_cmd = ['npm', 'install', '--production']
@@ -95,7 +97,6 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 cmd_cwd=app_dir,
                 err_type=ftl_error.FTLErrors.USER())
 
-        modules_dir = os.path.join(app_dir, "node_modules")
         module_destination = os.path.join(self._destination_path,
                                           'node_modules')
         return ftl_util.zip_dir_to_layer_sha(modules_dir, module_destination)
