@@ -134,16 +134,16 @@
         },
         {
             "name": "google/cloud-core",
-            "version": "v1.19.2",
+            "version": "v1.20.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/GoogleCloudPlatform/google-cloud-php-core.git",
-                "reference": "c0d71125f31400b09d1a1097e6c336f3e2908532"
+                "reference": "d0fd6f49c92737746de23ab15e226922dba35110"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/GoogleCloudPlatform/google-cloud-php-core/zipball/c0d71125f31400b09d1a1097e6c336f3e2908532",
-                "reference": "c0d71125f31400b09d1a1097e6c336f3e2908532",
+                "url": "https://api.github.com/repos/GoogleCloudPlatform/google-cloud-php-core/zipball/d0fd6f49c92737746de23ab15e226922dba35110",
+                "reference": "d0fd6f49c92737746de23ab15e226922dba35110",
                 "shasum": ""
             },
             "require": {
@@ -157,7 +157,7 @@
             },
             "require-dev": {
                 "erusev/parsedown": "^1.6",
-                "google/gax": "^0.31.1",
+                "google/gax": "^0.33",
                 "opis/closure": "^3",
                 "phpdocumentor/reflection": "^3.0",
                 "phpunit/phpunit": "^4.8|^5.0",
@@ -189,7 +189,7 @@
                 "Apache-2.0"
             ],
             "description": "Google Cloud PHP shared dependency, providing functionality useful to all components.",
-            "time": "2018-04-16T18:09:56+00:00"
+            "time": "2018-06-12T16:51:43+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",

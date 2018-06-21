@@ -1,0 +1,6 @@
+schemaVersion: '2.0.0'
+fileExistenceTests:
+- name: 'app files exists'
+  path: '/srv/app.js'
+  shouldExist: true
+  isDirectory: false
