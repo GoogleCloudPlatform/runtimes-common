@@ -132,7 +132,10 @@ def base_parser():
         default=(os.environ.get(constants.BUILDER_OUTPUT)
                  if os.environ.get(constants.BUILDER_OUTPUT) else None),
         help='The path to store FTL logs')
-
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=constants.FTL_VERSION)
     return parser
 
 
