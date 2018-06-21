@@ -1,5 +1,8 @@
 # FTL Release Notes
 
+# Version 0.6.2 - 6/21/2018
+* [PYTHON] Fixed issue where if composer.json or package.json had values but no dependencies, FTL would error [#690](https://github.com/GoogleCloudPlatform/runtimes-common/pull/690)
+
 # Version 0.6.1 - 6/12/2018
 * [PYTHON] Fixed issue where if a requirements.txt file had comments but no dependencies FTL would fail [#680](https://github.com/GoogleCloudPlatform/runtimes-common/pull/680)
 
