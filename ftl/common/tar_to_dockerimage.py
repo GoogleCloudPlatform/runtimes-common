@@ -182,7 +182,6 @@ class FromFSImage(docker_image.DockerImage):
     def uncompressed_layer(self, diff_id):
         """Same as layer() but uncompressed."""
         return self._diff_id_to_u_layer[diff_id]
-        # return self.uncompressed_blob(self._diff_id_to_digest(diff_id))
 
     def __enter__(self):
         """Open the image for reading."""
