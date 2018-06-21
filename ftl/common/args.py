@@ -20,13 +20,18 @@ from ftl.common import constants
 from ftl.common import logger
 
 
+def version_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--version', action='version', version=constants.FTL_VERSION)
+    return parser
+
+
 def base_parser():
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        '--base',
-        action='store',
-        help=('The name of the docker base image.'))
+        '--base', action='store', help=('The name of the docker base image.'))
     group.add_argument(
         '--tar_base_image_path',
         dest='tar_base_image_path',
@@ -132,10 +137,6 @@ def base_parser():
         default=(os.environ.get(constants.BUILDER_OUTPUT)
                  if os.environ.get(constants.BUILDER_OUTPUT) else None),
         help='The path to store FTL logs')
-    parser.add_argument(
-        '--version',
-        action='version',
-        version=constants.FTL_VERSION)
     return parser
 
 
