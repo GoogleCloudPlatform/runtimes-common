@@ -26,6 +26,7 @@ from ftl.common import ftl_error
 
 from ftl.node import builder as node_builder
 
+version = args.version_parser()
 parser = args.base_parser()
 node_parser = argparse.ArgumentParser(
     add_help=False,
@@ -36,6 +37,7 @@ args.extra_args(node_parser, args.node_flgs)
 
 def main(cli_args):
     try:
+        version.parse_known_args(cli_args)
         builder_args = node_parser.parse_args(cli_args)
         logger.setup_logging(builder_args)
         logger.preamble("node", builder_args)

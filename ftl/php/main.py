@@ -26,6 +26,7 @@ from ftl.common import ftl_error
 
 from ftl.php import builder as php_builder
 
+version = args.version_parser()
 parser = args.base_parser()
 php_parser = argparse.ArgumentParser(
     add_help=False,
@@ -36,6 +37,7 @@ args.extra_args(php_parser, args.php_flgs)
 
 def main(cli_args):
     try:
+        version.parse_known_args(cli_args)
         builder_args = php_parser.parse_args(cli_args)
         logger.setup_logging(builder_args)
         logger.preamble("php", builder_args)
