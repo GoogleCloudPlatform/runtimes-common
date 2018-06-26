@@ -20,6 +20,7 @@ type Package struct {
 	Gpg     string
 	Sha1    string
 	Sha256  string
+	Sha512  string
 	Md5     string
 }
 
