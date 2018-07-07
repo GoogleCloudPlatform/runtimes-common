@@ -1,6 +1,7 @@
 # FTL Release Notes
 
 # Version 0.6.2 - 6/21/2018
+* Added --additional-directory flag which allows additional folders to be added to an FTL image [#689](https://github.com/GoogleCloudPlatform/runtimes-common/pull/689)
 * [NODE, PHP] Fixed issue where if composer.json or package.json had values but no dependencies, FTL would error [#690](https://github.com/GoogleCloudPlatform/runtimes-common/pull/690)
 
 # Version 0.6.1 - 6/12/2018
