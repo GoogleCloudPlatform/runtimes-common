@@ -1,0 +1,26 @@
+{
+	".DS_Store": {
+		"sourceUrl": "https://storage.googleapis.com/staging.steren-test.appspot.com/df2fbeb1400acda0909a32c1cf6bf492f1121e07",
+		"sha1Sum": "df2fbeb1_400acda0_909a32c1_cf6bf492_f1121e07"
+	},
+	"Dockerfile": {
+		"sourceUrl": "https://storage.googleapis.com/staging.steren-test.appspot.com/ccbc703b67e647b5a6053aeead895e09d2636cd5",
+		"sha1Sum": "ccbc703b_67e647b5_a6053aee_ad895e09_d2636cd5"
+	},
+	"app.yaml": {
+		"sourceUrl": "https://storage.googleapis.com/staging.steren-test.appspot.com/bdfd0f4c28c756dc930ea6ff880a095ea984d867",
+		"sha1Sum": "bdfd0f4c_28c756dc_930ea6ff_880a095e_a984d867"
+	},
+	"index.js": {
+		"sourceUrl": "https://storage.googleapis.com/staging.steren-test.appspot.com/c2e382582ac76780e91d1fe6ed58f151c4249357",
+		"sha1Sum": "c2e38258_2ac76780_e91d1fe6_ed58f151_c4249357"
+	},
+	"package-lock.json": {
+		"sourceUrl": "https://storage.googleapis.com/staging.steren-test.appspot.com/ba2279b935ac32318d22cc9dd9a1a8fbb6ad2660",
+		"sha1Sum": "ba2279b9_35ac3231_8d22cc9d_d9a1a8fb_b6ad2660"
+	},
+	"package.json": {
+		"sourceUrl": "https://storage.googleapis.com/staging.steren-test.appspot.com/e67e38fb6719e1019bbd5650110d14d4a95aa7fb",
+		"sha1Sum": "e67e38fb_6719e101_9bbd5650_110d14d4_a95aa7fb"
+	}
+}

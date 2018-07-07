@@ -13,7 +13,7 @@
 # limitations under the License.
 """This package defines the interface for orchestrating image builds."""
 
-import logging
+import os
 
 from ftl.common import builder
 from ftl.common import constants
@@ -31,8 +31,14 @@ class PHP(builder.RuntimeBase):
     def Build(self):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
+        # delete any existing files in vendor folder
+        if self._args.directory:
+            vendor_dir = os.path.join(self._args.directory, 'vendor')
+            rm_cmd = ['rm', '-rf', vendor_dir]
+            ftl_util.run_command('rm_vendor_dir', rm_cmd)
+            os.makedirs(os.path.join(vendor_dir))
+
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
-            logging.info('Building package layer')
             layer_builder = php_builder.PhaseOneLayerBuilder(
                 ctx=self._ctx,
                 descriptor_files=self._descriptor_files,

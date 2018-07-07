@@ -1,0 +1,2 @@
+service: func-to-app
+runtime: nodejs8

@@ -59,6 +59,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         else:
             with ftl_util.Timing('building_packages_json_layer'):
                 self._build_layer()
+                self._cleanup_build_layer()
             if self._cache:
                 with ftl_util.Timing('uploading_packages_json_layer'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
@@ -69,16 +70,18 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                    self._generate_overrides())
 
+    def _cleanup_build_layer(self):
+        if self._directory:
+            modules_dir = os.path.join(self._directory, "node_modules")
+            rm_cmd = ['rm', '-rf', modules_dir]
+            ftl_util.run_command('rm_node_modules', rm_cmd)
+
     def _gen_npm_install_tar(self, pkg_descriptor, app_dir):
         if self._ctx:
             if self._ctx.Contains(constants.PACKAGE_JSON):
                 self._check_gcp_build(
                     json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)),
                     app_dir)
-        modules_dir = os.path.join(app_dir, "node_modules")
-        rm_cmd = ['rm', '-rf', modules_dir]
-        ftl_util.run_command('rm_node_modules', rm_cmd)
-        os.makedirs(os.path.join(modules_dir))
 
         if not pkg_descriptor:
             npm_install_cmd = ['npm', 'install', '--production']
@@ -99,6 +102,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
 
         module_destination = os.path.join(self._destination_path,
                                           'node_modules')
+        modules_dir = os.path.join(self._directory, "node_modules")
         return ftl_util.zip_dir_to_layer_sha(modules_dir, module_destination)
 
     def _generate_overrides(self):
