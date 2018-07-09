@@ -6,14 +6,11 @@ import yaml
 import util
 
 # Add directories for new tests here.
-# TEST_DIRS = [
-#     'gcp_build_test', 'packages_test', 'packages_lock_test',
-#     'destination_test', 'metadata_test', 'npmrc_test', 'file_test',
-#     'empty_descriptor_test', 'no_descriptor_test',
-#     'no_deps_test', 'additional_directory', 'function_to_app_test'
-# ]
 TEST_DIRS = [
-    'gcp_build_test'
+    'gcp_build_test', 'packages_test', 'packages_lock_test',
+    'destination_test', 'metadata_test', 'npmrc_test', 'file_test',
+    'empty_descriptor_test', 'no_descriptor_test',
+    'no_deps_test', 'additional_directory', 'function_to_app_test'
 ]
 
 _TEST_DIR = '/workspace/ftl/node/testdata'
@@ -40,13 +37,13 @@ def main():
             'gcr.io/ftl-node-test/%s-image' % test, '--directory',
             os.path.join(_TEST_DIR, test), '--no-cache'
         ]
-    # test_map['destination_test'].extend(['--destination', '/alternative-app'])
-    # test_map['metadata_test'].extend(['--entrypoint', '/bin/echo'])
-    # test_map['metadata_test'].extend(['--exposed-ports', '8090,8091'])
-    # test_map['additional_directory'].extend([
-    #     '--additional-directory',
-    #     '/workspace/ftl/node/testdata/additional_directory'
-    # ])
+    test_map['destination_test'].extend(['--destination', '/alternative-app'])
+    test_map['metadata_test'].extend(['--entrypoint', '/bin/echo'])
+    test_map['metadata_test'].extend(['--exposed-ports', '8090,8091'])
+    test_map['additional_directory'].extend([
+        '--additional-directory',
+        '/workspace/ftl/node/testdata/additional_directory'
+    ])
 
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(

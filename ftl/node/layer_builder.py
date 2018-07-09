@@ -71,7 +71,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                                                    self._generate_overrides())
 
     def _cleanup_build_layer(self):
-        if self.directory:
+        if self._directory:
             modules_dir = os.path.join(self._directory, "node_modules")
             rm_cmd = ['rm', '-rf', modules_dir]
             ftl_util.run_command('rm_node_modules', rm_cmd)
@@ -80,11 +80,10 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         is_gcp_build = False
         if self._ctx and self._ctx.Contains(constants.PACKAGE_JSON):
             is_gcp_build = self._is_gcp_build(
-                json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)),
-                app_dir)
+                json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)))
 
         if is_gcp_build:
-            _gcp_build(app_dir)
+            self._gcp_build(app_dir)
         else:
             npm_install_cmd = ['npm', 'install', '--production']
             ftl_util.run_command(
@@ -110,7 +109,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             return True
         return False
 
-    def _gcp_build(app_dir)
+    def _gcp_build(self, app_dir):
         env = os.environ.copy()
         env["NODE_ENV"] = "development"
         npm_install_cmd = ['npm', 'install']
