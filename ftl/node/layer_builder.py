@@ -71,29 +71,22 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                                                    self._generate_overrides())
 
     def _cleanup_build_layer(self):
-        if self._directory:
+        if self.directory:
             modules_dir = os.path.join(self._directory, "node_modules")
             rm_cmd = ['rm', '-rf', modules_dir]
             ftl_util.run_command('rm_node_modules', rm_cmd)
 
     def _gen_npm_install_tar(self, pkg_descriptor, app_dir):
-        if self._ctx:
-            if self._ctx.Contains(constants.PACKAGE_JSON):
-                self._check_gcp_build(
-                    json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)),
-                    app_dir)
+        is_gcp_build = False
+        if self._ctx and self._ctx.Contains(constants.PACKAGE_JSON):
+            is_gcp_build = self._is_gcp_build(
+                json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)),
+                app_dir)
 
-        if not pkg_descriptor:
-            npm_install_cmd = ['npm', 'install', '--production']
-            ftl_util.run_command(
-                'npm_install',
-                npm_install_cmd,
-                cmd_cwd=app_dir,
-                err_type=ftl_error.FTLErrors.USER())
+        if is_gcp_build:
+            _gcp_build(app_dir)
         else:
-            npm_install_cmd = [
-                'npm', 'install', '--production', pkg_descriptor
-            ]
+            npm_install_cmd = ['npm', 'install', '--production']
             ftl_util.run_command(
                 'npm_install',
                 npm_install_cmd,
@@ -111,13 +104,13 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         }
         return overrides_dct
 
-    def _check_gcp_build(self, package_json, app_dir):
+    def _is_gcp_build(self, package_json):
         scripts = package_json.get('scripts', {})
-        gcp_build = scripts.get('gcp-build')
+        if scripts.get('gcp-build'):
+            return True
+        return False
 
-        if not gcp_build:
-            return
-
+    def _gcp_build(app_dir)
         env = os.environ.copy()
         env["NODE_ENV"] = "development"
         npm_install_cmd = ['npm', 'install']
