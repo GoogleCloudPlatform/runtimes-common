@@ -1,0 +1,9 @@
+{
+    "name": "user-function",
+    "scripts": {
+        "start": "func hello"
+    },
+    "dependencies": {
+        "function-to-app": "0.0.1"
+    }
+}

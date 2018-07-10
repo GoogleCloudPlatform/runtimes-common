@@ -58,6 +58,7 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
         else:
             with ftl_util.Timing('building_composer_json_layer'):
                 self._build_layer()
+                self._cleanup_build_layer()
             if self._cache:
                 with ftl_util.Timing('uploading_composer_json_layer'):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
@@ -69,12 +70,13 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                    overrides_dct)
 
-    def _gen_composer_install_tar(self, app_dir, destination_path):
-        vendor_dir = os.path.join(app_dir, 'vendor')
-        rm_cmd = ['rm', '-rf', vendor_dir]
-        ftl_util.run_command('rm_vendor_dir', rm_cmd)
-        os.makedirs(os.path.join(vendor_dir))
+    def _cleanup_build_layer(self):
+        if self._directory:
+            vendor_dir = os.path.join(self._directory, 'vendor')
+            rm_cmd = ['rm', '-rf', vendor_dir]
+            ftl_util.run_command('rm_vendor_dir', rm_cmd)
 
+    def _gen_composer_install_tar(self, app_dir, destination_path):
         composer_install_cmd = [
             'composer', 'install', '--no-dev', '--no-progress', '--no-suggest',
             '--no-interaction'
@@ -86,6 +88,7 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
             cmd_env=php_util.gen_composer_env(),
             err_type=ftl_error.FTLErrors.USER())
 
+        vendor_dir = os.path.join(self._directory, 'vendor')
         vendor_destination = os.path.join(destination_path, 'vendor')
         return ftl_util.zip_dir_to_layer_sha(vendor_dir, vendor_destination)
 

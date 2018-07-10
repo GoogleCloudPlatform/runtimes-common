@@ -13,6 +13,8 @@
 # limitations under the License.
 """This package defines the interface for orchestrating image builds."""
 
+import os
+
 from ftl.common import builder
 from ftl.common import constants
 from ftl.common import ftl_util
@@ -29,6 +31,13 @@ class Node(builder.RuntimeBase):
     def Build(self):
         lyr_imgs = []
         lyr_imgs.append(self._base_image)
+        # delete any existing files in node_modules folder
+        if self._args.directory:
+            modules_dir = os.path.join(self._args.directory, "node_modules")
+            rm_cmd = ['rm', '-rf', modules_dir]
+            ftl_util.run_command('rm_node_modules', rm_cmd)
+            os.makedirs(os.path.join(modules_dir))
+
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             layer_builder = node_builder.LayerBuilder(
                 ctx=self._ctx,
