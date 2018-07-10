@@ -1,5 +1,9 @@
 # FTL Release Notes
 
+# Version 0.7.0 - 7/9/2018
+* [NODE, PHP] Fixed bug in FTL where dep files (node_modules, vendor) would be added in two layers instead of one as intended which lead to permissions and app errors [#697](https://github.com/GoogleCloudPlatform/runtimes-common/pull/697)
+* Added --version flag to FTl which outputs the FTL version to stdout [#692](https://github.com/GoogleCloudPlatform/runtimes-common/pull/692)
+
 # Version 0.6.2 - 6/21/2018
 * Added --additional-directory flag which allows additional folders to be added to an FTL image [#689](https://github.com/GoogleCloudPlatform/runtimes-common/pull/689)
 * [NODE, PHP] Fixed issue where if composer.json or package.json had values but no dependencies, FTL would error [#690](https://github.com/GoogleCloudPlatform/runtimes-common/pull/690)
