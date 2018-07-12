@@ -23,7 +23,8 @@ bazel build docgen/scripts/docgen:docgen
 - Set the path to the built scripts:
 
 ``` shell
-export PATH=$PATH:$PWD/bazel-bin/docgen/scripts
+BAZEL_ARCH=linux_amd64_stripped
+export PATH=$PATH:$PWD/bazel-bin/docgen/scripts/docgen/${BAZEL_ARCH}/
 ```
 
 - Example:
