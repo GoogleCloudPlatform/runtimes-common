@@ -3,7 +3,6 @@
 Checks the build date of the image marked as latest for a repository and fails
 if it's over two weeks old."""
 
-import datetime
 import glob
 import json
 import logging
@@ -26,17 +25,15 @@ runtime_to_version_check = {
     "java": "sudo apt-get -qq install {0}; apt-cache show {0} | grep \"Version:\" | awk '{{ print $2 }}'"
 }
 
+
 class VersionCheckTest(unittest.TestCase):
 
     def _get_latest_version(self, runtime, version):
-      cmd = runtime_to_version_check.get(runtime).format(version.replace('.', '\\.'))
-      print cmd
-      versions = subprocess.check_output(cmd, shell=True)
-      version_array = versions.rstrip().split("\n")
-      print version_array
-      version_array.sort(key=LooseVersion)
-      print version_array
-      return version_array[-1]
+        cmd = runtime_to_version_check.get(runtime).format(version.replace('.', '\\.'))
+        versions = subprocess.check_output(cmd, shell=True)
+        version_array = versions.rstrip().split("\n")
+        version_array.sort(key=LooseVersion)
+        return version_array[-1]
 
     def test_latest_version(self):
         old_images = []
@@ -47,25 +44,26 @@ class VersionCheckTest(unittest.TestCase):
                 for project in data['projects']:
                     logging.debug('Checking {}'.format(project['repository']))
                     for image in project['images']:
-                      if 'version' in image:
-                        runtime = os.path.basename(f)
-                        current_version = image['version']
-                        version_to_pass = current_version.rsplit('.', 1)[0]
-                        if 'apt_version' in image:
-                          version_to_pass = image['apt_version']
-                        latest_version = self._get_latest_version(os.path.splitext(runtime)[0], version_to_pass)
-                        logging.debug("Current version: {0}, Latest Version: {1}".format(current_version, latest_version))
-                        if latest_version != current_version:
-                          entry = {
-                              "image": project['repository'] + ":" + image['tag'],
-                              "current_version": current_version,
-                              "latest_version": latest_version
-                          }
-                          old_images.append(entry)
+                        if 'version' in image:
+                            runtime = os.path.basename(f)
+                            current_version = image['version']
+                            version_to_pass = current_version.rsplit('.', 1)[0]
+                            if 'apt_version' in image:
+                                version_to_pass = image['apt_version']
+                            latest_version = self._get_latest_version(os.path.splitext(runtime)[0], version_to_pass)
+                            logging.debug("Current version: {0}, Latest Version: {1}".format(current_version, latest_version))
+                            if latest_version != current_version:
+                                entry = {
+                                    "image": project['repository'] + ":" + image['tag'],
+                                    "current_version": current_version,
+                                    "latest_version": latest_version
+                                }
+                                old_images.append(entry)
 
         if len(old_images) > 0:
-          self.fail(('The following repos have a latest tag that is '
-                     'too old: {0}. '.format(str(old_images))))
+            self.fail(('The following repos have a latest tag that is '
+                       'too old: {0}. '.format(str(old_images))))
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
