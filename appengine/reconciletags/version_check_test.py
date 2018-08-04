@@ -10,7 +10,7 @@ import os
 import subprocess
 import unittest
 
-# This is the only way to import StrictVersion that will actually work
+# This is the only way to import LooseVersion that will actually work
 from distutils.version import LooseVersion
 
 runtime_to_version_check = {
