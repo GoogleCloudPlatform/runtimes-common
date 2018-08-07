@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import json
 import logging
 
 from ftl.common import constants
@@ -41,8 +42,12 @@ class InternalError(Exception):
 def UserErrorHandler(err, path, fail_on_error):
     logging.error(err)
     if path:
+        resp = {
+            'code': 1,
+            'type': constants.FTL_USER_ERROR,
+            'message': str(err)}
         with open(os.path.join(path, constants.BUILDER_OUTPUT_FILE), "w") as f:
-            f.write("USER ERROR:\n%s" % str(err))
+            f.write(json.dumps(resp))
     if fail_on_error:
         exit(1)
     else:
@@ -52,8 +57,12 @@ def UserErrorHandler(err, path, fail_on_error):
 def InternalErrorHandler(err, path, fail_on_error):
     logging.error(err)
     if path:
+        resp = {
+            'code': 1,
+            'type': constants.FTL_INTERNAL_ERROR,
+            'message': str(err)}
         with open(os.path.join(path, constants.BUILDER_OUTPUT_FILE), "w") as f:
-            f.write("INTERNAL ERROR:\n%s" % str(err))
+            f.write(json.dumps(resp))
     if fail_on_error:
         exit(1)
     else:
