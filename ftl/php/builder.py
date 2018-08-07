@@ -42,8 +42,9 @@ class PHP(builder.RuntimeBase):
             layer_builder = php_builder.PhaseOneLayerBuilder(
                 ctx=self._ctx,
                 descriptor_files=self._descriptor_files,
-                destination_path=self._args.destination_path,
                 directory=self._args.directory,
+                destination_path=self._args.destination_path,
+                cache_key_version=self._args.cache_key_version,
                 cache=self._cache)
             layer_builder.BuildLayer()
             lyr_imgs.append(layer_builder.GetImage())

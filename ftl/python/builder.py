@@ -64,6 +64,7 @@ class Python(builder.RuntimeBase):
             venv_dir=self._venv_dir,
             python_cmd=self._python_cmd,
             venv_cmd=self._venv_cmd,
+            cache_key_version=self._args.cache_key_version,
             cache=self._cache)
         interpreter_builder.BuildLayer()
         lyr_imgs.append(interpreter_builder.GetImage())
@@ -102,6 +103,7 @@ class Python(builder.RuntimeBase):
                     pip_cmd=self._pip_cmd,
                     venv_cmd=self._venv_cmd,
                     dep_img_lyr=interpreter_builder,
+                    cache_key_version=self._args.cache_key_version,
                     cache=self._cache)
                 req_txt_builder.BuildLayer()
                 if req_txt_builder.GetImage():
@@ -137,6 +139,7 @@ class Python(builder.RuntimeBase):
             pip_cmd=self._pip_cmd,
             venv_cmd=self._venv_cmd,
             dep_img_lyr=interpreter_builder,
+            cache_key_version=self._args.cache_key_version,
             cache=self._cache)
         pipfile_builder.BuildLayer()
         lyr_imgs.append(pipfile_builder.GetImage())

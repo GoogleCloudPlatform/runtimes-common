@@ -17,8 +17,6 @@ building individual image layers."""
 import abc
 import hashlib
 
-from ftl.common import constants
-
 
 class BaseLayerBuilder(object):
     """BaseLayerBuilder is an abstract base class representing
@@ -59,9 +57,7 @@ class CacheableLayerBuilder(BaseLayerBuilder):
         """
 
     def GetCacheKey(self):
-        fingerprint = "%s %s" % (self.GetCacheKeyRaw(),
-                                 constants.CACHE_KEY_VERSION)
-        return hashlib.sha256(fingerprint).hexdigest()
+        return hashlib.sha256(self.GetCacheKeyRaw()).hexdigest()
 
     @abc.abstractmethod
     def BuildLayer(self):

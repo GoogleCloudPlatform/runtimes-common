@@ -34,16 +34,19 @@ class PackageLayerBuilder(single_layer_image.CacheableLayerBuilder):
                  descriptor_files=None,
                  pkg_dir=None,
                  dep_img_lyr=None,
+                 cache_key_version=None,
                  cache=None):
         super(PackageLayerBuilder, self).__init__()
         self._ctx = ctx
         self._pkg_dir = pkg_dir
         self._descriptor_files = descriptor_files
         self._dep_img_lyr = dep_img_lyr
+        self._cache_key_version = cache_key_version
         self._cache = cache
 
     def GetCacheKeyRaw(self):
-        return ""
+        cache_key = ""
+        return "%s %s" % (cache_key, self._cache_key_version)
 
     def BuildLayer(self):
         with ftl_util.Timing('building_python_pkg_layer'):
@@ -76,6 +79,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
                  directory=None,
                  pkg_dir=None,
                  dep_img_lyr=None,
+                 cache_key_version=None,
                  wheel_dir=constants.WHEEL_DIR,
                  venv_dir=constants.VENV_DIR,
                  python_cmd=[constants.PYTHON_DEFAULT_CMD],
@@ -93,13 +97,15 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._descriptor_files = descriptor_files
         self._directory = directory
         self._dep_img_lyr = dep_img_lyr
+        self._cache_key_version = cache_key_version
         self._cache = cache
 
     def GetCacheKeyRaw(self):
         descriptor_contents = ftl_util.descriptor_parser(
             self._descriptor_files, self._ctx)
-        return '%s %s' % (descriptor_contents,
-                          self._dep_img_lyr.GetCacheKeyRaw())
+        cache_key = '%s %s' % (descriptor_contents,
+                               self._dep_img_lyr.GetCacheKeyRaw())
+        return "%s %s" % (cache_key, self._cache_key_version)
 
     def BuildLayer(self):
         cached_img = None
@@ -148,6 +154,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
             descriptor_files=self._descriptor_files,
             pkg_dir=whl_pkg_dir,
             dep_img_lyr=self._dep_img_lyr,
+            cache_key_version=self._cache_key_version,
             cache=self._cache)
         layer_builder.BuildLayer()
         req_txt_imgs.append(layer_builder.GetImage())
@@ -213,6 +220,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
                  pkg_descriptor=None,
                  pkg_dir=None,
                  dep_img_lyr=None,
+                 cache_key_version=None,
                  wheel_dir=constants.WHEEL_DIR,
                  venv_dir=constants.VENV_DIR,
                  python_cmd=[constants.PYTHON_DEFAULT_CMD],
@@ -230,12 +238,15 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
         self._descriptor_files = descriptor_files
         self._directory = directory
         self._dep_img_lyr = dep_img_lyr
+        self._cache_key_version = cache_key_version
         self._cache = cache
         self._pkg_descriptor = pkg_descriptor
 
     def GetCacheKeyRaw(self):
-        return "%s %s %s" % (self._pkg_descriptor[0], self._pkg_descriptor[1],
-                             self._dep_img_lyr.GetCacheKeyRaw())
+        cache_key = "%s %s %s" % (self._pkg_descriptor[0],
+                                  self._pkg_descriptor[1],
+                                  self._dep_img_lyr.GetCacheKeyRaw())
+        return "%s %s" % (cache_key, self._cache_key_version)
 
     def _log_cache_result(self, hit):
         if hit:
@@ -293,16 +304,19 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
                  venv_dir=constants.VENV_DIR,
                  python_cmd=[constants.PYTHON_DEFAULT_CMD],
                  venv_cmd=[constants.VENV_DEFAULT_CMD],
+                 cache_key_version=None,
                  cache=None):
         super(InterpreterLayerBuilder, self).__init__()
         self._venv_dir = venv_dir
         self._python_cmd = python_cmd
         self._venv_cmd = venv_cmd
+        self._cache_key_version = cache_key_version
         self._cache = cache
 
     def GetCacheKeyRaw(self):
-        return '%s %s %s' % (self._python_version(), self._venv_cmd,
-                             self._venv_dir)
+        cache_key = '%s %s %s' % (self._python_version(), self._venv_cmd,
+                                  self._venv_dir)
+        return "%s %s" % (cache_key, self._cache_key_version)
 
     def _python_version(self):
         with ftl_util.Timing('check python version'):
