@@ -59,6 +59,12 @@ def base_parser():
         required=False,
         help=('The name of the repository to use as the root for the cache.'))
     parser.add_argument(
+        '--cache-key-version',
+        action='store',
+        required=False,
+        default=constants.CACHE_KEY_VERSION,
+        help=('A version value added to every cache key used by FTL'))
+    parser.add_argument(
         '--no-cache',
         dest='cache',
         action='store_false',

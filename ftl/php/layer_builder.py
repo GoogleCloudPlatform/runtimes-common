@@ -31,19 +31,22 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
                  ctx=None,
                  descriptor_files=None,
                  destination_path=constants.DEFAULT_DESTINATION_PATH,
+                 cache_key_version=None,
                  directory=None,
                  cache=None):
         super(PhaseOneLayerBuilder, self).__init__()
         self._ctx = ctx
         self._descriptor_files = descriptor_files
         self._destination_path = destination_path
+        self._cache_key_version = cache_key_version
         self._directory = directory
         self._cache = cache
 
     def GetCacheKeyRaw(self):
-        return "%s %s" % (
+        cache_key = "%s %s" % (
             ftl_util.descriptor_parser(self._descriptor_files, self._ctx),
             self._destination_path)
+        return "%s %s" % (cache_key, self._cache_key_version)
 
     def BuildLayer(self):
         """Override."""

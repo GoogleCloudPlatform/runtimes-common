@@ -44,6 +44,7 @@ class Node(builder.RuntimeBase):
                 descriptor_files=self._descriptor_files,
                 directory=self._args.directory,
                 destination_path=self._args.destination_path,
+                cache_key_version=self._args.cache_key_version,
                 cache=self._cache)
             layer_builder.BuildLayer()
             lyr_imgs.append(layer_builder.GetImage())

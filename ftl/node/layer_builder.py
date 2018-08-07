@@ -32,6 +32,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                  pkg_descriptor=None,
                  directory=None,
                  destination_path=constants.DEFAULT_DESTINATION_PATH,
+                 cache_key_version=None,
                  cache=None):
         super(LayerBuilder, self).__init__()
         self._ctx = ctx
@@ -39,12 +40,14 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._pkg_descriptor = pkg_descriptor
         self._directory = directory
         self._destination_path = destination_path
+        self._cache_key_version = cache_key_version
         self._cache = cache
 
     def GetCacheKeyRaw(self):
         all_descriptor_contents = ftl_util.all_descriptor_contents(
             self._descriptor_files, self._ctx)
-        return '%s %s' % (all_descriptor_contents, self._destination_path)
+        cache_key = '%s %s' % (all_descriptor_contents, self._destination_path)
+        return "%s %s" % (cache_key, self._cache_key_version)
 
     def BuildLayer(self):
         """Override."""
