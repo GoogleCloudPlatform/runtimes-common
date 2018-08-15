@@ -83,6 +83,8 @@ class RuntimeBase(JustApp):
                 args.entrypoint = ['bash', '-c', " ".join(args.entrypoint)]
         if args.exposed_ports:
             args.exposed_ports = args.exposed_ports.split(",")
+        args.cache_key_version = "%s %s" % (args.cache_key_version,
+                                            args.cache_salt)
         self._args = args
         self._base_name = docker_name.Tag(self._args.base, strict=False)
         self._base_creds = docker_creds.DefaultKeychain.Resolve(
