@@ -17,7 +17,7 @@ See below for a list of the tools contained here.
 * [Integration Tests](./integration_tests/) - A set of tools for testing the functionality of language-based application containers on GCP.
 * [reconciletags](./appengine/reconciletags/) - A source-based workflow tool for managing the tags on container images in GCR.
 * [runtime_builders](./appengine/runtime_builders) - A tool for releasing sets of container images.
-* [check_if_image_tag_exists](./appengine/check_if_image_tag_exists/) - A Container Builder step to help prevent overwriting images.
+* [check_if_image_tag_exists](./appengine/check_if_image_tag_exists/) - A Cloud Build step to help prevent overwriting images.
 * [containerregistry testing](./testing/) - A Python library for testing containerregistry.
 
 ## Developing
