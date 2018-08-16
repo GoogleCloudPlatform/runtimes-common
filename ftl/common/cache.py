@@ -23,6 +23,7 @@ from containerregistry.client import docker_name
 from containerregistry.client import docker_creds
 from containerregistry.client.v2_2 import docker_image
 from containerregistry.client.v2_2 import docker_session
+from containerregistry.client.v2_2 import docker_http
 
 from ftl.common import ftl_util
 
@@ -112,11 +113,17 @@ class Registry(Base):
         hit = self._getEntry(cache_key)
         if hit:
             logging.info('Found cached dependency layer for %s' % cache_key)
-            if Registry.checkTTL(hit, self._ttl):
-                return hit
-            else:
-                logging.info(
-                    'TTL expired for cached image, rebuilding %s' % cache_key)
+            try:
+                if Registry.checkTTL(hit, self._ttl):
+                    return hit
+                else:
+                    logging.info(
+                        'TTL expired for cached image, \
+                        rebuilding %s' % cache_key)
+            except docker_http.V2DiagnosticException:
+                logging.info('Fetching cached dep layer for %s failed, \
+                             rebuilding' % cache_key)
+                return
         else:
             logging.info('No cached dependency layer for %s' % cache_key)
 
