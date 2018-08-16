@@ -100,14 +100,14 @@ class VersionCheckTest(unittest.TestCase):
                 for project in data['projects']:
                     logging.debug('Checking {}'.format(project['repository']))
                     for image in project['images']:
-                        if 'version' in image:
+                        if 'check_version' in image:
                             runtime = os.path.basename(f)
                             runtime = os.path.splitext(runtime)[0]
                             img_name = os.path.join(project['base_registry'],
                                                     project['repository'] +
                                                     ':' + image['tag'])
-                            c_version = image['version']
-                            if image['version'] == 'true':
+                            c_version = image['check_version']
+                            if c_version == 'true':
                                 c_version = self._get_current_version(runtime,
                                                                       project,
                                                                       img_name)
