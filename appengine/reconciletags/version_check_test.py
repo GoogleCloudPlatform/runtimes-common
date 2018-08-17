@@ -52,7 +52,6 @@ runtime_to_current_version = {
 }
 
 
-
 class VersionCheckTest(unittest.TestCase):
     def filter_node(s):
         return s.lstrip('v').rstrip()
@@ -67,16 +66,19 @@ class VersionCheckTest(unittest.TestCase):
         return s.split()[1]
 
     def filter_debian(s):
-        return [x for x in s.split('\n') if 'Description:' in x][0].split('\t')[1].split()[2].rstrip()
+        return ([x for x in s.split('\n') if 'Description:' in x][0]
+                .split('\t')[1].split()[2].rstrip())
 
     def filter_ubuntu(s):
-        return [x for x in s.split('\n') if 'Description:' in x][0].split('\t')[1].split()[1].rstrip()
+        return ([x for x in s.split('\n') if 'Description:' in x][0]
+                .split('\t')[1].split()[1].rstrip())
 
     def filter_aspnetcore(s):
         return [x for x in s.split('\n') if 'Version:' in x][2].split()[1]
 
     def filter_java(s):
-        return [x for x in s.split('\n') if 'OpenJDK Runtime' in x][0].split()[4].split('-', 1)[1].rsplit('-', 1)[0]
+        return ([x for x in s.split('\n') if 'OpenJDK Runtime' in x][0]
+                .split()[4].split('-', 1)[1].rsplit('-', 1)[0])
 
     def filter_go(s):
         return s.rstrip()
