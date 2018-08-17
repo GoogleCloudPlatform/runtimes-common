@@ -23,7 +23,7 @@ runtime_to_latest_version = {
                "| egrep -o \"Ubuntu {}\\.[0-9]\" | sort | uniq"
                "| awk '{{print $2}}'"),
     "ruby": ("curl -L https://www.ruby-lang.org/en/downloads/releases/"
-             "| egrep -o \"Ruby {}\\.[0-9]\" | sort | uniq"
+             "| egrep -o \"Ruby {}\\.[0-9]\" | sort | uniq "
              "| awk '{{ print $2 }}'"),
     "python": ("curl -L https://www.python.org/ftp/python/"
                "| egrep -o \"{}\\.[0-9]+\" | sort | uniq"),
@@ -51,21 +51,47 @@ runtime_to_current_version = {
     "go1-builder": "echo $GO_VERSION"
 }
 
-runtime_to_filter = {
-    "debian": "| grep \"Description:\" | awk '{{ print $4 }}'",
-    "ubuntu": "| grep \"Description:\" | awk '{{ print $3 }}'",
-    "php": "| grep \"(cli)\" | awk '{{ print $2 }}'",
-    "nodejs": "| cut -c 2-",
-    "python": "| awk '{{ print $2 }}'",
-    "java": ("| grep \"OpenJDK Runtime\" | awk '{{ print $5 }}'"
-             "| cut -d'-' -f 2- | cut -d'-' -f -3"),
-    "ruby": "| awk '{{ print $2 }}' | cut -c -5",
-    "aspnetcore": ("| grep \"^\s*Version: [0-9]\.[0-9]\.[0-9]\""
-                   "| awk '{{ print $2 }}'")
-}
 
 
 class VersionCheckTest(unittest.TestCase):
+    def filter_node(s):
+        return s.lstrip('v').rstrip()
+
+    def filter_python(s):
+        return s.split()[1]
+
+    def filter_ruby(s):
+        return s.split()[1][:-4]
+
+    def filter_php(s):
+        return s.split()[1]
+
+    def filter_debian(s):
+        return [x for x in s.split('\n') if 'Description:' in x][0].split('\t')[1].split()[2].rstrip()
+
+    def filter_ubuntu(s):
+        return [x for x in s.split('\n') if 'Description:' in x][0].split('\t')[1].split()[1].rstrip()
+
+    def filter_aspnetcore(s):
+        return [x for x in s.split('\n') if 'Version:' in x][2].split()[1]
+
+    def filter_java(s):
+        return [x for x in s.split('\n') if 'OpenJDK Runtime' in x][0].split()[4].split('-', 1)[1].rsplit('-', 1)[0]
+
+    def filter_go(s):
+        return s.rstrip()
+
+    runtime_to_filter = {
+        "debian": filter_debian,
+        "ubuntu": filter_ubuntu,
+        "php": filter_php,
+        "nodejs": filter_node,
+        "python": filter_python,
+        "java": filter_java,
+        "ruby": filter_ruby,
+        "aspnetcore": filter_aspnetcore,
+        "go1-builder": filter_go
+    }
 
     def _get_latest_version(self, runtime, version, image):
         if runtime == 'java':
@@ -81,19 +107,19 @@ class VersionCheckTest(unittest.TestCase):
         return version_array[-1]
 
     def _get_current_version(self, runtime, project, image):
-        version_cmd = ("docker run -it --entrypoint /bin/bash {0} -c '{1}' {2}"
-                       "| tr -d '\r\n'"
+        version_cmd = ("docker run -it --entrypoint /bin/bash {0} -c '{1}'"
                        .format(image,
-                               runtime_to_current_version.get(runtime),
-                               runtime_to_filter.get(runtime, "")))
+                               runtime_to_current_version.get(runtime)))
 
         logging.debug(version_cmd)
         version = subprocess.check_output(version_cmd, shell=True)
+        version = self.runtime_to_filter.get(runtime)(version)
         return version
 
     def test_latest_version(self):
         old_images = []
-        for f in glob.glob('../config/tag/*json'):
+        #for f in glob.glob('../config/tag/*json'):
+        for f in glob.glob('/google/src/cloud/selgamal/misc/google3/third_party/runtimes_common/config/tag/*json'):
             logging.debug('Testing {0}'.format(f))
             with open(f) as tag_map:
                 data = json.load(tag_map)
