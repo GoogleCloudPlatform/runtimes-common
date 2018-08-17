@@ -118,8 +118,7 @@ class VersionCheckTest(unittest.TestCase):
 
     def test_latest_version(self):
         old_images = []
-        #for f in glob.glob('../config/tag/*json'):
-        for f in glob.glob('/google/src/cloud/selgamal/misc/google3/third_party/runtimes_common/config/tag/*json'):
+        for f in glob.glob('../config/tag/*json'):
             logging.debug('Testing {0}'.format(f))
             with open(f) as tag_map:
                 data = json.load(tag_map)
