@@ -38,6 +38,7 @@ COMPOSER_JSON = 'composer.json'
 # node constants
 NODE_CACHE_NAMESPACE = 'node-cache'
 PACKAGE_LOCK = 'package-lock.json'
+YARN_LOCK = 'yarn.lock'
 PACKAGE_JSON = 'package.json'
 NODE_DEFAULT_ENTRYPOINT = 'node server.js'
 NPMRC = '.npmrc'

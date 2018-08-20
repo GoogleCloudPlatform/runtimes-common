@@ -14,6 +14,7 @@
 """This package defines the interface for orchestrating image builds."""
 
 import os
+import logging
 
 from ftl.common import builder
 from ftl.common import constants
@@ -24,9 +25,21 @@ from ftl.node import layer_builder as node_builder
 
 class Node(builder.RuntimeBase):
     def __init__(self, ctx, args):
-        super(Node, self).__init__(
-            ctx, constants.NODE_CACHE_NAMESPACE, args,
-            [constants.PACKAGE_LOCK, constants.PACKAGE_JSON, constants.NPMRC])
+        super(Node, self).__init__(ctx, constants.NODE_CACHE_NAMESPACE, args, [
+            constants.PACKAGE_LOCK, constants.YARN_LOCK,
+            constants.PACKAGE_JSON, constants.NPMRC
+        ])
+        self._should_use_yarn = self._should_use_yarn(self._ctx)
+
+    def _should_use_yarn(self, ctx):
+        if ctx.Contains(constants.YARN_LOCK):
+            if ctx.Contains(constants.PACKAGE_LOCK):
+                logging.warning(
+                    'Detected both package-lock.json and yarn.lock;\
+                                proceeding with an npm install')
+                return False
+            return True
+        return False
 
     def Build(self):
         lyr_imgs = []
@@ -44,6 +57,7 @@ class Node(builder.RuntimeBase):
                 descriptor_files=self._descriptor_files,
                 directory=self._args.directory,
                 destination_path=self._args.destination_path,
+                should_use_yarn=self._should_use_yarn,
                 cache_key_version=self._args.cache_key_version,
                 cache=self._cache)
             layer_builder.BuildLayer()

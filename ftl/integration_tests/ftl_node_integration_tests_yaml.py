@@ -10,11 +10,14 @@ TEST_DIRS = [
     'gcp_build_test', 'packages_test', 'packages_lock_test',
     'destination_test', 'metadata_test', 'npmrc_test', 'file_test',
     'empty_descriptor_test', 'no_descriptor_test',
-    'no_deps_test', 'additional_directory', 'function_to_app_test'
+    'no_deps_test', 'additional_directory', 'function_to_app_test',
+    'yarn_test'
 ]
 
 _TEST_DIR = '/workspace/ftl/node/testdata'
-_NODE_BASE = 'gcr.io/gae-runtimes/nodejs8_app_builder:argo_current'
+_NODE_BASE = 'gcr.io/ftl-node-test/nodejs8_app_builder:add-yarn'
+# TODO(aaron-prindle) when yarn is in the upstream image, change this back
+# _NODE_BASE = 'gcr.io/gae-runtimes/nodejs8_app_builder:argo_current'
 
 
 def main():
