@@ -7,20 +7,24 @@ import glob
 import json
 import logging
 import os
+import re
 import subprocess
 import unittest
+
+# This is the only way to import LooseVersion that will actually work
+from distutils.version import LooseVersion
 
 runtime_to_latest_version = {
     'aspnetcore': 'git ls-remote --tags https://github.com/dotnet/core',
     'debian': 'curl -L http://ftp.debian.org/debian/',
     'ubuntu': 'curl -L http://releases.ubuntu.com/',
-    'ruby': 'curl -L https://www.ruby-lang.org/en/downloads/releases/'
+    'ruby': 'curl -L https://www.ruby-lang.org/en/downloads/releases/',
     'python': 'curl -L https://www.python.org/ftp/python/',
     'php': 'curl -L http://www.php.net/downloads.php',
     'nodejs': 'curl -L https://nodejs.org/dist/latest-v8.x/',
     'go1-builder': 'curl -L https://golang.org/dl',
     "java": ("docker run -it --entrypoint /bin/bash {0} "
-             "-c \"apt-get update &> /dev/null; apt-get install -s {1}")
+             "-c \"apt-get update &> /dev/null; apt-get install -s {1}\"")
 
 }
 
@@ -38,63 +42,58 @@ runtime_to_current_version = {
 
 
 class VersionCheckTest(unittest.TestCase):
-    def filter_node(s, current, version):
+    def filter_node(s, current, version=None):
         if current:
             return s.lstrip('v').rstrip()
-	else:
+        else:
             return re.findall(r'v({}.\d+)'.format(version), s)[0]
-            	
 
-    def filter_python(s, current, version):
+    def filter_python(s, current, version=None):
         if current:
             return s.split()[1]
         else:
-            return re.findall((r'{}.\d+'.format(version), s)[-1]
-            
+            return re.findall(r'{}.\d+'.format(version), s)[-1]
 
-    def filter_ruby(s, current, version):
+    def filter_ruby(s, current, version=None):
         if current:
             return s.split()[1][:-4]
-        elsei:
+        else:
             return re.findall(r'Ruby ({}.\d+)'.format(version), s)[1]
 
-
-    def filter_php(s, current, version):
+    def filter_php(s, current, version=None):
         if current:
             return s.split()[1]
         else:
             return re.findall(r'PHP ({}.\d+)'.format(version), s)[0]
 
-
-    def filter_debian(s, current, version):
+    def filter_debian(s, current, version=None):
         if current:
-            return re.findall(r'Description:[\s|\S]+({}.\d+)'.format(version), s)[0]
+            return re.findall(r'Description:[\s|\S]+(\d+.\d+)', s)[0]
         else:
-            return re.findall(r'Debian ({}.\d+)'.format(version, s)[1]
+            return re.findall(r'Debian ({}.\d+)'.format(version), s)[1]
 
-
-    def filter_ubuntu(s, current, version):
+    def filter_ubuntu(s, current, version=None):
         if current:
-            return re.findall(r'Description:[\s|\S]+({}.\d+)'.format(version), s)[0]
+            return re.findall(r'Description:[\s|\S]+(\d\d+.\d+.\d+)', s)[0]
         else:
             return re.findall(r'Ubuntu ({}.\d+)'.format(version), s)[1]
 
-
-    def filter_aspnetcore(s, current, version):
+    def filter_aspnetcore(s, current, version=None):
         if current:
             return re.findall(r'Version: (\d+.\d+.\d+)', s)[0]
         else:
-            return re.findall(r'v{}\d+'.format(version), s)[-1]
+            v = re.findall(r'v({}.\d+)'.format(version), s)
+            v.sort(key=LooseVersion)
+            return v[-1]
 
-
-    def filter_java(s, current, version):
+    def filter_java(s, current, version=None):
         if current:
-            return re.findall(r'OpenJDK Runtime Environment \(build \S+_\d+-(\S+)-\S{3}', s)[0]
+            return re.findall(r'OpenJDK Runtime Environment '
+                              '\(build \S+_\d+-(\S+)-\S{3}', s)[0]
         else:
             return re.findall(r'Selected version \'(\S+)\'', s)[0]
 
-
-    def filter_go(s, current, version):
+    def filter_go(s, current, version=None):
         if current:
             return s.rstrip()
         else:
@@ -153,6 +152,7 @@ class VersionCheckTest(unittest.TestCase):
                                                                       project,
                                                                       img_name)
                             version = c_version.rsplit('.', 1)[0]
+                            logging.debug('version={}'.format(version))
                             if 'apt_version' in image:
                                 version = image['apt_version']
                             latest_version = self._get_latest_version(runtime,
