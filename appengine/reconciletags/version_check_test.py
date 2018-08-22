@@ -10,32 +10,17 @@ import os
 import subprocess
 import unittest
 
-# This is the only way to import LooseVersion that will actually work
-from distutils.version import LooseVersion
-
 runtime_to_latest_version = {
-    "aspnetcore": ("git ls-remote --tags https://github.com/dotnet/core"
-                   "| egrep -o \"{}\\.[0-9]+$\""),
-    "debian": ("curl -L http://ftp.debian.org/debian/"
-               "| egrep -o \"Debian {}\\.[0-9]+\" | sort | uniq"
-               "| awk '{{print $2}}'"),
-    "ubuntu": ("curl -L http://releases.ubuntu.com/"
-               "| egrep -o \"Ubuntu {}\\.[0-9]\" | sort | uniq"
-               "| awk '{{print $2}}'"),
-    "ruby": ("curl -L https://www.ruby-lang.org/en/downloads/releases/"
-             "| egrep -o \"Ruby {}\\.[0-9]\" | sort | uniq "
-             "| awk '{{ print $2 }}'"),
-    "python": ("curl -L https://www.python.org/ftp/python/"
-               "| egrep -o \"{}\\.[0-9]+\" | sort | uniq"),
-    "php": ("curl -L http://www.php.net/downloads.php"
-            "| egrep -o \"PHP {}\\.[0-9]+\" | awk '{{ print $2 }}'"),
-    "nodejs": ("curl -L https://nodejs.org/dist/latest-v8.x/"
-               "| egrep -o \"v{}\\.[0-9]+\" | sort | uniq | cut -c 2-"),
-    "go1-builder": ("curl -L https://golang.org/dl"
-                    "| egrep -o \"go{}\\.[0-9]\" | sort | uniq | cut -c 3-"),
+    'aspnetcore': 'git ls-remote --tags https://github.com/dotnet/core',
+    'debian': 'curl -L http://ftp.debian.org/debian/',
+    'ubuntu': 'curl -L http://releases.ubuntu.com/',
+    'ruby': 'curl -L https://www.ruby-lang.org/en/downloads/releases/'
+    'python': 'curl -L https://www.python.org/ftp/python/',
+    'php': 'curl -L http://www.php.net/downloads.php',
+    'nodejs': 'curl -L https://nodejs.org/dist/latest-v8.x/',
+    'go1-builder': 'curl -L https://golang.org/dl',
     "java": ("docker run -it --entrypoint /bin/bash {0} "
-             "-c \"apt-get update &> /dev/null; apt-get install -s {1}"
-             "| grep \\\"Conf {2}\\\" | awk '{{ print \\$3 }}' | cut -c 2-\"")
+             "-c \"apt-get update &> /dev/null; apt-get install -s {1}")
 
 }
 
@@ -53,35 +38,67 @@ runtime_to_current_version = {
 
 
 class VersionCheckTest(unittest.TestCase):
-    def filter_node(s):
-        return s.lstrip('v').rstrip()
+    def filter_node(s, current, version):
+        if current:
+            return s.lstrip('v').rstrip()
+	else:
+            return re.findall(r'v({}.\d+)'.format(version), s)[0]
+            	
 
-    def filter_python(s):
-        return s.split()[1]
+    def filter_python(s, current, version):
+        if current:
+            return s.split()[1]
+        else:
+            return re.findall((r'{}.\d+'.format(version), s)[-1]
+            
 
-    def filter_ruby(s):
-        return s.split()[1][:-4]
+    def filter_ruby(s, current, version):
+        if current:
+            return s.split()[1][:-4]
+        elsei:
+            return re.findall(r'Ruby ({}.\d+)'.format(version), s)[1]
 
-    def filter_php(s):
-        return s.split()[1]
 
-    def filter_debian(s):
-        return ([x for x in s.split('\n') if 'Description:' in x][0]
-                .split('\t')[1].split()[2].rstrip())
+    def filter_php(s, current, version):
+        if current:
+            return s.split()[1]
+        else:
+            return re.findall(r'PHP ({}.\d+)'.format(version), s)[0]
 
-    def filter_ubuntu(s):
-        return ([x for x in s.split('\n') if 'Description:' in x][0]
-                .split('\t')[1].split()[1].rstrip())
 
-    def filter_aspnetcore(s):
-        return [x for x in s.split('\n') if 'Version:' in x][2].split()[1]
+    def filter_debian(s, current, version):
+        if current:
+            return re.findall(r'Description:[\s|\S]+({}.\d+)'.format(version), s)[0]
+        else:
+            return re.findall(r'Debian ({}.\d+)'.format(version, s)[1]
 
-    def filter_java(s):
-        return ([x for x in s.split('\n') if 'OpenJDK Runtime' in x][0]
-                .split()[4].split('-', 1)[1].rsplit('-', 1)[0])
 
-    def filter_go(s):
-        return s.rstrip()
+    def filter_ubuntu(s, current, version):
+        if current:
+            return re.findall(r'Description:[\s|\S]+({}.\d+)'.format(version), s)[0]
+        else:
+            return re.findall(r'Ubuntu ({}.\d+)'.format(version), s)[1]
+
+
+    def filter_aspnetcore(s, current, version):
+        if current:
+            return re.findall(r'Version: (\d+.\d+.\d+)', s)[0]
+        else:
+            return re.findall(r'v{}\d+'.format(version), s)[-1]
+
+
+    def filter_java(s, current, version):
+        if current:
+            return re.findall(r'OpenJDK Runtime Environment \(build \S+_\d+-(\S+)-\S{3}', s)[0]
+        else:
+            return re.findall(r'Selected version \'(\S+)\'', s)[0]
+
+
+    def filter_go(s, current, version):
+        if current:
+            return s.rstrip()
+        else:
+            return re.findall(r'go({}.\d+)'.format(version), s)[0]
 
     runtime_to_filter = {
         "debian": filter_debian,
@@ -98,15 +115,12 @@ class VersionCheckTest(unittest.TestCase):
     def _get_latest_version(self, runtime, version, image):
         if runtime == 'java':
             cmd = (runtime_to_latest_version.get(runtime)
-                   .format(image, version, version.split('=')[0]))
+                   .format(image, version))
         else:
-            cmd = (runtime_to_latest_version.get(runtime)
-                   .format(version.replace('.', '\\.')))
+            cmd = runtime_to_latest_version.get(runtime)
         logging.debug(cmd)
         versions = subprocess.check_output(cmd, shell=True)
-        version_array = versions.rstrip().split("\n")
-        version_array.sort(key=LooseVersion)
-        return version_array[-1]
+        return self.runtime_to_filter.get(runtime)(versions, False, version)
 
     def _get_current_version(self, runtime, project, image):
         version_cmd = ("docker run -it --entrypoint /bin/bash {0} -c '{1}'"
@@ -115,7 +129,7 @@ class VersionCheckTest(unittest.TestCase):
 
         logging.debug(version_cmd)
         version = subprocess.check_output(version_cmd, shell=True)
-        version = self.runtime_to_filter.get(runtime)(version)
+        version = self.runtime_to_filter.get(runtime)(version, True)
         return version
 
     def test_latest_version(self):
