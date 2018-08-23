@@ -7,46 +7,126 @@ import glob
 import json
 import logging
 import os
+import re
 import subprocess
 import unittest
 
 # This is the only way to import LooseVersion that will actually work
 from distutils.version import LooseVersion
 
-runtime_to_version_check = {
-    "aspnetcore": ("git ls-remote --tags https://github.com/dotnet/core"
-                   "| egrep -o \"{}\\.[0-9]+$\" | cut -c 1-"),
-    "debian": ("curl -L http://ftp.debian.org/debian/"
-               "| egrep -o \"Debian {}\\.[0-9]+\" | sort | uniq"
-               "| awk '{{print $2}}'"),
-    "ubuntu": ("curl -L http://releases.ubuntu.com/"
-               "| egrep -o \"Ubuntu {}\\.[0-9]\" | sort | uniq"
-               "| awk '{{print $2}}'"),
-    "ruby": ("curl -L https://www.ruby-lang.org/en/downloads/releases/"
-             "| egrep -o \"Ruby {}\\.[0-9]\" | sort | uniq"
-             "| awk '{{ print $2 }}'"),
-    "python": ("curl -L https://www.python.org/ftp/python/"
-               "| egrep -o \"{}\\.[0-9]+\" | sort | uniq"),
-    "php": ("curl -L http://www.php.net/downloads.php"
-            "| egrep -o \"PHP {}\\.[0-9]+\" | awk '{{ print $2 }}'"),
-    "nodejs": ("curl -L https://nodejs.org/dist/latest-v8.x/"
-               "| egrep -o \"v{}\\.[0-9]+\" | sort | uniq | cut -c 2-"),
-    "go1-builder": ("curl -L https://golang.org/dl"
-                    "| egrep -o \"go{}\\.[0-9]\" | sort | uniq | cut -c 3-"),
-    "java": ("sudo apt-get -qq install {0}; apt-cache show {0}"
-             "| grep \"Version:\" | awk '{{ print $2 }}'")
+runtime_to_latest_version = {
+    'aspnetcore': 'git ls-remote --tags https://github.com/dotnet/core',
+    'debian': 'curl -L http://ftp.debian.org/debian/',
+    'ubuntu': 'curl -L http://releases.ubuntu.com/',
+    'ruby': 'curl -L https://www.ruby-lang.org/en/downloads/releases/',
+    'python': 'curl -L https://www.python.org/ftp/python/',
+    'php': 'curl -L http://www.php.net/downloads.php',
+    'nodejs': 'curl -L https://nodejs.org/dist/latest-v8.x/',
+    'go1-builder': 'curl -L https://golang.org/dl',
+    "java": ("docker run -it --entrypoint /bin/bash {0} "
+             "-c \"apt-get update &> /dev/null; apt-get install -s {1}\"")
+
+}
+
+runtime_to_current_version = {
+    "aspnetcore": "dotnet --info",
+    "debian": "apt-get update; apt-get -y install lsb-release; lsb_release -a",
+    "ubuntu": "apt-get update; apt-get -y install lsb-release; lsb_release -a",
+    "ruby": "ruby -v",
+    "python": "python3 --version",
+    "php": "php -v",
+    "nodejs": "node --version",
+    "java": "java -version",
+    "go1-builder": "echo $GO_VERSION"
 }
 
 
 class VersionCheckTest(unittest.TestCase):
+    def filter_node(s, current, version=None):
+        if current:
+            return s.lstrip('v').rstrip()
+        else:
+            return re.findall(r'v({}.\d+)'.format(version), s)[0]
 
-    def _get_latest_version(self, runtime, version):
-        cmd = (runtime_to_version_check.get(runtime)
-               .format(version.replace('.', '\\.')))
+    def filter_python(s, current, version=None):
+        if current:
+            return s.split()[1]
+        else:
+            return re.findall(r'{}.\d+'.format(version), s)[-1]
+
+    def filter_ruby(s, current, version=None):
+        if current:
+            return s.split()[1][:-4]
+        else:
+            return re.findall(r'Ruby ({}.\d+)'.format(version), s)[1]
+
+    def filter_php(s, current, version=None):
+        if current:
+            return s.split()[1]
+        else:
+            return re.findall(r'PHP ({}.\d+)'.format(version), s)[0]
+
+    def filter_debian(s, current, version=None):
+        if current:
+            return re.findall(r'Description:[\s|\S]+(\d+.\d+)', s)[0]
+        else:
+            return re.findall(r'Debian ({}.\d+)'.format(version), s)[1]
+
+    def filter_ubuntu(s, current, version=None):
+        if current:
+            return re.findall(r'Description:[\s|\S]+(\d\d+.\d+.\d+)', s)[0]
+        else:
+            return re.findall(r'({}.\d+)'.format(version), s)[1]
+
+    def filter_aspnetcore(s, current, version=None):
+        if current:
+            return re.findall(r'Version: (\d+.\d+.\d+)', s)[0]
+        else:
+            v = re.findall(r'v({}.\d+)'.format(version), s)
+            v.sort(key=LooseVersion)
+            return v[-1]
+
+    def filter_java(s, current, version=None):
+        if current:
+            return re.findall(r'OpenJDK Runtime Environment '
+                              '\(build \S+_\d+-(\S+)-\S{3}', s)[0]
+        else:
+            return re.findall(r'Selected version \'(\S+)\'', s)[0]
+
+    def filter_go(s, current, version=None):
+        if current:
+            return s.rstrip()
+        else:
+            return re.findall(r'go({}.\d+)'.format(version), s)[0]
+
+    runtime_to_filter = {
+        "debian": filter_debian,
+        "ubuntu": filter_ubuntu,
+        "php": filter_php,
+        "nodejs": filter_node,
+        "python": filter_python,
+        "java": filter_java,
+        "ruby": filter_ruby,
+        "aspnetcore": filter_aspnetcore,
+        "go1-builder": filter_go
+    }
+
+    def _get_latest_version(self, runtime, version, image):
+        cmd = (runtime_to_latest_version.get(runtime)
+               .format(image, version))
+        logging.debug(cmd)
         versions = subprocess.check_output(cmd, shell=True)
-        version_array = versions.rstrip().split("\n")
-        version_array.sort(key=LooseVersion)
-        return version_array[-1]
+        return self.runtime_to_filter.get(runtime)(versions, False, version)
+
+    def _get_current_version(self, runtime, project, image):
+        version_cmd = ("docker run -it --entrypoint /bin/bash {0} -c '{1}'"
+                       .format(image,
+                               runtime_to_current_version.get(runtime)))
+
+        logging.debug(version_cmd)
+        version = subprocess.check_output(version_cmd, shell=True)
+        version = self.runtime_to_filter.get(runtime)(version, True)
+        return version
 
     def test_latest_version(self):
         old_images = []
@@ -57,26 +137,35 @@ class VersionCheckTest(unittest.TestCase):
                 for project in data['projects']:
                     logging.debug('Checking {}'.format(project['repository']))
                     for image in project['images']:
-                        if 'version' in image:
+                        if 'check_version' in image:
                             runtime = os.path.basename(f)
                             runtime = os.path.splitext(runtime)[0]
-                            current_version = image['version']
-                            version = current_version.rsplit('.', 1)[0]
+                            img_name = os.path.join(project['base_registry'],
+                                                    project['repository'] +
+                                                    ':' + image['tag'])
+                            c_version = image['check_version']
+                            if c_version == 'true':
+                                c_version = self._get_current_version(runtime,
+                                                                      project,
+                                                                      img_name)
+                            version = c_version.rsplit('.', 1)[0]
+                            logging.debug('version={}'.format(version))
                             if 'apt_version' in image:
                                 version = image['apt_version']
                             latest_version = self._get_latest_version(runtime,
-                                                                      version)
+                                                                      version,
+                                                                      img_name)
                             logging.debug("Current version: {0},"
                                           "Latest Version: {1}"
-                                          .format(current_version,
+                                          .format(c_version,
                                                   latest_version))
-                            if latest_version != current_version:
+                            if latest_version != c_version:
                                 name = (project['repository']
                                         + ":"
                                         + image['tag'])
                                 entry = {
                                     "image": name,
-                                    "current_version": current_version,
+                                    "current_version": c_version,
                                     "latest_version": latest_version
                                 }
                                 old_images.append(entry)
