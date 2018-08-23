@@ -76,7 +76,7 @@ class VersionCheckTest(unittest.TestCase):
         if current:
             return re.findall(r'Description:[\s|\S]+(\d\d+.\d+.\d+)', s)[0]
         else:
-            return re.findall(r'Ubuntu ({}.\d+)'.format(version), s)[1]
+            return re.findall(r'({}.\d+)'.format(version), s)[1]
 
     def filter_aspnetcore(s, current, version=None):
         if current:
@@ -112,11 +112,8 @@ class VersionCheckTest(unittest.TestCase):
     }
 
     def _get_latest_version(self, runtime, version, image):
-        if runtime == 'java':
-            cmd = (runtime_to_latest_version.get(runtime)
-                   .format(image, version))
-        else:
-            cmd = runtime_to_latest_version.get(runtime)
+        cmd = (runtime_to_latest_version.get(runtime)
+               .format(image, version))
         logging.debug(cmd)
         versions = subprocess.check_output(cmd, shell=True)
         return self.runtime_to_filter.get(runtime)(versions, False, version)
