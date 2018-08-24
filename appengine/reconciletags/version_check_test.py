@@ -23,7 +23,7 @@ runtime_to_latest_version = {
     'php': 'curl -L http://www.php.net/downloads.php',
     'nodejs': 'curl -L https://nodejs.org/dist/latest-v8.x/',
     'go1-builder': 'curl -L https://golang.org/dl',
-    "java": ("docker run -it --entrypoint /bin/bash {0} "
+    "java": ("docker run -t --entrypoint /bin/bash {0} "
              "-c \"apt-get update &> /dev/null; apt-get install -s {1}\"")
 
 }
@@ -58,7 +58,7 @@ class VersionCheckTest(unittest.TestCase):
         if current:
             return s.split()[1][:-4]
         else:
-            return re.findall(r'Ruby ({}.\d+)'.format(version), s)[1]
+            return re.findall(r'Ruby ({}.\d+)'.format(version), s)[0]
 
     def filter_php(s, current, version=None):
         if current:
@@ -70,13 +70,13 @@ class VersionCheckTest(unittest.TestCase):
         if current:
             return re.findall(r'Description:[\s|\S]+(\d+.\d+)', s)[0]
         else:
-            return re.findall(r'Debian ({}.\d+)'.format(version), s)[1]
+            return re.findall(r'Debian ({}.\d+)'.format(version), s)[0]
 
     def filter_ubuntu(s, current, version=None):
         if current:
             return re.findall(r'Description:[\s|\S]+(\d\d+.\d+.\d+)', s)[0]
         else:
-            return re.findall(r'({}.\d+)'.format(version), s)[1]
+            return re.findall(r'({}.\d+)'.format(version), s)[0]
 
     def filter_aspnetcore(s, current, version=None):
         if current:
@@ -119,7 +119,7 @@ class VersionCheckTest(unittest.TestCase):
         return self.runtime_to_filter.get(runtime)(versions, False, version)
 
     def _get_current_version(self, runtime, project, image):
-        version_cmd = ("docker run -it --entrypoint /bin/bash {0} -c '{1}'"
+        version_cmd = ("docker run -t --entrypoint /bin/bash {0} -c '{1}'"
                        .format(image,
                                runtime_to_current_version.get(runtime)))
 
