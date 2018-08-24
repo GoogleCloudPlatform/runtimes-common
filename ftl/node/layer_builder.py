@@ -32,6 +32,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                  pkg_descriptor=None,
                  directory=None,
                  destination_path=constants.DEFAULT_DESTINATION_PATH,
+                 should_use_yarn=None,
                  cache_key_version=None,
                  cache=None):
         super(LayerBuilder, self).__init__()
@@ -40,6 +41,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         self._pkg_descriptor = pkg_descriptor
         self._directory = directory
         self._destination_path = destination_path
+        self._should_use_yarn = should_use_yarn
         self._cache_key_version = cache_key_version
         self._cache = cache
 
@@ -68,8 +70,10 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
-        blob, u_blob = self._gen_npm_install_tar(self._pkg_descriptor,
-                                                 self._directory)
+        if self._should_use_yarn:
+            blob, u_blob = self._gen_yarn_install_tar(self._directory)
+        else:
+            blob, u_blob = self._gen_npm_install_tar(self._directory)
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                    self._generate_overrides())
 
@@ -79,14 +83,35 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             rm_cmd = ['rm', '-rf', modules_dir]
             ftl_util.run_command('rm_node_modules', rm_cmd)
 
-    def _gen_npm_install_tar(self, pkg_descriptor, app_dir):
+    def _gen_yarn_install_tar(self, app_dir):
         is_gcp_build = False
         if self._ctx and self._ctx.Contains(constants.PACKAGE_JSON):
             is_gcp_build = self._is_gcp_build(
                 json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)))
 
         if is_gcp_build:
-            self._gcp_build(app_dir)
+            self._gcp_build(app_dir, 'yarn', 'run')
+        else:
+            yarn_install_cmd = ['yarn', 'install', '--production']
+            ftl_util.run_command(
+                'yarn_install',
+                yarn_install_cmd,
+                cmd_cwd=app_dir,
+                err_type=ftl_error.FTLErrors.USER())
+
+        module_destination = os.path.join(self._destination_path,
+                                          'node_modules')
+        modules_dir = os.path.join(self._directory, "node_modules")
+        return ftl_util.zip_dir_to_layer_sha(modules_dir, module_destination)
+
+    def _gen_npm_install_tar(self, app_dir):
+        is_gcp_build = False
+        if self._ctx and self._ctx.Contains(constants.PACKAGE_JSON):
+            is_gcp_build = self._is_gcp_build(
+                json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)))
+
+        if is_gcp_build:
+            self._gcp_build(app_dir, 'npm', 'run-script')
         else:
             npm_install_cmd = ['npm', 'install', '--production']
             ftl_util.run_command(
@@ -112,20 +137,20 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             return True
         return False
 
-    def _gcp_build(self, app_dir):
+    def _gcp_build(self, app_dir, install_bin, run_cmd):
         env = os.environ.copy()
         env["NODE_ENV"] = "development"
-        npm_install_cmd = ['npm', 'install']
+        install_cmd = [install_bin, 'install']
         ftl_util.run_command(
-            'npm_install',
-            npm_install_cmd,
+            '%s_install' % install_bin,
+            install_cmd,
             app_dir,
             env,
             err_type=ftl_error.FTLErrors.USER())
 
-        npm_run_script_cmd = ['npm', 'run-script', 'gcp-build']
+        npm_run_script_cmd = [install_bin, run_cmd, 'gcp-build']
         ftl_util.run_command(
-            'npm_run_script_gcp_build',
+            '%s_%s_gcp_build' % (install_bin, run_cmd),
             npm_run_script_cmd,
             app_dir,
             env,

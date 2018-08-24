@@ -127,9 +127,9 @@ UBUNTU_MAP = {
 
 docker_pull(
     name = "node_base",
-    digest = "sha256:daef823d1205081d01dcd6997aa352f4c7090277ffe48e1c1bfc740fbecea8c0",
+    digest = "sha256:fdc4906b4253e21663aa78805a3c3c45c6d8bc47596b4af953024f7a4ac64a71",
     registry = "gcr.io",
-    repository = "gae-runtimes/nodejs8_app_builder",
+    repository = "gcp-runtimes/nodejs8_app_builder",
 )
 
 docker_pull(
