@@ -6,4 +6,4 @@ RUN apt-get update -y && \
       apt-get clean && \
     rm /var/lib/apt/lists/*_*
 RUN pip install setuptools
-RUN pip install google-cloud
+RUN pip install google-cloud==0.32.0
