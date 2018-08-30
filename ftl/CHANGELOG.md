@@ -1,12 +1,10 @@
 # FTL Release Notes
 
 # Version 0.8.0 - 8/29/2018
-* Added --cache-key-version flag which lets users change the entire cache-key-version (updated everytime FTL version has important cache change) [#701]
-(https://github.com/GoogleCloudPlatform/runtimes-common/pull/701)
+* Added --cache-key-version flag which lets users change the entire cache-key-version (updated everytime FTL version has important cache change) [#701](https://github.com/GoogleCloudPlatform/runtimes-common/pull/701)
 * Added --cache-salt flag which lets users add a salt value appended to the cache-key-version [#705](https://github.com/GoogleCloudPlatform/runtimes-common/pull/705)
 * Updated FTL to output build errors as json [#702](https://github.com/GoogleCloudPlatform/runtimes-common/pull/702)
-* [NODE] Added support for yarn builds from a yarn.lock [#709]
-(https://github.com/GoogleCloudPlatform/runtimes-common/pull/709)
+* [NODE] Added support for yarn builds from a yarn.lock [#709](https://github.com/GoogleCloudPlatform/runtimes-common/pull/709)
 
 # Version 0.7.0 - 7/9/2018
 * [NODE, PHP] Fixed bug in FTL where dep files (node_modules, vendor) would be added in two layers instead of one as intended which lead to permissions and app errors [#697](https://github.com/GoogleCloudPlatform/runtimes-common/pull/697)
