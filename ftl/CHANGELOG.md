@@ -4,6 +4,7 @@
 * Added --cache-key-version flag which lets users change the entire cache-key-version (updated everytime FTL version has important cache change) [#701](https://github.com/GoogleCloudPlatform/runtimes-common/pull/701)
 * Added --cache-salt flag which lets users add a salt value appended to the cache-key-version [#705](https://github.com/GoogleCloudPlatform/runtimes-common/pull/705)
 * Updated FTL to output build errors as json [#702](https://github.com/GoogleCloudPlatform/runtimes-common/pull/702)
+* Fixed issue where if cached layer ref was missing FTL would fail [#704](https://github.com/GoogleCloudPlatform/runtimes-common/pull/704)
 * [NODE] Added support for yarn builds from a yarn.lock [#709](https://github.com/GoogleCloudPlatform/runtimes-common/pull/709)
 
 # Version 0.7.0 - 7/9/2018
