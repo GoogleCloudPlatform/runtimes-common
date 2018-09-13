@@ -46,7 +46,8 @@ class VersionCheckTest(unittest.TestCase):
         if current:
             return s.lstrip('v').rstrip()
         else:
-            return re.findall(r'v({}.\d+)'.format(version), s)[0]
+            version_string = [x for x in s.split('\n') if 'node-v' in x][0]
+            return re.findall(r'node-v(\d+.\d+.\d+)', version_string)[0]
 
     def filter_python(s, current, version=None):
         if current:
@@ -130,7 +131,7 @@ class VersionCheckTest(unittest.TestCase):
 
     def test_latest_version(self):
         old_images = []
-        for f in glob.glob('../config/tag/*json'):
+        for f in glob.glob('/google/src/cloud/selgamal/misc/google3/third_party/runtimes_common/config/tag/nodejs.json'):
             logging.debug('Testing {0}'.format(f))
             with open(f) as tag_map:
                 data = json.load(tag_map)
