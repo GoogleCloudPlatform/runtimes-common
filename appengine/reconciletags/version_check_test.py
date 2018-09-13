@@ -46,7 +46,8 @@ class VersionCheckTest(unittest.TestCase):
         if current:
             return s.lstrip('v').rstrip()
         else:
-            return re.findall(r'v({}.\d+)'.format(version), s)[0]
+            version_string = [x for x in s.split('\n') if 'node-v' in x][0]
+            return re.findall(r'node-v(\d+.\d+.\d+)', version_string)[0]
 
     def filter_python(s, current, version=None):
         if current:
