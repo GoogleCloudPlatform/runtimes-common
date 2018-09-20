@@ -19,6 +19,7 @@ import logging
 from ftl.common import builder
 from ftl.common import constants
 from ftl.common import ftl_util
+from ftl.common import ftl_error
 from ftl.common import layer_builder as base_builder
 from ftl.node import layer_builder as node_builder
 
@@ -29,14 +30,30 @@ class Node(builder.RuntimeBase):
             constants.PACKAGE_LOCK, constants.YARN_LOCK,
             constants.PACKAGE_JSON, constants.NPMRC
         ])
+        self._gen_package_lock_if_required(self._ctx)
         self._should_use_yarn = self._should_use_yarn(self._ctx)
+
+    def _gen_package_lock_if_required(self, ctx):
+        if not ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
+            return
+
+        if ctx.Contains(constants.PACKAGE_JSON) and \
+                not ctx.Contains(constants.YARN_LOCK) and \
+                not ctx.Contains(constants.PACKAGE_LOCK):
+            logging.info('Found neither yarn.lock or package-lock.json,'
+                         'generating package-lock.json from package.json')
+            gen_package_lock_cmd = ['npm', 'install', '--package-lock-only']
+            ftl_util.run_command(
+                'gen_package_lock',
+                gen_package_lock_cmd,
+                cmd_cwd=self._args.directory,
+                err_type=ftl_error.FTLErrors.USER())
 
     def _should_use_yarn(self, ctx):
         if ctx.Contains(constants.YARN_LOCK):
             if ctx.Contains(constants.PACKAGE_LOCK):
-                logging.warning(
-                    'Detected both package-lock.json and yarn.lock;\
-                                proceeding with an npm install')
+                logging.info('Detected both package-lock.json and yarn.lock; '
+                             'proceeding with an npm install')
                 return False
             return True
         return False
