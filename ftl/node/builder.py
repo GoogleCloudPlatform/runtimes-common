@@ -52,8 +52,9 @@ class Node(builder.RuntimeBase):
     def _should_use_yarn(self, ctx):
         if ctx.Contains(constants.YARN_LOCK):
             if ctx.Contains(constants.PACKAGE_LOCK):
-                logging.info('Detected both package-lock.json and yarn.lock; '
-                             'proceeding with an npm install')
+                logging.warning(
+                    'Detected both package-lock.json and yarn.lock;\
+                    proceeding with an npm install')
                 return False
             return True
         return False

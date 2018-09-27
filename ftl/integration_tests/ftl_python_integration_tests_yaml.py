@@ -12,7 +12,8 @@ TEST_DIRS = [
     'venv_dir_test', 'no_descriptor_test',
     'empty_descriptor_test',
     'additional_directory',
-    'commented_descriptor_test']
+    'commented_descriptor_test',
+    'setup_cfg_test']
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
              '6195641f5a5a14c63c7945262066270842150ddb')
@@ -48,6 +49,8 @@ def main():
         '--additional-directory',
         '/workspace/ftl/python/testdata/additional_directory'
     ])
+    test_map['setup_cfg_test'].extend(['--python-cmd', 'python3.6'])
+    test_map['setup_cfg_test'].extend(['--pip-cmd', 'python3.6 -m pip'])
 
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(

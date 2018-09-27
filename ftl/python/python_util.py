@@ -27,4 +27,7 @@ def setup_venv(venv_dir, venv_cmd, python_cmd):
         '-p',
     ])
     venv_cmd_args.extend(list(python_cmd))
-    ftl_util.run_command('create_virtualenv', venv_cmd_args)
+    ftl_util.run_command(
+        'create_virtualenv',
+        venv_cmd_args,
+        cmd_cwd="/")
