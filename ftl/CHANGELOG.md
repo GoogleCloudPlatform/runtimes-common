@@ -1,5 +1,10 @@
 # FTL Release Notes
 
+# Version 0.9.0 - 9/27/2018
+* [PYTHON] Fixed issue where if a user deployed an app that had a setup.cfg, FTL would error [#717](https://github.com/GoogleCloudPlatform/runtimes-common/pull/717)
+* [NODE] Changed FTL to generate a package-lock.json file server side if only a package.json is supplied [#715](https://github.com/GoogleCloudPlatform/runtimes-common/pull/715)
+
+
 # Version 0.8.0 - 8/29/2018
 * Added --cache-key-version flag which lets users change the entire cache-key-version (updated everytime FTL version has important cache change) [#701](https://github.com/GoogleCloudPlatform/runtimes-common/pull/701)
 * Added --cache-salt flag which lets users add a salt value appended to the cache-key-version [#705](https://github.com/GoogleCloudPlatform/runtimes-common/pull/705)
