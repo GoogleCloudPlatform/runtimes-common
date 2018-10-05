@@ -53,7 +53,19 @@ class VersionCheckTest(unittest.TestCase):
         if current:
             return s.split()[1]
         else:
-            return re.findall(r'{}.\d+'.format(version), s)[-1]
+            version_list = list(set(re.findall(r'{}.\d+'.format(version), s)))
+            version_list.sort(key=LooseVersion)
+            i = -1
+            while True:
+                latest = version_list[i]
+                rc = subprocess.check_output(
+                    runtime_to_latest_version['python'] + latest,
+                    shell=True)
+                check_rc = re.findall(r'python-{}(?!rc)'.format(latest), rc)
+                if len(check_rc) > 0:
+                    return latest
+
+                i = i - 1
 
     def filter_ruby(s, current, version=None):
         if current:
