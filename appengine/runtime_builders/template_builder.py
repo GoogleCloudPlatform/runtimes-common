@@ -128,7 +128,7 @@ def _resolve_tag(image):
         target_tag = parts[1]
 
     command = ['gcloud', 'container', 'images',
-               'list-tags', base_image, '--format=json', '--limit=20']
+               'list-tags', base_image, '--format=json']
 
     try:
         output = subprocess.check_output(command)
