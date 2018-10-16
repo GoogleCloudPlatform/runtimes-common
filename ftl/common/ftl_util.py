@@ -19,6 +19,7 @@ import subprocess
 import tempfile
 import datetime
 import json
+import re
 
 from ftl.common import constants
 from ftl.common import ftl_error
@@ -152,6 +153,23 @@ def descriptor_parser(descriptor_files, ctx):
             descriptor_contents = ctx.GetFile(descriptor)
             logging.info("descriptor_contents:\n%s", descriptor_contents)
             break
+    if f == constants.REQUIREMENTS_TXT:
+        # recursive requirements.txt support
+        # look for -r statement(s)
+
+        # add add files to contents?
+        new_descriptor_contents = descriptor_contents
+        for line in descriptor_contents.split("\n"):
+            match = re.search(r'-r\s+(.*)', line)
+            if match:
+                logging.info(
+                    "found recursive python requirements file: %s",
+                    match.group(1)
+                )
+                new_descriptor_contents += ctx.GetFile(match.group(1))
+        logging.info("new_descriptor_contents: \n%s",
+                     new_descriptor_contents)
+        descriptor_contents = new_descriptor_contents
     if not descriptor:
         logging.info("No package descriptor found. No packages installed.")
         return None
