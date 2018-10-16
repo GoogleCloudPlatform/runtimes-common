@@ -82,6 +82,7 @@ class PHPTest(unittest.TestCase):
         self.layer_builder._gen_composer_install_tar = mock.Mock()
         self.layer_builder._gen_composer_install_tar.return_value = ('layer',
                                                                      'sha')
+        self.builder._gen_composer_lock = mock.Mock()
 
     def test_create_package_base_no_descriptor(self):
         self.assertFalse(self.ctx.Contains('composer.json'))
