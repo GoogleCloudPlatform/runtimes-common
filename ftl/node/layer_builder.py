@@ -112,13 +112,13 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
 
         if is_gcp_build:
             self._gcp_build(app_dir, 'npm', 'run-script')
-        else:
-            npm_install_cmd = ['npm', 'install', '--production']
-            ftl_util.run_command(
-                'npm_install',
-                npm_install_cmd,
-                cmd_cwd=app_dir,
-                err_type=ftl_error.FTLErrors.USER())
+            self._cleanup_build_layer()
+        npm_install_cmd = ['npm', 'install', '--production']
+        ftl_util.run_command(
+            'npm_install',
+            npm_install_cmd,
+            cmd_cwd=app_dir,
+            err_type=ftl_error.FTLErrors.USER())
 
         module_destination = os.path.join(self._destination_path,
                                           'node_modules')
