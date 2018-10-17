@@ -13,7 +13,9 @@ TEST_DIRS = [
     'empty_descriptor_test',
     'additional_directory',
     'commented_descriptor_test',
-    'setup_cfg_test']
+    'setup_cfg_test',
+    'recursive_req_test'
+    ]
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
              '6195641f5a5a14c63c7945262066270842150ddb')

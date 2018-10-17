@@ -181,7 +181,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def _pip_download_wheels(self, pkg_txt):
         pip_cmd_args = list(self._pip_cmd)
         pip_cmd_args.extend(
-            ['wheel', '-w', self._wheel_dir, '-r', '/dev/stdin'])
+            ['wheel', '-w', self._wheel_dir, '-r', 'requirements.txt'])
         pip_cmd_args.extend(constants.PIP_OPTIONS)
         ftl_util.run_command(
             'pip_download_wheels',
