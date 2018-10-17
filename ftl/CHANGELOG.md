@@ -1,5 +1,11 @@
 # FTL Release Notes
 
+# Version 0.10.0 - 10/17/2018
+* [PYTHON] Fixed issue where recursive requirements.txt files did not work properly with FTL [#721](https://github.com/GoogleCloudPlatform/runtimes-common/pull/721)
+* [NODE] Fixed issue with gcp-build scripts where devDependencies were not being cleaned up properly [#723](https://github.com/GoogleCloudPlatform/runtimes-common/pull/723)
+* [PHP] Updated FTL to always create a new composer-lock.json server side from the composer.json file[#724](https://github.com/GoogleCloudPlatform/runtimes-common/pull/724)
+
+
 # Version 0.9.0 - 9/27/2018
 * [PYTHON] Fixed issue where if a user deployed an app that had a setup.cfg, FTL would error [#717](https://github.com/GoogleCloudPlatform/runtimes-common/pull/717)
 * [NODE] Changed FTL to generate a package-lock.json file server side if only a package.json is supplied [#715](https://github.com/GoogleCloudPlatform/runtimes-common/pull/715)
