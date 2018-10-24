@@ -108,7 +108,7 @@ def zip_dir_to_layer_sha(app_dir, destination_path, alter_symlinks=True):
         txfrm_regex = 'flags=r;s,^,%s/,' % destination_path
     tar_cmd = [
         'tar',
-        '-pcvf', tar_path,
+        '-pcf', tar_path,
         '--transform', txfrm_regex,
         '--exclude', '*.pyc',
         '.'
