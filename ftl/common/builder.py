@@ -104,7 +104,10 @@ class RuntimeBase(JustApp):
         cache_repo = args.cache_repository
         if not cache_repo:
             cache_repo = self._target_image.as_repository()
-        ttl = ftl_util.get_ttl(descriptor_files, ctx)
+        if args.ttl:
+            ttl = args.ttl
+        else:
+            ttl = ftl_util.get_ttl(descriptor_files, ctx)
         self._cache = cache.Registry(
             repo=cache_repo,
             namespace=self._cache_namespace,

@@ -149,6 +149,13 @@ def base_parser():
         default=(os.environ.get(constants.BUILDER_OUTPUT)
                  if os.environ.get(constants.BUILDER_OUTPUT) else None),
         help='The path to store FTL logs')
+    parser.add_argument(
+        '--ttl',
+        dest='ttl',
+        action='store',
+        default=constants.DEFAULT_TTL_HOURS,
+        help='The TTL (in hours) set on the cached images that FTL creates')
+
     return parser
 
 

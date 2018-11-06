@@ -188,9 +188,9 @@ def get_ttl(descriptor_files, ctx):
     for f in descriptor_files:
         if ctx.Contains(f):
             if f in constants.UNSPECIFIED_DEPS_FILES:
-                return constants.MINIMUM_TTL_WEEKS
-            return constants.DEFAULT_TTL_WEEKS
-    return constants.DEFAULT_TTL_WEEKS
+                return constants.MINIMUM_TTL_HOURS
+            return constants.DEFAULT_TTL_HOURS
+    return constants.DEFAULT_TTL_HOURS
 
 
 def gen_tmp_dir(dirr):
