@@ -21,7 +21,7 @@ runtime_to_latest_version = {
     'ruby': 'curl -L https://www.ruby-lang.org/en/downloads/releases/',
     'python': 'curl -L https://www.python.org/ftp/python/',
     'php': 'curl -L http://www.php.net/downloads.php',
-    'nodejs': 'curl -L https://nodejs.org/dist/latest-v8.x/',
+    'nodejs': 'curl -L https://nodejs.org/dist/latest-v10.x/',
     'go1-builder': 'curl -L https://golang.org/dl',
     "java": ("docker run -t --entrypoint /bin/bash {0} "
              "-c \"apt-get update &> /dev/null; apt-get install -s {1}\"")
