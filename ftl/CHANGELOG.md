@@ -1,5 +1,12 @@
 # FTL Release Notes
 
+# Version 0.11.0 - 11/09/2018
+* Removed verbosity from tar commands by default as it was too verbose in log output [#726](https://github.com/GoogleCloudPlatform/runtimes-common/pull/726)
+* Updated FTL json error output to match GCB formatting [#727](https://github.com/GoogleCloudPlatform/runtimes-common/pull/727)
+* Added --ttl flag to FTL which allows users to specify the desired TTL for FTL to respect [#732](https://github.com/GoogleCloudPlatform/runtimes-common/pull/732)
+* [NODE] Fixed issue with node cache timestamps which caused node to only cache for 6 hrs a day [#731](https://github.com/GoogleCloudPlatform/runtimes-common/pull/731)
+
+
 # Version 0.10.0 - 10/17/2018
 * [PYTHON] Fixed issue where recursive requirements.txt files did not work properly with FTL [#721](https://github.com/GoogleCloudPlatform/runtimes-common/pull/721)
 * [NODE] Fixed issue with gcp-build scripts where devDependencies were not being cleaned up properly [#723](https://github.com/GoogleCloudPlatform/runtimes-common/pull/723)
