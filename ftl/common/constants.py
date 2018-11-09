@@ -56,8 +56,8 @@ VENV_DEFAULT_CMD = 'virtualenv'
 PIP_OPTIONS = ['--disable-pip-version-check']
 
 # cache constants
-DEFAULT_TTL_WEEKS = 1
-MINIMUM_TTL_WEEKS = 0.03571428571   # 6 hrs in terms of weeks
+DEFAULT_TTL_HOURS = 168  # hrs in a week
+MINIMUM_TTL_HOURS = 6    # 6 hrs in terms of weeks
 
 # descriptor files with unspecified dependencies
 UNSPECIFIED_DEPS_FILES = [REQUIREMENTS_TXT, PACKAGE_JSON, COMPOSER_JSON]

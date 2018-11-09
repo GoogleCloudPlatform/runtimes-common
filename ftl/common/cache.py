@@ -185,4 +185,4 @@ class Registry(Base):
             ftl_util.creation_time(entry))
         now = datetime.datetime.now()
         return last_created > now - datetime.timedelta(
-            weeks=ttl)
+            hours=ttl)

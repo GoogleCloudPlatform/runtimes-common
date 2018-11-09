@@ -39,7 +39,7 @@ class RegistryTest(unittest.TestCase):
             namespace='namespace',
             creds=None,
             transport=None,
-            ttl=constants.DEFAULT_TTL_WEEKS)
+            ttl=constants.DEFAULT_TTL_HOURS)
         self.assertEquals(c._getEntry('abc123'), mock_img)
 
         # Test when it does not exist
@@ -49,7 +49,7 @@ class RegistryTest(unittest.TestCase):
             namespace='namespace',
             creds=None,
             transport=None,
-            ttl=constants.DEFAULT_TTL_WEEKS)
+            ttl=constants.DEFAULT_TTL_HOURS)
         self.assertIsNone(c._getEntry('abc123'))
 
 
