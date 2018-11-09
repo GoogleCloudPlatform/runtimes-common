@@ -277,7 +277,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
                 raise Exception("expected one whl for one installed pkg")
             pkg_dir = self._whl_to_fslayer(whls[0])
             blob, u_blob = ftl_util.zip_dir_to_layer_sha(pkg_dir, "")
-            overrides = ftl_util.generate_overrides(False, self._venv_dir)
+            overrides = ftl_util.generate_overrides(False)
             self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                        overrides)
             if self._cache:

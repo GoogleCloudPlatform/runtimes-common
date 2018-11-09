@@ -15,7 +15,6 @@
 
 import logging
 import os
-import datetime
 
 from ftl.common import constants
 from ftl.common import ftl_util
@@ -69,9 +68,9 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def _build_layer(self):
         blob, u_blob = self._gen_composer_install_tar(self._directory,
                                                       self._destination_path)
-        overrides_dct = {'created': str(datetime.date.today()) + 'T00:00:00Z'}
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
-                                                   overrides_dct)
+                                                   ftl_util.generate_overrides(
+                                                       False))
 
     def _cleanup_build_layer(self):
         if self._directory:
