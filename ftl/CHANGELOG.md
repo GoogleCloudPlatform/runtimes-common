@@ -92,5 +92,5 @@
 * [Python] added phase 1.5 implementation to python.  This means faster python builds as some layer uploading can be skipped for cache layers
 * [Python] fixed issue where python was 'pip installing' each run when it should have skipped that step and used the cache
 * [Python] additional logging on pip calls
-* [Python] new flags --python-cmd, --pip-cmd, and --venv-cmd to support different python versions and builder container setups
+* [Python] new flags --python-cmd, --pip-cmd, and --virtualenv-cmd to support different python versions and builder container setups
 * [Python] fixed issue where FTL build would fail if PYTHONPATH was not set in builder

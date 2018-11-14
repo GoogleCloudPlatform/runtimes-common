@@ -17,17 +17,17 @@ import os
 from ftl.common import ftl_util
 
 
-def setup_venv(venv_dir, venv_cmd, python_cmd):
-    if os.path.isdir(venv_dir):
+def setup_virtualenv(virtualenv_dir, virtualenv_cmd, python_cmd):
+    if os.path.isdir(virtualenv_dir):
         return
-    venv_cmd_args = list(venv_cmd)
-    venv_cmd_args.extend([
+    virtualenv_cmd_args = list(virtualenv_cmd)
+    virtualenv_cmd_args.extend([
         '--no-download',
-        venv_dir,
+        virtualenv_dir,
         '-p',
     ])
-    venv_cmd_args.extend(list(python_cmd))
+    virtualenv_cmd_args.extend(list(python_cmd))
     ftl_util.run_command(
         'create_virtualenv',
-        venv_cmd_args,
+        virtualenv_cmd_args,
         cmd_cwd="/")

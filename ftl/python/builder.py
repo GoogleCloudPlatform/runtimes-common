@@ -36,12 +36,12 @@ class Python(builder.RuntimeBase):
                 constants.PIPFILE,  # not supported rn
                 constants.REQUIREMENTS_TXT
             ])
-        self._venv_dir = args.venv_dir
+        self._virtualenv_dir = args.virtualenv_dir
         self._wheel_dir = ftl_util.gen_tmp_dir(constants.WHEEL_DIR)
 
         self._python_cmd = args.python_cmd.split(" ")
         self._pip_cmd = args.pip_cmd.split(" ")
-        self._venv_cmd = args.venv_cmd.split(" ")
+        self._virtualenv_cmd = args.virtualenv_cmd.split(" ")
 
         self._is_phase2 = ctx.Contains(constants.PIPFILE_LOCK)
 
@@ -61,9 +61,9 @@ class Python(builder.RuntimeBase):
         lyr_imgs.append(self._base_image)
 
         interpreter_builder = package_builder.InterpreterLayerBuilder(
-            venv_dir=self._venv_dir,
+            virtualenv_dir=self._virtualenv_dir,
             python_cmd=self._python_cmd,
-            venv_cmd=self._venv_cmd,
+            virtualenv_cmd=self._virtualenv_cmd,
             cache_key_version=self._args.cache_key_version,
             cache=self._cache)
         interpreter_builder.BuildLayer()
@@ -75,8 +75,8 @@ class Python(builder.RuntimeBase):
             if self._is_phase2:
                 # do a phase 2 build of the package layers w/ Pipfile.lock
                 # iterate over package/version Pipfile.lock
-                python_util.setup_venv(self._venv_dir,
-                                       self._venv_cmd,
+                python_util.setup_virtualenv(self._virtualenv_dir,
+                                       self._virtualenv_cmd,
                                        self._python_cmd)
                 pkgs = self._parse_pipfile_pkgs()
                 with ftl_util.Timing('uploading_all_package_layers'):
@@ -98,10 +98,10 @@ class Python(builder.RuntimeBase):
                     directory=self._args.directory,
                     pkg_dir=None,
                     wheel_dir=self._wheel_dir,
-                    venv_dir=self._venv_dir,
+                    virtualenv_dir=self._virtualenv_dir,
                     python_cmd=self._python_cmd,
                     pip_cmd=self._pip_cmd,
-                    venv_cmd=self._venv_cmd,
+                    virtualenv_cmd=self._virtualenv_cmd,
                     dep_img_lyr=interpreter_builder,
                     cache_key_version=self._args.cache_key_version,
                     cache=self._cache)
@@ -135,9 +135,9 @@ class Python(builder.RuntimeBase):
             pkg_descriptor=pkg,
             pkg_dir=None,
             wheel_dir=ftl_util.gen_tmp_dir(constants.WHEEL_DIR),
-            venv_dir=self._venv_dir,
+            virtualenv_dir=self._virtualenv_dir,
             pip_cmd=self._pip_cmd,
-            venv_cmd=self._venv_cmd,
+            virtualenv_cmd=self._virtualenv_cmd,
             dep_img_lyr=interpreter_builder,
             cache_key_version=self._args.cache_key_version,
             cache=self._cache)

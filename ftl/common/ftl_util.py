@@ -211,18 +211,18 @@ def timestamp_to_time(dt_str):
     return datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
 
 
-def generate_overrides(set_env, venv_dir=constants.VENV_DIR):
+def generate_overrides(set_env, virtualenv_dir=constants.VIRTUALENV_DIR):
     created_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:') + '00:00Z'
     overrides_dct = {
         'created': created_time,
     }
     if set_env:
         env = {
-            'VIRTUAL_ENV': venv_dir,
+            'VIRTUAL_ENV': virtualenv_dir,
         }
-        path_dir = os.path.join(venv_dir, "bin")
+        path_dir = os.path.join(virtualenv_dir, "bin")
         env['PATH'] = '%s:$PATH' % path_dir
-        overrides_dct['env'] = venv_dir
+        overrides_dct['env'] = virtualenv_dir
     return overrides_dct
 
 

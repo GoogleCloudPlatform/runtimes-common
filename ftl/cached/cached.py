@@ -73,7 +73,7 @@ class Cached():
                 logging.error(e)
                 exit(1)
             finally:
-                self._cleanup(constants.VENV_DIR)
+                self._cleanup(constants.VIRTUALENV_DIR)
         if len(lyr_shas) is not 2:
             logging.error("Incorrect number of layers to compare")
             exit(1)

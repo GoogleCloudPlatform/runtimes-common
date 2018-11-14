@@ -56,16 +56,16 @@ class PythonTest(unittest.TestCase):
         args.entrypoint = None
         args.python_cmd = 'python2.7'
         args.pip_cmd = 'pip'
-        args.venv_cmd = 'virtualenv'
+        args.virtualenv_cmd = 'virtualenv'
         args.tar_base_image_path = None
         self.builder = builder.Python(self.ctx, args)
 
-        # constants.VENV_DIR.replace('/', '') is used as the default path
+        # constants.VIRTUALENV_DIR.replace('/', '') is used as the default path
         # will give permissions errors in some build environments (eg: kokoro)
         self.interpreter_builder = layer_builder.InterpreterLayerBuilder(
-            ftl_util.gen_tmp_dir(constants.VENV_DIR.replace('/', '')),
-            self.builder._python_cmd, self.builder._venv_cmd)
-        self.interpreter_builder._setup_venv = mock.Mock()
+            ftl_util.gen_tmp_dir(constants.VIRTUALENV_DIR.replace('/', '')),
+            self.builder._python_cmd, self.builder._virtualenv_cmd)
+        self.interpreter_builder._setup_virtualenv = mock.Mock()
         self.builder._gen_package_lock_if_required = mock.Mock()
 
     def test_build_interpreter_layer_ttl_written(self):
