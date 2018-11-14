@@ -53,6 +53,7 @@ WHEEL_DIR = 'wheel'
 PIP_DEFAULT_CMD = 'pip'
 PYTHON_DEFAULT_CMD = 'python2.7'
 VIRTUALENV_DEFAULT_CMD = 'virtualenv'
+VENV_DEFAULT_CMD = None
 PIP_OPTIONS = ['--disable-pip-version-check']
 
 # cache constants

@@ -42,6 +42,9 @@ class Python(builder.RuntimeBase):
         self._python_cmd = args.python_cmd.split(" ")
         self._pip_cmd = args.pip_cmd.split(" ")
         self._virtualenv_cmd = args.virtualenv_cmd.split(" ")
+        self._venv_cmd = args.venv_cmd
+        if self._venv_cmd:
+            self._venv_cmd = args.venv_cmd.split(" ")
 
         self._is_phase2 = ctx.Contains(constants.PIPFILE_LOCK)
 
@@ -64,6 +67,7 @@ class Python(builder.RuntimeBase):
             virtualenv_dir=self._virtualenv_dir,
             python_cmd=self._python_cmd,
             virtualenv_cmd=self._virtualenv_cmd,
+            venv_cmd=self._venv_cmd,
             cache_key_version=self._args.cache_key_version,
             cache=self._cache)
         interpreter_builder.BuildLayer()
@@ -76,8 +80,9 @@ class Python(builder.RuntimeBase):
                 # do a phase 2 build of the package layers w/ Pipfile.lock
                 # iterate over package/version Pipfile.lock
                 python_util.setup_virtualenv(self._virtualenv_dir,
-                                       self._virtualenv_cmd,
-                                       self._python_cmd)
+                                             self._virtualenv_cmd,
+                                             self._python_cmd,
+                                             self._venv_cmd)
                 pkgs = self._parse_pipfile_pkgs()
                 with ftl_util.Timing('uploading_all_package_layers'):
                     with concurrent.futures.ThreadPoolExecutor(
@@ -102,6 +107,7 @@ class Python(builder.RuntimeBase):
                     python_cmd=self._python_cmd,
                     pip_cmd=self._pip_cmd,
                     virtualenv_cmd=self._virtualenv_cmd,
+                    venv_cmd=self._venv_cmd,
                     dep_img_lyr=interpreter_builder,
                     cache_key_version=self._args.cache_key_version,
                     cache=self._cache)
