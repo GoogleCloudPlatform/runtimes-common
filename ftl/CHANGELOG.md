@@ -1,5 +1,8 @@
 # FTL Release Notes
 
+# Version 0.12.0 - 11/15/2018
+* [PYTHON] Added --venv-cmd flag to FTL python which allows users to specify a full venv command for FTL to use[#735](https://github.com/GoogleCloudPlatform/runtimes-common/pull/735)
+
 # Version 0.11.0 - 11/09/2018
 * Removed verbosity from tar commands by default as it was too verbose in log output [#726](https://github.com/GoogleCloudPlatform/runtimes-common/pull/726)
 * Updated FTL json error output to match GCB formatting [#727](https://github.com/GoogleCloudPlatform/runtimes-common/pull/727)
