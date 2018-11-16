@@ -9,12 +9,13 @@ import util
 TEST_DIRS = [
     'packages_test', 'metadata_test',
     'python3_test', 'pipfile_test',
-    'venv_dir_test', 'no_descriptor_test',
+    'virtualenv_dir_test', 'no_descriptor_test',
     'empty_descriptor_test',
     'additional_directory',
     'commented_descriptor_test',
     'setup_cfg_test',
-    'recursive_req_test'
+    'recursive_req_test',
+    'venv_test'
     ]
 
 _ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
@@ -46,13 +47,15 @@ def main():
     test_map['metadata_test'].extend(['--exposed-ports', '8090,8091'])
     test_map['python3_test'].extend(['--python-cmd', 'python3.6'])
     test_map['python3_test'].extend(['--pip-cmd', 'python3.6 -m pip'])
-    test_map['venv_dir_test'].extend(['--virtualenv-dir', '/alternate-env'])
+    test_map['virtualenv_dir_test'].extend(['--virtualenv-dir',
+                                            '/alternate-env'])
     test_map['additional_directory'].extend([
         '--additional-directory',
         '/workspace/ftl/python/testdata/additional_directory'
     ])
     test_map['setup_cfg_test'].extend(['--python-cmd', 'python3.6'])
     test_map['setup_cfg_test'].extend(['--pip-cmd', 'python3.6 -m pip'])
+    test_map['venv_test'].extend(['--venv-cmd', 'python3.6 -m venv /env'])
 
     for test, args in test_map.iteritems():
         cloudbuild_yaml['steps'] += util.run_test_steps(

@@ -48,11 +48,12 @@ PIPFILE_LOCK = 'Pipfile.lock'
 PIPFILE = 'Pipfile'
 REQUIREMENTS_TXT = 'requirements.txt'
 PYTHON_CACHE_NAMESPACE = 'python-cache'
-VENV_DIR = '/env'
+VIRTUALENV_DIR = '/env'
 WHEEL_DIR = 'wheel'
 PIP_DEFAULT_CMD = 'pip'
 PYTHON_DEFAULT_CMD = 'python2.7'
-VENV_DEFAULT_CMD = 'virtualenv'
+VIRTUALENV_DEFAULT_CMD = 'virtualenv'
+VENV_DEFAULT_CMD = None
 PIP_OPTIONS = ['--disable-pip-version-check']
 
 # cache constants

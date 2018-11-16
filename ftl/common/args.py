@@ -161,7 +161,8 @@ def base_parser():
 
 node_flgs = []
 php_flgs = []
-python_flgs = ['python_cmd', 'pip_cmd', 'venv_cmd', 'venv_dir']
+python_flgs = ['python_cmd', 'pip_cmd', 'virtualenv_cmd', 'virtualenv_dir',
+               'venv_cmd']
 
 
 def extra_args(parser, opt_list):
@@ -182,19 +183,27 @@ def extra_args(parser, opt_list):
                 "help": 'The pip command to be run (ex: pip)'
             }
         ],
-        'venv_cmd': [
+        'virtualenv_cmd': [
             '--virtualenv-cmd', {
-                "dest": 'venv_cmd',
+                "dest": 'virtualenv_cmd',
                 "action": 'store',
-                "default": constants.VENV_DEFAULT_CMD,
+                "default": constants.VIRTUALENV_DEFAULT_CMD,
                 "help": 'The virtualenv command to be run (ex: virtualenv)'
             }
         ],
-        'venv_dir': [
-            '--virtualenv-dir', {
-                "dest": 'venv_dir',
+        'venv_cmd': [
+            '--venv-cmd', {
+                "dest": 'venv_cmd',
                 "action": 'store',
-                "default": constants.VENV_DIR,
+                "default": constants.VENV_DEFAULT_CMD,
+                "help": 'The venv command to be run (ex: <py> -m venv /env)'
+            }
+        ],
+        'virtualenv_dir': [
+            '--virtualenv-dir', {
+                "dest": 'virtualenv_dir',
+                "action": 'store',
+                "default": constants.VIRTUALENV_DIR,
                 "help": 'The virtualenv command to be run (ex: virtualenv)'
             }
         ],
