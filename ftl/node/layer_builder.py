@@ -57,7 +57,8 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             with ftl_util.Timing('checking_cached_packages_json_layer'):
                 key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
-                self._log_cache_result(False if cached_img is None else True)
+                self._log_cache_result(False if cached_img is None else True,
+                                       key)
         if cached_img:
             self.SetImage(cached_img)
         else:
@@ -150,7 +151,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             env,
             err_type=ftl_error.FTLErrors.USER())
 
-    def _log_cache_result(self, hit):
+    def _log_cache_result(self, hit, key):
         if self._pkg_descriptor:
             if hit:
                 cache_str = constants.PHASE_2_CACHE_HIT
@@ -162,7 +163,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                     language='NODE',
                     package_name=self._pkg_descriptor[0],
                     package_version=self._pkg_descriptor[1],
-                    key=self.GetCacheKey()))
+                    key=key))
         else:
             if hit:
                 cache_str = constants.PHASE_1_CACHE_HIT
@@ -172,4 +173,4 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 cache_str.format(
                     key_version=constants.CACHE_KEY_VERSION,
                     language='NODE',
-                    key=self.GetCacheKey()))
+                    key=key))

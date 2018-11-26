@@ -13,7 +13,17 @@
 # limitations under the License.
 """This package defines the shared cli args for ftl binaries."""
 
+import argparse
 from ftl.common import args
+
+
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
 def base_parser():
@@ -53,5 +63,12 @@ def base_parser():
         type=int,
         action='store',
         help='the number of expected differing layers')
+    parser.add_argument(
+        '--should-cache',
+        dest='should_cache',
+        type=str2bool,
+        default=False,
+        action='store',
+        help='if the test is expecting a cache hit')
 
     return parser
