@@ -53,6 +53,19 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
     def BuildLayer(self):
         """Override."""
         cached_img = None
+        is_gcp_build = False
+        if self._ctx and self._ctx.Contains(constants.PACKAGE_JSON):
+            is_gcp_build = self._is_gcp_build(
+                json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)))
+
+        if is_gcp_build:
+            if self._should_use_yarn:
+                self._gcp_build(self._directory, 'yarn', 'run')
+                self._cleanup_build_layer()
+            else:
+                self._gcp_build(self._directory, 'npm', 'run-script')
+                self._cleanup_build_layer()
+
         if self._cache:
             with ftl_util.Timing('checking_cached_packages_json_layer'):
                 key = self.GetCacheKey()
@@ -85,20 +98,12 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
             ftl_util.run_command('rm_node_modules', rm_cmd)
 
     def _gen_yarn_install_tar(self, app_dir):
-        is_gcp_build = False
-        if self._ctx and self._ctx.Contains(constants.PACKAGE_JSON):
-            is_gcp_build = self._is_gcp_build(
-                json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)))
-
-        if is_gcp_build:
-            self._gcp_build(app_dir, 'yarn', 'run')
-        else:
-            yarn_install_cmd = ['yarn', 'install', '--production']
-            ftl_util.run_command(
-                'yarn_install',
-                yarn_install_cmd,
-                cmd_cwd=app_dir,
-                err_type=ftl_error.FTLErrors.USER())
+        yarn_install_cmd = ['yarn', 'install', '--production']
+        ftl_util.run_command(
+            'yarn_install',
+            yarn_install_cmd,
+            cmd_cwd=app_dir,
+            err_type=ftl_error.FTLErrors.USER())
 
         module_destination = os.path.join(self._destination_path,
                                           'node_modules')
@@ -106,14 +111,6 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         return ftl_util.zip_dir_to_layer_sha(modules_dir, module_destination)
 
     def _gen_npm_install_tar(self, app_dir):
-        is_gcp_build = False
-        if self._ctx and self._ctx.Contains(constants.PACKAGE_JSON):
-            is_gcp_build = self._is_gcp_build(
-                json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)))
-
-        if is_gcp_build:
-            self._gcp_build(app_dir, 'npm', 'run-script')
-            self._cleanup_build_layer()
         npm_install_cmd = ['npm', 'install', '--production']
         ftl_util.run_command(
             'npm_install',
