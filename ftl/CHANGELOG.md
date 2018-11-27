@@ -1,5 +1,9 @@
 # FTL Release Notes
 
+# Version 0.13.0 - 11/27/2018
+* [NODE] Updated gcp-build script execution to always run for builds instead of only running when a full rebuild is required[#739](https://github.com/GoogleCloudPlatform/runtimes-common/pull/739)
+* [NODE] Fixed FTL Node issue where cache Get and Set keys could be different resulting in FTL rebuilding images that should have been cached[#738](https://github.com/GoogleCloudPlatform/runtimes-common/pull/738)
+
 # Version 0.12.0 - 11/15/2018
 * [PYTHON] Added --venv-cmd flag to FTL python which allows users to specify a full venv command for FTL to use[#735](https://github.com/GoogleCloudPlatform/runtimes-common/pull/735)
 
