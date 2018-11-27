@@ -138,7 +138,6 @@ def all_descriptor_contents(descriptor_files, ctx):
         if ctx.Contains(f):
             descriptor = f
             descriptor_contents += ctx.GetFile(descriptor)
-            break
     if not descriptor:
         logging.info("No package descriptor found. No packages installed.")
         return None
@@ -317,3 +316,4 @@ def run_command(cmd_name,
                 raise ftl_error.InternalError("%s\n%s" % (err_txt, ret_txt))
             else:
                 raise Exception("Unknown error type passed to run_command")
+        return "stdout: %s, stderr: %s" % (stdout, stderr)

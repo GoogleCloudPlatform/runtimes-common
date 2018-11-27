@@ -14,15 +14,20 @@ _BASE_MAP = {
 }
 
 _APP_MAP = {
-    "node-same": ['packages_test', 'packages_test', '1'],
-    "node-plus-one": ['packages_test', 'packages_test_plus_one', '2'],
+    "node-same": ['appengine_test', 'appengine_test', '1', 'True'],
+    "node-plus-one": ['packages_test', 'packages_test_plus_one', '2', 'False'],
+    "php-lock-same": ['lock_test', 'lock_test', '1', 'True'],
     "php-lock-plus-one": ['lock_test', 'lock_test_plus_one',
-                          '2'],
-    "python-requirements-same": ['packages_test', 'packages_test', '1'],
-    "python-requirements-plus-one":
-    ['packages_test', 'packages_test_plus_one', '7'],  # should be 2?
-    "python-pipfile-same": ['pipfile_test', 'pipfile_test', '1'],
-    "python-pipfile-plus-one": ['pipfile_test', 'pipfile_test_plus_one', '2'],
+                          '2', 'False'],
+    "python-requirements-same": ['packages_test', 'packages_test',
+                                 '1', 'True'],
+    "python-requirements-plus-one": ['packages_test',
+                                     'packages_test_plus_one',
+                                     '7',
+                                     'False'],
+    "python-pipfile-same": ['pipfile_test', 'pipfile_test', '1', 'True'],
+    "python-pipfile-plus-one": ['pipfile_test', 'pipfile_test_plus_one',
+                                '2', 'False'],
 }
 
 parser = argparse.ArgumentParser(
@@ -51,6 +56,7 @@ def main():
     app_dir_2 = _APP_MAP[args.runtime][1]
     path = 'gcr.io/%s/%s/cache/%s' % (args.project, args.runtime, app_dir_1)
     offset = _APP_MAP[args.runtime][2]
+    should_cache = _APP_MAP[args.runtime][3]
     args.runtime = args.runtime.split('-')[0]
     name = path + ':latest'
     cloudbuild_yaml = {
@@ -80,11 +86,15 @@ def main():
                     '--base', _BASE_MAP[args.runtime], '--name', name,
                     '--directory',
                     os.path.join(_TEST_TEMPLATE % args.runtime,
-                                 app_dir_1), '--dir-1',
+                                 app_dir_1),
+                    '--dir-1',
                     os.path.join(_TEST_TEMPLATE % args.runtime,
-                                 app_dir_1), '--dir-2',
+                                 app_dir_1),
+                    '--dir-2',
                     os.path.join(_TEST_TEMPLATE % args.runtime,
-                                 app_dir_2), '--layer-offset', offset
+                                 app_dir_2),
+                    '--layer-offset', offset,
+                    '--should-cache', should_cache
                 ]
             },
         ]
