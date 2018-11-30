@@ -34,6 +34,8 @@ class Node(builder.RuntimeBase):
         self._should_use_yarn = self._should_use_yarn(self._ctx)
 
     def _gen_package_lock_if_required(self, ctx):
+        if self._args.skip_package_lock_gen:
+            return
         if not ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
             return
 
@@ -76,6 +78,7 @@ class Node(builder.RuntimeBase):
                 directory=self._args.directory,
                 destination_path=self._args.destination_path,
                 should_use_yarn=self._should_use_yarn,
+                reuse_cache_key=self._args.skip_package_lock_gen,
                 cache_key_version=self._args.cache_key_version,
                 cache=self._cache)
             layer_builder.BuildLayer()

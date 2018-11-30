@@ -68,6 +68,7 @@ py_test(
     srcs = ["common/util_test.py"],
     deps = [
         ":ftl_lib",
+        "@mock",
     ],
 )
 
