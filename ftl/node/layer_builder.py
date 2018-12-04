@@ -51,7 +51,8 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         if not self._cache_key or not self._reuse_cache_key:
             all_descriptor_contents = ftl_util.all_descriptor_contents(
                 self._descriptor_files, self._ctx)
-            self._cache_key = '%s %s' % (all_descriptor_contents, self._destination_path)
+            self._cache_key = '%s %s' % (all_descriptor_contents,
+                                         self._destination_path)
         return "%s %s" % (self._cache_key, self._cache_key_version)
 
     def BuildLayer(self):
