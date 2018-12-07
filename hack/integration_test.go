@@ -33,6 +33,14 @@ var tests = []Test{
 		name: "ftl cached node same",
 	},
 	{
+		cmd:  "python ../ftl/cached/ftl_cached_yaml.py --runtime=node-same-2",
+		name: "ftl cached node same 2",
+	},
+	{
+		cmd:  "python ../ftl/cached/ftl_cached_yaml.py --runtime=node-lock-same",
+		name: "ftl cached node lock",
+	},
+	{
 		cmd:  "python ../ftl/cached/ftl_cached_yaml.py --runtime=node-plus-one",
 		name: "ftl cached node plus one",
 	},

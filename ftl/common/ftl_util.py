@@ -137,6 +137,7 @@ def all_descriptor_contents(descriptor_files, ctx):
     for f in descriptor_files:
         if ctx.Contains(f):
             descriptor = f
+            logging.info("using descriptor:%s", descriptor)
             descriptor_contents += ctx.GetFile(descriptor)
     if not descriptor:
         logging.info("No package descriptor found. No packages installed.")

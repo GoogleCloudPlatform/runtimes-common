@@ -15,6 +15,8 @@ _BASE_MAP = {
 
 _APP_MAP = {
     "node-same": ['appengine_test', 'appengine_test', '1', 'True'],
+    "node-same-2": ['packages_test', 'packages_test', '1', 'True'],
+    "node-lock-same": ['packages_lock_test', 'packages_lock_test', '1', 'True'],
     "node-plus-one": ['packages_test', 'packages_test_plus_one', '2', 'False'],
     "php-lock-same": ['lock_test', 'lock_test', '1', 'True'],
     "php-lock-plus-one": ['lock_test', 'lock_test_plus_one',
