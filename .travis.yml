@@ -20,18 +20,19 @@ before_install:
   - pip install --user --upgrade -r requirements.txt
   - nvm install $NODE_VERSION
 
-addons:
-  apt:
-    sources:
-    - sourceline: 'deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8'
-      key_url: 'https://storage.googleapis.com/bazel-apt/doc/apt-key.pub.gpg'
+# addons:
+#   apt:
+#     sources:
+#     - sourceline: 'deb [arch=amd64] http://storage.googleapis.com/bazel-apt stable jdk1.8'
+#       key_url: 'https://storage.googleapis.com/bazel-apt/doc/apt-key.pub.gpg'
 
-    packages:
-    - bazel
+#     packages:
+#     - bazel
 
 install:
   - export PATH=$PATH:$HOME/bin && mkdir -p $HOME/bin
   - wget https://github.com/bazelbuild/buildtools/releases/download/0.11.1/buildifier && chmod +x buildifier && mv buildifier $HOME/bin/
+  - wget https://github.com/bazelbuild/bazel/releases/download/0.19.2/bazel-0.19.2-linux-x86_64 && chmod +x bazel && mv bazel $HOME/bin/
   - pip install wheel
 
 script:
