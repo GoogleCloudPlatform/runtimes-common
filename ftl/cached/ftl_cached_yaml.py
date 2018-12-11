@@ -68,13 +68,13 @@ def main():
             },
             # Build the runtime builder par file
             {
-                'name': 'gcr.io/cloud-builders/bazel',
+                'name': 'gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a',
                 'args': ['build', 'ftl:%s_builder.par' % args.runtime]
             },
             # Run the cache test
             {
                 'name':
-                'gcr.io/cloud-builders/bazel',
+                'gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a',
                 'args':
                 ['run',
                  _BAZEL_TEMPLATE.format(args.runtime), '--', '--norun'],
