@@ -55,7 +55,7 @@ def main():
             # Build the FTL image from source and load it into the daemon.
             {
                 'name':
-                'gcr.io/cloud-builders/bazel',
+                'gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a',
                 'args': [
                     'run', '//ftl/php/benchmark:php_benchmark_image', '--',
                     '--norun'
@@ -63,7 +63,7 @@ def main():
             },
             # Build the php builder par file
             {
-                'name': 'gcr.io/cloud-builders/bazel',
+                'name': 'gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a',
                 'args': ['build', 'ftl:php_builder.par']
             },
         ]
