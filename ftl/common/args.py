@@ -103,7 +103,7 @@ def base_parser():
         dest='skip_package_lock_gen',
         default=False,
         action='store_true',
-        help='Do not create package lock file before checking cache.')
+        help='Do not create package lock file before using cache.')
     parser.add_argument(
         '--output-path',
         dest='output_path',
