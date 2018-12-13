@@ -1,5 +1,8 @@
 # FTL Release Notes
 
+# Version 0.13.1 - 12/12/2018
+* [NODE] FTL Node caching had an issue that persisted after 0.13.0 due to a release error.  This PR resolves the initial FTL Node caching issue[#743](https://github.com/GoogleCloudPlatform/runtimes-common/pull/743)
+
 # Version 0.13.0 - 11/27/2018
 * [NODE] Updated gcp-build script execution to always run for builds instead of only running when a full rebuild is required[#739](https://github.com/GoogleCloudPlatform/runtimes-common/pull/739)
 * [NODE] Fixed FTL Node issue where cache Get and Set keys could be different resulting in FTL rebuilding images that should have been cached[#738](https://github.com/GoogleCloudPlatform/runtimes-common/pull/738)
