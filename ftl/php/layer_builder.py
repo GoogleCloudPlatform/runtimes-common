@@ -50,9 +50,9 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def BuildLayer(self):
         """Override."""
         cached_img = None
+        key = self.GetCacheKey()
         if self._cache:
             with ftl_util.Timing('checking_cached_composer_json_layer'):
-                key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
                 self._log_cache_result(False if cached_img is None else True,
                                        key)

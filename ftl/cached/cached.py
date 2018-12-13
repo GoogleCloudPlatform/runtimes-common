@@ -63,13 +63,19 @@ class Cached():
                 self._runtime)
         lyr_shas = []
         random_suffix = randomword(32)
+        WORKDIR = "/workspace-cached"
         for label, dir in zip(self._labels, self._dirs):
             logging.info("label: %s", label)
             logging.info("dir: %s", dir)
             img_name = "%s:%s" % (self._name.split(":")[0], label)
+            ftl_util.run_command("copy-%s-to-%s" % (dir, WORKDIR),
+                                 ["cp", "-r", dir, WORKDIR])
+
             ftl_args = [
                 builder_path, '--base', self._base, '--name', img_name,
-                '--directory', dir, '--cache-repository',
+                '--directory', WORKDIR,
+                '--destination', "/srv",
+                '--cache-repository',
                 'gcr.io/ftl-node-test/ftl-cache-repo-%s' % random_suffix
             ]
             if label == "original":
@@ -86,9 +92,8 @@ class Cached():
             finally:
                 logging.info("cleaning up directories...")
                 self._cleanup(constants.VIRTUALENV_DIR)
-                self._cleanup(os.path.join(dir, constants.PACKAGE_LOCK))
-                self._cleanup(os.path.join(dir, "node_modules"))
-                self._cleanup(os.path.join(dir, "vendor"))
+                ftl_util.run_command("cleanup-%s" % WORKDIR,
+                                     ["rm", "-rf", WORKDIR])
 
         if self._should_cache and label == "reupload":
             if "[HIT]" not in out:

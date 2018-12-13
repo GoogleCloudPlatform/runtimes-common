@@ -66,9 +66,9 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 self._gcp_build(self._directory, 'npm', 'run-script')
                 self._cleanup_build_layer()
 
+        key = self.GetCacheKey()
         if self._cache:
             with ftl_util.Timing('checking_cached_packages_json_layer'):
-                key = self.GetCacheKey()
                 cached_img = self._cache.Get(key)
                 self._log_cache_result(False if cached_img is None else True,
                                        key)
@@ -80,7 +80,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                 self._cleanup_build_layer()
             if self._cache:
                 with ftl_util.Timing('uploading_packages_json_layer'):
-                    self._cache.Set(self.GetCacheKey(), self.GetImage())
+                    self._cache.Set(key, self.GetImage())
 
     def _build_layer(self):
         if self._should_use_yarn:
