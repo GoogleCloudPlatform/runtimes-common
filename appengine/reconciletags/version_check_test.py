@@ -189,7 +189,7 @@ class VersionCheckTest(unittest.TestCase):
 
         if images_map:
             self.fail(('The following repos have a latest tag that is '
-                       'too old: {0}. '.format(str(images_map))))
+                       'too old: {0} '.format(str(images_map))))
 
 
 if __name__ == '__main__':
