@@ -108,8 +108,7 @@ class VersionCheckTest(unittest.TestCase):
 
     def filter_go(s, current, version=None):
         if current:
-            #return s.rstrip()
-            return "1.11.3"
+            return s.rstrip()
         else:
             return re.findall(r'go({}.\d+)'.format(version), s)[0]
 
