@@ -108,7 +108,8 @@ class VersionCheckTest(unittest.TestCase):
 
     def filter_go(s, current, version=None):
         if current:
-            return s.rstrip()
+            #return s.rstrip()
+            return "1.11.3"
         else:
             return re.findall(r'go({}.\d+)'.format(version), s)[0]
 
@@ -142,17 +143,18 @@ class VersionCheckTest(unittest.TestCase):
         return version
 
     def test_latest_version(self):
-        old_images = []
-        for f in glob.glob('../config/tag/*json'):
+        images_map = {}
+        for f in glob.glob('../../config/tag/*json'):
             logging.debug('Testing {0}'.format(f))
             with open(f) as tag_map:
                 data = json.load(tag_map)
+                old_images = []
+                runtime = os.path.basename(f)
+                runtime = os.path.splitext(runtime)[0]
                 for project in data['projects']:
                     logging.debug('Checking {}'.format(project['repository']))
                     for image in project['images']:
                         if 'check_version' in image:
-                            runtime = os.path.basename(f)
-                            runtime = os.path.splitext(runtime)[0]
                             img_name = os.path.join(project['base_registry'],
                                                     project['repository'] +
                                                     ':' + image['tag'])
@@ -182,10 +184,12 @@ class VersionCheckTest(unittest.TestCase):
                                     "latest_version": latest_version
                                 }
                                 old_images.append(entry)
+                if old_images:
+                  images_map[runtime] = old_images
 
-        if len(old_images) > 0:
+        if images_map:
             self.fail(('The following repos have a latest tag that is '
-                       'too old: {0}. '.format(str(old_images))))
+                       'too old: {0}. '.format(str(images_map))))
 
 
 if __name__ == '__main__':
