@@ -184,7 +184,7 @@ class VersionCheckTest(unittest.TestCase):
                                 }
                                 old_images.append(entry)
                 if old_images:
-                  images_map[runtime] = old_images
+                    images_map[runtime] = old_images
 
         if images_map:
             self.fail(('The following repos have a latest tag that is '
