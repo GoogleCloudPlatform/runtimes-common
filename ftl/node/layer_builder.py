@@ -55,15 +55,16 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         cached_img = None
         is_gcp_build = False
         if self._ctx and self._ctx.Contains(constants.PACKAGE_JSON):
-            is_gcp_build = self._is_gcp_build(
+            is_gcp_build = ftl_util.is_gcp_build(
                 json.loads(self._ctx.GetFile(constants.PACKAGE_JSON)))
 
         if is_gcp_build:
+            env = {"NODE_ENV": "development"}
             if self._should_use_yarn:
-                self._gcp_build(self._directory, 'yarn', 'run')
+                ftl_util.gcp_build(self._directory, 'yarn', 'run', env)
                 self._cleanup_build_layer()
             else:
-                self._gcp_build(self._directory, 'npm', 'run-script')
+                ftl_util.gcp_build(self._directory, 'npm', 'run-script', env)
                 self._cleanup_build_layer()
 
         key = self.GetCacheKey()
@@ -122,31 +123,6 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
                                           'node_modules')
         modules_dir = os.path.join(self._directory, "node_modules")
         return ftl_util.zip_dir_to_layer_sha(modules_dir, module_destination)
-
-    def _is_gcp_build(self, package_json):
-        scripts = package_json.get('scripts', {})
-        if scripts.get('gcp-build'):
-            return True
-        return False
-
-    def _gcp_build(self, app_dir, install_bin, run_cmd):
-        env = os.environ.copy()
-        env["NODE_ENV"] = "development"
-        install_cmd = [install_bin, 'install']
-        ftl_util.run_command(
-            '%s_install' % install_bin,
-            install_cmd,
-            app_dir,
-            env,
-            err_type=ftl_error.FTLErrors.USER())
-
-        npm_run_script_cmd = [install_bin, run_cmd, 'gcp-build']
-        ftl_util.run_command(
-            '%s_%s_gcp_build' % (install_bin, run_cmd),
-            npm_run_script_cmd,
-            app_dir,
-            env,
-            err_type=ftl_error.FTLErrors.USER())
 
     def _log_cache_result(self, hit, key):
         if self._pkg_descriptor:
