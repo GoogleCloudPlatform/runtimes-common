@@ -157,6 +157,8 @@ def descriptor_parser(descriptor_files, ctx):
         # add add files to contents?
         new_descriptor_contents = descriptor_contents
         for line in descriptor_contents.split("\n"):
+            line = line.partition('#')[0]
+            line = line.rstrip()
             match = re.search(r'-r\s+(.*)', line)
             if match:
                 logging.info("found recursive python requirements file: %s",
