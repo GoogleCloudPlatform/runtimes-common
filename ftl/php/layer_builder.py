@@ -15,6 +15,7 @@
 
 import logging
 import os
+import json
 
 from ftl.common import constants
 from ftl.common import ftl_util
@@ -49,6 +50,16 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
     def BuildLayer(self):
         """Override."""
+        is_gcp_build = False
+
+        if self._ctx and self._ctx.Contains(constants.COMPOSER_JSON):
+            is_gcp_build = ftl_util.is_gcp_build(
+                json.loads(self._ctx.GetFile(constants.COMPOSER_JSON)))
+
+        if is_gcp_build:
+            ftl_util.gcp_build(self._directory, 'composer', 'run-script')
+            self._cleanup_build_layer()
+
         cached_img = None
         key = self.GetCacheKey()
         if self._cache:

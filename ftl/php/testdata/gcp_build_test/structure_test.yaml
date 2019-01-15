@@ -1,0 +1,13 @@
+schemaVersion: '2.0.0'
+fileExistenceTests:
+- name: 'gcp-build hello'
+  path: '/srv/hello.txt'
+  shouldExist: true
+- name: 'silex dependency'
+  path: '/srv/vendor/silex'
+  shouldExist: true
+  isDirectory: true
+fileContentTests:
+- name: 'gcp-build hello content'
+  path: '/srv/hello.txt'
+  expectedContents: ['Hello world!']

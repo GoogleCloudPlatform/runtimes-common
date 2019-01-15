@@ -107,11 +107,8 @@ def zip_dir_to_layer_sha(app_dir, destination_path, alter_symlinks=True):
     if alter_symlinks:
         txfrm_regex = 'flags=r;s,^,%s/,' % destination_path
     tar_cmd = [
-        'tar',
-        '-pcf', tar_path,
-        '--transform', txfrm_regex,
-        '--exclude', '*.pyc',
-        '.'
+        'tar', '-pcf', tar_path, '--transform', txfrm_regex, '--exclude',
+        '*.pyc', '.'
     ]
 
     run_command('tar_runtime_package', tar_cmd, cmd_cwd=app_dir)
@@ -162,13 +159,10 @@ def descriptor_parser(descriptor_files, ctx):
         for line in descriptor_contents.split("\n"):
             match = re.search(r'-r\s+(.*)', line)
             if match:
-                logging.info(
-                    "found recursive python requirements file: %s",
-                    match.group(1)
-                )
+                logging.info("found recursive python requirements file: %s",
+                             match.group(1))
                 new_descriptor_contents += ctx.GetFile(match.group(1))
-        logging.info("new_descriptor_contents: \n%s",
-                     new_descriptor_contents)
+        logging.info("new_descriptor_contents: \n%s", new_descriptor_contents)
         descriptor_contents = new_descriptor_contents
     if not descriptor:
         logging.info("No package descriptor found. No packages installed.")
@@ -318,3 +312,31 @@ def run_command(cmd_name,
             else:
                 raise Exception("Unknown error type passed to run_command")
         return "stdout: %s, stderr: %s" % (stdout, stderr)
+
+
+def is_gcp_build(package_json):
+    scripts = package_json.get('scripts', {})
+    if scripts.get('gcp-build'):
+        return True
+    return False
+
+
+def gcp_build(app_dir, install_bin, run_cmd, env_map={}):
+    env = os.environ.copy()
+    for key, value in env_map.iteritems():
+        env[key] = value
+    install_cmd = [install_bin, 'install']
+    run_command(
+        '%s_install' % install_bin,
+        install_cmd,
+        app_dir,
+        env,
+        err_type=ftl_error.FTLErrors.USER())
+
+    npm_run_script_cmd = [install_bin, run_cmd, 'gcp-build']
+    run_command(
+        '%s_%s_gcp_build' % (install_bin, run_cmd),
+        npm_run_script_cmd,
+        app_dir,
+        env,
+        err_type=ftl_error.FTLErrors.USER())
