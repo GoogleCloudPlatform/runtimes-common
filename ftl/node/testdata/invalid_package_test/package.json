@@ -1,0 +1,8 @@
+{
+  "name": "Cloud Storage Upload/Download Timeout",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "3.x",
+    "@google-cloud/storage": "^1.7.0"
+  }
+}

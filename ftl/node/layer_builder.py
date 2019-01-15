@@ -112,7 +112,7 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
 
     def _gen_npm_install_tar(self, app_dir):
         npm_install_cmd = ['npm', 'install', '--production']
-        ftl_util.run_command(
+        npm_output = ftl_util.run_command(
             'npm_install',
             npm_install_cmd,
             cmd_cwd=app_dir,
@@ -121,6 +121,10 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         module_destination = os.path.join(self._destination_path,
                                           'node_modules')
         modules_dir = os.path.join(self._directory, "node_modules")
+        if not os.path.isdir(modules_dir) or os.listdir(modules_dir) == []:
+            if "Invalid name" in npm_output:
+                raise ftl_error.UserError("%s\n%s" % (npm_output, "0"))
+
         return ftl_util.zip_dir_to_layer_sha(modules_dir, module_destination)
 
     def _is_gcp_build(self, package_json):
