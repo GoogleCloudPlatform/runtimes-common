@@ -28,11 +28,11 @@ o/my-project/cloudcats-node-app:latest
 ```
 
 ## Releases
-Currently FTL is released in .par format for each supported runtime.  The latest release is v0.13.1, changelog [here](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/ftl/CHANGELOG.md)
+Currently FTL is released in .par format for each supported runtime.  The latest release is v0.14.0, changelog [here](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/ftl/CHANGELOG.md)
 
 ### node
 
-[v0.13.1](https://storage.googleapis.com/gcp-container-tools/ftl/node/node-v0.13.1/ftl.par)
+[v0.14.0](https://storage.googleapis.com/gcp-container-tools/ftl/node/node-v0.14.0/ftl.par)
 
 [HEAD](https://storage.googleapis.com/gcp-container-tools/ftl/node/latest/ftl.par)
 
@@ -41,7 +41,7 @@ Specific version (based on git $COMMIT_SHA)
 
 ### python
 
-[v0.13.1](https://storage.googleapis.com/gcp-container-tools/ftl/node/python-v0.13.1/ftl.par)
+[v0.14.0](https://storage.googleapis.com/gcp-container-tools/ftl/python/python-v0.14.0/ftl.par)
 
 [HEAD](https://storage.googleapis.com/gcp-container-tools/ftl/python/latest/ftl.par)
 
@@ -49,7 +49,7 @@ Specific version (based on git $COMMIT_SHA)
 `https://storage.googleapis.com/gcp-container-tools/ftl/python/$COMMIT_SHA/ftl.par`
 
 ### php
-[v0.13.1](https://storage.googleapis.com/gcp-container-tools/ftl/php/php-v0.13.1/ftl.par)
+[v0.14.0](https://storage.googleapis.com/gcp-container-tools/ftl/php/php-v0.14.0/ftl.par)
 
 [HEAD](https://storage.googleapis.com/gcp-container-tools/ftl/php/latest/ftl.par)
 
@@ -57,7 +57,7 @@ Specific version (based on git $COMMIT_SHA)
 `https://storage.googleapis.com/gcp-container-tools/ftl/php/$COMMIT_SHA/ftl.par`
 
 ## Building and Running
-FTL is built using bazel so bazel must be installed.  To build artifacts with FTL, use `bazel build` and then one of the bazel rules specified in a BUILD file.  The most common rules `//ftl:node_builder`, `//ftl:python_builder`, `//ftl:python_builder`.  To run FTL locally, `bazel run` can be used, passing flag args to the command.  An example is below:
+FTL is built using bazel so bazel must be installed.  NOTE: FTL requires a bazel version of 0.19.1 due to syntax changes in later versions.  To build artifacts with FTL, use `bazel build` and then one of the bazel rules specified in a BUILD file.  The most common rules are `//ftl:node_builder`, `//ftl:python_builder`, and `//ftl:python_builder`.  To run FTL locally, `bazel run` can be used, passing flag args to the command.  An example is below:
 ```
 bazel run //ftl:python_builder -- \
   --base=gcr.io/google-appengine/python:latest \
@@ -68,13 +68,12 @@ bazel run //ftl:python_builder -- \
 ```
 FTL also supports a `--tar_base_image_path=$TARGET_PATH` flag if users do not which to upload to a registry
 
-## Developing
+
+## Developing - Integration Tests
 To run the FTL integration tests, run the following command locally from the root directory:
 
 ```shell
-python ftl/ftl_node_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 .
-python ftl/ftl_php_integration_tests_yaml.py | gcloud container builds submit --config /dev/fd/0 .
-gcloud container builds submit --config ftl/ftl_python_integration_tests.yaml .
+python ftl/ftl_<RUNTIME={node,php,python}>_integration_tests_yaml.py | gcloud builds submit --config /dev/fd/0 .
 ```
 
 ## FTL Runtime Design Documents
