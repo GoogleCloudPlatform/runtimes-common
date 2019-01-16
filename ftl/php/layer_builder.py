@@ -57,7 +57,8 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
                 json.loads(self._ctx.GetFile(constants.COMPOSER_JSON)))
 
         if is_gcp_build:
-            ftl_util.gcp_build(self._directory, 'composer', 'run-script')
+            ftl_util.gcp_build(self._directory, 'composer', 'run-script',
+                               flags=["--timeout=600", "--no-dev"])
             self._cleanup_build_layer()
 
         cached_img = None
