@@ -321,7 +321,7 @@ def is_gcp_build(package_json):
     return False
 
 
-def gcp_build(app_dir, install_bin, run_cmd, env_map={}):
+def gcp_build(app_dir, install_bin, run_cmd, flags=[], env_map={}):
     env = os.environ.copy()
     for key, value in env_map.iteritems():
         env[key] = value
@@ -333,10 +333,12 @@ def gcp_build(app_dir, install_bin, run_cmd, env_map={}):
         env,
         err_type=ftl_error.FTLErrors.USER())
 
-    npm_run_script_cmd = [install_bin, run_cmd, 'gcp-build']
+    run_script_cmd = [install_bin, run_cmd]
+    run_script_cmd.extend(flags)
+    run_script_cmd.append('gcp-build')
     run_command(
         '%s_%s_gcp_build' % (install_bin, run_cmd),
-        npm_run_script_cmd,
+        run_script_cmd,
         app_dir,
         env,
         err_type=ftl_error.FTLErrors.USER())

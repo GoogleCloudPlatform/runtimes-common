@@ -61,10 +61,11 @@ class LayerBuilder(single_layer_image.CacheableLayerBuilder):
         if is_gcp_build:
             env = {"NODE_ENV": "development"}
             if self._should_use_yarn:
-                ftl_util.gcp_build(self._directory, 'yarn', 'run', env)
+                ftl_util.gcp_build(self._directory, 'yarn', 'run', env_map=env)
                 self._cleanup_build_layer()
             else:
-                ftl_util.gcp_build(self._directory, 'npm', 'run-script', env)
+                ftl_util.gcp_build(self._directory, 'npm', 'run-script',
+                                   env_map=env)
                 self._cleanup_build_layer()
 
         key = self.GetCacheKey()
