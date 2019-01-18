@@ -12,11 +12,9 @@ licenses(["notice"])  # Apache 2.0
 
 exports_files(["LICENSE"])
 
-load("@io_bazel_rules_go//go:def.bzl", "go_prefix")
-
-go_prefix("github.com/GoogleCloudPlatform/runtimes-common")
-
 load("@bazel_gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix github.com/GoogleCloudPlatform/runtimes-common
 
 gazelle(
     name = "gazelle",

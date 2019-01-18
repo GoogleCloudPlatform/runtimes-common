@@ -24,4 +24,5 @@ genrule(
 go_library(
     name = "go_default_library",
     srcs = [":gen_readme_template"],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/docgen/lib/render/templates"
 )

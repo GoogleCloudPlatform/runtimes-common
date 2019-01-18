@@ -13,7 +13,7 @@ go_library(
     deps = [
         "//docgen/lib/proto:go_default_library",
         "//vendor/github.com/ghodss/yaml:go_default_library",
-        "//vendor/github.com/golang/protobuf/jsonpb:go_default_library",
+        "@com_github_golang_protobuf//jsonpb:go_default_library_gen",
     ],
 )
 
@@ -36,6 +36,6 @@ go_test(
     embed = [":go_default_library"],
     deps = [
         "//vendor/github.com/ghodss/yaml:go_default_library",
-        "//vendor/github.com/golang/protobuf/jsonpb:go_default_library",
+        "@com_github_golang_protobuf//jsonpb:go_default_library_gen",
     ],
 )
