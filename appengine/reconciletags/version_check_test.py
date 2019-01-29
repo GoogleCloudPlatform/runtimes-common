@@ -110,7 +110,7 @@ class VersionCheckTest(unittest.TestCase):
         if current:
             return s.rstrip()
         else:
-            return re.findall(r'go({}.\d+(?:beta\d+|))'.format(version), s)[0]
+            return re.findall(r'go({}(?:.\d+|beta\d+))'.format(version), s)[0]
 
     runtime_to_filter = {
         "debian": filter_debian,
@@ -163,6 +163,8 @@ class VersionCheckTest(unittest.TestCase):
                                                                       project,
                                                                       img_name)
                             version = c_version.rsplit('.', 1)[0]
+                            if 'beta' in c_version:
+                                version = c_version.split('beta')[0]
                             logging.debug('version={}'.format(version))
                             if 'apt_version' in image:
                                 version = image['apt_version']
