@@ -58,7 +58,8 @@ class PhaseOneLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
         if is_gcp_build:
             ftl_util.gcp_build(self._directory, 'composer', 'run-script',
-                               flags=["--timeout=600", "--no-dev"])
+                               install_flags=["--no-dev"],
+                               run_flags=["--timeout=600", "--no-dev"])
             self._cleanup_build_layer()
 
         cached_img = None
