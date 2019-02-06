@@ -1,6 +1,11 @@
 # FTL Release Notes
 
-# Version 0.14.0 - 1/16/2018
+# Version 0.15.0 - 2/5/2019
+* Fixes an issue with FTL where hardlinks would not be properly handled.[#758](https://github.com/GoogleCloudPlatform/runtimes-common/pull/758)
+* [PHP] Fixes an issue with PHP where dev dependencies were being installed when running a `gcp-build` script.[#763](https://github.com/GoogleCloudPlatform/runtimes-common/pull/763)
+
+
+# Version 0.14.0 - 1/16/2019
 * [PHP] Fixes a performance regression for FTL PHP where `composer update` would be called each run disregarding caching.  This removed these server side `composer update` calls.[#749](https://github.com/GoogleCloudPlatform/runtimes-common/pull/749)
 * [PHP] Added `gcp-build` script support to FTL PHP [#752](https://github.com/GoogleCloudPlatform/runtimes-common/pull/752)
 * [NODE] Fixed issue where FTL node would mask errro on invalid name in package.json[#755](https://github.com/GoogleCloudPlatform/runtimes-common/pull/755)
