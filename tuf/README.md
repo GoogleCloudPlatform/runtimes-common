@@ -33,4 +33,3 @@ a public Google Cloud Storage Bucket.
 bazel run tuf:tuf -- upload-secrets --root-file /tmp/secret_key.json
 ```
 
-
