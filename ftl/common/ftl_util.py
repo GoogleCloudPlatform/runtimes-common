@@ -323,11 +323,12 @@ def is_gcp_build(package_json):
     return False
 
 
-def gcp_build(app_dir, install_bin, run_cmd, flags=[], env_map={}):
+def gcp_build(app_dir, install_bin, run_cmd, install_flags=[], run_flags=[], env_map={}):
     env = os.environ.copy()
     for key, value in env_map.iteritems():
         env[key] = value
     install_cmd = [install_bin, 'install']
+    install_cmd.extend(install_flags)
     run_command(
         '%s_install' % install_bin,
         install_cmd,
@@ -336,7 +337,7 @@ def gcp_build(app_dir, install_bin, run_cmd, flags=[], env_map={}):
         err_type=ftl_error.FTLErrors.USER())
 
     run_script_cmd = [install_bin, run_cmd]
-    run_script_cmd.extend(flags)
+    run_script_cmd.extend(run_flags)
     run_script_cmd.append('gcp-build')
     run_command(
         '%s_%s_gcp_build' % (install_bin, run_cmd),
