@@ -1,0 +1,11 @@
+steps:
+- name: 'gcr.io/gcp-runtimes/aspnetcorebuild:latest'
+  args:
+    - '--version-map'
+    - '1.0.13=gcr.io/google-appengine/aspnetcore:1.0.13'
+    - '1.1.10=gcr.io/google-appengine/aspnetcore:1.1.10'
+    - '2.0.9=gcr.io/google-appengine/aspnetcore:2.0.9'
+    - '2.1.7=gcr.io/google-appengine/aspnetcore:2.1.7'
+    - '2.2.1=gcr.io/google-appengine/aspnetcore:2.2.1'
+- name: 'gcr.io/kaniko-project/executor:v0.4.0'
+  args: ['--destination=$_OUTPUT_IMAGE']
