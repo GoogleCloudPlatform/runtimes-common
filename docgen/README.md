@@ -4,7 +4,21 @@
 
 # How to install
 
-This uses [`bazel`](https://bazel.build) as the build tool.
+- Install packages for Debian:
+```
+apt install unzip git gcc gpp libstdc++
+```
+
+- Install bazel, version 0.13.0:
+
+```
+export BAZEL_VERSION=0.13.0
+curl -L -O "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh"
+chmod +x "bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh"
+"./bazel-${BAZEL_VERSION}-installer-linux-x86_64.sh" --user
+aliast bazel="${HOME}/bin/bazel"
+bazel version
+```
 
 - Clone this repo:
 
