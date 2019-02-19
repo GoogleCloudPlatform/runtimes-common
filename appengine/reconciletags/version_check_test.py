@@ -165,6 +165,8 @@ class VersionCheckTest(unittest.TestCase):
                             version = c_version.rsplit('.', 1)[0]
                             if 'beta' in c_version:
                                 version = c_version.split('beta')[0]
+                            if 'rc' in c_version:
+                                version = c_version.split('rc')[0]
                             logging.debug('version={}'.format(version))
                             if 'apt_version' in image:
                                 version = image['apt_version']
