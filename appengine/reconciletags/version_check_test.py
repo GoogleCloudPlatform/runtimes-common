@@ -110,7 +110,7 @@ class VersionCheckTest(unittest.TestCase):
         if current:
             return s.rstrip()
         else:
-            return re.findall(r'go({}(?:.\d+|beta\d+|rc\d+))'.format(version), s)[0]
+            return re.findall(r'go({}(?:.\d+|beta\d+|rc\d+)?)'.format(version), s)[0]
 
     runtime_to_filter = {
         "debian": filter_debian,
