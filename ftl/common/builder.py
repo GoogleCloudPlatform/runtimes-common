@@ -117,6 +117,8 @@ class RuntimeBase(JustApp):
             threads=constants.THREADS,
             mount=[self._base_name],
             use_global=args.global_cache,
+            export_stats=args.export_cache_stats,
+            export_location=args.builder_output_path,
             should_cache=args.cache,
             should_upload=args.upload)
         self._descriptor_files = descriptor_files
