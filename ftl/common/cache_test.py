@@ -17,6 +17,7 @@ import unittest
 import cache
 import mock
 import constants
+import datetime
 
 
 class RegistryTest(unittest.TestCase):
@@ -34,6 +35,9 @@ class RegistryTest(unittest.TestCase):
 
         # Test when the image exists.
         mock_img.exists.return_value = True
+        create_timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        mock_img.config_file.return_value = '{{"created": "{}"}}'.format(
+            create_timestamp)
         c = cache.Registry(
             repo='fake.gcr.io/google-appengine',
             namespace='namespace',
