@@ -214,7 +214,7 @@ class Registry(Base):
     @staticmethod
     def buildCacheResult(cache_level, cache_key, cache_status):
         return {
-            "type": "dependency_layer_cache",
+            "type": "docker_layer_cache",
             "level": cache_level,
             "hash": cache_key,
             "status": cache_status
