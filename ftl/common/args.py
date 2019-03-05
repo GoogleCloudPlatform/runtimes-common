@@ -88,6 +88,12 @@ def base_parser():
         action='store_true',
         help='Use global cache')
     parser.add_argument(
+        '--export-cache-stats',
+        dest='export_cache_stats',
+        default=False,
+        action='store_true',
+        help='Export cache hit/miss stats')
+    parser.add_argument(
         '--no-upload',
         dest='upload',
         action='store_false',
