@@ -1,5 +1,8 @@
 # FTL Release Notes
 
+# Version 0.16.0 - 3/5/2019
+* Adds support for structured benchmark outputs.[#771](https://github.com/GoogleCloudPlatform/runtimes-common/pull/771)
+
 # Version 0.15.0 - 2/5/2019
 * Fixes an issue with FTL where hardlinks would not be properly handled.[#758](https://github.com/GoogleCloudPlatform/runtimes-common/pull/758)
 * [PHP] Fixes an issue with PHP where dev dependencies were being installed when running a `gcp-build` script.[#763](https://github.com/GoogleCloudPlatform/runtimes-common/pull/763)
