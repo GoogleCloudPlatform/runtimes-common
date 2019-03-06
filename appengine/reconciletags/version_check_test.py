@@ -24,7 +24,7 @@ runtime_to_latest_version = {
     'nodejs': 'curl -L https://nodejs.org/dist/latest-v10.x/',
     'go1-builder': 'curl -L https://golang.org/dl',
     'openjdk': ('docker run -t --entrypoint /bin/bash {0} '
-             '-c \'apt-get update &> /dev/null; apt-get install -s {1}\''),
+                '-c \'apt-get update &> /dev/null; apt-get install -s {1}\''),
     'jetty': ('curl -L https://repo1.maven.org/'
               'maven2/org/eclipse/jetty/jetty-distribution/'),
 
@@ -119,10 +119,9 @@ class VersionCheckTest(unittest.TestCase):
         if current:
             return s.rstrip()
         else:
-          v = re.findall(r'{}.\d+.\d+.v\d+'.format(version.split('.')[0]), s)
-          v.sort(key=LooseVersion)
-          return v[-1]
-
+            v = re.findall(r'{}.\d+.\d+.v\d+'.format(version.split('.')[0]), s)
+            v.sort(key=LooseVersion)
+            return v[-1]
 
     runtime_to_filter = {
         'debian': filter_debian,
