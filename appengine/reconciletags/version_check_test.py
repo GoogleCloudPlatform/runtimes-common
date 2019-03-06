@@ -171,8 +171,7 @@ class VersionCheckTest(unittest.TestCase):
                             runtime = 'openjdk'
                         elif project['repository'] == 'google-appengine/jetty':
                             runtime = 'jetty'
-
-                    print "RUNTIME="+runtime
+                            
                     for image in project['images']:
                         if 'check_version' in image:
                             img_name = os.path.join(project['base_registry'],
