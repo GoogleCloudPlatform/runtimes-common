@@ -1,7 +1,7 @@
-'''Latest age tests.
+"""Latest age tests.
 
 Checks the build date of the image marked as latest for a repository and fails
-if it's over two weeks old.'''
+if it's over two weeks old."""
 
 import glob
 import json
