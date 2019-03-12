@@ -148,7 +148,7 @@ class Registry(Base):
             return img
 
         # if we get a global cache miss, check the local cache
-        (img, cache_result) = self._validateEntry(
+        (img, cache_status) = self._validateEntry(
             self._getLocalEntry(cache_key), cache_key)
         cache_results.append(
             Registry.buildCacheResult("project", cache_key, cache_status))
