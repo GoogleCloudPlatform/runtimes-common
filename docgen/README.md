@@ -4,7 +4,7 @@
 
 # How to install
 
-This uses [`bazel`](https://bazel.build) as the build tool.
+- Install [Bazel, version 0.13.0](https://bazel.build) as the build tool.
 
 - Clone this repo:
 
