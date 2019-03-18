@@ -72,7 +72,7 @@ class VersionCheckTest(unittest.TestCase):
 
     def filter_ruby(s, current, version=None):
         if current:
-            return s.split()[1][:-4]
+            return s.split()[1].split('p')[0]
         else:
             return re.findall(r'Ruby ({}.\d+)'.format(version), s)[0]
 
