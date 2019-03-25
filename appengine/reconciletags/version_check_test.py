@@ -208,6 +208,8 @@ class VersionCheckTest(unittest.TestCase):
                                 }
                                 old_images.append(entry)
                 if old_images:
+                    if runtime == 'jetty' or runtime == 'openjdk':
+                        runtime = 'java'
                     images_map[runtime] = old_images
 
         if images_map:
