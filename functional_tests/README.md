@@ -5,8 +5,7 @@ This code builds an image that serves as a framework to run functional tests on
 a target image. The image under tests runs as a docker container inside of this
 image, which itself runs as a docker container on a host machine in the cloud
 (when run through a
-[Google Cloud Container Build](https://cloud.google.com/container-builder/docs/overview)
-).
+[Google Cloud Container Build](https://cloud.google.com/container-builder/docs/overview)).
 
 # How Use This Image
 
