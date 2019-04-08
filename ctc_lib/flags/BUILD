@@ -2,7 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = glob(["*.go"]),
+    srcs = ["flags.go"],
     importpath = "github.com/GoogleCloudPlatform/runtimes-common/ctc_lib/flags",
     visibility = ["//visibility:public"],
 )

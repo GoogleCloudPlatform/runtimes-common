@@ -1,11 +1,12 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
     name = "go_default_library",
-    srcs = glob(["*.go"]),
+    srcs = ["root.go"],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/demo/ctc/cmd",
     visibility = ["//visibility:public"],
     deps = [
         "//ctc_lib:go_default_library",
-        "@com_github_spf13_cobra//:go_default_library",
+        "//vendor/github.com/spf13/cobra:go_default_library",
     ],
 )

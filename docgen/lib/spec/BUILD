@@ -30,6 +30,11 @@ go_test(
 )
 
 go_test(
+    name = "go_default_test",
+    data = glob(["testdata/**"]),
+)
+
+go_test(
     name = "go_default_xtest",
     srcs = ["spec_test.go"],
     data = glob(["testdata/**"]),

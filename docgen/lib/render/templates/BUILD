@@ -1,3 +1,5 @@
+# gazelle:ignore
+
 package(default_visibility = ["//visibility:public"])
 
 load(

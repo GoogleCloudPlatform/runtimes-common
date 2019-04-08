@@ -9,3 +9,18 @@ go_binary(
         "//demo/ctc/cmd:go_default_library",
     ],
 )
+
+go_library(
+    name = "go_default_library",
+    srcs = ["main.go"],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/demo/ctc",
+    visibility = ["//visibility:private"],
+    deps = ["//demo/ctc/cmd:go_default_library"],
+)
+
+go_binary(
+    name = "ctc",
+    embed = [":go_default_library"],
+    importpath = "github.com/GoogleCloudPlatform/runtimes-common/demo/ctc",
+    visibility = ["//visibility:public"],
+)
