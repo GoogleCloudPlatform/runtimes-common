@@ -105,6 +105,12 @@ def base_parser():
         action='store_true',
         help='Upload to cache during build (default).')
     parser.add_argument(
+        '--skip_package_lock_generation',
+        dest='skip_package_lock_gen',
+        default=False,
+        action='store_true',
+        help='Do not create package lock file before using cache.')
+    parser.add_argument(
         '--output-path',
         dest='output_path',
         action='store',
