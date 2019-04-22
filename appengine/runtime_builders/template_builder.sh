@@ -10,6 +10,6 @@ fi
 # shellcheck source=/dev/null
 source "$KOKORO_GFILE_DIR/common.sh"
 
-cd github/runtimes-common/appengine/runtime_builders
+cd github
 yes | sudo pip install ruamel.yaml
-python template_builder.py -f "${KOKORO_GFILE_DIR}/${CONFIG_FILE}"
+python runtimes-common/appengine/runtime_builders/template_builder.py -f "${KOKORO_GFILE_DIR}/${CONFIG_FILE}"
