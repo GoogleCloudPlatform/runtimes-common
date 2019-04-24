@@ -1,16 +1,18 @@
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 http_archive(
     name = "io_bazel_rules_go",
-    sha256 = "1868ff68d6079e31b2f09b828b58d62e57ca8e9636edff699247c9108518570b",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.11.1/rules_go-0.11.1.tar.gz",
+    urls = ["https://github.com/bazelbuild/rules_go/releases/download/0.18.3/rules_go-0.18.3.tar.gz"],
+    sha256 = "86ae934bd4c43b99893fc64be9d9fc684b81461581df7ea8fc291c816f5ee8c5",
 )
 
 http_archive(
     name = "bazel_gazelle",
-    sha256 = "92a3c59734dad2ef85dc731dbcb2bc23c4568cded79d4b87ebccd787eb89e8d0",
-    url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.11.0/bazel-gazelle-0.11.0.tar.gz",
+    urls = ["https://github.com/bazelbuild/bazel-gazelle/releases/download/0.17.0/bazel-gazelle-0.17.0.tar.gz"],
+    sha256 = "3c681998538231a2d24d0c07ed5a7658cb72bfb5fd4bf9911157c0e9ac6a2687",
 )
 
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
 
 go_rules_dependencies()
 
@@ -20,10 +22,43 @@ load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 
 gazelle_dependencies()
 
-git_repository(
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+#git_repository(
+#    name = "io_bazel_rules_docker",
+#    commit = "3732c9d05315bef6a3dbd195c545d6fea3b86880",
+#    remote = "https://github.com/bazelbuild/rules_docker.git",
+#)
+http_archive(
     name = "io_bazel_rules_docker",
-    commit = "8bbe2a8abd382641e65ff7127a3700a8530f02ce",
-    remote = "https://github.com/bazelbuild/rules_docker.git",
+    sha256 = "aed1c249d4ec8f703edddf35cbe9dfaca0b5f5ea6e4cd9e83e99f3b0d1136c3d",
+    strip_prefix = "rules_docker-0.7.0",
+    urls = ["https://github.com/bazelbuild/rules_docker/archive/v0.7.0.tar.gz"],
+)
+
+load("@io_bazel_rules_docker//toolchains/docker:toolchain.bzl",
+    docker_toolchain_configure="toolchain_configure"
+)
+
+docker_toolchain_configure(
+  name = "docker_config",
+  # OPTIONAL: Path to a directory which has a custom docker client config.json.
+  # See https://docs.docker.com/engine/reference/commandline/cli/#configuration-files
+  # for more details.
+#  client_config="/path/to/docker/client/config",
+)
+
+# This is NOT needed when going through the language lang_image
+# "repositories" function(s).
+load(
+    "@io_bazel_rules_docker//repositories:repositories.bzl",
+    container_repositories = "repositories",
+)
+container_repositories()
+
+load(
+    "@io_bazel_rules_docker//container:container.bzl",
+    "container_pull",
 )
 
 git_repository(
@@ -51,22 +86,7 @@ git_repository(
     remote = "https://github.com/google/containerregistry",
 )
 
-load(
-    "@io_bazel_rules_docker//docker:docker.bzl",
-    "docker_repositories",
-    "docker_pull",
-)
-
-docker_repositories()
-
-load(
-    "@io_bazel_rules_docker//container:container.bzl",
-    "repositories",
-)
-
-repositories()
-
-new_http_archive(
+http_archive(
     name = "mock",
     build_file_content = """
 # Rename mock.py to __init__.py
@@ -87,14 +107,14 @@ py_library(
     url = "https://pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz",
 )
 
-docker_pull(
+container_pull(
     name = "python_base",
     digest = "sha256:163a514abdb54f99ba371125e884c612e30d6944628dd6c73b0feca7d31d2fb3",
     registry = "gcr.io",
     repository = "google-appengine/python",
 )
 
-new_http_archive(
+http_archive(
     name = "docker_credential_gcr",
     build_file_content = """package(default_visibility = ["//visibility:public"])
 exports_files(["docker-credential-gcr"])""",
@@ -112,34 +132,29 @@ git_repository(
     remote = "https://github.com/GoogleCloudPlatform/base-images-docker.git",
 )
 
-UBUNTU_MAP = {
-    "16_0_4": {
-        "sha256": "51a8c466269bdebf232cac689aafad8feacd64804b13318c01096097a186d051",
-        "url": "https://storage.googleapis.com/ubuntu_tar/20171028/ubuntu-xenial-core-cloudimg-amd64-root.tar.gz",
-    },
-}
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
 
-[http_file(
-    name = "ubuntu_%s_tar_download" % version,
-    sha256 = map["sha256"],
-    url = map["url"],
-) for version, map in UBUNTU_MAP.items()]
+http_file(
+    name = "ubuntu_16_0_4_tar_download",
+    sha256 = "51a8c466269bdebf232cac689aafad8feacd64804b13318c01096097a186d051",
+    urls = ["https://storage.googleapis.com/ubuntu_tar/20171028/ubuntu-xenial-core-cloudimg-amd64-root.tar.gz"]
+)
 
-docker_pull(
+container_pull(
     name = "node_base",
     digest = "sha256:fdc4906b4253e21663aa78805a3c3c45c6d8bc47596b4af953024f7a4ac64a71",
     registry = "gcr.io",
     repository = "gcp-runtimes/nodejs8_app_builder",
 )
 
-docker_pull(
+container_pull(
     name = "distroless_base",
     digest = "sha256:4a8979a768c3ef8d0a8ed8d0af43dc5920be45a51749a9c611d178240f136eb4",
     registry = "gcr.io",
     repository = "distroless/base",
 )
 
-docker_pull(
+container_pull(
     name = "php_base",
     digest = "sha256:194817f8f35b3cf26a706e6825994845c98a4745d61d6dea30fee976ed5aac0d",
     registry = "gcr.io",
