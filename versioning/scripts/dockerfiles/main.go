@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -101,13 +102,16 @@ func findFilesToCopy(templateDir string, callback func(path string, fileInfo os.
 }
 
 func copyFiles(version versions.Version, templateDir string) {
-	findFilesToCopy(templateDir, func(path string, fileInfo os.FileInfo) {
-		data, err := ioutil.ReadFile(filepath.Join(templateDir, path))
+	findFilesToCopy(templateDir, func(filePath string, fileInfo os.FileInfo) {
+		data, err := ioutil.ReadFile(filepath.Join(templateDir, filePath))
 		check(err)
 
-		target := filepath.Join(version.Dir, path)
+		target := filepath.Join(version.Dir, filePath)
 		// Delete first to make sure file is created with the right mode.
 		deleteIfFileExists(target)
+		// Create nested directory structure if needed.
+		dirPath := path.Dir(target)
+		os.MkdirAll(dirPath, os.ModePerm)
 		err = ioutil.WriteFile(target, data, fileInfo.Mode())
 		check(err)
 	})
@@ -227,6 +231,7 @@ func check(e error) {
 func main() {
 	defaultTemplateDirPtr := flag.String("template_dir", "templates", "Path to directory containing Dockerfile.template and any other files to copy over")
 	verifyPtr := flag.Bool("verify_only", false, "Verify dockerfiles")
+	addDir := flag.Bool("add_directories", false, "Add new directories")
 	failureCount := 0
 	flag.Parse()
 
@@ -250,6 +255,9 @@ func main() {
 			failureCount += verifyDockerfiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir), *tmpl)
 			failureCount += verifyCopiedFiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir))
 		} else {
+			if *addDir {
+				os.MkdirAll(version.Dir, os.ModePerm)
+			}
 			data := renderDockerfile(version, *tmpl)
 			writeDockerfile(version, data)
 			// if version.TemplateSubDir is empty then we default to 'templates' folder
