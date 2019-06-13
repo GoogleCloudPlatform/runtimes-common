@@ -93,6 +93,7 @@ def _deploy_and_test(appdir, language, is_xrt):
         _test_application(application_url)
     except Exception as e:
         logging.error('Error when contacting application: %s', e)
+        sys.exit(1)
     finally:
         if version:
             deploy_app.stop_version(version)

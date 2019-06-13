@@ -1,5 +1,8 @@
 # FTL Release Notes
 
+# Version 0.17.0 - 3/15/2019
+* Fixes issue in structured benchmark outputs.[#777](https://github.com/GoogleCloudPlatform/runtimes-common/pull/777)
+
 # Version 0.16.0 - 3/5/2019
 * Adds support for structured benchmark outputs.[#771](https://github.com/GoogleCloudPlatform/runtimes-common/pull/771)
 
