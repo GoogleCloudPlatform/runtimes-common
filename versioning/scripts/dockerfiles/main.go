@@ -80,12 +80,12 @@ func renderDockerfile(version versions.Version, tmpl template.Template) []byte {
 	return result.Bytes()
 }
 
-func writeDockerfile(version versions.Version, data []byte, createDirPtr *bool) {
+func writeDockerfile(version versions.Version, data []byte, createDir bool) {
 	path := filepath.Join(version.Dir, "Dockerfile")
 	// Delete first to make sure file is created with the right mode.
 	deleteIfFileExists(path)
 	// Create nested directory structure if needed.
-	if *createDirPtr {
+	if createDir {
 		os.MkdirAll(version.Dir, os.ModePerm)
 	}
 	err := ioutil.WriteFile(path, data, 0644)
@@ -105,7 +105,7 @@ func findFilesToCopy(templateDir string, callback func(path string, fileInfo os.
 	})
 }
 
-func copyFiles(version versions.Version, templateDir string, createDirPtr *bool) {
+func copyFiles(version versions.Version, templateDir string, createDir bool) {
 	findFilesToCopy(templateDir, func(filePath string, fileInfo os.FileInfo) {
 		data, err := ioutil.ReadFile(filepath.Join(templateDir, filePath))
 		check(err)
@@ -114,7 +114,7 @@ func copyFiles(version versions.Version, templateDir string, createDirPtr *bool)
 		// Delete first to make sure file is created with the right mode.
 		deleteIfFileExists(target)
 		// Create nested directory structure if needed.
-		if *createDirPtr {
+		if createDir {
 			os.MkdirAll(path.Dir(target), os.ModePerm)
 		}
 		err = ioutil.WriteFile(target, data, fileInfo.Mode())
@@ -261,9 +261,9 @@ func main() {
 			failureCount += verifyCopiedFiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir))
 		} else {
 			data := renderDockerfile(version, *tmpl)
-			writeDockerfile(version, data, createDirPtr)
+			writeDockerfile(version, data, *createDirPtr)
 			// if version.TemplateSubDir is empty then we default to 'templates' folder
-			copyFiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir), createDirPtr)
+			copyFiles(version, filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir), *createDirPtr)
 		}
 	}
 	os.Exit(failureCount)
