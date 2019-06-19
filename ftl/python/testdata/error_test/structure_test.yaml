@@ -3,8 +3,6 @@ fileExistenceTests:
 - name: 'user log file exists'
   path: '/workspace/ftl-user.log'
   shouldExist: true
-  permissions: '-rwxr-xr-x'
 - name: 'internal log file exists'
   path: '/workspace/ftl-internal.log'
   shouldExist: true
-  permissions: '-rwxr-xr-x'

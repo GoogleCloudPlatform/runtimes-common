@@ -3,8 +3,6 @@ fileExistenceTests:
 - name: 'additional directory test'
   path: '/workspace/ftl/php/testdata/additional_directory/child'
   shouldExist: true
-  permissions: 'drwxr-xr-x'
 - name: 'additional directory file test'
   path: '/workspace/ftl/php/testdata/additional_directory/child/b.txt'
   shouldExist: true
-  permissions: '-rwxr-xr-x'

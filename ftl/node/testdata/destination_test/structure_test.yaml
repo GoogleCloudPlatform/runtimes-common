@@ -3,11 +3,9 @@ fileExistenceTests:
 - name: 'express dependency'
   path: '/alternative-app/node_modules/express'
   shouldExist: true
-  permissions: 'drwxr-xr-x'
 - name: 'package devdependency'
   path: '/alternative-app/node_modules/package'
   shouldExist: false
 - name: 'application file'
   path: '/alternative-app/app.js'
   shouldExist: true
-  permissions: '-rwxr-xr-x'

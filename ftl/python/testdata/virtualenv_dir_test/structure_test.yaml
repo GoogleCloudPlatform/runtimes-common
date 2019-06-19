@@ -3,15 +3,12 @@ fileExistenceTests:
 - name: 'virtualenv python bin'
   path: '/alternate-env/bin/python'
   shouldExist: true
-  permissions: 'Lrwxrwxrwx'
 - name: 'flask script'
   path: '/alternate-env/bin/flask'
   shouldExist: true
-  permissions: '-rwxr-xr-x'
 - name: 'flask lib'
   path: '/alternate-env/lib/python2.7/site-packages/flask'
   shouldExist: true
-  permissions: 'drwxr-xr-x'
 
 commandTests:
 - name: 'venv setup correctly'

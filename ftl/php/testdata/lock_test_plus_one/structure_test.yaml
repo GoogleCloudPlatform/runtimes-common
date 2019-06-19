@@ -3,24 +3,18 @@ fileExistenceTests:
 - name: 'firebase dependency'
   path: '/srv/vendor/firebase'
   shouldExist: true
-  permissions: 'drwxr-xr-x'
 - name: 'google dependency'
   path: '/srv/vendor/google'
   shouldExist: true
-  permissions: 'drwxr-xr-x'
 - name: 'guzzlehttp dependency'
   path: '/srv/vendor/guzzlehttp'
   shouldExist: true
-  permissions: 'drwxr-xr-x'
 - name: 'monolog dependency'
   path: '/srv/vendor/monolog'
   shouldExist: true
-  permissions: 'drwxr-xr-x'
 - name: 'psr dependency'
   path: '/srv/vendor/psr'
   shouldExist: true
-  permissions: 'drwxr-xr-x'
 - name: 'rize dependency'
   path: '/srv/vendor/rize'
   shouldExist: true
-  permissions: 'drwxr-xr-x'

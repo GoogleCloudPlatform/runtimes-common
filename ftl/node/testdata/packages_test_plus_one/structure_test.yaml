@@ -3,7 +3,6 @@ fileExistenceTests:
 - name: 'express dependency'
   path: '/srv/node_modules/express'
   shouldExist: true
-  permissions: 'drwxr-xr-x'
 - name: 'package devdependency'
   path: '/srv/node_modules/package'
   shouldExist: false

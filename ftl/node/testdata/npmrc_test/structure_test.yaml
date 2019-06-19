@@ -3,11 +3,9 @@ fileExistenceTests:
 - name: '.npmrc file'
   path: '/srv/.npmrc'
   shouldExist: true
-  permissions: '-rwxr-xr-x'
 - name: 'npmrc.test file'
   path: '/srv/npmrc.test'
   shouldExist: true
-  permissions: '-rw-r--r--'
 fileContentTests:
 - name: 'npmrc npmrc.test content'
   path: '/srv/npmrc.test'
