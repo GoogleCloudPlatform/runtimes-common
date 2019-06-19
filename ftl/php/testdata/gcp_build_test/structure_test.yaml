@@ -6,7 +6,7 @@ fileExistenceTests:
 - name: 'silex dependency'
   path: '/srv/vendor/silex'
   shouldExist: true
-  isDirectory: true
+  permissions: 'drwxr-xr-x'
 fileContentTests:
 - name: 'gcp-build hello content'
   path: '/srv/hello.txt'

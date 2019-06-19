@@ -3,4 +3,4 @@ fileExistenceTests:
 - name: 'app code'
   path: '/srv/app.js'
   shouldExist: true
-  isDirectory: false
+  permissions: '-rwxr-xr-x'

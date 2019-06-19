@@ -3,4 +3,4 @@ fileExistenceTests:
 - name: 'silex dependency'
   path: '/srv/vendor/silex'
   shouldExist: true
-  isDirectory: true
+  permissions: 'drwxr-xr-x'

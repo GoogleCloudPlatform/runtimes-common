@@ -8,8 +8,7 @@ TEST_DIRS = [
     'destination_test', 'npmrc_test'
 ]
 
-_ST_IMAGE = ('gcr.io/gcp-runtimes/structure-test:'
-             '6195641f5a5a14c63c7945262066270842150ddb')
+_ST_IMAGE = 'gcr.io/gcp-runtimes/container-structure-test:v1.8.0'
 
 INITIAL_CLOUDBUILD_YAML = {
     'steps': [
@@ -42,7 +41,7 @@ def run_test_steps(builder_name, full_name, directory, args):
             'name':
             _ST_IMAGE,
             'args': [
-                '/go_default_test', '-image', full_name,
+                'test', '--image', full_name, '--config',
                 os.path.join(directory, 'structure_test.yaml')
             ],
             'id':

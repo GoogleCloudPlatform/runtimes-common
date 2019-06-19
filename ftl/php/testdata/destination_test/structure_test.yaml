@@ -3,8 +3,8 @@ fileExistenceTests:
 - name: 'silex dependency'
   path: '/alternative-app/vendor/silex'
   shouldExist: true
-  isDirectory: true
+  permissions: 'drwxr-xr-x'
 - name: 'application file'
   path: '/alternative-app/app.php'
   shouldExist: true
-  isDirectory: false
+  permissions: '-rwxr-xr-x'

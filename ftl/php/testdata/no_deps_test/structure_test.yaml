@@ -3,4 +3,4 @@ fileExistenceTests:
 - name: 'app files exist'
   path: '/srv/app.php'
   shouldExist: true
-  isDirectory: false
+  permissions: '-rwxr-xr-x'
