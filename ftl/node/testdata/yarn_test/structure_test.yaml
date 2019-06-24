@@ -1,5 +1,5 @@
 schemaVersion: '2.0.0'
-fileExistenceTests:
-  path: '/srv/node_modules/handlebars'
-  shouldExist: true
-  isDirectory: true
+fileContentTests:
+- name: 'yarn builder'
+  path: '/srv/node_modules/handlebars/release-notes.md'
+  excludedContents: ['.*v4.0.6.*']

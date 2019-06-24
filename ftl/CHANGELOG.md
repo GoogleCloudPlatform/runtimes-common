@@ -1,5 +1,8 @@
 # FTL Release Notes
 
+# Version 0.18.0 - 6/15/2020
+* Update container registry client library.
+
 # Version 0.17.0 - 3/15/2019
 * Fixes issue in structured benchmark outputs.[#777](https://github.com/GoogleCloudPlatform/runtimes-common/pull/777)
 

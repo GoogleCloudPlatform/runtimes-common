@@ -3,10 +3,6 @@ fileExistenceTests:
 - name: 'additional directory test'
   path: '/workspace/ftl/python/testdata/additional_directory/child'
   shouldExist: true
-  isDirectory: true
-
-fileExistenceTests:
 - name: 'additional directory file test'
   path: '/workspace/ftl/python/testdata/additional_directory/child/b.txt'
   shouldExist: true
-  isDirectory: false

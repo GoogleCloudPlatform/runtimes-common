@@ -3,10 +3,6 @@ fileExistenceTests:
 - name: 'node_modules/.bin/func permissions correct'
   path: '/srv/node_modules/.bin/func'
   shouldExist: true
-  isDirectory: false
-  permissions: 'Lrwxrwxrwx'
 - name: 'node_modules/.bin/mime permissions correct'
   path: '/srv/node_modules/.bin/mime'
   shouldExist: true
-  isDirectory: false
-  permissions: 'Lrwxrwxrwx'

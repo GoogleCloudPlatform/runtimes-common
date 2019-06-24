@@ -13,9 +13,7 @@
   "author": "Yarn Contributors",
   "license": "BSD-2-Clause",
   "dependencies": {
-    "lodash": "^4.16.2"
-  },
-  "devDependencies": {
+    "lodash": "^4.16.2",
     "jest-cli": "15.1.1"
   },
   "jest": {
