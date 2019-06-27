@@ -28,11 +28,11 @@ o/my-project/cloudcats-node-app:latest
 ```
 
 ## Releases
-Currently FTL is released in .par format for each supported runtime.  The latest release is v0.18.0, changelog [here](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/ftl/CHANGELOG.md)
+Currently FTL is released in .par format for each supported runtime.  The latest release is v0.19.0, changelog [here](https://github.com/GoogleCloudPlatform/runtimes-common/blob/master/ftl/CHANGELOG.md)
 
 ### node
 
-[v0.18.0](https://storage.googleapis.com/gcp-container-tools/ftl/node/node-v0.18.0/ftl.par)
+[v0.18.0](https://storage.googleapis.com/gcp-container-tools/ftl/node/node-v0.19.0/ftl.par)
 
 [HEAD](https://storage.googleapis.com/gcp-container-tools/ftl/node/latest/ftl.par)
 
@@ -41,7 +41,7 @@ Specific version (based on git $COMMIT_SHA)
 
 ### python
 
-[v0.18.0](https://storage.googleapis.com/gcp-container-tools/ftl/python/python-v0.18.0/ftl.par)
+[v0.18.0](https://storage.googleapis.com/gcp-container-tools/ftl/python/python-v0.19.0/ftl.par)
 
 [HEAD](https://storage.googleapis.com/gcp-container-tools/ftl/python/latest/ftl.par)
 
@@ -49,7 +49,7 @@ Specific version (based on git $COMMIT_SHA)
 `https://storage.googleapis.com/gcp-container-tools/ftl/python/$COMMIT_SHA/ftl.par`
 
 ### php
-[v0.18.0](https://storage.googleapis.com/gcp-container-tools/ftl/php/php-v0.18.0/ftl.par)
+[v0.18.0](https://storage.googleapis.com/gcp-container-tools/ftl/php/php-v0.19.0/ftl.par)
 
 [HEAD](https://storage.googleapis.com/gcp-container-tools/ftl/php/latest/ftl.par)
 
