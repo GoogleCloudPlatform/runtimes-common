@@ -25,14 +25,18 @@ type Package struct {
 }
 
 type Version struct {
-	Dir            string
-	TemplateSubDir string `yaml:"templateSubDir"`
-	Repo           string
-	Tags           []string
-	From           string
-	TemplateArgs   map[string]string `yaml:"templateArgs"`
-	Packages       map[string]Package
-	ExcludeTests   []string `yaml:"excludeTests"`
+	Dir                  string
+	TemplateSubDir       string `yaml:"templateSubDir"`
+	Repo                 string
+	Tags                 []string
+	From                 string
+	TemplateArgs         map[string]string `yaml:"templateArgs"`
+	Packages             map[string]Package
+	ExcludeTests         []string `yaml:"excludeTests"`
+	Builder              bool
+	BuildOn              string `yaml:"buildOn"`
+	BuildArgs            []string `yaml:"buildArgs"`
+	ImageNameFromBuilder string `yaml:"imageNameFromBuilder"`
 }
 
 type Spec struct {

@@ -55,6 +55,7 @@ const cloudBuildTemplateString = `steps:
 
 # Build images
 {{- range .ImageBuilds }}
+{{- if .Builder }}
   - name: gcr.io/cloud-builders/docker
     args:
       - 'build'
@@ -63,6 +64,27 @@ const cloudBuildTemplateString = `steps:
 {{- if $parallel }}
     waitFor: ['-']
     id: 'image-{{ .Tag }}'
+{{- end }}
+{{- else }}
+{{- if .BuildOn }}
+  - name: {{ .BuildOn }}
+    args: {{ .BuildArgs }}
+{{- if $parallel }}
+    waitFor: ['image-{{ .BuildOn }}']
+    id: 'image-{{ .Tag }}'
+{{- end }}
+{{- else }}
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - 'build'
+      - '--tag={{ .Tag }}'
+      - '{{ .Directory }}'
+      - '{{ .Builder }}'
+{{- if $parallel }}
+    waitFor: ['-']
+    id: 'image-{{ .Tag }}'
+{{- end }}
+{{- end }}
 {{- end }}
 {{- end }}
 
@@ -149,11 +171,15 @@ const testYamlSuffix = "_test.yaml"
 const workspacePrefix = "/workspace/"
 
 type imageBuildTemplateData struct {
-	Directory       string
-	Tag             string
-	Aliases         []string
-	StructureTests  []string
-	FunctionalTests []string
+	Directory            string
+	Tag                  string
+	Aliases              []string
+	StructureTests       []string
+	FunctionalTests      []string
+	Builder              bool
+	BuildOn              string
+	BuildArgs            []string
+	ImageNameFromBuilder string
 }
 
 type cloudBuildTemplateData struct {
@@ -214,10 +240,20 @@ func newCloudBuildTemplateData(
 				break
 			}
 		}
-		data.AllImages = append(data.AllImages, images...)
+		// Ignore bulder images from images list
+		if ! v.Builder {
+			data.AllImages = append(data.AllImages, images...)
+		}
 		versionSTests, versionFTests := filterTests(structureTests, functionalTests, v)
-		data.ImageBuilds = append(
-			data.ImageBuilds, imageBuildTemplateData{v.Dir, images[0], images[1:], versionSTests, versionFTests})
+		// Enforce to use ImageNameFromBuilder as referecne to create tags
+		if v.BuildOn != "" {
+			BuildOnFull := fmt.Sprintf("%v/%v", registry, v.BuildOn)
+			data.ImageBuilds = append(
+				data.ImageBuilds, imageBuildTemplateData{v.Dir, v.ImageNameFromBuilder, images, versionSTests, versionFTests, v.Builder, BuildOnFull, v.BuildArgs, v.ImageNameFromBuilder})
+		} else {
+			data.ImageBuilds = append(
+				data.ImageBuilds, imageBuildTemplateData{v.Dir, images[0], images[1:], versionSTests, versionFTests, v.Builder, v.BuildOn, v.BuildArgs, v.ImageNameFromBuilder})
+		}
 	}
 
 	data.TimeoutSeconds = options.TimeoutSeconds
