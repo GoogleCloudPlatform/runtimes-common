@@ -241,7 +241,7 @@ func newCloudBuildTemplateData(
 			}
 		}
 		// Ignore bulder images from images list
-		if ! v.Builder {
+		if !v.Builder {
 			data.AllImages = append(data.AllImages, images...)
 		}
 		versionSTests, versionFTests := filterTests(structureTests, functionalTests, v)
