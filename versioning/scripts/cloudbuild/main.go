@@ -240,12 +240,12 @@ func newCloudBuildTemplateData(
 				break
 			}
 		}
-		// Ignore bulder images from images list
+		// Ignore builder images from images list
 		if !v.Builder {
 			data.AllImages = append(data.AllImages, images...)
 		}
 		versionSTests, versionFTests := filterTests(structureTests, functionalTests, v)
-		// Enforce to use ImageNameFromBuilder as referecne to create tags
+		// Enforce to use ImageNameFromBuilder as reference to create tags
 		if v.BuildOn != "" {
 			BuildOnFull := fmt.Sprintf("%v/%v", registry, v.BuildOn)
 			data.ImageBuilds = append(
