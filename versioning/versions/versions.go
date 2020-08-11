@@ -33,7 +33,7 @@ type Version struct {
 	TemplateArgs         map[string]string `yaml:"templateArgs"`
 	Packages             map[string]Package
 	ExcludeTests         []string `yaml:"excludeTests"`
-	Builder              bool
+	Builder              string
 	BuilderImage         string   `yaml:"builderImage"`
 	BuilderArgs          []string `yaml:"builderArgs"`
 	ImageNameFromBuilder string   `yaml:"imageNameFromBuilder"`

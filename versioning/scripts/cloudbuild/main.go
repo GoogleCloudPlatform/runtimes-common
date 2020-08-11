@@ -176,7 +176,7 @@ type imageBuildTemplateData struct {
 	Aliases              []string
 	StructureTests       []string
 	FunctionalTests      []string
-	Builder              bool
+	Builder              string
 	BuilderImage         string
 	BuilderArgs          []string
 	ImageNameFromBuilder string
@@ -241,7 +241,7 @@ func newCloudBuildTemplateData(
 			}
 		}
 		// Ignore builder images from images list
-		if !v.Builder {
+		if v.Builder == "" {
 			data.AllImages = append(data.AllImages, images...)
 		}
 		versionSTests, versionFTests := filterTests(structureTests, functionalTests, v)
