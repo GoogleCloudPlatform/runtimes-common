@@ -66,11 +66,11 @@ const cloudBuildTemplateString = `steps:
     id: 'image-{{ .Tag }}'
 {{- end }}
 {{- else }}
-{{- if .BuildOn }}
-  - name: {{ .BuildOn }}
-    args: {{ .BuildArgs }}
+{{- if .BuilderImage }}
+  - name: {{ .BuilderImage }}
+    args: {{ .BuilderArgs }}
 {{- if $parallel }}
-    waitFor: ['image-{{ .BuildOn }}']
+    waitFor: ['image-{{ .BuilderImage }}']
     id: 'image-{{ .Tag }}'
 {{- end }}
 {{- else }}
@@ -177,8 +177,8 @@ type imageBuildTemplateData struct {
 	StructureTests       []string
 	FunctionalTests      []string
 	Builder              bool
-	BuildOn              string
-	BuildArgs            []string
+	BuilderImage         string
+	BuilderArgs          []string
 	ImageNameFromBuilder string
 }
 
@@ -246,13 +246,13 @@ func newCloudBuildTemplateData(
 		}
 		versionSTests, versionFTests := filterTests(structureTests, functionalTests, v)
 		// Enforce to use ImageNameFromBuilder as reference to create tags
-		if v.BuildOn != "" {
-			BuildOnFull := fmt.Sprintf("%v/%v", registry, v.BuildOn)
+		if v.BuilderImage != "" {
+			BuilderImageFull := fmt.Sprintf("%v/%v", registry, v.BuilderImage)
 			data.ImageBuilds = append(
-				data.ImageBuilds, imageBuildTemplateData{v.Dir, v.ImageNameFromBuilder, images, versionSTests, versionFTests, v.Builder, BuildOnFull, v.BuildArgs, v.ImageNameFromBuilder})
+				data.ImageBuilds, imageBuildTemplateData{v.Dir, v.ImageNameFromBuilder, images, versionSTests, versionFTests, v.Builder, BuilderImageFull, v.BuilderArgs, v.ImageNameFromBuilder})
 		} else {
 			data.ImageBuilds = append(
-				data.ImageBuilds, imageBuildTemplateData{v.Dir, images[0], images[1:], versionSTests, versionFTests, v.Builder, v.BuildOn, v.BuildArgs, v.ImageNameFromBuilder})
+				data.ImageBuilds, imageBuildTemplateData{v.Dir, images[0], images[1:], versionSTests, versionFTests, v.Builder, v.BuilderImage, v.BuilderArgs, v.ImageNameFromBuilder})
 		}
 	}
 

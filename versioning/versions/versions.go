@@ -34,8 +34,8 @@ type Version struct {
 	Packages             map[string]Package
 	ExcludeTests         []string `yaml:"excludeTests"`
 	Builder              bool
-	BuildOn              string   `yaml:"buildOn"`
-	BuildArgs            []string `yaml:"buildArgs"`
+	BuilderImage         string   `yaml:"builderImage"`
+	BuilderArgs          []string `yaml:"builderArgs"`
 	ImageNameFromBuilder string   `yaml:"imageNameFromBuilder"`
 }
 
