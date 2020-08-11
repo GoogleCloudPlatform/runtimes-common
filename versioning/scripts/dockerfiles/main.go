@@ -244,6 +244,10 @@ func main() {
 	spec = versions.LoadVersions("versions.yaml")
 
 	for _, version := range spec.Versions {
+		// Ignore version without Dir for possibility to use builder images
+		if version.Dir == "" {
+			continue
+		}
 		// templatePath - path to Dockerfile.template
 		templatePath := filepath.Join(*defaultTemplateDirPtr, version.TemplateSubDir, "Dockerfile.template")
 		templateData, err := ioutil.ReadFile(templatePath)
