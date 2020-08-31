@@ -79,7 +79,6 @@ const cloudBuildTemplateString = `steps:
       - 'build'
       - '--tag={{ .Tag }}'
       - '{{ .Directory }}'
-      - '{{ .Builder }}'
 {{- if $parallel }}
     waitFor: ['-']
     id: 'image-{{ .Tag }}'
