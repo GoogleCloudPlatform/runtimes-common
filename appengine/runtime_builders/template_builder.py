@@ -132,7 +132,7 @@ def _resolve_tag(image):
 
     try:
         output = subprocess.check_output(command)
-        entries = json.loads(output)
+        entries = json.loads(output.decode("utf-8") )
         for image in entries:
             for tag in image.get('tags'):
                 if tag == target_tag:
