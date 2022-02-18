@@ -81,18 +81,20 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
                  dep_img_lyr=None,
                  cache_key_version=None,
                  wheel_dir=constants.WHEEL_DIR,
-                 venv_dir=constants.VENV_DIR,
+                 virtualenv_dir=constants.VIRTUALENV_DIR,
                  python_cmd=[constants.PYTHON_DEFAULT_CMD],
                  pip_cmd=[constants.PIP_DEFAULT_CMD],
+                 virtualenv_cmd=[constants.VIRTUALENV_DEFAULT_CMD],
                  venv_cmd=[constants.VENV_DEFAULT_CMD],
                  cache=None):
         super(RequirementsLayerBuilder, self).__init__()
         self._ctx = ctx
         self._pkg_dir = pkg_dir
         self._wheel_dir = wheel_dir
-        self._venv_dir = venv_dir
+        self._virtualenv_dir = virtualenv_dir
         self._python_cmd = python_cmd
         self._pip_cmd = pip_cmd
+        self._virtualenv_cmd = virtualenv_cmd
         self._venv_cmd = venv_cmd
         self._descriptor_files = descriptor_files
         self._directory = directory
@@ -117,8 +119,10 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         if cached_img:
             self.SetImage(cached_img)
         else:
-            python_util.setup_venv(self._venv_dir, self._venv_cmd,
-                                   self._python_cmd)
+            python_util.setup_virtualenv(self._virtualenv_dir,
+                                         self._virtualenv_cmd,
+                                         self._python_cmd,
+                                         self._venv_cmd)
 
             pkg_descriptor = ftl_util.descriptor_parser(
                 self._descriptor_files, self._ctx)
@@ -168,7 +172,7 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
 
     def _whl_to_fslayer(self, whl):
         tmp_dir = tempfile.mkdtemp()
-        pkg_dir = os.path.join(tmp_dir, self._venv_dir.lstrip('/'))
+        pkg_dir = os.path.join(tmp_dir, self._virtualenv_dir.lstrip('/'))
         os.makedirs(pkg_dir)
 
         pip_cmd_args = list(self._pip_cmd)
@@ -179,6 +183,14 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         return tmp_dir
 
     def _pip_download_wheels(self, pkg_txt):
+        ftl_util.run_command(
+            'pip_install_wheel',
+            ['pip', 'install', 'wheel'],
+            cmd_cwd=self._directory,
+            cmd_env=self._gen_pip_env(),
+            cmd_input=pkg_txt,
+            err_type=ftl_error.FTLErrors.USER())
+
         pip_cmd_args = list(self._pip_cmd)
         pip_cmd_args.extend(
             ['wheel', '-w', self._wheel_dir, '-r', 'requirements.txt'])
@@ -196,8 +208,9 @@ class RequirementsLayerBuilder(single_layer_image.CacheableLayerBuilder):
         # bazel adds its own PYTHONPATH to the env
         # which must be removed for the pip calls to work properly
         pip_env.pop('PYTHONPATH', None)
-        pip_env['VIRTUAL_ENV'] = self._venv_dir
-        pip_env['PATH'] = self._venv_dir + '/bin' + ':' + os.environ['PATH']
+        pip_env['VIRTUAL_ENV'] = self._virtualenv_dir
+        pip_env['PATH'] = self._virtualenv_dir + '/bin' + ':' + os.environ[
+            'PATH']
         return pip_env
 
     def _log_cache_result(self, hit):
@@ -222,19 +235,19 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
                  dep_img_lyr=None,
                  cache_key_version=None,
                  wheel_dir=constants.WHEEL_DIR,
-                 venv_dir=constants.VENV_DIR,
+                 virtualenv_dir=constants.VIRTUALENV_DIR,
                  python_cmd=[constants.PYTHON_DEFAULT_CMD],
                  pip_cmd=[constants.PIP_DEFAULT_CMD],
-                 venv_cmd=[constants.VENV_DEFAULT_CMD],
+                 virtualenv_cmd=[constants.VIRTUALENV_DEFAULT_CMD],
                  cache=None):
         super(PipfileLayerBuilder, self).__init__()
         self._ctx = ctx
         self._pkg_dir = pkg_dir
         self._wheel_dir = wheel_dir
-        self._venv_dir = venv_dir
+        self._virtualenv_dir = virtualenv_dir
         self._python_cmd = python_cmd
         self._pip_cmd = pip_cmd
-        self._venv_cmd = venv_cmd
+        self._virtualenv_cmd = virtualenv_cmd
         self._descriptor_files = descriptor_files
         self._directory = directory
         self._dep_img_lyr = dep_img_lyr
@@ -277,7 +290,7 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
                 raise Exception("expected one whl for one installed pkg")
             pkg_dir = self._whl_to_fslayer(whls[0])
             blob, u_blob = ftl_util.zip_dir_to_layer_sha(pkg_dir, "")
-            overrides = ftl_util.generate_overrides(False, self._venv_dir)
+            overrides = ftl_util.generate_overrides(False)
             self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob],
                                                        overrides)
             if self._cache:
@@ -301,21 +314,23 @@ class PipfileLayerBuilder(RequirementsLayerBuilder):
 
 class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
     def __init__(self,
-                 venv_dir=constants.VENV_DIR,
+                 virtualenv_dir=constants.VIRTUALENV_DIR,
                  python_cmd=[constants.PYTHON_DEFAULT_CMD],
+                 virtualenv_cmd=[constants.VIRTUALENV_DEFAULT_CMD],
                  venv_cmd=[constants.VENV_DEFAULT_CMD],
                  cache_key_version=None,
                  cache=None):
         super(InterpreterLayerBuilder, self).__init__()
-        self._venv_dir = venv_dir
+        self._virtualenv_dir = virtualenv_dir
         self._python_cmd = python_cmd
+        self._virtualenv_cmd = virtualenv_cmd
         self._venv_cmd = venv_cmd
         self._cache_key_version = cache_key_version
         self._cache = cache
 
     def GetCacheKeyRaw(self):
-        cache_key = '%s %s %s' % (self._python_version(), self._venv_cmd,
-                                  self._venv_dir)
+        cache_key = '%s %s %s' % (self._python_version(), self._virtualenv_cmd,
+                                  self._virtualenv_dir)
         return "%s %s" % (cache_key, self._cache_key_version)
 
     def _python_version(self):
@@ -355,13 +370,15 @@ class InterpreterLayerBuilder(single_layer_image.CacheableLayerBuilder):
                     self._cache.Set(self.GetCacheKey(), self.GetImage())
 
     def _build_layer(self):
-        python_util.setup_venv(self._venv_dir, self._venv_cmd,
-                               self._python_cmd)
+        python_util.setup_virtualenv(self._virtualenv_dir,
+                                     self._virtualenv_cmd,
+                                     self._python_cmd,
+                                     self._venv_cmd)
 
-        blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._venv_dir,
-                                                     self._venv_dir)
+        blob, u_blob = ftl_util.zip_dir_to_layer_sha(self._virtualenv_dir,
+                                                     self._virtualenv_dir)
 
-        overrides = ftl_util.generate_overrides(True, self._venv_dir)
+        overrides = ftl_util.generate_overrides(True, self._virtualenv_dir)
         self._img = tar_to_dockerimage.FromFSImage([blob], [u_blob], overrides)
 
     def _log_cache_result(self, hit):

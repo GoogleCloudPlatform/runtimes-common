@@ -51,7 +51,7 @@ class ReconciletagsE2eTest(unittest.TestCase):
 
     def _BuildImage(self, full_image_name):
         # create a non-functional but tiny docker image
-        subprocess.call(['gcloud', 'container', 'builds', 'submit', '--config',
+        subprocess.call(['gcloud', 'builds', 'submit', '--config',
                         'appengine/reconciletags/e2e_cloudbuild.yaml', '.'])
         # grab the just created digest
         output = self._ListTags(self._REPO)

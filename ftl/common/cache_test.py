@@ -17,6 +17,7 @@ import unittest
 import cache
 import mock
 import constants
+import datetime
 
 
 class RegistryTest(unittest.TestCase):
@@ -34,12 +35,15 @@ class RegistryTest(unittest.TestCase):
 
         # Test when the image exists.
         mock_img.exists.return_value = True
+        create_timestamp = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        mock_img.config_file.return_value = '{{"created": "{}"}}'.format(
+            create_timestamp)
         c = cache.Registry(
             repo='fake.gcr.io/google-appengine',
             namespace='namespace',
             creds=None,
             transport=None,
-            ttl=constants.DEFAULT_TTL_WEEKS)
+            ttl=constants.DEFAULT_TTL_HOURS)
         self.assertEquals(c._getEntry('abc123'), mock_img)
 
         # Test when it does not exist
@@ -49,7 +53,7 @@ class RegistryTest(unittest.TestCase):
             namespace='namespace',
             creds=None,
             transport=None,
-            ttl=constants.DEFAULT_TTL_WEEKS)
+            ttl=constants.DEFAULT_TTL_HOURS)
         self.assertIsNone(c._getEntry('abc123'))
 
 

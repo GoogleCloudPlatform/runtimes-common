@@ -3,10 +3,6 @@ fileExistenceTests:
 - name: 'additional directory test'
   path: '/srv/child'
   shouldExist: true
-  isDirectory: true
-
-fileExistenceTests:
 - name: 'additional directory file test'
   path: '/srv/child/b.txt'
   shouldExist: true
-  isDirectory: false

@@ -21,7 +21,7 @@ DEFAULT_ENTRYPOINT = None
 THREADS = 32
 
 # ftl version
-FTL_VERSION = "v0.10.0"
+FTL_VERSION = "v0.18.0"
 
 # Google Cloud Builder env options
 BUILDER_OUTPUT = 'BUILDER_OUTPUT'
@@ -48,16 +48,17 @@ PIPFILE_LOCK = 'Pipfile.lock'
 PIPFILE = 'Pipfile'
 REQUIREMENTS_TXT = 'requirements.txt'
 PYTHON_CACHE_NAMESPACE = 'python-cache'
-VENV_DIR = '/env'
+VIRTUALENV_DIR = '/env'
 WHEEL_DIR = 'wheel'
 PIP_DEFAULT_CMD = 'pip'
 PYTHON_DEFAULT_CMD = 'python2.7'
-VENV_DEFAULT_CMD = 'virtualenv'
+VIRTUALENV_DEFAULT_CMD = 'virtualenv'
+VENV_DEFAULT_CMD = None
 PIP_OPTIONS = ['--disable-pip-version-check']
 
 # cache constants
-DEFAULT_TTL_WEEKS = 1
-MINIMUM_TTL_WEEKS = 0.03571428571   # 6 hrs in terms of weeks
+DEFAULT_TTL_HOURS = 168  # hrs in a week
+MINIMUM_TTL_HOURS = 6    # 6 hrs in terms of weeks
 
 # descriptor files with unspecified dependencies
 UNSPECIFIED_DEPS_FILES = [REQUIREMENTS_TXT, PACKAGE_JSON, COMPOSER_JSON]
@@ -74,7 +75,8 @@ PHASE_2_CACHE_HIT = CACHE_HIT + PHASE_2_CACHE_STR
 PHASE_1_CACHE_MISS = CACHE_MISS + PHASE_1_CACHE_STR
 PHASE_2_CACHE_MISS = CACHE_MISS + PHASE_2_CACHE_STR
 
-CACHE_KEY_VERSION = 'v0.10.0'
+CACHE_KEY_VERSION = 'v0.18.0'
 
-FTL_USER_ERROR = "USER_ERROR"
-FTL_INTERNAL_ERROR = "INTERNAL_ERROR"
+FTL_USER_ERROR = "INVALID_ARGUMENT"
+FTL_INTERNAL_ERROR = "INTERNAL"
+FTL_ERROR_TYPE = "InternalError"

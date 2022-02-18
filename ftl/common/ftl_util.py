@@ -107,11 +107,8 @@ def zip_dir_to_layer_sha(app_dir, destination_path, alter_symlinks=True):
     if alter_symlinks:
         txfrm_regex = 'flags=r;s,^,%s/,' % destination_path
     tar_cmd = [
-        'tar',
-        '-pcf', tar_path,
-        '--transform', txfrm_regex,
-        '--exclude', '*.pyc',
-        '.'
+        'tar', '-pcf', tar_path, '--hard-dereference', '--transform', txfrm_regex, '--exclude',
+        '*.pyc', '.'
     ]
 
     run_command('tar_runtime_package', tar_cmd, cmd_cwd=app_dir)
@@ -137,8 +134,8 @@ def all_descriptor_contents(descriptor_files, ctx):
     for f in descriptor_files:
         if ctx.Contains(f):
             descriptor = f
+            logging.info("using descriptor:%s", descriptor)
             descriptor_contents += ctx.GetFile(descriptor)
-            break
     if not descriptor:
         logging.info("No package descriptor found. No packages installed.")
         return None
@@ -160,15 +157,14 @@ def descriptor_parser(descriptor_files, ctx):
         # add add files to contents?
         new_descriptor_contents = descriptor_contents
         for line in descriptor_contents.split("\n"):
+            line = line.partition('#')[0]
+            line = line.rstrip()
             match = re.search(r'-r\s+(.*)', line)
             if match:
-                logging.info(
-                    "found recursive python requirements file: %s",
-                    match.group(1)
-                )
+                logging.info("found recursive python requirements file: %s",
+                             match.group(1))
                 new_descriptor_contents += ctx.GetFile(match.group(1))
-        logging.info("new_descriptor_contents: \n%s",
-                     new_descriptor_contents)
+        logging.info("new_descriptor_contents: \n%s", new_descriptor_contents)
         descriptor_contents = new_descriptor_contents
     if not descriptor:
         logging.info("No package descriptor found. No packages installed.")
@@ -188,9 +184,9 @@ def get_ttl(descriptor_files, ctx):
     for f in descriptor_files:
         if ctx.Contains(f):
             if f in constants.UNSPECIFIED_DEPS_FILES:
-                return constants.MINIMUM_TTL_WEEKS
-            return constants.DEFAULT_TTL_WEEKS
-    return constants.DEFAULT_TTL_WEEKS
+                return constants.MINIMUM_TTL_HOURS
+            return constants.DEFAULT_TTL_HOURS
+    return constants.DEFAULT_TTL_HOURS
 
 
 def gen_tmp_dir(dirr):
@@ -211,18 +207,18 @@ def timestamp_to_time(dt_str):
     return datetime.datetime.strptime(dt, "%Y-%m-%dT%H:%M:%S")
 
 
-def generate_overrides(set_env, venv_dir=constants.VENV_DIR):
+def generate_overrides(set_env, virtualenv_dir=constants.VIRTUALENV_DIR):
     created_time = datetime.datetime.now().strftime('%Y-%m-%dT%H:') + '00:00Z'
     overrides_dct = {
         'created': created_time,
     }
     if set_env:
         env = {
-            'VIRTUAL_ENV': venv_dir,
+            'VIRTUAL_ENV': virtualenv_dir,
         }
-        path_dir = os.path.join(venv_dir, "bin")
+        path_dir = os.path.join(virtualenv_dir, "bin")
         env['PATH'] = '%s:$PATH' % path_dir
-        overrides_dct['env'] = venv_dir
+        overrides_dct['env'] = virtualenv_dir
     return overrides_dct
 
 
@@ -317,3 +313,35 @@ def run_command(cmd_name,
                 raise ftl_error.InternalError("%s\n%s" % (err_txt, ret_txt))
             else:
                 raise Exception("Unknown error type passed to run_command")
+        return "stdout: %s, stderr: %s" % (stdout, stderr)
+
+
+def is_gcp_build(package_json):
+    scripts = package_json.get('scripts', {})
+    if scripts.get('gcp-build'):
+        return True
+    return False
+
+
+def gcp_build(app_dir, install_bin, run_cmd, install_flags=[], run_flags=[], env_map={}):
+    env = os.environ.copy()
+    for key, value in env_map.iteritems():
+        env[key] = value
+    install_cmd = [install_bin, 'install']
+    install_cmd.extend(install_flags)
+    run_command(
+        '%s_install' % install_bin,
+        install_cmd,
+        app_dir,
+        env,
+        err_type=ftl_error.FTLErrors.USER())
+
+    run_script_cmd = [install_bin, run_cmd]
+    run_script_cmd.extend(run_flags)
+    run_script_cmd.append('gcp-build')
+    run_command(
+        '%s_%s_gcp_build' % (install_bin, run_cmd),
+        run_script_cmd,
+        app_dir,
+        env,
+        err_type=ftl_error.FTLErrors.USER())

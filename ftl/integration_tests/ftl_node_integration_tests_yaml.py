@@ -11,7 +11,7 @@ TEST_DIRS = [
     'destination_test', 'metadata_test', 'npmrc_test', 'file_test',
     'empty_descriptor_test', 'no_descriptor_test',
     'no_deps_test', 'additional_directory', 'function_to_app_test',
-    'yarn_test'
+    'yarn_test', 'hardlink_test',
 ]
 
 _TEST_DIR = '/workspace/ftl/node/testdata'
@@ -26,7 +26,7 @@ def main():
     cloudbuild_yaml['steps'].append(
         # Build the FTL image from source and load it into the daemon.
         {
-            'name': 'gcr.io/cloud-builders/bazel',
+            'name': 'gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a',
             'args': ['run', '//ftl:node_builder_image', '--', '--norun'],
             'id': 'build-builder',
             'waitFor': [cloudbuild_yaml['steps'][0]['id']],

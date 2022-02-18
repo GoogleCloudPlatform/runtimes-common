@@ -132,7 +132,7 @@ def _resolve_tag(image):
 
     try:
         output = subprocess.check_output(command)
-        entries = json.loads(output)
+        entries = json.loads(output.decode("utf-8") )
         for image in entries:
             for tag in image.get('tags'):
                 if tag == target_tag:
@@ -158,7 +158,7 @@ def _publish_to_gcs(builder_file_contents, builder_name, bucket):
 
     full_path = 'gs://{0}/{1}'.format(bucket, file_name)
 
-    builder_util.write_to_gcs(full_path, builder_file_contents)
+    builder_util.write_to_gcs(full_path, builder_file_contents.encode(encoding='UTF-8'))
 
     return full_path
 

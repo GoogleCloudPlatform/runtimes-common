@@ -18,7 +18,6 @@ import os
 from ftl.common import builder
 from ftl.common import constants
 from ftl.common import ftl_util
-from ftl.common import ftl_error
 from ftl.common import layer_builder as base_builder
 from ftl.php import layer_builder as php_builder
 
@@ -28,14 +27,6 @@ class PHP(builder.RuntimeBase):
         super(PHP, self).__init__(
             ctx, constants.PHP_CACHE_NAMESPACE, args,
             [constants.COMPOSER_LOCK, constants.COMPOSER_JSON])
-
-    def _gen_composer_lock(self):
-        gen_composer_lock_cmd = ['composer', 'update', '--lock']
-        ftl_util.run_command(
-            'composer_update_lock',
-            gen_composer_lock_cmd,
-            cmd_cwd=self._args.directory,
-            err_type=ftl_error.FTLErrors.USER())
 
     def Build(self):
         lyr_imgs = []
@@ -48,7 +39,6 @@ class PHP(builder.RuntimeBase):
             os.makedirs(os.path.join(vendor_dir))
 
         if ftl_util.has_pkg_descriptor(self._descriptor_files, self._ctx):
-            self._gen_composer_lock()
             layer_builder = php_builder.PhaseOneLayerBuilder(
                 ctx=self._ctx,
                 descriptor_files=self._descriptor_files,

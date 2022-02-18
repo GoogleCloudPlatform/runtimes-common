@@ -14,8 +14,10 @@
 """This package defines the interface for caching objects."""
 
 import abc
-import logging
 import datetime
+import json
+import logging
+import os
 
 from ftl.common import constants
 
@@ -79,6 +81,8 @@ class Registry(Base):
             should_upload=True,
             mount=None,
             use_global=False,
+            export_stats=False,
+            export_location=None,
     ):
         super(Registry, self).__init__()
         self._repo = repo
@@ -91,6 +95,8 @@ class Registry(Base):
         if use_global:
             _reg = docker_name.Registry(_reg_name)
             self._global_creds = docker_creds.DefaultKeychain.Resolve(_reg)
+        self._export_stats = export_stats
+        self._export_location = export_location
         self._transport = transport
         self._threads = threads
         self._mount = mount or []
@@ -130,11 +136,27 @@ class Registry(Base):
     def _getEntry(self, cache_key):
         """Retrieve value from cache."""
         # check global cache first
-        img = self._getGlobalEntry(cache_key)
+        cache_results = []
+        (img, cache_status) = self._validateEntry(
+            self._getGlobalEntry(cache_key), cache_key)
+        cache_results.append(
+            Registry.buildCacheResult("global", cache_key, cache_status))
         if img:
+            logging.info(
+                'Found dependency layer for %s in global cache' % cache_key)
+            self._maybeExportCacheResult(cache_results)
             return img
+
         # if we get a global cache miss, check the local cache
-        return self._getLocalEntry(cache_key)
+        (img, cache_status) = self._validateEntry(
+            self._getLocalEntry(cache_key), cache_key)
+        cache_results.append(
+            Registry.buildCacheResult("project", cache_key, cache_status))
+        if img:
+            logging.info(
+                'Found dependency layer for %s in local cache' % cache_key)
+        self._maybeExportCacheResult(cache_results)
+        return img
 
     def _getGlobalEntry(self, cache_key):
         if self._use_global:
@@ -154,6 +176,28 @@ class Registry(Base):
             logging.info('Cache miss on local cache for %s', key)
         return entry
 
+    def _validateEntry(self, entry, cache_key):
+        if entry:
+            try:
+                if Registry.checkTTL(entry, self._ttl):
+                    return entry, "HIT"
+                else:
+                    logging.info('TTL expired for cached image %s' % cache_key)
+                    return None, "HIT_TOO_OLD"
+            except docker_http.V2DiagnosticException:
+                logging.info(
+                    'Fetching cached dep layer for %s failed' % cache_key)
+        return None, "MISS"
+
+    def _maybeExportCacheResult(self, results):
+        if self._export_stats:
+            cacheStats = {
+                "cacheStats": results
+            }
+            with open(os.path.join(self._export_location,
+                                   constants.BUILDER_OUTPUT_FILE), "w") as f:
+                f.write(json.dumps(cacheStats))
+
     def Set(self, cache_key, value):
         if not self._should_upload:
             logging.info("--no-upload flag set, images won't be pushed")
@@ -166,6 +210,15 @@ class Registry(Base):
                 threads=self._threads,
                 mount=self._mount) as session:
             session.upload(value)
+
+    @staticmethod
+    def buildCacheResult(cache_level, cache_key, cache_status):
+        return {
+            "type": "docker_layer_cache",
+            "level": cache_level,
+            "hash": cache_key,
+            "status": cache_status
+        }
 
     @staticmethod
     def getEntryFromCreds(entry, creds, transport):
@@ -185,4 +238,4 @@ class Registry(Base):
             ftl_util.creation_time(entry))
         now = datetime.datetime.now()
         return last_created > now - datetime.timedelta(
-            weeks=ttl)
+            hours=ttl)

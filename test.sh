@@ -3,7 +3,7 @@
 set -ex
 echo "Checking formatting..."
 find . -name "*.sh" | grep -v vendor/ | xargs shellcheck
-flake8 --ignore E999,E126,E226,W503,E121,E123 .
+flake8 --ignore E999,E126,E226,W503,E121,E123,E501 .
 ./.gofmt.sh
 ./.buildifier.sh
 

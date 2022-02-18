@@ -33,6 +33,14 @@ var tests = []Test{
 		name: "ftl cached node same",
 	},
 	{
+		cmd:  "python ../ftl/cached/ftl_cached_yaml.py --runtime=node-same-2",
+		name: "ftl cached node same 2",
+	},
+	{
+		cmd:  "python ../ftl/cached/ftl_cached_yaml.py --runtime=node-lock-same",
+		name: "ftl cached node lock",
+	},
+	{
 		cmd:  "python ../ftl/cached/ftl_cached_yaml.py --runtime=node-plus-one",
 		name: "ftl cached node plus one",
 	},
@@ -106,14 +114,14 @@ func TestAll(t *testing.T) {
 }
 
 func doBuild(t *testing.T, cmd string) {
-	out, err := command(fmt.Sprintf("%s | gcloud container builds submit --async --format='value(id)' --config=/dev/stdin ../", cmd))
+	out, err := command(fmt.Sprintf("%s | gcloud builds submit --async --format='value(id)' --config=/dev/stdin ../", cmd))
 	if err != nil {
 		t.Fatalf("error starting build: %s", err)
 	}
 	buildId := strings.TrimSpace(out)
 
 	for {
-		out, err := command(fmt.Sprintf("gcloud container builds describe %s --format='value(status)'", buildId))
+		out, err := command(fmt.Sprintf("gcloud builds describe %s --format='value(status)'", buildId))
 		if err != nil {
 			t.Logf("error checking build status: %s", err)
 			continue

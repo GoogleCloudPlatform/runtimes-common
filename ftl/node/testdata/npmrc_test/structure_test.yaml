@@ -3,11 +3,9 @@ fileExistenceTests:
 - name: '.npmrc file'
   path: '/srv/.npmrc'
   shouldExist: true
-  isDirectory: false
 - name: 'npmrc.test file'
   path: '/srv/npmrc.test'
   shouldExist: true
-  isDirectory: false
 fileContentTests:
 - name: 'npmrc npmrc.test content'
   path: '/srv/npmrc.test'

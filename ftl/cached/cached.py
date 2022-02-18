@@ -15,8 +15,10 @@
 import subprocess
 import os
 import logging
-import httplib2
 import json
+import random
+import string
+import httplib2
 
 from ftl.common import ftl_util
 from ftl.common import constants
@@ -30,6 +32,11 @@ from containerregistry.transport import transport_pool
 _THREADS = 32
 
 
+def randomword(length):
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(length))
+
+
 class Cached():
     def __init__(self, args, runtime):
         self._base = args.base
@@ -38,6 +45,7 @@ class Cached():
         self._labels = [args.label_1, args.label_2]
         self._dirs = [args.dir_1, args.dir_2]
         self._offset = args.layer_offset
+        self._should_cache = args.should_cache
         self._runtime = runtime
         logging.getLogger().setLevel("NOTSET")
         logging.basicConfig(
@@ -54,26 +62,44 @@ class Cached():
             builder_path = 'bazel-bin/ftl/{0}_builder.par'.format(
                 self._runtime)
         lyr_shas = []
+        random_suffix = randomword(32)
+        WORKDIR = "/workspace-cached"
         for label, dir in zip(self._labels, self._dirs):
-            logging.info("label: %s" % label)
-            logging.info("dir: %s" % dir)
-            img_name = ''.join([self._name.split(":")[0], ":", label])
+            logging.info("label: %s", label)
+            logging.info("dir: %s", dir)
+            img_name = "%s:%s" % (self._name.split(":")[0], label)
+            ftl_util.run_command("copy-%s-to-%s" % (dir, WORKDIR),
+                                 ["cp", "-r", dir, WORKDIR])
+
             ftl_args = [
                 builder_path, '--base', self._base, '--name', img_name,
-                '--directory', dir
+                '--directory', WORKDIR,
+                '--destination', "/srv",
+                '--cache-repository',
+                'gcr.io/ftl-node-test/ftl-cache-repo-%s' % random_suffix
             ]
             if label == "original":
                 ftl_args.extend(['--no-cache'])
+
+            out = ""
             try:
-                ftl_util.run_command(
-                    "cached-ftl-build-%s" % img_name,
-                    ftl_args)
+                out = ftl_util.run_command("cached-ftl-build-%s" % img_name,
+                                           ftl_args)
                 lyr_shas.append(self._fetch_lyr_shas(img_name))
             except ftl_util.FTLException as e:
                 logging.error(e)
                 exit(1)
             finally:
-                self._cleanup(constants.VENV_DIR)
+                logging.info("cleaning up directories...")
+                self._cleanup(constants.VIRTUALENV_DIR)
+                ftl_util.run_command("cleanup-%s" % WORKDIR,
+                                     ["rm", "-rf", WORKDIR])
+
+        if self._should_cache and label == "reupload":
+            if "[HIT]" not in out:
+                logging.error("Cache `[HIT]` not found on reupload: %s", out)
+                exit(1)
+
         if len(lyr_shas) is not 2:
             logging.error("Incorrect number of layers to compare")
             exit(1)

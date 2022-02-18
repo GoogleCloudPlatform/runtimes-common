@@ -15,6 +15,7 @@
 import os
 import json
 import logging
+import hashlib
 
 from ftl.common import constants
 
@@ -39,13 +40,21 @@ class InternalError(Exception):
         super(InternalError, self).__init__(message)
 
 
+def genErrorId(s):
+    return hashlib.sha256(s).hexdigest().upper()[:8]
+
+
 def UserErrorHandler(err, path, fail_on_error):
     logging.error(err)
     if path:
         resp = {
-            'code': 1,
-            'type': constants.FTL_USER_ERROR,
-            'message': str(err)}
+            "error": {
+                "errorType": constants.FTL_ERROR_TYPE,
+                "canonicalCode": constants.FTL_USER_ERROR,
+                "errorId": genErrorId(str(err)),
+                "errorMessage": str(err)
+            }
+        }
         with open(os.path.join(path, constants.BUILDER_OUTPUT_FILE), "w") as f:
             f.write(json.dumps(resp))
     if fail_on_error:
@@ -58,9 +67,13 @@ def InternalErrorHandler(err, path, fail_on_error):
     logging.error(err)
     if path:
         resp = {
-            'code': 1,
-            'type': constants.FTL_INTERNAL_ERROR,
-            'message': str(err)}
+            "error": {
+                "errorType": constants.FTL_ERROR_TYPE,
+                "canonicalCode": constants.FTL_INTERNAL_ERROR,
+                "errorId": genErrorId(str(err)),
+                "errorMessage": str(err)
+            }
+        }
         with open(os.path.join(path, constants.BUILDER_OUTPUT_FILE), "w") as f:
             f.write(json.dumps(resp))
     if fail_on_error:

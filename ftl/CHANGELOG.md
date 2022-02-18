@@ -1,5 +1,42 @@
 # FTL Release Notes
 
+# Version 0.18.0 - 6/15/2020
+* Update container registry client library.
+
+# Version 0.17.0 - 3/15/2019
+* Fixes issue in structured benchmark outputs.[#777](https://github.com/GoogleCloudPlatform/runtimes-common/pull/777)
+
+# Version 0.16.0 - 3/5/2019
+* Adds support for structured benchmark outputs.[#771](https://github.com/GoogleCloudPlatform/runtimes-common/pull/771)
+
+# Version 0.15.0 - 2/5/2019
+* Fixes an issue with FTL where hardlinks would not be properly handled.[#758](https://github.com/GoogleCloudPlatform/runtimes-common/pull/758)
+* [PHP] Fixes an issue with PHP where dev dependencies were being installed when running a `gcp-build` script.[#763](https://github.com/GoogleCloudPlatform/runtimes-common/pull/763)
+
+
+# Version 0.14.0 - 1/16/2019
+* [PHP] Fixes a performance regression for FTL PHP where `composer update` would be called each run disregarding caching.  This removed these server side `composer update` calls.[#749](https://github.com/GoogleCloudPlatform/runtimes-common/pull/749)
+* [PHP] Added `gcp-build` script support to FTL PHP [#752](https://github.com/GoogleCloudPlatform/runtimes-common/pull/752)
+* [NODE] Fixed issue where FTL node would mask errro on invalid name in package.json[#755](https://github.com/GoogleCloudPlatform/runtimes-common/pull/755)
+* [PYTHON] Fixed issue with recursive requirements.txt files where FTL Python would not work properly with `-r` strings in comments[#753](https://github.com/GoogleCloudPlatform/runtimes-common/pull/753)
+
+# Version 0.13.1 - 12/12/2018
+* [NODE] FTL Node caching had an issue that persisted after 0.13.0 due to a release error.  This PR resolves the initial FTL Node caching issue[#743](https://github.com/GoogleCloudPlatform/runtimes-common/pull/743)
+
+# Version 0.13.0 - 11/27/2018
+* [NODE] Updated gcp-build script execution to always run for builds instead of only running when a full rebuild is required[#739](https://github.com/GoogleCloudPlatform/runtimes-common/pull/739)
+* [NODE] Fixed FTL Node issue where cache Get and Set keys could be different resulting in FTL rebuilding images that should have been cached[#738](https://github.com/GoogleCloudPlatform/runtimes-common/pull/738)
+
+# Version 0.12.0 - 11/15/2018
+* [PYTHON] Added --venv-cmd flag to FTL python which allows users to specify a full venv command for FTL to use[#735](https://github.com/GoogleCloudPlatform/runtimes-common/pull/735)
+
+# Version 0.11.0 - 11/09/2018
+* Removed verbosity from tar commands by default as it was too verbose in log output [#726](https://github.com/GoogleCloudPlatform/runtimes-common/pull/726)
+* Updated FTL json error output to match GCB formatting [#727](https://github.com/GoogleCloudPlatform/runtimes-common/pull/727)
+* Added --ttl flag to FTL which allows users to specify the desired TTL for FTL to respect [#732](https://github.com/GoogleCloudPlatform/runtimes-common/pull/732)
+* [NODE] Fixed issue with node cache timestamps which caused node to only cache for 6 hrs a day [#731](https://github.com/GoogleCloudPlatform/runtimes-common/pull/731)
+
+
 # Version 0.10.0 - 10/17/2018
 * [PYTHON] Fixed issue where recursive requirements.txt files did not work properly with FTL [#721](https://github.com/GoogleCloudPlatform/runtimes-common/pull/721)
 * [NODE] Fixed issue with gcp-build scripts where devDependencies were not being cleaned up properly [#723](https://github.com/GoogleCloudPlatform/runtimes-common/pull/723)
@@ -85,5 +122,5 @@
 * [Python] added phase 1.5 implementation to python.  This means faster python builds as some layer uploading can be skipped for cache layers
 * [Python] fixed issue where python was 'pip installing' each run when it should have skipped that step and used the cache
 * [Python] additional logging on pip calls
-* [Python] new flags --python-cmd, --pip-cmd, and --venv-cmd to support different python versions and builder container setups
+* [Python] new flags --python-cmd, --pip-cmd, and --virtualenv-cmd to support different python versions and builder container setups
 * [Python] fixed issue where FTL build would fail if PYTHONPATH was not set in builder

@@ -4,7 +4,7 @@ steps:
   name: ubuntu
 - args: [run, '//ftl:python_builder_image', --, --norun]
   id: build-builder
-  name: gcr.io/cloud-builders/bazel
+  name: gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a
 - args: [--base, 'gcr.io/google-appengine/python:latest', --name, 'gcr.io/ftl-node-test/python_error_test-image:latest',
     --directory, /workspace/ftl/python/testdata/error_test, --no-cache,
     --succeed-on-error, --builder-output-path=/workspace]

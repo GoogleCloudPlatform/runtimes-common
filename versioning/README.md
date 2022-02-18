@@ -2,13 +2,14 @@
 
 Versioning tools for Dockerfile source repos.
 
-- `dockerfiles` generates versionsed Dockerfiles from on a common template.
+- `dockerfiles` generates versionsed Dockerfiles from a common template.
 - `cloudbuild` generates a configuration file to build these Dockerfiles using
   [Google Container Builder](https://cloud.google.com/container-builder/docs/).
 
 # Installation
 
-- Install bazel: https://bazel.build
+- Install [Bazel, version 0.13.0](https://bazel.build) as the build tool.
+
 - Clone this repo:
 
 ``` shell

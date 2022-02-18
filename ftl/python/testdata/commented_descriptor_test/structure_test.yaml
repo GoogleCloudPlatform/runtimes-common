@@ -3,4 +3,3 @@ fileExistenceTests:
 - name: 'app code'
   path: '/srv/app.py'
   shouldExist: true
-  isDirectory: false

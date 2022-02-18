@@ -6,7 +6,6 @@ fileExistenceTests:
 - name: 'gcp-build devDependency'
   path: '/srv/node_modules/package'
   shouldExist: false
-  isDirectory: true
 fileContentTests:
 - name: 'gcp-build hello content'
   path: '/srv/hello.txt'
