@@ -71,7 +71,13 @@ Specific version (based on git $COMMIT_SHA)
 `https://storage.googleapis.com/gcp-container-tools/ftl/php/$COMMIT_SHA/ftl.par`
 
 ## Building and Running
-FTL is built using bazel so bazel must be installed.  NOTE: FTL requires a bazel version of 0.19.1 due to syntax changes in later versions.  To build artifacts with FTL, use `bazel build` and then one of the bazel rules specified in a BUILD file.  The most common rules are `//ftl:node_builder`, `//ftl:python_builder`, and `//ftl:python_builder`.  To run FTL locally, `bazel run` can be used, passing flag args to the command.  An example is below:
+FTL is built using bazel so bazel must be installed.  NOTE: FTL requires a bazel version of 0.19.1 due to syntax changes in later versions.  To build artifacts with FTL, use `bazel build` and then one of the bazel rules specified in a BUILD file.  The most common rules are `//ftl:node_builder`, `//ftl:python_builder`, and `//ftl:python_builder`.  
+
+To build ftl.par using Bazel, the user can run the following command in the terminal:
+```
+bazel build //ftl:ftl.par
+```
+To run FTL locally, `bazel run` can be used, passing flag args to the command.  An example is below:
 ```
 bazel run //ftl:python_builder -- \
   --base=gcr.io/google-appengine/python:latest \
