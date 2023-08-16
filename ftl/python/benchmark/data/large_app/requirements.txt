@@ -1,6 +1,6 @@
 # These are requirements needed for the default configuration of the runtime:
 # gunicorn with gthread worker.
-certifi==2017.4.17
+certifi==2023.7.22
 chardet==3.0.4
 futures==3.0.3
 google-api-python-client==1.6.2
