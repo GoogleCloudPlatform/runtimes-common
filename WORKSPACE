@@ -47,7 +47,7 @@ pip_install()
 
 git_repository(
     name = "containerregistry",
-    commit = "6b250f0bae8cce028df939010ee3118c8f2977ba",
+    commit = "63ff239fa771e81237804b24ae5ff237cedbf42a",
     remote = "https://github.com/google/containerregistry",
 )
 
