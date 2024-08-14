@@ -18,5 +18,5 @@ six==1.10.0
 uritemplate==3.0.0
 urllib3==1.21.1
 webapp2==2.5.2
-WebOb==1.7.3
+WebOb==1.8.8
 Werkzeug==0.12.2
