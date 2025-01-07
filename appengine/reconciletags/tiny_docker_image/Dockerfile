@@ -13,4 +13,4 @@
 # limitations under the License.
 
 # This builds a non-functional, but very tiny docker image.
-FROM gcr.io/google-containers/pause:3.0
+FROM registry.k8s.io/pause:3.8
