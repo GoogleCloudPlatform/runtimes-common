@@ -16,7 +16,7 @@ requests==2.18.1
 rsa==3.4.2
 six==1.10.0
 uritemplate==3.0.0
-urllib3==1.21.1
+urllib3==2.5.0
 webapp2==2.5.2
 WebOb==1.7.3
 Werkzeug==0.12.2
