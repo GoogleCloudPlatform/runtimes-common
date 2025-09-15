@@ -9,4 +9,4 @@ steps:
 
   - name: gcr.io/cloud-builders/gsutil
     args: ['cp', '/workspace/${LANGUAGE}-mapping.json',
-           'gs://ftl-global-cache/${LANGUAGE}-mapping.json']
+           'gs://ftl-global-cache-1/${LANGUAGE}-mapping.json']
