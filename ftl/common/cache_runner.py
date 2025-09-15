@@ -40,7 +40,7 @@ LANGUAGE_CACHES = {
     PYTHON: constants.PYTHON_CACHE_NAMESPACE
 }
 
-MAPPING_BUCKET = 'ftl-global-cache'
+MAPPING_BUCKET = 'ftl-global-cache-1'
 MAPPING_FILE = '{language}-mapping.json'
 LOCAL_MAPPING_FILE = '/workspace/' + MAPPING_FILE
 
