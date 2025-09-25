@@ -67,7 +67,7 @@
       "passport": "0.4.0",
       "passport-google-oauth20": "1.0.0",
       "prompt": "1.0.0",
-      "pug": "2.0.0-rc.4",
+      "pug": "3.0.2",
       "request": "2.83.0",
       "uglify-js": "3.1.6",
       "winston": "2.4.0"
