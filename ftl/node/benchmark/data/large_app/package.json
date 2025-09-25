@@ -54,7 +54,7 @@
       "@google-cloud/storage": "1.4.0",
       "@google-cloud/trace-agent": "2.3.0",
       "async": "2.5.0",
-      "body-parser": "1.18.2",
+      "body-parser": "1.20.3",
       "connect-memcached": "0.2.0",
       "express": "4.16.2",
       "express-session": "1.15.6",
