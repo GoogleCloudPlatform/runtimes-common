@@ -1,16 +1,27 @@
-http_archive(
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+git_repository(
     name = "io_bazel_rules_go",
-    sha256 = "1868ff68d6079e31b2f09b828b58d62e57ca8e9636edff699247c9108518570b",
-    url = "https://github.com/bazelbuild/rules_go/releases/download/0.11.1/rules_go-0.11.1.tar.gz",
+    remote = "https://github.com/bazelbuild/rules_go.git",
+    tag = "0.16.3",
 )
+
+load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
 
 http_archive(
     name = "bazel_gazelle",
     sha256 = "92a3c59734dad2ef85dc731dbcb2bc23c4568cded79d4b87ebccd787eb89e8d0",
-    url = "https://github.com/bazelbuild/bazel-gazelle/releases/download/0.11.0/bazel-gazelle-0.11.0.tar.gz",
+    urls = [("https://github.com/bazelbuild/bazel-gazelle/releases/download/0.11.0/bazel-gazelle-0.11.0.tar.gz")],
 )
 
-load("@io_bazel_rules_go//go:def.bzl", "go_rules_dependencies", "go_register_toolchains")
+
+git_repository(
+    name = "subpar",
+    remote = "https://github.com/google/subpar",
+    tag = "1.0.0",
+)
 
 go_rules_dependencies()
 
@@ -22,8 +33,8 @@ gazelle_dependencies()
 
 git_repository(
     name = "io_bazel_rules_docker",
-    commit = "8bbe2a8abd382641e65ff7127a3700a8530f02ce",
     remote = "https://github.com/bazelbuild/rules_docker.git",
+    commit = "5eb0728594013d746959c4bd21aa4b0c3e3848d8",
 )
 
 git_repository(
@@ -47,7 +58,7 @@ pip_install()
 
 git_repository(
     name = "containerregistry",
-    commit = "6b250f0bae8cce028df939010ee3118c8f2977ba",
+    commit = "a6f2d42895f3017e244fa6ff18e1dc1d797aebb8",
     remote = "https://github.com/google/containerregistry",
 )
 
@@ -66,7 +77,7 @@ load(
 
 repositories()
 
-new_http_archive(
+http_archive(
     name = "mock",
     build_file_content = """
 # Rename mock.py to __init__.py
@@ -84,7 +95,7 @@ py_library(
     sha256 = "b839dd2d9c117c701430c149956918a423a9863b48b09c90e30a6013e7d2f44f",
     strip_prefix = "mock-1.0.1/",
     type = "tar.gz",
-    url = "https://pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz",
+    urls = [("https://pypi.python.org/packages/source/m/mock/mock-1.0.1.tar.gz")],
 )
 
 docker_pull(
@@ -94,13 +105,13 @@ docker_pull(
     repository = "google-appengine/python",
 )
 
-new_http_archive(
+http_archive(
     name = "docker_credential_gcr",
     build_file_content = """package(default_visibility = ["//visibility:public"])
 exports_files(["docker-credential-gcr"])""",
     sha256 = "c4f51ff78c25e2bfef38af0f38c6966806e25da7c5e43092c53a4d467fea4743",
     type = "tar.gz",
-    url = "https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.4.1/docker-credential-gcr_linux_amd64-1.4.1.tar.gz",
+    urls = [("https://github.com/GoogleCloudPlatform/docker-credential-gcr/releases/download/v1.4.1/docker-credential-gcr_linux_amd64-1.4.1.tar.gz")],
 )
 
 # TODO(aaron-prindle) cleanup circular dep here by pushing ubuntu_base to GCR
@@ -112,18 +123,11 @@ git_repository(
     remote = "https://github.com/GoogleCloudPlatform/base-images-docker.git",
 )
 
-UBUNTU_MAP = {
-    "16_0_4": {
-        "sha256": "51a8c466269bdebf232cac689aafad8feacd64804b13318c01096097a186d051",
-        "url": "https://storage.googleapis.com/ubuntu_tar/20171028/ubuntu-xenial-core-cloudimg-amd64-root.tar.gz",
-    },
-}
-
-[http_file(
-    name = "ubuntu_%s_tar_download" % version,
-    sha256 = map["sha256"],
-    url = map["url"],
-) for version, map in UBUNTU_MAP.items()]
+http_file(
+    name = "ubuntu_16_0_4_tar_download",
+    sha256 = "51a8c466269bdebf232cac689aafad8feacd64804b13318c01096097a186d051",
+    urls = [("https://storage.googleapis.com/ubuntu_tar/20171028/ubuntu-xenial-core-cloudimg-amd64-root.tar.gz")],
+)
 
 docker_pull(
     name = "node_base",
