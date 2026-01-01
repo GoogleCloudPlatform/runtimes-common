@@ -7,6 +7,6 @@ steps:
       '${PACKAGES}',
     ]
 
-  - name: gcr.io/cloud-builders/gsutil
-    args: ['cp', '/workspace/${LANGUAGE}-mapping.json',
+  - name: gcr.io/cloud-builders/gcloud
+    args: ['storage', 'cp', '/workspace/${LANGUAGE}-mapping.json',
            'gs://ftl-global-cache-1/${LANGUAGE}-mapping.json']

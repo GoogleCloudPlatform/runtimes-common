@@ -6,10 +6,10 @@ steps:
     args: ['tag', 'bazel/ftl:node_builder_image', 'gcr.io/gcp-runtimes/ftl_node_8_5_0_ubuntu_16_0_4_build:${COMMIT_SHA}']
   - name: 'gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a'
     args: ['build','//ftl:node_builder.par']
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', 'bazel-bin/ftl/node_builder.par', 'gs://gcp-container-tools/ftl/node/${COMMIT_SHA}/ftl.par']
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', 'gs://gcp-container-tools/ftl/node/${COMMIT_SHA}/ftl.par', 'gs://gcp-container-tools/ftl/node/latest/ftl.par']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['storage', 'cp', 'bazel-bin/ftl/node_builder.par', 'gs://gcp-container-tools/ftl/node/${COMMIT_SHA}/ftl.par']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['storage', 'cp', 'gs://gcp-container-tools/ftl/node/${COMMIT_SHA}/ftl.par', 'gs://gcp-container-tools/ftl/node/latest/ftl.par']
 
 # PHP
   - name: 'gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a'
@@ -18,12 +18,12 @@ steps:
     args: ['tag', 'bazel/ftl:php_builder_image', 'gcr.io/gcp-runtimes/ftl_php_build:${COMMIT_SHA}']
   - name: 'gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a'
     args: ['build','//ftl:php_builder.par']
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', 'bazel-bin/ftl/php_builder.par', 'gs://gcp-container-tools/ftl/php/${COMMIT_SHA}/ftl.par']
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', 'gs://gcp-container-tools/ftl/php/${COMMIT_SHA}/ftl.par', 'gs://gcp-container-tools/ftl/php/latest/ftl.par']
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', 'gs://gcp-container-tools/ftl/php/${COMMIT_SHA}/*', 'gs://gcp-container-tools/ftl/php/latest/']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['storage', 'cp', 'bazel-bin/ftl/php_builder.par', 'gs://gcp-container-tools/ftl/php/${COMMIT_SHA}/ftl.par']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['storage', 'cp', 'gs://gcp-container-tools/ftl/php/${COMMIT_SHA}/ftl.par', 'gs://gcp-container-tools/ftl/php/latest/ftl.par']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['storage', 'cp', 'gs://gcp-container-tools/ftl/php/${COMMIT_SHA}/*', 'gs://gcp-container-tools/ftl/php/latest/']
 
 # Python
   - name: 'gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a'
@@ -32,11 +32,11 @@ steps:
     args: ['tag', 'bazel/ftl:python_builder_image', 'gcr.io/gcp-runtimes/ftl_python_build:${COMMIT_SHA}']
   - name: 'gcr.io/cloud-builders/bazel@sha256:7360c36bded15db68a35cfb1740a994f0a09ad5ce378a97f96d698bc223e442a'
     args: ['build','//ftl:python_builder.par']
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', 'bazel-bin/ftl/python_builder.par', 'gs://gcp-container-tools/ftl/python/${COMMIT_SHA}/ftl.par']
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', 'gs://gcp-container-tools/ftl/python/${COMMIT_SHA}/ftl.par', 'gs://gcp-container-tools/ftl/python/latest/ftl.par']
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', 'gs://gcp-container-tools/ftl/python/${COMMIT_SHA}/*', 'gs://gcp-container-tools/ftl/python/latest/']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['storage', 'cp', 'bazel-bin/ftl/python_builder.par', 'gs://gcp-container-tools/ftl/python/${COMMIT_SHA}/ftl.par']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['storage', 'cp', 'gs://gcp-container-tools/ftl/python/${COMMIT_SHA}/ftl.par', 'gs://gcp-container-tools/ftl/python/latest/ftl.par']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['storage', 'cp', 'gs://gcp-container-tools/ftl/python/${COMMIT_SHA}/*', 'gs://gcp-container-tools/ftl/python/latest/']
 images: ['gcr.io/gcp-runtimes/ftl_node_8_5_0_ubuntu_16_0_4_build', 'gcr.io/gcp-runtimes/ftl_php_build',
 'gcr.io/gcp-runtimes/ftl_python_build']
