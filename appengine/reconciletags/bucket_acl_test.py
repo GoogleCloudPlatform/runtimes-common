@@ -13,8 +13,8 @@ class BucketAclTest(unittest.TestCase):
 
     def _get_acls(self, bucket):
         acls = json.loads(
-                  subprocess.check_output(['gsutil', 'acl',
-                                           'get', bucket]))
+                  subprocess.check_output(['gcloud', 'storage', 'buckets', 'describe',
+                                           bucket, '--format=multi(acl:format=json)']))
         return acls
 
     def _get_bucket_name(self, bucket_name, mirror):

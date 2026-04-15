@@ -29,7 +29,7 @@ SCHEMA_VERSION = 1
 
 
 def copy_to_gcs(file_path, gcs_path):
-    command = ['gsutil', 'cp', file_path, gcs_path]
+    command = ['gcloud', 'storage', 'cp', file_path, gcs_path]
     try:
         output = subprocess.check_output(command)
         logging.debug(output)
@@ -53,7 +53,7 @@ def write_to_gcs(gcs_path, file_contents):
 
 
 def get_file_from_gcs(gcs_file, temp_file):
-    command = ['gsutil', 'cp', gcs_file, temp_file]
+    command = ['gcloud', 'storage', 'cp', gcs_file, temp_file]
     try:
         subprocess.check_output(command, stderr=subprocess.STDOUT)
         return True
@@ -66,7 +66,7 @@ def get_file_from_gcs(gcs_file, temp_file):
 def load_manifest_file():
     try:
         _, tmp = tempfile.mkstemp(text=True)
-        command = ['gsutil', 'cp', MANIFEST_FILE, tmp]
+        command = ['gcloud', 'storage', 'cp', MANIFEST_FILE, tmp]
         subprocess.check_output(command, stderr=subprocess.STDOUT)
         with open(tmp) as f:
             return yaml.load(f)
@@ -82,7 +82,7 @@ def load_manifest_file():
 def file_exists(remote_path):
     try:
         logging.info('Checking file {0}'.format(remote_path))
-        command = ['gsutil', 'stat', remote_path]
+        command = ['gcloud', 'storage', 'objects', 'list', '--stat', '--fetch-encrypted-object-hashes', remote_path]
         subprocess.check_call(command, stdout=subprocess.PIPE,
                               stderr=subprocess.PIPE)
         return True
