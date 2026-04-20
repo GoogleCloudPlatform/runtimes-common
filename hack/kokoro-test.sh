@@ -15,7 +15,7 @@ fi
 
 pushd github/runtimes-common
 # Install deps.
-sudo pip install --upgrade -r requirements.txt
+sudo -E pip install --upgrade -r requirements.txt
 
 echo "Running unit tests..."
 # Run the tests.
