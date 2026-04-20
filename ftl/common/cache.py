@@ -88,12 +88,12 @@ class Registry(Base):
         self._repo = repo
         self._namespace = namespace
         self._creds = creds
-        _reg_name = '{base}/{namespace}'.format(
-            base=constants.GLOBAL_CACHE_REGISTRY, namespace=self._namespace)
+        # _reg_name = '{base}/{namespace}'.format(
+        #     base=constants.GLOBAL_CACHE_REGISTRY, namespace=self._namespace)
         # TODO(nkubala): default this to true to point builds to global cache
         self._use_global = use_global
         if use_global:
-            _reg = docker_name.Registry(_reg_name)
+            _reg = docker_name.Registry("gcr.io")
             self._global_creds = docker_creds.DefaultKeychain.Resolve(_reg)
         self._export_stats = export_stats
         self._export_location = export_location
