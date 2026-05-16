@@ -1,1 +1,4 @@
+# This file is a test fixture that intentionally references a non-existent package.
+# Do not install with pip — use --no-index to prevent PyPI resolution.
+--no-index
 floogle
