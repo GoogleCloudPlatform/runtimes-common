@@ -61,7 +61,7 @@
       "express-winston": "2.4.0",
       "lodash": "4.17.4",
       "mongodb": "2.2.33",
-      "multer": "1.3.0",
+      "multer": "2.2.0",
       "mysql": "2.15.0",
       "nconf": "0.8.5",
       "passport": "0.4.0",
