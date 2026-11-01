@@ -28,10 +28,10 @@ def check_if_tag_exists(raw_image_path, force_build):
     else:
         image_tag = 'latest'
 
-    p = subprocess.Popen(["gcloud container images list-tags "
-                          + "--format='value(tags)' --no-show-occurrences {0}"
-                          .format(image_path)],
-                         shell=True, stdout=subprocess.PIPE,
+    p = subprocess.Popen(["gcloud", "container", "images", "list-tags",
+                          "--format=value(tags)", "--no-show-occurrences",
+                          image_path],
+                         stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
 
     output, error = p.communicate()
